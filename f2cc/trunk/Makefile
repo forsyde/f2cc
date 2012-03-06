@@ -50,6 +50,16 @@ test_environment: clean build
 docs:
 	@$(DOMAKE) -C ./source docs
 
+tarball:
+	tar -cvf f2cc.tar \
+        --exclude='.svn' \
+        --exclude='testmodels' \
+        --exclude='bin' \
+        --exclude='api_tmp' \
+        --exclude='dox.log' \
+        .
+	gzip f2cc.tar
+
 help:
 	@printf "Usage:"
 	@printf
