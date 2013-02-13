@@ -59,7 +59,7 @@ Synthesizer::Synthesizer(Model* model, Logger& logger, Config& config)
     if (!model) {
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
     }
-}
+                                          }
 
 Synthesizer::~Synthesizer() throw() {
     set<Signal*>::iterator it;
@@ -82,73 +82,73 @@ Synthesizer::CodeSet Synthesizer::generateCudaCCode()
 
 Synthesizer::CodeSet Synthesizer::generateCode()
     throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logMessage(Logger::INFO, "Checking that the internal model is "
-                       "valid for synthesis...");
+    logger_.logInfoMessage("Checking that the internal model is "
+                           "valid for synthesis...");
     checkModel();
-    logger_.logMessage(Logger::INFO, "All checks passed");
+    logger_.logInfoMessage("All checks passed");
 
-    logger_.logMessage(Logger::INFO, "Generating process schedule...");
+    logger_.logInfoMessage("Generating process schedule...");
     findSchedule();
-    logger_.logMessage(Logger::INFO, string("Process schedule:\n")
-                       + scheduleToString());
+    logger_.logInfoMessage(string("Process schedule:\n")
+                           + scheduleToString());
 
-    logger_.logMessage(Logger::INFO, "Renaming process functions to avoid name "
-                       "clashes...");
+    logger_.logInfoMessage("Renaming process functions to avoid name "
+                           "clashes...");
     renameMapSYFunctions();
-    logger_.logMessage(Logger::INFO, "Combining function duplicates through "
-                       "renaming...");
+    logger_.logInfoMessage("Combining function duplicates through "
+                           "renaming...");
     combineFunctionDuplicates();
 
-    logger_.logMessage(Logger::INFO, "Generating wrapper functions for "
-                       "coalesced processes...");
+    logger_.logInfoMessage("Generating wrapper functions for "
+                           "coalesced processes...");
     generateCoalescedSyWrapperFunctions();
-    logger_.logMessage(Logger::INFO, "Combining function duplicates through "
-                       "renaming...");
+    logger_.logInfoMessage("Combining function duplicates through "
+                           "renaming...");
     combineFunctionDuplicates();
 
     if (target_platform_ == Synthesizer::CUDA) {
-        logger_.logMessage(Logger::INFO, "Generating CUDA kernel functions for "
-                           "parallel MapSY processes...");
+        logger_.logInfoMessage("Generating CUDA kernel functions for "
+                               "parallel MapSY processes...");
         generateCudaKernelFunctions();
-        logger_.logMessage(Logger::INFO, "Combining function duplicates "
-                           "through renaming...");
+        logger_.logInfoMessage("Combining function duplicates "
+                               "through renaming...");
         combineFunctionDuplicates();
     }
     else {
-        logger_.logMessage(Logger::INFO, "Generating wrapper functions for "
-                           "parallel MapSY processes...");
+        logger_.logInfoMessage("Generating wrapper functions for "
+                               "parallel MapSY processes...");
         generateParallelMapSyWrapperFunctions();
-        logger_.logMessage(Logger::INFO, "Combining function duplicates "
-                           "through renaming...");
+        logger_.logInfoMessage("Combining function duplicates "
+                               "through renaming...");
         combineFunctionDuplicates();
     }
 
-    logger_.logMessage(Logger::INFO, "Creating signal variables...");
+    logger_.logInfoMessage("Creating signal variables...");
     createSignals();
 
-    logger_.logMessage(Logger::INFO, "Discovering signal variable data "
-                       "types...");
+    logger_.logInfoMessage("Discovering signal variable data "
+                           "types...");
     discoverSignalDataTypes();
 
-    logger_.logMessage(Logger::INFO, "Propagating array sizes...");
+    logger_.logInfoMessage("Propagating array sizes...");
     propagateArraySizesBetweenSignals();
     propagateSignalArraySizesToProcessFunctions();
 
-    logger_.logMessage(Logger::INFO, "Setting data types of array input signal "
-                       "variables as 'const'...");
+    logger_.logInfoMessage("Setting data types of array input signal "
+                           "variables as 'const'...");
     setInputArraySignalVariableDataTypesAsConst();
 
-    logger_.logMessage(Logger::INFO, "Creating delay variables...");
+    logger_.logInfoMessage("Creating delay variables...");
     createDelayVariables();
 
     switch (target_platform_) {
         case C: {
-            logger_.logMessage(Logger::INFO, "Generating C code...");
+            logger_.logInfoMessage("Generating C code...");
             break;
         }
 
         case CUDA: {
-            logger_.logMessage(Logger::INFO, "Generating CUDA C code...");
+            logger_.logInfoMessage("Generating CUDA C code...");
             break;
         }
             
@@ -163,11 +163,9 @@ Synthesizer::CodeSet Synthesizer::generateCode()
         + "// AUTO-GENERATED BY F2CC " + config_.getVersion() + "\n"
         + "////////////////////////////////////////////////////////////\n";
     code.header = boiler_plate + "\n";
-    logger_.logMessage(Logger::DEBUG, "Generating model function "
-                       "description...");
+    logger_.logDebugMessage("Generating model function description...");
     code.header += generateModelFunctionDescription() + "\n";
-    logger_.logMessage(Logger::DEBUG, "Generating model function "
-                       "prototype...");
+    logger_.logDebugMessage("Generating model function prototype...");
     code.header += generateModelFunctionPrototypeCode() + ";\n";
     code.implementation = boiler_plate
         + "\n"
@@ -177,12 +175,12 @@ Synthesizer::CodeSet Synthesizer::generateCode()
             + "#include <stdio.h> // Remove when error handling and "
             + "reporting of too small input data is fixed\n"
             + "\n";
-        logger_.logMessage(Logger::DEBUG, "Generating kernel config struct "
-                           "definition...");
+        logger_.logDebugMessage("Generating kernel config struct "
+                                "definition...");
         code.implementation += generateKernelConfigStructDefinitionCode()
             + "\n";
-        logger_.logMessage(Logger::DEBUG, "Generating kernel config function "
-                           "definition...");
+        logger_.logDebugMessage("Generating kernel config function "
+                                "definition...");
         code.implementation += generateKernelConfigFunctionDefinitionCode()
             + "\n";
     }
@@ -190,11 +188,9 @@ Synthesizer::CodeSet Synthesizer::generateCode()
         code.implementation += "\n";
     }
 
-    logger_.logMessage(Logger::DEBUG, "Generating process function "
-                       "definitions...");
+    logger_.logDebugMessage("Generating process function definitions...");
     code.implementation += generateProcessFunctionDefinitionsCode() + "\n";
-    logger_.logMessage(Logger::DEBUG, "Generating model function "
-                       "definition...");
+    logger_.logDebugMessage("Generating model function definition...");
     code.implementation += generateModelFunctionDefinitionCode() + "\n";
 
     return code;
@@ -222,8 +218,8 @@ Synthesizer::Signal* Synthesizer::registerSignal(Signal* signal)
         Signal* new_signal = new Signal(*signal);
         signals_.insert(new_signal);
 
-        logger_.logMessage(Logger::DEBUG, string("Registred new signal ")
-                           + new_signal->toString());
+        logger_.logDebugMessage(string("Registred new signal ")
+                                + new_signal->toString());
 
         return new_signal;
     } catch (bad_alloc&) {
@@ -232,12 +228,32 @@ Synthesizer::Signal* Synthesizer::registerSignal(Signal* signal)
 }
 
 Synthesizer::Signal* Synthesizer::getSignal(Process::Port* out_port,
-                                           Process::Port* in_port)
+                                            Process::Port* in_port)
     throw(InvalidArgumentException, IOException, RuntimeException) {
+    string out_port_str("out port ");
+    if (out_port) {
+        out_port_str += "\"" + out_port->toString() + "\"";
+    }
+    else {
+        out_port_str += "\"\"";
+    }
+    string in_port_str("in port ");
+    if (in_port) {
+        in_port_str += "\"" + in_port->toString() + "\"";
+    }
+    else {
+        in_port_str += "\"\"";
+    }
+    logger_.logDebugMessage(string("Getting signal for ") + out_port_str
+                            + " and " + in_port_str);
+
     if (!out_port && !in_port) {
         THROW_EXCEPTION(InvalidArgumentException, "Both ports cannot be NULL");
     }
     Signal signal(out_port, in_port);
+
+    logger_.logDebugMessage(string("Returned signal ") + signal.toString());
+
     return registerSignal(&signal);
 }
 
@@ -247,6 +263,10 @@ Synthesizer::Signal* Synthesizer::getSignalByOutPort(Process::Port* out_port)
         THROW_EXCEPTION(InvalidArgumentException, "\"out_port\" must not be "
                         "NULL");
     }
+
+    logger_.logDebugMessage(string("Getting signal for out port \"")
+                            + out_port->toString() + "\"");
+
     Process::Port* in_port = NULL;
     if (out_port->isConnected()) {
         in_port = out_port->getConnectedPort();
@@ -260,6 +280,10 @@ Synthesizer::Signal* Synthesizer::getSignalByInPort(Process::Port* in_port)
         THROW_EXCEPTION(InvalidArgumentException, "\"in_port\" must not be "
                         "NULL");
     }
+
+    logger_.logDebugMessage(string("Getting signal for in port \"")
+                            + in_port->toString() + "\"");
+
     Process::Port* out_port = NULL;
     if (in_port->isConnected()) {
         out_port = in_port->getConnectedPort();
@@ -276,14 +300,19 @@ void Synthesizer::renameMapSYFunctions()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + current_process->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + current_process->getId()->getString()
+                                + "\"...");
 
         MapSY* mapsy = dynamic_cast<MapSY*>(current_process);
         if (mapsy) {
+            logger_.logDebugMessage("Is a mapSY process");
+
             list<CFunction*> functions;
             CoalescedMapSY* cmapsy = dynamic_cast<CoalescedMapSY*>(mapsy);
             if (cmapsy) {
+                logger_.logDebugMessage("Is a coalescedMapSY process");
+
                 functions = cmapsy->getFunctions();
             }
             else {
@@ -299,6 +328,9 @@ void Synthesizer::renameMapSYFunctions()
                 string new_name = getGlobalProcessFunctionName(
                     *mapsy->getId(), function->getName()
                     + tools::toString(counter));
+                logger_.logDebugMessage(string("Renaming \"")
+                                        + function->getName() + "\" to \""
+                                        + new_name + "\"");
                 function->setName(new_name);
             }
         }
@@ -317,14 +349,18 @@ void Synthesizer::combineFunctionDuplicates()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + current_process->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + current_process->getId()->getString()
+                                + "\"...");
 
         MapSY* mapsy = dynamic_cast<MapSY*>(current_process);
         if (mapsy) {
+            logger_.logDebugMessage("Is a mapSY process");
+
             list<CFunction*> functions;
             CoalescedMapSY* cmapsy = dynamic_cast<CoalescedMapSY*>(mapsy);
             if (cmapsy) {
+                logger_.logDebugMessage("Is a coalescedMapSY process");
                 functions = cmapsy->getFunctions();
             }
             else {
@@ -332,10 +368,15 @@ void Synthesizer::combineFunctionDuplicates()
             }
 
             // Rename duplicate functions
+            logger_.logDebugMessage("Analyzing function names");
             list<CFunction*>::iterator func_it;
             for (func_it = functions.begin(); func_it != functions.end();
                  ++func_it) {
                 CFunction* function = *func_it;
+
+                logger_.logDebugMessage(string("Checking function \"")
+                                        + function->getName() + "\"");
+
                 pair<map<string, string>::iterator, bool> result =
                     unique_functions.insert(pair<string, string>(
                                                 function->getBody(),
@@ -343,11 +384,10 @@ void Synthesizer::combineFunctionDuplicates()
                 if (!result.second) {
                     string new_name = result.first->second;
                     if (function->getName() != new_name) {
-                        logger_.logMessage(Logger::DEBUG, string("Duplicate ")
-                                           + "found. Function \""
-                                           + function->getName()
-                                           + "\" renamed to \"" + new_name
-                                           + "\"");
+                        logger_.logDebugMessage(string("Duplicate ")
+                                                + "found. Renaming \""
+                                                + function->getName()
+                                                + "\" to \"" + new_name + "\"");
                         function->setName(new_name);
                     }
                 }
@@ -365,20 +405,35 @@ void Synthesizer::generateCoalescedSyWrapperFunctions()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + current_process->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + current_process->getId()->getString()
+                                + "\"...");
 
         CoalescedMapSY* cmapsy = dynamic_cast<CoalescedMapSY*>(current_process);
         if (cmapsy) {
+            logger_.logDebugMessage("Is a coalescedMapSY process");
+
             list<CFunction*> functions = cmapsy->getFunctions();
             if (functions.size() > 1) {
+                logger_.logDebugMessage(string("Has ")
+                                        + tools::toString(functions.size())
+                                        + " functions. Coalescing...");
+
                 try {
                     CFunction wrapper_function =
                         generateCoalescedSyWrapperFunction(functions);
+                    logger_.logDebugMessage(string("Generated new function \"")
+                                            + wrapper_function.getName()
+                                            + "\"");
+                    logger_.logDebugMessage("Renaming function...");
                     wrapper_function.setName(getGlobalProcessFunctionName(
                                                  *cmapsy->getId(),
                                                  wrapper_function.getName()));
+                    logger_.logDebugMessage(string("Renamed to \"")
+                                            + wrapper_function.getName()
+                                            + "\"");
                     cmapsy->insertFunctionFirst(wrapper_function);
+                    logger_.logDebugMessage("Function inserted");
                 }
                 catch (InvalidFormatException& ex) {
                     THROW_EXCEPTION(IllegalStateException,
@@ -393,6 +448,8 @@ void Synthesizer::generateCoalescedSyWrapperFunctions()
 CFunction Synthesizer::generateCoalescedSyWrapperFunction(
     list<CFunction*> functions)
     throw(InvalidModelException, IOException, RuntimeException) {
+    logger_.logDebugMessage("Generating function header...");
+
     string new_name = "func_wrapper";
     CDataType new_return_type = *functions.back()->getReturnDataType();
     list<CVariable> new_input_parameters;
@@ -402,6 +459,8 @@ CFunction Synthesizer::generateCoalescedSyWrapperFunction(
         new_input_parameters.push_back(*functions.back()
                                        ->getInputParameters().back());
     }
+
+    logger_.logDebugMessage("Generating function body...");
 
     string new_body("{\n");
     list<CFunction*>::iterator it;
@@ -449,8 +508,9 @@ string Synthesizer::generateProcessFunctionDefinitionsCode()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + current_process->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + current_process->getId()->getString()
+                                + "\"...");
 
         list<CFunction*> functions;
         if (MapSY* mapsy = dynamic_cast<MapSY*>(current_process)) {
@@ -663,8 +723,8 @@ string Synthesizer::generateInputsToSignalsCopyingCode()
     bool at_least_one = false;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
         Signal* signal = getSignalByInPort(*it);
-        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
-                           + signal->toString() + "...");
+        logger_.logDebugMessage(string("Analyzing signal ")
+                                + signal->toString() + "...");
 
         CDataType data_type = *signal->getDataType();
         if (data_type.isArray()) continue;
@@ -692,8 +752,8 @@ string Synthesizer::generateSignalsToOutputsCopyingCode()
     bool at_least_one = false;
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
         Signal* signal = getSignalByOutPort(*it);
-        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
-                           + signal->toString() + "...");
+        logger_.logDebugMessage(string("Analyzing signal ")
+                                + signal->toString() + "...");
 
         CDataType data_type = *signal->getDataType();
         if (data_type.isArray()) continue;
@@ -723,8 +783,8 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
         Signal* signal = getSignalByInPort(*it);
-        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
-                           + signal->toString() + "...");
+        logger_.logDebugMessage(string("Analyzing signal ")
+                                + signal->toString() + "...");
 
         CDataType data_type = *signal->getDataType();
         if (!data_type.isArray()) continue;
@@ -739,8 +799,8 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
     list<Process::Port*> outputs = model_->getOutputs();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
         Signal* signal = getSignalByOutPort(*it);
-        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
-                           + signal->toString() + "...");
+        logger_.logDebugMessage(string("Analyzing signal ")
+                                + signal->toString() + "...");
 
         CDataType data_type = *signal->getDataType();
         if (!data_type.isArray()) continue;
@@ -769,8 +829,9 @@ void Synthesizer::createSignals()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + current_process->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + current_process->getId()->getString()
+                                + "\"...");
 
         list<Process::Port*> ports = current_process->getInPorts();
         list<Process::Port*>::iterator port_it;
@@ -783,8 +844,8 @@ void Synthesizer::createSignals()
         }
     }
 
-    logger_.logMessage(Logger::INFO, string("Created ")
-                       + tools::toString(signals_.size()) + " signal(s)");
+    logger_.logInfoMessage(string("Created ")
+                           + tools::toString(signals_.size()) + " signal(s)");
 }
 
 void Synthesizer::createDelayVariables() throw(IOException, RuntimeException) {
@@ -798,8 +859,9 @@ void Synthesizer::createDelayVariables() throw(IOException, RuntimeException) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + current_process->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + current_process->getId()->getString()
+                                + "\"...");
 
         DelaySY* delay_process = dynamic_cast<DelaySY*>(current_process);
         if (delay_process) {
@@ -822,9 +884,9 @@ void Synthesizer::createDelayVariables() throw(IOException, RuntimeException) {
         }
     }
 
-    logger_.logMessage(Logger::INFO, string("Created ")
-                       + tools::toString(delay_variables_.size())
-                       + " delay variable(s)");
+    logger_.logInfoMessage(string("Created ")
+                           + tools::toString(delay_variables_.size())
+                           + " delay variable(s)");
 }
 
 void Synthesizer::setInputArraySignalVariableDataTypesAsConst()
@@ -835,8 +897,8 @@ void Synthesizer::setInputArraySignalVariableDataTypesAsConst()
         Signal* signal = getSignalByInPort(*it);
         CDataType data_type = *signal->getDataType();
         if (!data_type.isArray()) continue;
-        logger_.logMessage(Logger::DEBUG, string("Modifying data type for ")
-                           + "signal " + signal->toString() + "...");
+        logger_.logDebugMessage(string("Modifying data type for ")
+                                + "signal " + signal->toString() + "...");
         data_type.setIsConst(true);
         signal->setDataType(data_type);
     }
@@ -846,30 +908,40 @@ void Synthesizer::discoverSignalDataTypes()
     throw(InvalidModelException, IOException, RuntimeException) {
     for (set<Signal*>::iterator it = signals_.begin(); it != signals_.end();
          ++it) {
+        Signal* signal = *it;
+
+        logger_.logDebugMessage(string("Discovering signal data type for ")
+                                + "signal " + signal->toString());
         try {
-            discoverSignalDataTypeBackwardSearch(*it);
+            logger_.logDebugMessage("Trying to searching in backward "
+                                    "direction...");
+            discoverSignalDataTypeBackwardSearch(signal);
         }
         catch (InvalidModelException&) {
             // Data type was not found; do second attempt with forward search
-            discoverSignalDataTypeForwardSearch(*it);
+            logger_.logDebugMessage(string("Backward direction failed for ")
+                                    + "signal " + signal->toString());
+            logger_.logDebugMessage("Trying to searching in forward "
+                                    "direction...");
+            discoverSignalDataTypeForwardSearch(signal);
         }
     }
 }
 
 CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
-    throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logMessage(Logger::DEBUG, string("Searching data type for signal ")
-                       + signal->toString() + "...");
+throw(InvalidModelException, IOException, RuntimeException) {
+    logger_.logDebugMessage(string("Searching data type for signal ")
+                            + signal->toString() + "...");
 
     if (signal->hasDataType()) {
-        logger_.logMessage(Logger::DEBUG, string("Found data type \"")
-                           + signal->getVariable().getDataType()->toString()
-                           + "\"");
+        logger_.logDebugMessage(string("Signal already had data type \"")
+                                + signal->getVariable().getDataType()
+                                ->toString() + "\"");
         return *signal->getVariable().getDataType();
     }
 
     if (!signal->getInPort()) {
-        logger_.logMessage(Logger::DEBUG, "Reached end of network");
+        logger_.logDebugMessage("Reached end of network");
         THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                         + "signal " + signal->toString() + " could be found");
     }
@@ -880,11 +952,22 @@ CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
     CDataType data_type;
     Process* process = signal->getInPort()->getProcess();
     if (MapSY* mapsy = dynamic_cast<MapSY*>(process)) {
+        logger_.logDebugMessage(string("Found mapSY process \"")
+                                + mapsy->getId()->getString() + "\"");
         data_type =
             *mapsy->getFunction()->getInputParameters().front()->getDataType();
-        data_type.setIsConst(false);
+        logger_.logDebugMessage(string("Found data type \"")
+                                + data_type.toString() + "\"");
+        if (data_type.isConst()) {
+            data_type.setIsConst(false);
+            logger_.logDebugMessage(string("Removed \"const\". Data type is ")
+                                    + "now \"" + data_type.toString() + "\"");
+        }
     }
     else if (ZipWithNSY* zipwithnsy = dynamic_cast<ZipWithNSY*>(process)) {
+        logger_.logDebugMessage(string("Found zipWithNSY process \"")
+                                + zipwithnsy->getId()->getString() + "\"");
+
         Process::Port* sought_port = signal->getInPort();
         list<Process::Port*> in_ports = zipwithnsy->getInPorts();
         list<Process::Port*>::iterator port_it;
@@ -913,6 +996,14 @@ CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
                             + "process \""
                             + zipwithnsy->getId()->getString() + "\"");
         }
+
+        logger_.logDebugMessage(string("Found data type \"")
+                                + data_type.toString() + "\"");
+        if (data_type.isConst()) {
+            data_type.setIsConst(false);
+            logger_.logDebugMessage(string("Removed \"const\". Data type is ")
+                                    + "now \"" + data_type.toString() + "\"");
+        }
     }
     else {
         bool data_type_found = false;
@@ -936,6 +1027,8 @@ CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
         }
 
         if (dynamic_cast<UnzipxSY*>(process)) {
+            logger_.logDebugMessage("Is an unzipxSY process");
+            logger_.logDebugMessage("Setting data type to \"array\"");
             data_type.setIsArray(true);
         }
     }
@@ -944,29 +1037,31 @@ CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
     // be sure of its array size at this point and therefore must make it
     // unknown
     if (dynamic_cast<ZipxSY*>(process) && data_type.isArray()) {
+        logger_.logDebugMessage("Is a zipxSY process");
+        logger_.logDebugMessage("Resetting array size");
         data_type.setIsArray(true);
     }
 
     signal->setDataType(data_type);
-    logger_.logMessage(Logger::DEBUG, string("Found data type \"")
-                       + data_type.toString() + "\"");
+    logger_.logDebugMessage(string("Found data type \"") + data_type.toString() 
+                            + "\" for signal " + signal->toString());
     return data_type;
 }
 
 CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
-    throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logMessage(Logger::DEBUG, string("Searching data type for signal ")
-                       + signal->toString() + "...");
+throw(InvalidModelException, IOException, RuntimeException) {
+    logger_.logDebugMessage(string("Searching data type for signal ")
+                            + signal->toString() + "...");
 
     if (signal->hasDataType()) {
-        logger_.logMessage(Logger::DEBUG, string("Found data type \"")
-                           + signal->getVariable().getDataType()->toString()
-                           + "\"");
+        logger_.logDebugMessage(string("Signal already had data type \"")
+                                + signal->getVariable().getDataType()
+                                ->toString() + "\"");
         return *signal->getVariable().getDataType();
     }
 
     if (!signal->getOutPort()) {
-        logger_.logMessage(Logger::DEBUG, "Reached end of network");
+        logger_.logDebugMessage("Reached end of network");
         THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                         + "signal " + signal->toString() + " could be found");
     }
@@ -978,7 +1073,15 @@ CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
     CDataType data_type;
     Process* process = signal->getOutPort()->getProcess();
     if (MapSY* mapsy = dynamic_cast<MapSY*>(process)) {
+        logger_.logDebugMessage(string("Found mapSY process \"")
+                                + mapsy->getId()->getString() + "\"");
+        logger_.logDebugMessage(string("Checking number of function ")
+                                + "arguments, expecting 1 or 2");
+
         CFunction* function = mapsy->getFunction();
+        logger_.logDebugMessage(string("Found ")
+                                + tools::toString(function
+                                                  ->getNumInputParameters()));
         if (function->getNumInputParameters() == 1) {
             data_type = *mapsy->getFunction()->getReturnDataType();
         }
@@ -994,12 +1097,24 @@ CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
         }
     }
     else if (ZipWithNSY* zipwithnsy = dynamic_cast<ZipWithNSY*>(process)) {
+        logger_.logDebugMessage(string("Found zipWithNSY process \"")
+                                + zipwithnsy->getId()->getString() + "\"");
+        logger_.logDebugMessage(string("Checking number of function ")
+                                + "arguments, expecting "
+                                + tools::toString(zipwithnsy->getNumInPorts())
+                                + " or "
+                                + tools::toString(zipwithnsy->getNumInPorts()
+                                                  + 1));
+
         CFunction* function = zipwithnsy->getFunction();
+        logger_.logDebugMessage(string("Found ")
+                                + tools::toString(function
+                                                  ->getNumInputParameters()));
         if (function->getNumInputParameters() == zipwithnsy->getNumInPorts()) {
             data_type = *zipwithnsy->getFunction()->getReturnDataType();
         }
-        else if (function->getNumInputParameters() + 1 
-                 == zipwithnsy->getNumInPorts()) {
+        else if (function->getNumInputParameters()
+                 == zipwithnsy->getNumInPorts() + 1) {
             data_type = *zipwithnsy->getFunction()->getInputParameters().back()
                 ->getDataType();
         }
@@ -1032,6 +1147,8 @@ CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
         }
 
         if (dynamic_cast<ZipxSY*>(process)) {
+            logger_.logDebugMessage("Is a zipxSY process");
+            logger_.logDebugMessage("Setting data type to \"array\"");
             data_type.setIsArray(true);
         }
     }
@@ -1040,12 +1157,14 @@ CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
     // cannot be sure of its array size at this point and therefore must make it
     // unknown
     if (dynamic_cast<UnzipxSY*>(process) && data_type.isArray()) {
+        logger_.logDebugMessage("Is an unzipxSY process");
+        logger_.logDebugMessage("Resetting array size");
         data_type.setIsArray(true);
     }
 
     signal->setDataType(data_type);
-    logger_.logMessage(Logger::DEBUG, string("Found data type \"")
-                       + data_type.toString() + "\"");
+    logger_.logDebugMessage(string("Found data type \"") + data_type.toString() 
+                            + "\" for signal " + signal->toString());
     return data_type;
 }
 
@@ -1058,27 +1177,47 @@ void Synthesizer::propagateArraySizesBetweenSignals()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + current_process->toString() + "\"");
 
         list<Process::Port*> ports = current_process->getInPorts();
         list<Process::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
             Signal* signal = getSignalByInPort(*port_it);
+
+            logger_.logDebugMessage(string("Discovering array size for ")
+                                    + "signal " + signal->toString());
             try {
+                logger_.logDebugMessage("Trying to searching in backward "
+                                        "direction...");
                 discoverSignalArraySizeBackwardSearch(signal);
             }
             catch (InvalidModelException&) {
                 // Do second attempt with forward search
+                logger_.logDebugMessage(string("Backward direction failed for ")
+                                        + "signal " + signal->toString());
+                logger_.logDebugMessage("Trying to searching in forward "
+                                        "direction...");
                 discoverSignalArraySizeForwardSearch(signal);
             }
         }
         ports = current_process->getOutPorts();
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
             Signal* signal = getSignalByOutPort(*port_it);
+
+            logger_.logDebugMessage(string("Discovering array size for ")
+                                    + "signal " + signal->toString());
             try {
+                logger_.logDebugMessage("Trying to searching in forward "
+                                        "direction...");
                 discoverSignalArraySizeForwardSearch(signal);
             }
             catch (InvalidModelException&) {
                 // Do second attempt with backward search
+                logger_.logDebugMessage(string("Forward direction failed for ")
+                                        + "signal " + signal->toString());
+                logger_.logDebugMessage("Trying to searching in backward "
+                                        "direction...");
                 discoverSignalArraySizeBackwardSearch(signal);
             }
         }
@@ -1086,19 +1225,19 @@ void Synthesizer::propagateArraySizesBetweenSignals()
 }
 
 size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
-    throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logMessage(Logger::DEBUG, string("Searching array size for signal ")
-                       + signal->toString() + "...");
+throw(InvalidModelException, IOException, RuntimeException) {
+    logger_.logDebugMessage(string("Searching array size for signal ")
+                            + signal->toString() + "...");
 
     CDataType data_type = *signal->getVariable().getDataType();
     if (data_type.hasArraySize()) {
-        logger_.logMessage(Logger::DEBUG, string("Found array size ")
-                           + tools::toString(data_type.getArraySize()));
+        logger_.logDebugMessage(string("Signal already had array size ")
+                                + tools::toString(data_type.getArraySize()));
         return data_type.getArraySize();
     }
 
     if (!signal->getInPort()) {
-        logger_.logMessage(Logger::DEBUG, "Reached end of network");        
+        logger_.logDebugMessage("Reached end of network");        
         THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString() + " could be found");
     }
@@ -1116,12 +1255,19 @@ size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
     }
     try {
         if (dynamic_cast<UnzipxSY*>(process)) {
-            logger_.logMessage(Logger::DEBUG, "Found UnzipxSY process. Summing "
-                               "up array sizes from its out ports...");
+            logger_.logDebugMessage(string("Found unzipxSY process \"")
+                                    + process->toString() + "\". Summing "
+                                    "up array sizes from its out ports...");
             list<Process::Port*>::iterator it;
             for (it = out_ports.begin(); it != out_ports.end(); ++it) {
                 Signal* next_signal = getSignalByOutPort(*it);
-                array_size += discoverSignalArraySizeForwardSearch(next_signal);
+                size_t array_size_for_port =
+                    discoverSignalArraySizeForwardSearch(next_signal);
+                logger_.logDebugMessage(string("Found array size ")
+                                        + tools::toString(array_size_for_port)
+                                        + " for out port \""
+                                        + (*it)->toString() + "\"");
+                array_size += array_size_for_port;
             }
         }
         else {
@@ -1131,31 +1277,32 @@ size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
     }
     catch (InvalidModelException&) {
         // Throw new exception but for this signal
-        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
+        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString()
                         + " could be found");
     }
     data_type.setArraySize(array_size);
     signal->setDataType(data_type);
-    logger_.logMessage(Logger::DEBUG, string("Found array size ")
-                       + tools::toString(data_type.getArraySize()));
+    logger_.logDebugMessage(string("Signal ") + signal->toString() + " "
+                            + "now has data type \"" + data_type.toString()
+                            + "\"");
     return array_size;
 }
 
 size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
-        throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logMessage(Logger::DEBUG, string("Searching array size for signal ")
-                       + signal->toString() + "...");
+throw(InvalidModelException, IOException, RuntimeException) {
+    logger_.logDebugMessage(string("Searching array size for signal ")
+                            + signal->toString() + "...");
 
     CDataType data_type = *signal->getVariable().getDataType();
     if (data_type.hasArraySize()) {
-        logger_.logMessage(Logger::DEBUG, string("Found array size ")
-                           + tools::toString(data_type.getArraySize()));
+        logger_.logDebugMessage(string("Found array size ")
+                                + tools::toString(data_type.getArraySize()));
         return data_type.getArraySize();
     }
 
     if (!signal->getOutPort()) {
-        logger_.logMessage(Logger::DEBUG, "Reached end of network");        
+        logger_.logDebugMessage("Reached end of network");        
         THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString() + " could be found");
     }
@@ -1173,13 +1320,19 @@ size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
     }
     try {
         if (dynamic_cast<ZipxSY*>(process)) {
-            logger_.logMessage(Logger::DEBUG, "Found ZipxSY process. Summing "
-                               "up array sizes from its in ports...");
+            logger_.logDebugMessage(string("Found zipxSY process \"")
+                                    + process->toString() + "\". Summing "
+                                    + "up array sizes from its in ports...");
             list<Process::Port*>::iterator it;
             for (it = in_ports.begin(); it != in_ports.end(); ++it) {
                 Signal* next_signal = getSignalByInPort(*it);
-                array_size +=
+                size_t array_size_for_port =
                     discoverSignalArraySizeBackwardSearch(next_signal);
+                logger_.logDebugMessage(string("Found array size ")
+                                        + tools::toString(array_size_for_port)
+                                        + " for in port \""
+                                        + (*it)->toString() + "\"");
+                array_size += array_size_for_port;
             }
         }
         else {
@@ -1189,22 +1342,23 @@ size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
     }
     catch (InvalidModelException&) {
         // Throw new exception but for this signal
-        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
+        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString()
                         + " could be found");
     }
     data_type.setArraySize(array_size);
     signal->setDataType(data_type);
-    logger_.logMessage(Logger::DEBUG, string("Found array size ")
-                       + tools::toString(data_type.getArraySize()));
+    logger_.logDebugMessage(string("Signal ") + signal->toString() + " "
+                            + "now has data type \"" + data_type.toString()
+                            + "\"");
     return array_size;
 }
 
 void Synthesizer::propagateSignalArraySizesToProcessFunctions()
     throw(IOException, RuntimeException) {
     // @todo implement
-    logger_.logMessage(Logger::WARNING, "Signal-to-function array size "
-                       "propagation not implemented");
+    logger_.logWarningMessage("Signal-to-function array size "
+                              "propagation not implemented");
 }
 
 string Synthesizer::generateSignalVariableDeclarationsCode()
@@ -1215,9 +1369,9 @@ string Synthesizer::generateSignalVariableDeclarationsCode()
         set<Signal*>::iterator it;
         for (it = signals_.begin(); it != signals_.end(); ++it) {
             Signal* signal = *it;
-            logger_.logMessage(Logger::DEBUG, string("Generating variable ")
-                               + "declaration for signal "
-                               + signal->toString() + "...");
+            logger_.logDebugMessage(string("Generating variable ")
+                                    + "declaration for signal "
+                                    + signal->toString() + "...");
 
             code += kIndents;
             if (signal->getVariable().getDataType()->isArray()) {
@@ -1293,8 +1447,8 @@ string Synthesizer::generateSignalVariableCleanupCode()
     bool at_least_one = false;
     for (it = signals_.begin(); it != signals_.end(); ++it) {
         Signal* signal = *it;
-        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
-                           + signal->toString() + "...");
+        logger_.logDebugMessage(string("Analyzing signal ") + signal->toString()
+                                + "...");
 
         if (dynamicallyAllocateMemoryForSignalVariable(signal)) {
             at_least_one = true;
@@ -1317,10 +1471,10 @@ string Synthesizer::scheduleToString() const throw() {
 }
         
 string Synthesizer::generateProcessExecutionCode(Process* process)
-    throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logMessage(Logger::DEBUG, string("Generating execution code for ")
-                       + "process \"" + process->getId()->getString()
-                       + "\"...");
+throw(InvalidModelException, IOException, RuntimeException) {
+    logger_.logDebugMessage(string("Generating execution code for ")
+                            + "process \"" + process->getId()->getString()
+                            + "\"...");
 
     string code;
     if (dynamic_cast<DelaySY*>(process)) {
@@ -1360,8 +1514,9 @@ void Synthesizer::generateCudaKernelFunctions()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + current_process->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + current_process->getId()->getString()
+                                + "\"...");
 
         ParallelMapSY* parmapsy = dynamic_cast<ParallelMapSY*>(current_process);
         if (parmapsy) {
@@ -1485,16 +1640,14 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         + "(blockIdx.x * blockDim.x + threadIdx.x) + " + offset_param_name
         + ";\n";
     if (config_.useSharedMemoryForInput()) {
-        logger_.logMessage(Logger::INFO, "USING SHARED MEMORY FOR INPUT DATA: "
-                           "YES");
+        logger_.logInfoMessage("USING SHARED MEMORY FOR INPUT DATA: YES");
         input_data_variable_name = "input_cached";
         new_body += kIndents + "extern __shared__ "
             + CDataType::typeToString(old_input_param_data_type.getType()) + " "
             + input_data_variable_name + "[];\n";
     }
     else {
-        logger_.logMessage(Logger::INFO, "USING SHARED MEMORY FOR INPUT DATA: "
-                           "NO");
+        logger_.logInfoMessage("USING SHARED MEMORY FOR INPUT DATA: NO");
         input_data_variable_name = input_param_name;
     }
 
@@ -1563,7 +1716,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
 }
 
 CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
-    size_t num_processes)
+                                                         size_t num_processes)
     throw(InvalidModelException, IOException, RuntimeException) {
     string new_name("kernel_wrapper");
     string input_param_name("input");
@@ -1750,8 +1903,9 @@ void Synthesizer::generateParallelMapSyWrapperFunctions()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + current_process->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + current_process->getId()->getString()
+                                + "\"...");
 
         ParallelMapSY* parmapsy = dynamic_cast<ParallelMapSY*>(current_process);
         if (parmapsy) {
@@ -1775,7 +1929,7 @@ void Synthesizer::generateParallelMapSyWrapperFunctions()
 }
 
 CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
-    size_t num_processes)
+                                                            size_t num_processes)
     throw(InvalidModelException, IOException, RuntimeException) {
     string new_name("parallel_wrapper");
     string input_param_name("input");
@@ -1877,8 +2031,8 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         CDataType old_output_param_data_type =
             *old_parameters.back()->getDataType();
         new_body += ", &" + output_param_name + "[i * "
-                + tools::toString(old_output_param_data_type.getArraySize())
-                + "]);\n";
+            + tools::toString(old_output_param_data_type.getArraySize())
+            + "]);\n";
     }
     new_body += kIndents + "}\n"
         + "}";
@@ -2085,14 +2239,14 @@ void Synthesizer::ensureVariableDataTypeCompatibilities(CVariable lhs,
     CDataType lhs_data_type = *lhs.getDataType();
     CDataType rhs_data_type = *rhs.getDataType();
     if (lhs_data_type.getType() != rhs_data_type.getType()) {
-            THROW_EXCEPTION(InvalidModelException, string("Error between ")
-                            + "variables " + rhs.getReferenceString()
-                            + " and " + lhs.getReferenceString() + ": "
-                            + "mismatched data types (from "
-                            + CDataType::typeToString(rhs_data_type.getType())
-                            + " to "
-                            + CDataType::typeToString(lhs_data_type.getType())
-                            + ")");
+        THROW_EXCEPTION(InvalidModelException, string("Error between ")
+                        + "variables " + rhs.getReferenceString()
+                        + " and " + lhs.getReferenceString() + ": "
+                        + "mismatched data types (from \""
+                        + CDataType::typeToString(rhs_data_type.getType())
+                        + "\" to \""
+                        + CDataType::typeToString(lhs_data_type.getType())
+                        + "\")");
     }
 }
 
@@ -2279,7 +2433,7 @@ bool Synthesizer::dynamicallyAllocateMemoryForSignalVariable(Signal* signal) {
 
 string Synthesizer::generateProcessExecutionCodeForDelaySYStep1(
     DelaySY* process)
-    throw(InvalidModelException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable output =
         getSignalByOutPort(process->getOutPorts().front())->getVariable();
     CVariable delay_variable = getDelayVariable(process).first;
@@ -2288,7 +2442,7 @@ string Synthesizer::generateProcessExecutionCodeForDelaySYStep1(
 
 string Synthesizer::generateProcessExecutionCodeForDelaySYStep2(
     DelaySY* process)
-    throw(InvalidModelException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input = 
         getSignalByInPort(process->getInPorts().front())->getVariable();
     CVariable delay_variable = getDelayVariable(process).first;
@@ -2296,7 +2450,7 @@ string Synthesizer::generateProcessExecutionCodeForDelaySYStep2(
 }
 
 string Synthesizer::generateProcessExecutionCodeForMapSY(MapSY* process)
-    throw(InvalidModelException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     list<CVariable> inputs;
     inputs.push_back(getSignalByInPort(process->getInPorts().front())
                      ->getVariable());
@@ -2308,7 +2462,7 @@ string Synthesizer::generateProcessExecutionCodeForMapSY(MapSY* process)
 
 string Synthesizer::generateProcessExecutionCodeForZipWithNSY(
     ZipWithNSY* process)
-    throw(InvalidModelException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     list<CVariable> inputs;
     list<Process::Port*> in_ports = process->getInPorts();
     list<Process::Port*>::iterator it;
@@ -2322,7 +2476,7 @@ string Synthesizer::generateProcessExecutionCodeForZipWithNSY(
 }
 
 string Synthesizer::generateProcessExecutionCodeForUnzipxSY(UnzipxSY* process)
-    throw(InvalidModelException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(process->getInPorts().front())->getVariable();
     list<CVariable> outputs;
@@ -2335,7 +2489,7 @@ string Synthesizer::generateProcessExecutionCodeForUnzipxSY(UnzipxSY* process)
 }
 
 string Synthesizer::generateProcessExecutionCodeForZipxSY(ZipxSY* process)
-    throw(InvalidModelException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable output =
         getSignalByOutPort(process->getOutPorts().front())->getVariable();
     list<CVariable> inputs;
@@ -2351,7 +2505,7 @@ string Synthesizer::generateProcessExecutionCodeForZipxSY(ZipxSY* process)
 }
 
 string Synthesizer::generateProcessExecutionCodeForCopySY(CopySY* process)
-    throw(InvalidModelException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(process->getInPorts().front())->getVariable();
     list<Process::Port*> out_ports = process->getOutPorts();

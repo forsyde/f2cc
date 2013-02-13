@@ -185,6 +185,86 @@ class Logger {
         throw(f2cc::IOException, f2cc::IllegalCallException);
 
     /**
+     * Same as logMessage(LogLevel, const std::string&) using Logger::DEBUG
+     * as argument.
+     *
+     * @param message
+     *        Log Message.
+     * @throws IOException
+     *         When an I/O error occurs.
+     * @throws IllegalCallException
+     *         When this method is invoked on a closed logger.
+     *
+     * @see logMessage(LogLevel, const std::string&)
+     */
+    void logDebugMessage(const std::string& message)
+        throw(f2cc::IOException, f2cc::IllegalCallException);
+
+    /**
+     * Same as logMessage(LogLevel, const std::string&) using Logger::INFO
+     * as argument.
+     *
+     * @param message
+     *        Log Message.
+     * @throws IOException
+     *         When an I/O error occurs.
+     * @throws IllegalCallException
+     *         When this method is invoked on a closed logger.
+     *
+     * @see logMessage(LogLevel, const std::string&)
+     */
+    void logInfoMessage(const std::string& message)
+        throw(f2cc::IOException, f2cc::IllegalCallException);
+
+    /**
+     * Same as logMessage(LogLevel, const std::string&) using Logger::WARNING
+     * as argument.
+     *
+     * @param message
+     *        Log Message.
+     * @throws IOException
+     *         When an I/O error occurs.
+     * @throws IllegalCallException
+     *         When this method is invoked on a closed logger.
+     *
+     * @see logMessage(LogLevel, const std::string&)
+     */
+    void logWarningMessage(const std::string& message)
+        throw(f2cc::IOException, f2cc::IllegalCallException);
+
+    /**
+     * Same as logMessage(LogLevel, const std::string&) using Logger::ERROR
+     * as argument.
+     *
+     * @param message
+     *        Log Message.
+     * @throws IOException
+     *         When an I/O error occurs.
+     * @throws IllegalCallException
+     *         When this method is invoked on a closed logger.
+     *
+     * @see logMessage(LogLevel, const std::string&)
+     */
+    void logErrorMessage(const std::string& message)
+        throw(f2cc::IOException, f2cc::IllegalCallException);
+
+    /**
+     * Same as logMessage(LogLevel, const std::string&) using Logger::CRITICAL
+     * as argument.
+     *
+     * @param message
+     *        Log Message.
+     * @throws IOException
+     *         When an I/O error occurs.
+     * @throws IllegalCallException
+     *         When this method is invoked on a closed logger.
+     *
+     * @see logMessage(LogLevel, const std::string&)
+     */
+    void logCriticalMessage(const std::string& message)
+        throw(f2cc::IOException, f2cc::IllegalCallException);
+
+    /**
      * Converts a log level into a string.
      *
      * @param level

@@ -73,34 +73,34 @@ Model* GraphmlParser::createModel(const string& file)
 
     // Read file content
     string xml_data;
-    logger_.logMessage(Logger::INFO, string("Reading xml data from file..."));
+    logger_.logInfoMessage(string("Reading xml data from file..."));
     try {
         tools::readFile(file_, xml_data);
     } catch (FileNotFoundException& ex) {
-        logger_.logMessage(Logger::ERROR, string("No xml input file \"") + file_
-                           + "\" could be found");
+        logger_.logErrorMessage(string("No xml input file \"") + file_
+                                + "\" could be found");
         throw;
     } catch (IOException& ex) {
-        logger_.logMessage(Logger::ERROR, string("Failed to read xml file:\n")
-                           + ex.getMessage());
+        logger_.logErrorMessage(string("Failed to read xml file:\n")
+                                + ex.getMessage());
         throw;
     }
 
     // Parse content
     Document xml;
     try {
-        logger_.logMessage(Logger::INFO, "Building xml structure...");
+        logger_.logInfoMessage("Building xml structure...");
         xml.Parse(xml_data);
     } catch (ticpp::Exception& ex) {
         // @todo throw more detailed ParseException (with line and column)
         THROW_EXCEPTION(ParseException, file_, ex.what());
     }
             
-    logger_.logMessage(Logger::INFO, "Checking xml structure...");
+    logger_.logInfoMessage("Checking xml structure...");
     checkXmlDocument(&xml);
-    logger_.logMessage(Logger::INFO, "All checks passed");
+    logger_.logInfoMessage("All checks passed");
 
-    logger_.logMessage(Logger::INFO, "Generating internal model...");
+    logger_.logInfoMessage("Generating internal model...");
     Model* model = generateModel(findXmlGraphElement(&xml));
 
     return model;
@@ -138,11 +138,11 @@ list<Element*> GraphmlParser::getElementsByName(Node* xml, const string& name)
             case TiXmlNode::STYLESHEETREFERENCE:
             case TiXmlNode::TYPECOUNT: {
                 // Found unknown XML data; warn and remove
-                logger_.logMessage(Logger::WARNING,
-                                   string("Unknown XML data at line ")
-                                   + tools::toString(child->Row()) + ", column "
-                                   + tools::toString(child->Column()) + ":\n"
-                                   + child->Value());
+                logger_.logWarningMessage(string("Unknown XML data at line ")
+                                          + tools::toString(child->Row())
+                                          + ", column "
+                                          + tools::toString(child->Column())
+                                          + ":\n" + child->Value());
                 Node* prev_child = child->PreviousSibling(name, false);
                 xml->RemoveChild(child);
                 child = prev_child;
@@ -219,10 +219,10 @@ Model* GraphmlParser::generateModel(Element* xml)
     Model* model = new (std::nothrow) Model();
     if (!model) THROW_EXCEPTION(OutOfMemoryException);
 
-    logger_.logMessage(Logger::DEBUG, "Parsing \"node\" elements...");
+    logger_.logDebugMessage("Parsing \"node\" elements...");
     parseXmlNodes(xml, model);
 
-    logger_.logMessage(Logger::DEBUG, "Parsing \"edge\" elements...");
+    logger_.logDebugMessage("Parsing \"edge\" elements...");
     map<Process::Port*, Process*> copy_processes;
     parseXmlEdges(xml, model, copy_processes);
 
@@ -242,9 +242,9 @@ void GraphmlParser::parseXmlNodes(Element* xml, Model* model)
     list<Element*> elements = getElementsByName(xml, "node");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG, string("Analyzing line "
-                                                 + tools::toString((*it)->Row())
-                                                 + "..."));
+        logger_.logDebugMessage(string("Analyzing line "
+                                       + tools::toString((*it)->Row())
+                                       + "..."));
         Process* process = generateProcess(*it);
         try {
             if (!model->addProcess(process)) {
@@ -273,9 +273,9 @@ void GraphmlParser::parseXmlEdges(Element* xml, Model* model,
     list<Element*> elements = getElementsByName(xml, "edge");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG, string("Analyzing line "
-                                                 + tools::toString((*it)->Row())
-                                                 + "..."));
+        logger_.logDebugMessage(string("Analyzing line "
+                                       + tools::toString((*it)->Row())
+                                       + "..."));
         generateConnection(*it, model, copy_processes);
     }
 }
@@ -387,8 +387,9 @@ Process* GraphmlParser::generateProcess(Element* xml)
         THROW_EXCEPTION(OutOfMemoryException);
     }
     if (!process) THROW_EXCEPTION(OutOfMemoryException);
-    logger_.logMessage(Logger::DEBUG, string("Generated ") + process->type()
-                       + " from \"" + process->getId()->getString() + "\"");
+    logger_.logDebugMessage(string("Generated ") + process->type()
+                            + " from \"" + process->getId()->getString()
+                            + "\"");
 
     // Get ports
     list<Element*> elements = getElementsByName(xml, "port");
@@ -415,11 +416,11 @@ Process* GraphmlParser::generateProcess(Element* xml)
                             + " with the same ID \""
                             + port->getId()->getString() + "\"");
         }
-        logger_.logMessage(Logger::DEBUG, string()
-                           + (is_in_port ? "In" : "Out")
-                           + " port \"" + port->getId()->getString()
-                           + "\" added to process \""
-                           + process->getId()->getString() + "\"");
+        logger_.logDebugMessage(string()
+                                + (is_in_port ? "In" : "Out")
+                                + " port \"" + port->getId()->getString()
+                                + "\" added to process \""
+                                + process->getId()->getString() + "\"");
         delete port;
     }
     
@@ -427,8 +428,8 @@ Process* GraphmlParser::generateProcess(Element* xml)
 }
 
 string GraphmlParser::getId(Element* xml)
-    throw(InvalidArgumentException, ParseException, IOException,
-          RuntimeException) {
+throw(InvalidArgumentException, ParseException, IOException,
+      RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
@@ -442,8 +443,8 @@ string GraphmlParser::getId(Element* xml)
 }
 
 string GraphmlParser::getName(Element* xml)
-    throw(InvalidArgumentException, ParseException, IOException,
-          RuntimeException) {
+throw(InvalidArgumentException, ParseException, IOException,
+      RuntimeException) {
     string name = xml->GetAttribute("name");
     if (name.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
@@ -453,8 +454,8 @@ string GraphmlParser::getName(Element* xml)
 }
 
 string GraphmlParser::getProcessType(Element* xml)
-    throw(InvalidArgumentException, ParseException, IOException,
-          RuntimeException) {
+throw(InvalidArgumentException, ParseException, IOException,
+      RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
@@ -477,8 +478,8 @@ string GraphmlParser::getProcessType(Element* xml)
 }
 
 CFunction GraphmlParser::generateProcessFunction(Element* xml)
-    throw(InvalidArgumentException, ParseException, IOException,
-          RuntimeException) {
+throw(InvalidArgumentException, ParseException, IOException,
+      RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
@@ -565,7 +566,7 @@ CFunction GraphmlParser::generateProcessFunctionFromString(
 }
 
 CDataType GraphmlParser::getDataTypeFromDeclaration(const string& str) const
-    throw(InvalidFormatException) {
+throw(InvalidFormatException) {
     size_t pos = str.find_last_of(" ");
     if (pos == string::npos) {
         THROW_EXCEPTION(InvalidFormatException, "No ' ' "
@@ -622,7 +623,7 @@ CDataType GraphmlParser::getDataTypeFromDeclaration(const string& str) const
 }
 
 string GraphmlParser::getNameFromDeclaration(const string& str) const
-    throw(InvalidFormatException) {
+throw(InvalidFormatException) {
     size_t pos = str.find_last_of(" ");
     if (pos == string::npos) {
         THROW_EXCEPTION(InvalidFormatException, "No ' ' "
@@ -681,14 +682,14 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
     if (function.getReturnDataType()->isArray()) {
         output_data_type = function.getReturnDataType();
 
-        logger_.logMessage(Logger::DEBUG, "Searching array size for return "
-                           "data type...");
+        logger_.logDebugMessage("Searching array size for return "
+                                "data type...");
     } else if (function.getNumInputParameters() > 1) {
         output_data_type = function.getInputParameters().back()->getDataType();
         // Reset to NULL if the parameter is not what we are looking for
         if (output_data_type->isArray()) {
-            logger_.logMessage(Logger::DEBUG, "Searching array size for second "
-                               "input parameter data type...");
+            logger_.logDebugMessage("Searching array size for second "
+                                    "input parameter data type...");
         }
         else {
             output_data_type = NULL;
@@ -728,8 +729,8 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
     }
     while (param_it != param_stop_point && xml_it != elements.end()) {
         if (param_it == parameters.begin()) {
-            logger_.logMessage(Logger::DEBUG, "Searching array size for "
-                               "input parameter data type...");
+            logger_.logDebugMessage("Searching array size for "
+                                    "input parameter data type...");
         }
         logger_.logMessage(Logger::DEBUG,
                            string("Analyzing line "
@@ -737,7 +738,7 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
                                   + "..."));
 
         if (!isInPort(getName(*xml_it))) {
-            logger_.logMessage(Logger::DEBUG, "Not an in port, moving to next");
+            logger_.logDebugMessage("Not an in port, moving to next");
             ++xml_it;
             continue;
         }
@@ -751,7 +752,7 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
                 (*param_it)->getDataType()->setArraySize(array_size);
             }
             else {
-                logger_.logMessage(Logger::DEBUG, "No array size key");
+                logger_.logDebugMessage("No array size key");
             }
         }
         ++param_it;
@@ -793,8 +794,8 @@ size_t GraphmlParser::findArraySize(ticpp::Element* xml)
 }
 
 string GraphmlParser::getInitialDelayValue(Element* xml)
-    throw(InvalidArgumentException, ParseException, IOException,
-          RuntimeException) {
+throw(InvalidArgumentException, ParseException, IOException,
+      RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
@@ -988,9 +989,9 @@ void GraphmlParser::generateConnection(Element* xml, Model* model,
             if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
             copy_processes.insert(pair<Process::Port*, Process*>(source_port,
                                                                  copy_process));
-            logger_.logMessage(Logger::DEBUG, string("New CopySY process \"")
-                               + copy_process->getId()->getString()
-                               + "\" created");
+            logger_.logDebugMessage(string("New CopySY process \"")
+                                    + copy_process->getId()->getString()
+                                    + "\" created");
 
             // Add to model
             if (!model->addProcess(copy_process)) {
@@ -999,9 +1000,9 @@ void GraphmlParser::generateConnection(Element* xml, Model* model,
                                 + copy_process->getId()->getString()
                                 + "\" already existed");
             }
-            logger_.logMessage(Logger::DEBUG, string("New process \"")
-                               + copy_process->getId()->getString()
-                               + "\" added to the model");
+            logger_.logDebugMessage(string("New process \"")
+                                    + copy_process->getId()->getString()
+                                    + "\" added to the model");
 
             // Break the current connection and connect the source and previous
             // target connection through the CopySY process

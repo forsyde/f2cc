@@ -114,6 +114,31 @@ void Logger::logMessage(LogLevel level, const string& message)
     cout << prompt_output << std::endl;
 }
 
+void Logger::logDebugMessage(const string& message)
+    throw(IOException, IllegalCallException) {
+    logMessage(Logger::DEBUG, message);
+}
+
+void Logger::logInfoMessage(const string& message)
+    throw(IOException, IllegalCallException) {
+    logMessage(Logger::INFO, message);
+}
+
+void Logger::logWarningMessage(const string& message)
+    throw(IOException, IllegalCallException) {
+    logMessage(Logger::WARNING, message);
+}
+
+void Logger::logErrorMessage(const string& message)
+    throw(IOException, IllegalCallException) {
+    logMessage(Logger::ERROR, message);
+}
+
+void Logger::logCriticalMessage(const string& message)
+    throw(IOException, IllegalCallException) {
+    logMessage(Logger::CRITICAL, message);
+}
+
 string Logger::logLevelToString(LogLevel level) throw() {
     switch (level) {
         case DEBUG: {

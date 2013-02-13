@@ -412,7 +412,7 @@ bool Config::isCompositeOption(const string& str) const throw() {
 }
 
 string Config::getVersion() throw() {
-    return "0.1";
+    return "0.1.1";
 }
 
 string Config::getSvnRevision() throw() {

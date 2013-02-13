@@ -244,7 +244,7 @@ class ModelModifier {
      *         bug.
      */
     std::list<ContainedSection> findContainedSections(
-        Forsyde::Process* begin, std::set<Forsyde::Id> visited)
+        Forsyde::Process* begin, std::set<Forsyde::Id>& visited)
         throw(IOException, RuntimeException);
     
     /**
@@ -253,6 +253,8 @@ class ModelModifier {
      *
      * @param begin
      *        Process to begin from.
+     * @param visited
+     *        Set of visited processes.
      * @returns A ZipxSY process, if found; otherwise \c NULL.
      * @throws IOException
      *         When access to the log file failed.
@@ -260,7 +262,8 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    Forsyde::UnzipxSY* findNearestUnzipxSYProcess(Forsyde::Process* begin)
+    Forsyde::UnzipxSY* findNearestUnzipxSYProcess(
+        Forsyde::Process* begin, std::set<Forsyde::Id>& visited)
     throw(IOException, RuntimeException);
 
     /**
@@ -293,6 +296,8 @@ class ModelModifier {
      *        Process to start the check from.
      * @param end
      *        Expected end point.
+     * @param visited
+     *        Set of visited processes.
      * @param forward
      *        Set to \c true for forward data flow check (from start to end),
      *        and \c false for backward data flow check (from end to start).
@@ -303,7 +308,11 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    bool checkDataFlowConvergence(Process* start, Process* end, bool forward)
+    bool checkDataFlowConvergence(
+        Process* start,
+        Process* end,
+        std::set<Forsyde::Id>& visited,
+        bool forward)
         throw(IOException, RuntimeException);
 
     /**
@@ -436,7 +445,7 @@ class ModelModifier {
      *         bug.
      */
     std::list< std::list<ParallelMapSY*> > findParallelMapSyChains(
-        Forsyde::Process* begin, std::set<Forsyde::Id> visited)
+        Forsyde::Process* begin, std::set<Forsyde::Id>& visited)
         throw(IOException, RuntimeException);
 
     /**
