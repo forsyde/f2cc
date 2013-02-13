@@ -67,16 +67,16 @@ void ModelModifier::coalesceDataParallelProcesses()
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
             list<Process*> chain = getProcessChain(*port_it, it->end);
             if (chain.size() > 1) {
-                logger_.logMessage(Logger::INFO, string("Coalescing process ")
-                                   + "chain " + processChainToString(chain)
-                                   + "...");
+                logger_.logInfoMessage(string("Coalescing process ")
+                                       + "chain " + processChainToString(chain)
+                                       + "...");
                 coalesceProcessChain(chain);
             }
             else {
-                logger_.logMessage(Logger::INFO, string("Data parallel ")
-                                   + "section " + it->toString()
-                                   + " only consists of one segment - no "
-                                   + "process coalescing needed");
+                logger_.logInfoMessage(string("Data parallel ")
+                                       + "section " + it->toString()
+                                       + " only consists of one segment - no "
+                                       + "process coalescing needed");
                 break;
             }
         }
@@ -87,15 +87,15 @@ void ModelModifier::coalesceParallelMapSyProcesses()
     throw(IOException, RuntimeException) {
     list< list<ParallelMapSY*> > chains = findParallelMapSyChains();
     if (chains.size() == 0) {
-        logger_.logMessage(Logger::INFO, "No ParallelMapSY chains found");
+        logger_.logInfoMessage("No ParallelMapSY chains found");
         return;
     }
 
     list< list<ParallelMapSY*> >::iterator it;
     for (it = chains.begin(); it != chains.end(); ++it) {
         if (!isParallelMapSyChainCoalescable(*it)) continue;
-        logger_.logMessage(Logger::INFO, string("Coalescing process chain ")
-                           + processChainToString(*it) + "...");
+        logger_.logInfoMessage(string("Coalescing process chain ")
+                               + processChainToString(*it) + "...");
         coalesceParallelMapSyChain(*it);
     }
 }
@@ -112,10 +112,10 @@ void ModelModifier::splitDataParallelSegments()
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
             list<Process*> chain = getProcessChain(*port_it, it->end);
             if (chain.size() <= 1) {
-                logger_.logMessage(Logger::INFO, string("Data parallel ")
-                                   + "section " + it->toString()
-                                   + " only consists of one segment - no "
-                                   + "splitting needed");
+                logger_.logInfoMessage(string("Data parallel ")
+                                       + "section " + it->toString()
+                                       + " only consists of one segment - no "
+                                       + "splitting needed");
                 aborted = true;
                 break;
             }
@@ -123,8 +123,8 @@ void ModelModifier::splitDataParallelSegments()
             chains.push_back(chain_as_vector);
         }
         if (!aborted) {
-            logger_.logMessage(Logger::INFO, string("Splitting segments in ")
-                               + "section " + it->toString() + "...");
+            logger_.logInfoMessage(string("Splitting segments in ")
+                                   + "section " + it->toString() + "...");
             splitDataParallelSegments(chains);
         }
     }
@@ -136,8 +136,8 @@ void ModelModifier::fuseUnzipMapZipProcesses()
     list<ContainedSection>::iterator it;
     for (it = sections.begin(); it != sections.end(); ++it) {
         ContainedSection section = *it;
-        logger_.logMessage(Logger::INFO, string("Fusing data parallel section ")
-                           + section.toString() + "...");
+        logger_.logInfoMessage(string("Fusing data parallel section ")
+                               + section.toString() + "...");
 
         // Get function arguments of mapSY or coalescedmapSY processes
         if (getProcessChain(section.start->getOutPorts().front(),
@@ -170,17 +170,18 @@ void ModelModifier::fuseUnzipMapZipProcesses()
             model_->getUniqueProcessId("_parallelmapSY_"), num_processes,
             functions);
         if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
-        logger_.logMessage(Logger::DEBUG, string("New ParallelMapSY process \"")
-                           + new_process->getId()->getString() + "\" created");
+        logger_.logDebugMessage(string("New ParallelMapSY process \"")
+                                + new_process->getId()->getString()
+                                + "\" created");
 
         redirectDataFlow(section.start, section.end, new_process, new_process);
 
         // Add new process to the model
         if (model_->addProcess(new_process)) {
-            logger_.logMessage(Logger::INFO, string("Data parallel section ")
-                               + section.toString() + " replaced by new "
-                               "process \""
-                               + new_process->getId()->getString() + "\"");
+            logger_.logInfoMessage(string("Data parallel section ")
+                                   + section.toString() + " replaced by new "
+                                   "process \""
+                                   + new_process->getId()->getString() + "\"");
         }
         else {
             THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
@@ -190,8 +191,8 @@ void ModelModifier::fuseUnzipMapZipProcesses()
         }
 
         // Destroy and delete the section from the model
-        logger_.logMessage(Logger::DEBUG, string("Destroying section \"")
-                           + section.toString() + "...");
+        logger_.logDebugMessage(string("Destroying section \"")
+                                + section.toString() + "...");
         destroyProcessChain(section.start);
     }
 }
@@ -201,26 +202,27 @@ void ModelModifier::convertZipWith1ToMapSY()
     list<Process*> processes = model_->getProcesses();
     list<Process*>::iterator it;
     for (it = processes.begin(); it != processes.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + (*it)->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + (*it)->getId()->getString() + "\"...");
 
         ZipWithNSY* process = dynamic_cast<ZipWithNSY*>(*it);
         if (process && process->getNumInPorts() == 1) {
             MapSY* new_process = new (std::nothrow) MapSY(
                 model_->getUniqueProcessId("_mapSY_"), *process->getFunction());
             if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
-            logger_.logMessage(Logger::DEBUG, string("New MapSY process \"")
-                               + new_process->getId()->getString()
-                               + "\" created");
+            logger_.logDebugMessage(string("New MapSY process \"")
+                                    + new_process->getId()->getString()
+                                    + "\" created");
 
             redirectDataFlow(process, process, new_process, new_process);
 
             // Add new process to the model
             if (model_->addProcess(new_process)) {
-                logger_.logMessage(Logger::INFO, string("Process \"")
-                                   + process->getId()->getString() + "\" "
-                                   + "replaced by new process \""
-                                   + new_process->getId()->getString() + "\"");
+                logger_.logInfoMessage(string("Process \"")
+                                       + process->getId()->getString() + "\" "
+                                       + "replaced by new process \""
+                                       + new_process->getId()->getString()
+                                       + "\"");
             }
             else {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
@@ -230,8 +232,8 @@ void ModelModifier::convertZipWith1ToMapSY()
             }
 
             // Destroy and delete the old process from the model
-            logger_.logMessage(Logger::DEBUG, string("Destroying process \"")
-                               + process->getId()->getString() + "...");
+            logger_.logDebugMessage(string("Destroying process \"")
+                                    + process->getId()->getString() + "...");
             model_->deleteProcess(*process->getId());
         }
     }
@@ -243,8 +245,8 @@ void ModelModifier::removeRedundantProcesses()
     list<Process*>::iterator it;
     for (it = processes.begin(); it != processes.end(); ++it) {
         Process* process = *it;
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + process->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + process->getId()->getString() + "\"...");
 
         // Remove ZipxSY and UnzipxSY processes which have only one in and out
         // port
@@ -270,15 +272,15 @@ void ModelModifier::removeRedundantProcesses()
                 }
 
                 // Update model in- and ouputs, if necessary
-                logger_.logMessage(Logger::DEBUG, "Updating model in- and "
-                                   "outputs...");
+                logger_.logDebugMessage("Updating model in- and "
+                                        "outputs...");
                 if (other_end_at_in_port == NULL) {
                     replaceModelInput(in_port,
                                       other_end_at_out_port);
                 }
                 if (other_end_at_out_port == NULL) {
                     replaceModelOutput(out_port,
-                                      other_end_at_in_port);
+                                       other_end_at_in_port);
                 }
 
                 // Delete process from model
@@ -289,16 +291,16 @@ void ModelModifier::removeRedundantProcesses()
                 }
                 
                 if (is_zipxsy) {
-                    logger_.logMessage(Logger::INFO, string("Removed ")
-                                       + "redundant ZipxSY process \""
-                                       + process_name + "\" (had only 1 in "
-                                       + "port)");
+                    logger_.logInfoMessage(string("Removed ")
+                                           + "redundant ZipxSY process \""
+                                           + process_name + "\" (had only 1 in "
+                                           + "port)");
                 }
                 else {
-                    logger_.logMessage(Logger::INFO, string("Removed ")
-                                       + "redundant UnzipxSY process \""
-                                       + process_name + "\" (had only 1 out "
-                                       + "port)");
+                    logger_.logInfoMessage(string("Removed ")
+                                           + "redundant UnzipxSY process \""
+                                           + process_name + "\" (had only 1 "
+                                           "out port)");
                 }
             }
         }
@@ -310,11 +312,11 @@ list<ModelModifier::ContainedSection> ModelModifier::findDataParallelSections()
     list<ContainedSection> sections;
 
     // Find contained sections sections
-    logger_.logMessage(Logger::INFO, "Searching for contained sections...");
+    logger_.logInfoMessage("Searching for contained sections...");
     sections = findContainedSections();
     if (sections.size() == 0) {
-        logger_.logMessage(Logger::INFO, "No contained (and thus no data "
-                           "parallel) sections found");
+        logger_.logInfoMessage("No contained (and thus no data "
+                               "parallel) sections found");
         return sections;
     }
     string message = string("Found ") + tools::toString(sections.size())
@@ -326,18 +328,18 @@ list<ModelModifier::ContainedSection> ModelModifier::findDataParallelSections()
         else       message += ", ";
         message += it->toString();
     }
-    logger_.logMessage(Logger::INFO, message);
+    logger_.logInfoMessage(message);
 
     // Check which sections are data parallel and remove those that aren't
     for (it = sections.begin(); it != sections.end(); ) {
         if(isContainedSectionDataParallel(*it)) {
-            logger_.logMessage(Logger::INFO, it->toString()
-                               + " is data parallel");
+            logger_.logInfoMessage(it->toString()
+                                   + " is data parallel");
             ++it;
         }
         else {
-            logger_.logMessage(Logger::INFO, it->toString()
-                               + " is not data parallel");
+            logger_.logInfoMessage(it->toString()
+                                   + " is not data parallel");
             it = sections.erase(it);
         }
     }
@@ -352,8 +354,8 @@ ModelModifier::findContainedSections() throw(IOException, RuntimeException) {
     list<Process::Port*> output_ports = model_->getOutputs();
     list<Process::Port*>::iterator it;
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG, string("Entering at output port \"")
-                           + (*it)->toString() + "\"");
+        logger_.logDebugMessage(string("Entering at output port \"")
+                                + (*it)->toString() + "\"");
         tools::append<ContainedSection>(sections, findContainedSections(
                                             (*it)->getProcess(), visited));
     }
@@ -361,55 +363,58 @@ ModelModifier::findContainedSections() throw(IOException, RuntimeException) {
 }
 
 list<ModelModifier::ContainedSection>
-ModelModifier::findContainedSections(Process* begin, set<Id> visited)
+ModelModifier::findContainedSections(Process* begin, set<Id>& visited)
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections;
     bool not_already_visited = visited.insert(*begin->getId()).second;
     if (not_already_visited) {
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + begin->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + begin->getId()->getString() + "\"...");
         ZipxSY* converge_point = dynamic_cast<ZipxSY*>(begin);
         if (converge_point) {
-            logger_.logMessage(Logger::DEBUG, string("Discovered zipxSY ")
-                               + "process \""
-                               + converge_point->getId()->getString() + "\"");
-            logger_.logMessage(Logger::DEBUG, "Searching for nearest unzipxSY "
-                               "process...");
+            logger_.logDebugMessage(string("Discovered zipxSY ")
+                                    + "process \""
+                                    + converge_point->getId()->getString()
+                                    + "\"");
+            logger_.logDebugMessage("Searching for nearest unzipxSY "
+                                    "process...");
+            set<Id> visited_for_nearest_unzipxsy;
             UnzipxSY* diverge_point =
-                findNearestUnzipxSYProcess(converge_point);
+                findNearestUnzipxSYProcess(converge_point,
+                                           visited_for_nearest_unzipxsy);
             if (diverge_point) {
-                logger_.logMessage(Logger::DEBUG, string("Found nearest ")
-                                   + "unzipxSY process \""
-                                   + diverge_point->getId()->getString()
-                                   + "\"");
+                logger_.logDebugMessage(string("Found nearest ")
+                                        + "unzipxSY process \""
+                                        + diverge_point->getId()->getString()
+                                        + "\"");
             }
             else {
-                logger_.logMessage(Logger::DEBUG, "No unzipxSY process found");
+                logger_.logDebugMessage("No unzipxSY process found");
                 // Return empty list
                 return sections;
             }
-            logger_.logMessage(Logger::DEBUG, string("Checking that the data ")
-                               + "flow between processes \""
-                               + diverge_point->getId()->getString()
-                               + "\" and \""
-                               + converge_point->getId()->getString()
-                               + "\" is contained...");
+            logger_.logDebugMessage(string("Checking that the data ")
+                                    + "flow between processes \""
+                                    + diverge_point->getId()->getString()
+                                    + "\" and \""
+                                    + converge_point->getId()->getString()
+                                    + "\" is contained...");
             if (!isAContainedSection(diverge_point, converge_point)) {
-                logger_.logMessage(Logger::DEBUG, string("Section between ")
-                                   + "processes \""
-                                   + diverge_point->getId()->getString()
-                                   + "\" and \""
-                                   + converge_point->getId()->getString()
-                                   + "\" is not contained");
+                logger_.logDebugMessage(string("Section between ")
+                                        + "processes \""
+                                        + diverge_point->getId()->getString()
+                                        + "\" and \""
+                                        + converge_point->getId()->getString()
+                                        + "\" is not contained");
                 goto continue_search;
             }
 
-            logger_.logMessage(Logger::DEBUG, string("Found contained section ")
-                               + "between processes \""
-                               + diverge_point->getId()->getString()
-                               + "\" and \""
-                               + converge_point->getId()->getString()
-                               + "\"");
+            logger_.logDebugMessage(string("Found contained section ")
+                                    + "between processes \""
+                                    + diverge_point->getId()->getString()
+                                    + "\" and \""
+                                    + converge_point->getId()->getString()
+                                    + "\"");
             sections.push_back(ContainedSection(diverge_point,
                                                 converge_point));
             // The converge point need not be set as visited since it is only
@@ -442,55 +447,65 @@ bool ModelModifier::isAContainedSection(Process* start, Process* end)
         THROW_EXCEPTION(InvalidArgumentException, "\"end\" must not be NULL");
     }
 
-    if (!checkDataFlowConvergence(start, end, true)) {
-        logger_.logMessage(Logger::DEBUG, string("All flow from process \"")
-                           + start->getId()->getString() + "\" does not "
-                           "converge to process \""
-                           + end->getId()->getString() + "\"");
+    set<Forsyde::Id> visited;
+    if (!checkDataFlowConvergence(start, end, visited, true)) {
+        logger_.logDebugMessage(string("All flow from process \"")
+                                + start->getId()->getString() + "\" does not "
+                                "converge to process \""
+                                + end->getId()->getString() + "\"");
         return false;
     }
-    if (!checkDataFlowConvergence(start, end, false)) {
-        logger_.logMessage(Logger::DEBUG, string("All flow to process \"")
-                           + end->getId()->getString() + "\" does not "
-                           "diverge from process \""
-                           + start->getId()->getString() + "\"");
+    visited.clear();
+    if (!checkDataFlowConvergence(start, end, visited, false)) {
+        logger_.logDebugMessage(string("All flow to process \"")
+                                + end->getId()->getString() + "\" does not "
+                                "diverge from process \""
+                                + start->getId()->getString() + "\"");
         return false;
     }
     return true;
 }
 
 bool ModelModifier::checkDataFlowConvergence(Process* start, Process* end,
+                                             set<Forsyde::Id>& visited,
                                              bool forward)
     throw(IOException, RuntimeException) {
     if (start == end) return true;
 
     if (forward) {
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + start->getId()->getString() + "\"...");
+        bool already_visited = !visited.insert(*start->getId()).second;
+        if (!already_visited) {
+            logger_.logDebugMessage(string("Analyzing process \"")
+                                    + start->getId()->getString() + "\"...");
 
-        // Check data flow from start to end
-        list<Process::Port*> out_ports = start->getOutPorts();
-        list<Process::Port*>::iterator it;
-        for (it = out_ports.begin(); it != out_ports.end(); ++it) {
-            if (!(*it)->isConnected()) return false;
-            if (!checkDataFlowConvergence((*it)->getConnectedPort()
-                                          ->getProcess(), end, true)) {
-                return false;
+            // Check data flow from start to end
+            list<Process::Port*> out_ports = start->getOutPorts();
+            list<Process::Port*>::iterator it;
+            for (it = out_ports.begin(); it != out_ports.end(); ++it) {
+                if (!(*it)->isConnected()) return false;
+                bool is_contained =
+                    checkDataFlowConvergence((*it)->getConnectedPort()
+                                             ->getProcess(), end, visited,
+                                             true);
+                if (!is_contained) return false;
             }
         }
     }
     else {
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + end->getId()->getString() + "\"...");
+        bool already_visited = !visited.insert(*end->getId()).second;
+        if (!already_visited) {
+            logger_.logDebugMessage(string("Analyzing process \"")
+                                    + end->getId()->getString() + "\"...");
 
-        // Check data flow from end to start
-        list<Process::Port*> in_ports = end->getInPorts();
-        list<Process::Port*>::iterator it;
-        for (it = in_ports.begin(); it != in_ports.end(); ++it) {
-            if (!(*it)->isConnected()) return false;
-            if (!checkDataFlowConvergence(start, (*it)->getConnectedPort()
-                                          ->getProcess(), false)) {
-                return false;
+            // Check data flow from end to start
+            list<Process::Port*> in_ports = end->getInPorts();
+            list<Process::Port*>::iterator it;
+            for (it = in_ports.begin(); it != in_ports.end(); ++it) {
+                if (!(*it)->isConnected()) return false;
+                if (!checkDataFlowConvergence(start, (*it)->getConnectedPort()
+                                              ->getProcess(), visited, false)) {
+                    return false;
+                }
             }
         }
     }
@@ -498,22 +513,27 @@ bool ModelModifier::checkDataFlowConvergence(Process* start, Process* end,
     return true;
 }
 
-UnzipxSY* ModelModifier::findNearestUnzipxSYProcess(Forsyde::Process* begin)
+UnzipxSY* ModelModifier::findNearestUnzipxSYProcess(Forsyde::Process* begin,
+                                                    set<Id>& visited)
     throw(IOException, RuntimeException) {
     if (!begin) return NULL;
 
-    logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                       + begin->getId()->getString() + "\"...");
-    UnzipxSY* sought_process = dynamic_cast<UnzipxSY*>(begin);
-    if (sought_process) return sought_process;
+    bool not_already_visited = visited.insert(*begin->getId()).second;
+    if (not_already_visited) {
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + begin->getId()->getString() + "\"...");
+        UnzipxSY* sought_process = dynamic_cast<UnzipxSY*>(begin);
+        if (sought_process) return sought_process;
 
-    list<Process::Port*> in_ports = begin->getInPorts();
-    list<Process::Port*>::iterator it;
-    for (it = in_ports.begin(); it != in_ports.end(); ++it) {
-        if ((*it)->isConnected()) {
-            Process* next_process = (*it)->getConnectedPort()->getProcess(); 
-            sought_process = findNearestUnzipxSYProcess(next_process);
-            if (sought_process) return sought_process;
+        list<Process::Port*> in_ports = begin->getInPorts();
+        list<Process::Port*>::iterator it;
+        for (it = in_ports.begin(); it != in_ports.end(); ++it) {
+            if ((*it)->isConnected()) {
+                Process* next_process = (*it)->getConnectedPort()->getProcess();
+                sought_process = findNearestUnzipxSYProcess(next_process,
+                                                            visited);
+                if (sought_process) return sought_process;
+            }
         }
     }
 
@@ -627,8 +647,8 @@ list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains()
     list<Process::Port*> output_ports = model_->getOutputs();
     list<Process::Port*>::iterator it;
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG, string("Entering at output port \"")
-                           + (*it)->toString() + "\"");
+        logger_.logDebugMessage(string("Entering at output port \"")
+                                + (*it)->toString() + "\"");
         tools::append< list<ParallelMapSY*> >(
             chains, findParallelMapSyChains((*it)->getProcess(), visited));
     }
@@ -636,20 +656,20 @@ list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains()
 }
 
 list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains(
-    Process* begin, set<Id> visited) throw(IOException, RuntimeException) {
+    Process* begin, set<Id>& visited) throw(IOException, RuntimeException) {
     list< list<ParallelMapSY*> > chains;
     bool not_already_visited = visited.insert(*begin->getId()).second;
     if (not_already_visited) {
-        logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
-                           + begin->getId()->getString() + "\"...");
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + begin->getId()->getString() + "\"...");
 
         // If this is a beginning of a chain, find the entire chain
         Process* continuation_point = begin;
         ParallelMapSY* parallelmapsy = dynamic_cast<ParallelMapSY*>(begin);
         if (parallelmapsy) {
-            logger_.logMessage(Logger::DEBUG, string("Found begin of chain at ")
-                               + "processes \""
-                               + begin->getId()->getString() + "\"");
+            logger_.logDebugMessage(string("Found begin of chain at ")
+                                    + "processes \""
+                                    + begin->getId()->getString() + "\"");
 
             list<ParallelMapSY*> chain;
             while (parallelmapsy) {
@@ -664,13 +684,14 @@ list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains(
                     ->getProcess();
                 parallelmapsy = dynamic_cast<ParallelMapSY*>(next_process);
             }
-            logger_.logMessage(Logger::DEBUG, string("Chain ended at process ")
-                               + "\"" + chain.back()->getId()->getString()
-                               + "\"");
+            logger_.logDebugMessage(string("Chain ended at process ")
+                                    + "\"" + chain.back()->getId()->getString()
+                                    + "\"");
             chains.push_back(chain);
 
-            logger_.logMessage(Logger::DEBUG, string("ParallelMapSY process ")
-                               + "chain found: " + processChainToString(chain));
+            logger_.logDebugMessage(string("ParallelMapSY process ")
+                                    + "chain found: "
+                                    + processChainToString(chain));
         }
 
         // Continue the search
@@ -706,11 +727,11 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
 
     // Add new process to the model
     if (model_->addProcess(new_process)) {
-        logger_.logMessage(Logger::INFO, string("Process chain ")
-                           + processChainToString(chain)
-                           + " replaced by new "
-                           "process \""
-                           + new_process->getId()->getString() + "\"");
+        logger_.logInfoMessage(string("Process chain ")
+                               + processChainToString(chain)
+                               + " replaced by new "
+                               "process \""
+                               + new_process->getId()->getString() + "\"");
     }
     else {
         THROW_EXCEPTION(IllegalStateException, string("Failed to create new ")
@@ -720,18 +741,18 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
     }
 
     // Destroy and delete the section from the model
-    logger_.logMessage(Logger::DEBUG, string("Destroying process chain ")
-                       + processChainToString(chain) + "...");
+    logger_.logDebugMessage(string("Destroying process chain ")
+                            + processChainToString(chain) + "...");
     destroyProcessChain(chain.front());
 }
 
 bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMapSY*> chain)
     throw(RuntimeException) {
     if (chain.size() <= 1) {
-        logger_.logMessage(Logger::INFO, string("ParallelMapSY chain ")
-                           + processChainToString(chain)
-                           + " only consists of one process - no "
-                           + "process coalescing needed");
+        logger_.logInfoMessage(string("ParallelMapSY chain ")
+                               + processChainToString(chain)
+                               + " only consists of one process - no "
+                               + "process coalescing needed");
         return false;
     }
 
@@ -749,10 +770,10 @@ bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMapSY*> chain)
         else {
             // Check that number of processes are equal
             if (current_process->getNumProcesses() != first_num_processes) {
-                logger_.logMessage(Logger::WARNING,
-                                   string("Number of processes are not equal ")
-                                   + "for all processes in  ParallelMapSY "
-                                   + "chain " + processChainToString(chain));
+                logger_.logWarningMessage(string("Number of processes are not ")
+                                          + "equal for all processes in "
+                                          + "ParallelMapSY chain "
+                                          + processChainToString(chain));
                 return false;
             }
 
@@ -762,10 +783,9 @@ bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMapSY*> chain)
                 ->getDataType();
             input_data_type.setIsConst(false);
             if (input_data_type != prev_output_data_type) {
-                logger_.logMessage(Logger::WARNING,
-                                   string("Non-matching data types in "
-                                          "ParallelMapSY chain ")
-                                   + processChainToString(chain));
+                logger_.logWarningMessage(string("Non-matching data types in ")
+                                          + "ParallelMapSY chain "
+                                          + processChainToString(chain));
                 return false;
             }
         }
@@ -804,11 +824,11 @@ void ModelModifier::coalesceParallelMapSyChain(list<ParallelMapSY*> chain)
 
     // Add new process to the model
     if (model_->addProcess(new_process)) {
-        logger_.logMessage(Logger::INFO, string("Process chain ")
-                           + processChainToString(chain)
-                           + " replaced by new "
-                           "process \""
-                           + new_process->getId()->getString() + "\"");
+        logger_.logInfoMessage(string("Process chain ")
+                               + processChainToString(chain)
+                               + " replaced by new "
+                               "process \""
+                               + new_process->getId()->getString() + "\"");
     }
     else {
         THROW_EXCEPTION(IllegalStateException, string("Failed to create new ")
@@ -818,8 +838,8 @@ void ModelModifier::coalesceParallelMapSyChain(list<ParallelMapSY*> chain)
     }
 
     // Destroy and delete the section from the model
-    logger_.logMessage(Logger::DEBUG, string("Destroying process chain ")
-                       + processChainToString(chain) + "...");
+    logger_.logDebugMessage(string("Destroying process chain ")
+                            + processChainToString(chain) + "...");
     destroyProcessChain(chain.front());
 }
 
@@ -868,24 +888,25 @@ void ModelModifier::splitDataParallelSegments(
         size_t num_segments = chains.front().size();
         for (size_t current_segment = 1; current_segment < num_segments;
              ++current_segment) {
-            logger_.logMessage(Logger::INFO, string("Splitting process chains ")
-                               + "between positions "
-                               + tools::toString(current_segment - 1) + " and "
-                               + tools::toString(current_segment) + "...");
+            logger_.logInfoMessage(string("Splitting process chains ")
+                                   + "between positions "
+                                   + tools::toString(current_segment - 1)
+                                   + " and "
+                                   + tools::toString(current_segment) + "...");
 
             // Create new processes zipxSY and unzipxSY
             ZipxSY* new_zipxSY = new (std::nothrow) ZipxSY(
                 model_->getUniqueProcessId("_zipxSY_"));
             if (!new_zipxSY) THROW_EXCEPTION(OutOfMemoryException);
-            logger_.logMessage(Logger::DEBUG, string("New ZipxSY process \"")
-                               + new_zipxSY->getId()->getString()
-                               + "\" created");
+            logger_.logDebugMessage(string("New ZipxSY process \"")
+                                    + new_zipxSY->getId()->getString()
+                                    + "\" created");
             UnzipxSY* new_unzipxSY = new (std::nothrow) UnzipxSY(
                 model_->getUniqueProcessId("_unzipxSY_"));
             if (!new_unzipxSY) THROW_EXCEPTION(OutOfMemoryException);
-            logger_.logMessage(Logger::DEBUG, string("New UnzipxSY process \"")
-                               + new_zipxSY->getId()->getString()
-                               + "\" created");
+            logger_.logDebugMessage(string("New UnzipxSY process \"")
+                                    + new_zipxSY->getId()->getString()
+                                    + "\" created");
 
             // Connect the zipxSY to the unzipxSY
             if (!new_zipxSY->addOutPort(Id("out"))) {
@@ -896,7 +917,7 @@ void ModelModifier::splitDataParallelSegments(
             }
             new_zipxSY->getOutPort(Id("out"))->connect(
                 new_unzipxSY->getInPort(Id("in")));
-            logger_.logMessage(Logger::DEBUG, "Ports added");
+            logger_.logDebugMessage("Ports added");
 
             // Insert the zipxSY and unzipxSY process in between the current
             // data parallel segment
@@ -911,10 +932,10 @@ void ModelModifier::splitDataParallelSegments(
                 Process::Port* left_mapSY_out_port = 
                     chains[i][current_segment - 1]->getOutPorts().front();
                 Process::Port* zipxSY_in_port = new_zipxSY->getInPorts().back();
-                logger_.logMessage(Logger::DEBUG, string("Connecting \"")
-                                   + left_mapSY_out_port->toString()
-                                   + "\" with \""
-                                   + zipxSY_in_port->toString() + "\"...");
+                logger_.logDebugMessage(string("Connecting \"")
+                                        + left_mapSY_out_port->toString()
+                                        + "\" with \""
+                                        + zipxSY_in_port->toString() + "\"...");
                 left_mapSY_out_port->connect(zipxSY_in_port);
 
                 // Connect right mapSY with unzipxSY
@@ -926,10 +947,11 @@ void ModelModifier::splitDataParallelSegments(
                     chains[i][current_segment]->getInPorts().front();
                 Process::Port* unzipxSY_out_port = 
                     new_unzipxSY->getOutPorts().back();
-                logger_.logMessage(Logger::DEBUG, string("Connecting \"")
-                                   + right_mapSY_in_port->toString()
-                                   + "\" with \""
-                                   + unzipxSY_out_port->toString() + "\"...");
+                logger_.logDebugMessage(string("Connecting \"")
+                                        + right_mapSY_in_port->toString()
+                                        + "\" with \""
+                                        + unzipxSY_out_port->toString()
+                                        + "\"...");
                 right_mapSY_in_port->connect(unzipxSY_out_port);
             }
 
@@ -947,11 +969,11 @@ void ModelModifier::splitDataParallelSegments(
                                 + "\" already existed");
             }
 
-            logger_.logMessage(Logger::DEBUG, string("New processes \"")
-                               + new_zipxSY->getId()->getString()
-                               + "\" and \""
-                               + new_unzipxSY->getId()->getString()
-                               + "\" added to the model");
+            logger_.logDebugMessage(string("New processes \"")
+                                    + new_zipxSY->getId()->getString()
+                                    + "\" and \""
+                                    + new_unzipxSY->getId()->getString()
+                                    + "\" added to the model");
         }
     }
     catch (std::out_of_range&) {
@@ -1010,12 +1032,13 @@ void ModelModifier::redirectDataFlow(Process* old_start, Process* old_end,
         message += string("\"") + new_start->getId()->getString() + "\" and \""
             + new_end->getId()->getString() + "\"";
     }
-    logger_.logMessage(Logger::INFO, message);
+    logger_.logInfoMessage(message);
 
     // Add in ports of old_start to the new_start
-    logger_.logMessage(Logger::DEBUG, string("Adding in ports from process \"")
-                       + old_start->getId()->getString() + "\" to process \""
-                       + new_start->getId()->getString() + "\"");
+    logger_.logDebugMessage(string("Adding in ports from process \"")
+                            + old_start->getId()->getString()
+                            + "\" to process \""
+                            + new_start->getId()->getString() + "\"");
     list<Process::Port*> in_ports = old_start->getInPorts();
     list<Process::Port*>::iterator it;
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
@@ -1029,9 +1052,9 @@ void ModelModifier::redirectDataFlow(Process* old_start, Process* old_end,
     }
 
     // Add out ports of old_end to the new_end
-    logger_.logMessage(Logger::DEBUG, string("Adding out ports from process \"")
-                       + old_end->getId()->getString() + "\" to process \""
-                       + new_end->getId()->getString() + "\"");
+    logger_.logDebugMessage(string("Adding out ports from process \"")
+                            + old_end->getId()->getString() + "\" to process \""
+                            + new_end->getId()->getString() + "\"");
     list<Process::Port*> out_ports = old_end->getOutPorts();
     for (it = out_ports.begin(); it != out_ports.end(); ++it) {
         if (!new_end->addOutPort(**it)) {

@@ -124,22 +124,22 @@ int main(int argc, const char* argv[]) {
         cout << ex.toString() << endl;
         cout << error_abort_str << endl;
     }
-    logger.logMessage(Logger::DEBUG, "Logger open");
+    logger.logDebugMessage("Logger open");
 
     // Execute
     try {
         try {
             Frontend* parser = new (std::nothrow) GraphmlParser(logger);
             if (!parser) THROW_EXCEPTION(OutOfMemoryException);
-            logger.logMessage(Logger::INFO, string("MODEL INPUT FILE: ")
-                              + config.getInputFile());
-            logger.logMessage(Logger::INFO, "Parsing input file...");
+            logger.logInfoMessage(string("MODEL INPUT FILE: ")
+                                  + config.getInputFile());
+            logger.logInfoMessage("Parsing input file...");
             Model* model = parser->parse(config.getInputFile());
             delete parser;
 
             string model_info_message("MODEL INFO:\n");
             model_info_message += getModelInfo(model);
-            logger.logMessage(Logger::INFO, model_info_message);
+            logger.logInfoMessage(model_info_message);
 
             string target_platform_message("TARGET PLATFORM: ");
             switch (config.getTargetPlatform()) {
@@ -153,13 +153,13 @@ int main(int argc, const char* argv[]) {
                     break;
                 }
             }
-            logger.logMessage(Logger::INFO, target_platform_message);
+            logger.logInfoMessage(target_platform_message);
 
             // Make model modifications, if necessary
             ModelModifier modifier(model, logger);
-            logger.logMessage(Logger::INFO, "Removing redundant processes...");
+            logger.logInfoMessage("Removing redundant processes...");
             modifier.removeRedundantProcesses();
-            logger.logMessage(Logger::INFO, "Converting ZipWithN processes "
+            logger.logInfoMessage("Converting ZipWithN processes "
                               "with one in port to MapSY processes...");
             modifier.convertZipWith1ToMapSY();
             if (config.getTargetPlatform() == Config::CUDA) {
@@ -171,15 +171,15 @@ int main(int argc, const char* argv[]) {
                 else {
                     process_coalescing_message += "NO";
                 }
-                logger.logMessage(Logger::INFO, process_coalescing_message);
+                logger.logInfoMessage(process_coalescing_message);
                 if (config.doDataParallelProcessCoalesing()) {
-                    logger.logMessage(Logger::INFO, ""
+                    logger.logInfoMessage(""
                                       "Performing data parallel MapSY process "
                                       "coalescing...");
                     modifier.coalesceDataParallelProcesses();
                 }
 
-                logger.logMessage(Logger::INFO, 
+                logger.logInfoMessage(
                                   "Splitting data parallel segments...");
                 modifier.splitDataParallelSegments();
 
@@ -189,7 +189,7 @@ int main(int argc, const char* argv[]) {
                 modifier.fuseUnzipMapZipProcesses();
 
                 if (config.doDataParallelProcessCoalesing()) {
-                    logger.logMessage(Logger::INFO, ""
+                    logger.logInfoMessage(""
                                       "Performing ParallelMapSY process "
                                       "coalescing...");
                     modifier.coalesceParallelMapSyProcesses();
@@ -197,7 +197,7 @@ int main(int argc, const char* argv[]) {
             }
             model_info_message = "NEW MODEL INFO:\n";
             model_info_message += getModelInfo(model);
-            logger.logMessage(Logger::INFO, model_info_message);
+            logger.logInfoMessage(model_info_message);
 
             // Generate code and write to file
             Synthesizer synthesizer(model, logger, config);
@@ -214,28 +214,28 @@ int main(int argc, const char* argv[]) {
                 }
             }
 
-            logger.logMessage(Logger::INFO, "Writing code to output files...");
+            logger.logInfoMessage("Writing code to output files...");
             tools::writeFile(config.getHeaderOutputFile(), code.header);
             tools::writeFile(config.getImplementationOutputFile(),
                              code.implementation);
 
-            logger.logMessage(Logger::INFO, "MODEL SYNTHESIS COMPLETE");
+            logger.logInfoMessage("MODEL SYNTHESIS COMPLETE");
 
             // Clean up
             delete model;
-            logger.logMessage(Logger::DEBUG, "Closing logger...");
+            logger.logDebugMessage("Closing logger...");
             logger.close();
         } catch (FileNotFoundException& ex) {
-            logger.logMessage(Logger::ERROR, ex.getMessage());
+            logger.logErrorMessage(ex.getMessage());
         } catch (ParseException& ex) {
-            logger.logMessage(Logger::ERROR, parse_error_str + ex.getMessage());
+            logger.logErrorMessage(parse_error_str + ex.getMessage());
         } catch (InvalidModelException& ex) {
-            logger.logMessage(Logger::ERROR, model_error_str + ex.getMessage());
+            logger.logErrorMessage(model_error_str + ex.getMessage());
         } catch (IOException& ex) {
-            logger.logMessage(Logger::ERROR, io_error_str + ex.getMessage());
+            logger.logErrorMessage(io_error_str + ex.getMessage());
         } catch (Exception& ex) {
-            logger.logMessage(Logger::CRITICAL, critical_error_str
-                              + ex.toString() + error_abort_str);
+            logger.logCriticalMessage(critical_error_str + ex.toString()
+                                      + error_abort_str);
         }
     } catch (Exception&) {
         // Ignore

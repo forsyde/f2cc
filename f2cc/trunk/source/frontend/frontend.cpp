@@ -45,10 +45,9 @@ Model* Frontend::parse(const string& file)
 
     Model* model = createModel(file);
 
-    logger_.logMessage(Logger::INFO, "Checking that the internal model is "
-                       "sane...");
+    logger_.logInfoMessage("Checking that the internal model is sane...");
     checkModel(model);
-    logger_.logMessage(Logger::INFO, "All checks passed");
+    logger_.logInfoMessage("All checks passed");
 
     postCheckFixes(model);
 
