@@ -72,12 +72,11 @@ $(OBJPATH)/%.o: %.cpp
 	@$(CC) $(CCFLAGS) -o $@ -c $<
 
 docs: predocs
-	@printf $(subst %,Building API,$(PARTDOCSMSG))
 	@doxygen dox
-	@printf $(POSTDOCSMSG)
+	@printf $(POSTDOCSBUILDMSG)
 	@cat dox.log
 
 predocs:
-	@printf $(PREDOCSMSG)
+	@printf $(PREDOCSBUILDMSG)
 
 .PHONY: prebuild $(LIBPATH) $(OBJPATH) docs predocs $(DEPENDENCIES)
