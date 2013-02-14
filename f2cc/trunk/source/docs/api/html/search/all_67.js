@@ -88,6 +88,7 @@ var searchData=
   ['getpointerdeclarationstring',['getPointerDeclarationString',['../classf2cc_1_1CVariable.html#a9465554b5dca9a6b37d3d273356fd88f',1,'f2cc::CVariable']]],
   ['getprocess',['getProcess',['../classf2cc_1_1Forsyde_1_1Model.html#a191ee71e5b9186838543b316ffbf5fcd',1,'f2cc::Forsyde::Model::getProcess()'],['../classf2cc_1_1Forsyde_1_1Process_1_1Port.html#af8ccf30e7505aacf4fd4ec9ff78cf59f',1,'f2cc::Forsyde::Process::Port::getProcess()']]],
   ['getprocesschain',['getProcessChain',['../classf2cc_1_1Forsyde_1_1ModelModifier.html#aa96c565ac36229f1b20583dda137e6a0',1,'f2cc::Forsyde::ModelModifier']]],
+  ['getprocesschainr',['getProcessChainR',['../classf2cc_1_1Forsyde_1_1ModelModifier.html#afc58946cbcd80c427b5e8de318da0748',1,'f2cc::Forsyde::ModelModifier']]],
   ['getprocesses',['getProcesses',['../classf2cc_1_1Forsyde_1_1Model.html#acbad3626d366652eeaec585a3aad9696',1,'f2cc::Forsyde::Model']]],
   ['getprocesstype',['getProcessType',['../classf2cc_1_1GraphmlParser.html#a6900f76c7ffe7af7900eadb2ebce339c',1,'f2cc::GraphmlParser']]],
   ['getreferencestring',['getReferenceString',['../classf2cc_1_1CVariable.html#a0de423f46eefd74fdc7f9fd118fdf0f5',1,'f2cc::CVariable']]],
@@ -107,7 +108,7 @@ var searchData=
   ['getvariablename',['getVariableName',['../classf2cc_1_1Synthesizer_1_1Signal.html#a090698d171b3c5e28fc761e97d3218e2',1,'f2cc::Synthesizer::Signal']]],
   ['getversion',['getVersion',['../classf2cc_1_1Config.html#a18f55cc0d08f886db518b255c9487e5d',1,'f2cc::Config']]],
   ['globally_5fvisited_5f',['globally_visited_',['../classf2cc_1_1ScheduleFinder.html#a5e07cb0f67f731ab99b710eca99352ad',1,'f2cc::ScheduleFinder']]],
-  ['graphmlparser',['GraphmlParser',['../classf2cc_1_1GraphmlParser.html#a80de984cf1e34e1a02de288513811ad8',1,'f2cc::GraphmlParser']]],
   ['graphmlparser',['GraphmlParser',['../classf2cc_1_1GraphmlParser.html',1,'f2cc']]],
+  ['graphmlparser',['GraphmlParser',['../classf2cc_1_1GraphmlParser.html#a80de984cf1e34e1a02de288513811ad8',1,'f2cc::GraphmlParser']]],
   ['graphmlparser_2eh',['graphmlparser.h',['../graphmlparser_8h.html',1,'']]]
 ];

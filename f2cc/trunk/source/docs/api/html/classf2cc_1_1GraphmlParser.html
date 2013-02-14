@@ -230,7 +230,7 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Checks that there is at most one InPort and exactly one OutPort process within the model.</p>
+<p>Checks that there is at least one InPort and at least one OutPort process within the model.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">model</td><td>Model to check. </td></tr>
@@ -312,7 +312,15 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Creates a new ForSyDe model by parsing a given input file. This method is responsible of dynamically allocating and returning a new <code><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html" title="Contains the internal representation of a ForSyDe model.">Forsyde::Model</a></code> object.<dl class="params"><dt>Parameters</dt><dd>
+<p>Creates a new ForSyDe model by parsing a given input file. This method is responsible of dynamically allocating and returning a new <code><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html" title="Contains the internal representation of a ForSyDe model.">Forsyde::Model</a></code> object. After the model has been created, it is subjected to a series of checks and hook invocations to ensure that the model is sane and valid for the later steps in the synthesis procedure.The order of the hook calls are:</p>
+<ul>
+<li><a class="el" href="classf2cc_1_1Frontend.html#a07b949de182ec1b68b46e8311e5ff301">checkModel(Forsyde::Model*)</a></li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#aeecfd6c4cdbe455859c69bc7c4e1b21d">checkModelMore(Forsyde::Model*)</a></li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#a16c021fa6baa1f66dcea8876e726027b">postCheckFixes(Forsyde::Model*)</a></li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#a1dab5c5704fedbb24d8d626e81578db2">ensureNoInPorts(Forsyde::Model*)</a></li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#a518940ec5808349c4f8c24474cfa6119">ensureNoOutPorts(Forsyde::Model*)</a></li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">file</td><td>Input file. </td></tr>
   </table>
@@ -1426,7 +1434,7 @@ Additional Inherited Members</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Feb 13 2013 10:26:03 for f2cc by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Feb 14 2013 12:38:52 for f2cc by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.1.2
 </small></address>
