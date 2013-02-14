@@ -588,7 +588,7 @@ class GraphmlParser : public Frontend {
         throw();
 
     /**
-     * Checks that there is at most one InPort and exactly one OutPort process
+     * Checks that there is at least one InPort and at least one OutPort process
      * within the model.
      * 
      * @param model

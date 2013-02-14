@@ -331,6 +331,7 @@ list<ModelModifier::ContainedSection> ModelModifier::findDataParallelSections()
     logger_.logInfoMessage(message);
 
     // Check which sections are data parallel and remove those that aren't
+    logger_.logInfoMessage("Checking which sections are data parallel...");
     for (it = sections.begin(); it != sections.end(); ) {
         if(isContainedSectionDataParallel(*it)) {
             logger_.logInfoMessage(it->toString()
@@ -366,8 +367,7 @@ list<ModelModifier::ContainedSection>
 ModelModifier::findContainedSections(Process* begin, set<Id>& visited)
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections;
-    bool not_already_visited = visited.insert(*begin->getId()).second;
-    if (not_already_visited) {
+    if (visitProcess(visited, begin)) {
         logger_.logDebugMessage(string("Analyzing process \"")
                                 + begin->getId()->getString() + "\"...");
         ZipxSY* converge_point = dynamic_cast<ZipxSY*>(begin);
@@ -473,8 +473,7 @@ bool ModelModifier::checkDataFlowConvergence(Process* start, Process* end,
     if (start == end) return true;
 
     if (forward) {
-        bool already_visited = !visited.insert(*start->getId()).second;
-        if (!already_visited) {
+        if (visitProcess(visited, start)) {
             logger_.logDebugMessage(string("Analyzing process \"")
                                     + start->getId()->getString() + "\"...");
 
@@ -492,8 +491,7 @@ bool ModelModifier::checkDataFlowConvergence(Process* start, Process* end,
         }
     }
     else {
-        bool already_visited = !visited.insert(*end->getId()).second;
-        if (!already_visited) {
+        if (visitProcess(visited, end)) {
             logger_.logDebugMessage(string("Analyzing process \"")
                                     + end->getId()->getString() + "\"...");
 
@@ -517,9 +515,7 @@ UnzipxSY* ModelModifier::findNearestUnzipxSYProcess(Forsyde::Process* begin,
                                                     set<Id>& visited)
     throw(IOException, RuntimeException) {
     if (!begin) return NULL;
-
-    bool not_already_visited = visited.insert(*begin->getId()).second;
-    if (not_already_visited) {
+    if (visitProcess(visited, begin)) {
         logger_.logDebugMessage(string("Analyzing process \"")
                                 + begin->getId()->getString() + "\"...");
         UnzipxSY* sought_process = dynamic_cast<UnzipxSY*>(begin);
@@ -542,11 +538,17 @@ UnzipxSY* ModelModifier::findNearestUnzipxSYProcess(Forsyde::Process* begin,
 
 bool ModelModifier::isContainedSectionDataParallel(
     const ContainedSection& section) throw(IOException, RuntimeException) {
+    logger_.logDebugMessage(string("Analyzing contained section ")
+                            + section.toString() + "...");
+
     list<Process::Port*> ports = section.start->getOutPorts();
     list<Process::Port*>::iterator port_it;
     bool first = true;
     list<Process*> first_chain;
     for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
+        logger_.logDebugMessage(string("Starting at port \"")
+                                + (*port_it)->toString() + "\"");
+        logger_.logDebugMessage("Getting process chain...");
         list<Process*> current_chain = getProcessChain(*port_it, section.end);
         if (!hasOnlyMapSys(current_chain)) {
             logger_.logMessage(Logger::DEBUG,
@@ -622,15 +624,52 @@ bool ModelModifier::areProcessChainsEqual(list<Process*> first,
 list<Process*> ModelModifier::getProcessChain(Process::Port* start,
                                               Process* end)
     throw(OutOfMemoryException) {
+    logger_.logDebugMessage(string("Getting process chain from \"")
+                            + start->toString() + "\" to \"" + end->toString()
+                            + "\"...");
+    set<Id> visited;
+    return getProcessChainR(start, end, visited);
+}
+
+list<Process*> ModelModifier::getProcessChainR(Process::Port* start,
+                                               Process* end, set<Id>& visited)
+    throw(OutOfMemoryException) {
     try {
+        logger_.logDebugMessage("At \"" + start->toString() + "\"");
+
         list<Process*> chain;
-        Process::Port* port = start;
         while (true) {
-            if (!port->isConnected()) break;
-            Process* next_process = port->getConnectedPort()->getProcess();
-            if (next_process == end) break;
+            if (!start->isConnected()) {
+                logger_.logDebugMessage(string("\"") + start->toString()
+                                        + "\" is not connected");
+                break;
+            }
+            Process* next_process = start->getConnectedPort()->getProcess();
+            logger_.logDebugMessage(string("Moved to process \"")
+                                    + next_process->getId()->getString()
+                                    + "\"");
+            if (next_process == end) {
+                logger_.logDebugMessage("Found end point");
+                break;
+            }
+            if (visitProcess(visited, next_process)) {
+                logger_.logDebugMessage(string("\"") + next_process->getId()
+                                        ->getString() + "\" already visited");
+                break;
+            }
             chain.push_back(next_process);
-            port = next_process->getOutPorts().front();
+            logger_.logDebugMessage(string("Pushed process \"")
+                                    + next_process->getId()->getString()
+                                    + "\" to chain");
+            list<Process::Port*> output_ports = next_process->getOutPorts();
+            list<Process::Port*>::iterator it;
+            for (it = output_ports.begin(); it != output_ports.end(); ++it) {
+                list<Process*> subchain = getProcessChainR(*it, end, visited);
+                logger_.logDebugMessage(string("Found subchain: ")
+                                        + processChainToString(subchain));
+                tools::append(chain, subchain);
+                logger_.logDebugMessage("Appended to chain");
+            }
         }
 
         return chain;
@@ -658,8 +697,7 @@ list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains()
 list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains(
     Process* begin, set<Id>& visited) throw(IOException, RuntimeException) {
     list< list<ParallelMapSY*> > chains;
-    bool not_already_visited = visited.insert(*begin->getId()).second;
-    if (not_already_visited) {
+    if (visitProcess(visited, begin)) {
         logger_.logDebugMessage(string("Analyzing process \"")
                                 + begin->getId()->getString() + "\"...");
 
@@ -1093,4 +1131,9 @@ void ModelModifier::replaceModelOutput(Process::Port* old_port,
             break;
         }
     }
+}
+
+bool ModelModifier::visitProcess(set<Id>& visited, Process* process)
+    throw(RuntimeException) {
+    return visited.insert(*process->getId()).second;
 }

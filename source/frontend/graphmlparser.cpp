@@ -169,7 +169,7 @@ void GraphmlParser::checkXmlDocument(Document* xml)
     }
 
     // @todo implement
-    logger_.logMessage(Logger::WARNING, "XML document check not implemented");
+    logger_.logWarningMessage("XML document check not implemented");
 }
 
 Element* GraphmlParser::findXmlGraphElement(Document* xml)
@@ -273,9 +273,8 @@ void GraphmlParser::parseXmlEdges(Element* xml, Model* model,
     list<Element*> elements = getElementsByName(xml, "edge");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logDebugMessage(string("Analyzing line "
-                                       + tools::toString((*it)->Row())
-                                       + "..."));
+        logger_.logDebugMessage(string("Analyzing line ")
+                                + tools::toString((*it)->Row()) + "...");
         generateConnection(*it, model, copy_processes);
     }
 }
@@ -286,51 +285,88 @@ void GraphmlParser::fixModelInputsOutputs(Model* model)
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
     }
 
-    Process* inport_process = NULL;
-    Process* outport_process = NULL;
+    logger_.logInfoMessage("Running post-check fixes - removing InPort and "
+                            "OutPort processes from the model...");
+
+    list<Process*> inport_processes;
+    list<Process*> outport_processes;
 
     // Get InPort and OutPort processes from the model
+    logger_.logDebugMessage("Searching for InPort and OutPort processes...");
     list<Process*> processes = model->getProcesses();
     list<Process*>::iterator process_it;
     for (process_it = processes.begin(); process_it != processes.end();
          ++process_it) {
         Process* process = *process_it;
+
+        logger_.logDebugMessage(string("Analyzing process \"")
+                                + process->getId()->getString() + "\"...");
+
         if (dynamic_cast<InPort*>(process)) {
-            inport_process = process;
+            logger_.logDebugMessage("Is an InPort");
+            inport_processes.push_back(process);
         }
         if (dynamic_cast<OutPort*>(process)) {
-            outport_process = process;
+            logger_.logDebugMessage("Is an OutPort");
+            outport_processes.push_back(process);
         }
     }
-    if (!inport_process) {
+    if (inport_processes.empty()) {
         THROW_EXCEPTION(IllegalStateException, "Failed to locate InPort "
-                        "process");
+                        "processes");
     }
-    if (!outport_process) {
+    if (outport_processes.empty()) {
         THROW_EXCEPTION(IllegalStateException, "Failed to locate OutPort "
-                        "process");
+                        "processes");
     }
 
-    // Set their in and out ports as outputs and inputs to the model
-    list<Process::Port*> ports = inport_process->getOutPorts();
-    list<Process::Port*>::iterator port_it;
-    for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-        model->addInput((*port_it)->getConnectedPort());
-    }
-    ports = outport_process->getInPorts();
-    for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-        model->addOutput((*port_it)->getConnectedPort());
+    // Redirect and remove the InPort processes
+    for (process_it = inport_processes.begin();
+         process_it != inport_processes.end();
+         ++process_it) {
+        Process* process = *process_it;
+
+        logger_.logDebugMessage(string("Redirecting out ports of InPort ")
+                                + "process \"" + process->getId()->getString()
+                                + " to model inputs...");
+        list<Process::Port*> ports = process->getOutPorts();
+        list<Process::Port*>::iterator port_it;
+        for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
+            model->addInput((*port_it)->getConnectedPort());
+        }
+
+        Id id = *process->getId();
+        if (!model->deleteProcess(id)) {
+            THROW_EXCEPTION(IllegalStateException,
+                            string("Failed to delete InPort process \"")
+                            + id.getString() + "\"");
+        }
     }
 
-    // Delete the processes
-    if (!model->deleteProcess(*inport_process->getId())) {
-        THROW_EXCEPTION(IllegalStateException, "Failed to delete InPort "
-                        "process");
+    // Redirect and remove the OutPort processes
+    for (process_it = outport_processes.begin();
+         process_it != outport_processes.end();
+         ++process_it) {
+        Process* process = *process_it;
+
+        logger_.logDebugMessage(string("Redirecting in ports of OutPort ")
+                                + "process \"" + process->getId()->getString()
+                                + " to model outputs...");
+        list<Process::Port*> ports = process->getInPorts();
+        list<Process::Port*>::iterator port_it;
+        for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
+            model->addOutput((*port_it)->getConnectedPort());
+        }
+
+        Id id = *process->getId();
+        if (!model->deleteProcess(id)) {
+            THROW_EXCEPTION(IllegalStateException,
+                            string("Failed to delete OutPort process \"")
+                            + id.getString() + "\"");
+        }
     }
-    if (!model->deleteProcess(*outport_process->getId())) {
-        THROW_EXCEPTION(IllegalStateException, "Failed to delete OutPort "
-                        "process");
-    }
+
+    logger_.logInfoMessage("Post-check fixes complete");
 }
 
 Process* GraphmlParser::generateProcess(Element* xml)
@@ -395,9 +431,8 @@ Process* GraphmlParser::generateProcess(Element* xml)
     list<Element*> elements = getElementsByName(xml, "port");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG,
-                           string("Analyzing line "
-                                  + tools::toString((*it)->Row()) + "..."));
+        logger_.logDebugMessage(string("Analyzing line ")
+                                + tools::toString((*it)->Row()) + "...");
         Process::Port* port = generatePort(*it);
         bool is_in_port = isInPort(port->getId()->getString());
         bool is_out_port = isOutPort(port->getId()->getString());
@@ -463,9 +498,8 @@ throw(InvalidArgumentException, ParseException, IOException,
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG,
-                           string("Analyzing line "
-                                  + tools::toString((*it)->Row()) + "..."));
+        logger_.logDebugMessage(string("Analyzing line ")
+                                + tools::toString((*it)->Row()) + "...");
         string attr_name = (*it)->GetAttribute("key");
         if (attr_name == "process_type") {
             string type = (*it)->GetText(false);
@@ -487,9 +521,8 @@ throw(InvalidArgumentException, ParseException, IOException,
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG,
-                           string("Analyzing line "
-                                  + tools::toString((*it)->Row()) + "..."));
+        logger_.logDebugMessage(string("Analyzing line ")
+                                + tools::toString((*it)->Row()) + "...");
         string attr_name = (*it)->GetAttribute("key");
         if (attr_name == "procfun_arg") {
             string function_str = (*it)->GetText(false);
@@ -644,9 +677,8 @@ int GraphmlParser::getNumProcesses(ticpp::Element* xml)
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG,
-                           string("Analyzing line "
-                                  + tools::toString((*it)->Row()) + "..."));
+        logger_.logDebugMessage(string("Analyzing line ")
+                                + tools::toString((*it)->Row()) + "...");
         string attr_name = (*it)->GetAttribute("key");
         if (attr_name == "num_processes") {
             string str = (*it)->GetText(false);
@@ -698,16 +730,14 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
     if (output_data_type) {
         list<Element*>::iterator it;
         for (it = elements.begin(); it != elements.end(); ++it) {
-            logger_.logMessage(Logger::DEBUG,
-                               string("Analyzing line "
-                                      + tools::toString((*it)->Row()) + "..."));
+            logger_.logDebugMessage(string("Analyzing line ")
+                                    + tools::toString((*it)->Row()) + "...");
             string port_name = getName(*it);
             if (isOutPort(port_name)) {
                 size_t array_size = findArraySize(*it);
                 if (array_size > 0) {
-                    logger_.logMessage(Logger::DEBUG,
-                                       string("Found array size ")
-                                       + tools::toString(array_size));
+                    logger_.logDebugMessage(string("Found array size ")
+                                            + tools::toString(array_size));
                     output_data_type->setArraySize(array_size);
                 }
                 break;
@@ -732,10 +762,8 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
             logger_.logDebugMessage("Searching array size for "
                                     "input parameter data type...");
         }
-        logger_.logMessage(Logger::DEBUG,
-                           string("Analyzing line "
-                                  + tools::toString((*xml_it)->Row())
-                                  + "..."));
+        logger_.logDebugMessage(string("Analyzing line ")
+                                + tools::toString((*xml_it)->Row()) + "...");
 
         if (!isInPort(getName(*xml_it))) {
             logger_.logDebugMessage("Not an in port, moving to next");
@@ -746,9 +774,8 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
         if ((*param_it)->getDataType()->isArray()) {
             size_t array_size = findArraySize(*xml_it);
             if (array_size > 0) {
-                logger_.logMessage(Logger::DEBUG,
-                                   string("Found array size ")
-                                   + tools::toString(array_size));
+                logger_.logDebugMessage(string("Found array size ")
+                                        + tools::toString(array_size));
                 (*param_it)->getDataType()->setArraySize(array_size);
             }
             else {
@@ -770,9 +797,8 @@ size_t GraphmlParser::findArraySize(ticpp::Element* xml)
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG,
-                           string("Analyzing line "
-                                  + tools::toString((*it)->Row()) + "..."));
+        logger_.logDebugMessage(string("Analyzing line ")
+                                + tools::toString((*it)->Row()) + "...");
         string attr_name = (*it)->GetAttribute("key");
         if (attr_name == "array_size") {
             string array_size_str = (*it)->GetText(false);
@@ -803,9 +829,8 @@ throw(InvalidArgumentException, ParseException, IOException,
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logMessage(Logger::DEBUG,
-                           string("Analyzing line "
-                                  + tools::toString((*it)->Row()) + "..."));
+        logger_.logDebugMessage(string("Analyzing line ")
+                                + tools::toString((*it)->Row()) + "...");
         string attr_name = (*it)->GetAttribute("key");
         if (attr_name == "initial_value") {
             string value = (*it)->GetText(false);
@@ -832,9 +857,8 @@ Process::Port* GraphmlParser::generatePort(Element* xml)
 
     Process::Port* port = new (std::nothrow) Process::Port(getName(xml));
     if (!port) THROW_EXCEPTION(OutOfMemoryException);
-    logger_.logMessage(Logger::DEBUG,
-                       string("Generated port \"") + port->getId()->getString()
-                       + "\"");
+    logger_.logDebugMessage(string("Generated port \"")
+                            + port->getId()->getString() + "\"");
     return port;
 }
 
@@ -961,19 +985,17 @@ void GraphmlParser::generateConnection(Element* xml, Model* model,
     // Make port connections
     if (!source_port->isConnected()) {
         source_port->connect(target_port);
-        logger_.logMessage(Logger::DEBUG,
-                           string("Connected port \"")
-                           + source_port->toString() + "\" with \""
-                           + target_port->toString() + "\"");
+        logger_.logDebugMessage(string("Connected port \"")
+                                + source_port->toString() + "\" with \""
+                                + target_port->toString() + "\"");
     }
     else {
         // Source port already connected; use intermediate CopySY process
-        logger_.logMessage(Logger::DEBUG,
-                           string("Source port \"")
-                           + source_port->toString() + "\" already connected "
-                           + "to \""
-                           + source_port->getConnectedPort()->toString()
-                           + "\". Using intermediate CopySY process.");
+        logger_.logDebugMessage(string("Source port \"")
+                                + source_port->toString()
+                                + "\" already connected to \""
+                                + source_port->getConnectedPort()->toString()
+                                + "\". Using intermediate CopySY process.");
 
         // Get CopySY process
         Process* copy_process;
@@ -1013,28 +1035,26 @@ void GraphmlParser::generateConnection(Element* xml, Model* model,
             }
             Process::Port* old_target_port = source_port->getConnectedPort();
             source_port->unconnect();
-            logger_.logMessage(Logger::DEBUG,
-                               string("Broke port connection \"")
-                               + source_port->toString() + "\"--\""
-                               + old_target_port->toString() + "\"");
+            logger_.logDebugMessage( string("Broke port connection \"")
+                                     + source_port->toString() + "\"--\""
+                                     + old_target_port->toString() + "\"");
             source_port->connect(copy_process->getInPorts().front());
-            logger_.logMessage(Logger::DEBUG,
-                               string("Connected port \"")
-                               + source_port->toString()
-                               + "\" with \""
-                               + copy_process->getInPorts().front()->toString()
-                               + "\"");
+            logger_.logDebugMessage(string("Connected port \"")
+                                    + source_port->toString()
+                                    + "\" with \""
+                                    + copy_process->getInPorts().front()
+                                    ->toString() + "\"");
             if(!copy_process->addOutPort(Id("out1"))) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "out port to process \""
                                 + copy_process->getId()->getString() + "\"");
             }
             old_target_port->connect(copy_process->getOutPorts().front());
-            logger_.logMessage(Logger::DEBUG,
-                               string("Connected port \"")
-                               + copy_process->getOutPorts().front()->toString()
-                               + "\" with \""
-                               + old_target_port->toString() + "\"");
+            logger_.logDebugMessage(string("Connected port \"")
+                                    + copy_process->getOutPorts().front()
+                                    ->toString()
+                                    + "\" with \""
+                                    + old_target_port->toString() + "\"");
         }
 
         string new_out_port_id = string("out")
@@ -1046,17 +1066,19 @@ void GraphmlParser::generateConnection(Element* xml, Model* model,
         }
         target_port->connect(copy_process->getOutPorts().back());
 
-        logger_.logMessage(Logger::DEBUG,
-                           string("Connected port \"")
-                           + copy_process->getOutPorts().back()->toString()
-                           + "\" with \""
-                           + target_port->toString() + "\"");
+        logger_.logDebugMessage(string("Connected port \"")
+                                + copy_process->getOutPorts().back()->toString()
+                                + "\" with \""
+                                + target_port->toString() + "\"");
     }
 }
 
 void GraphmlParser::checkModelMore(Model* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
+    logger_.logInfoMessage("Checking that the model contains at least one "
+                            "InPort and OutPort process...");
+
     bool found_in_port_process = false;
     bool found_out_port_process = false;
     list<Process*> processes = model->getProcesses();
@@ -1064,33 +1086,24 @@ void GraphmlParser::checkModelMore(Model* model)
     for (process_it = processes.begin(); process_it != processes.end();
          ++process_it) {
         Process* process = *process_it;
-        logger_.logMessage(Logger::DEBUG,
-                           string("Checking process \"")
-                           + process->getId()->getString() + "\"");
+        logger_.logDebugMessage(string("Checking process \"")
+                                + process->getId()->getString() + "\"");
 
         // In- and OutPort presence check
         if (dynamic_cast<InPort*>(process)) {
-            if (!found_in_port_process) {
-                found_in_port_process = true;
-            }
-            else {
-                THROW_EXCEPTION(InvalidModelException,
-                                "Only one \"InPort\" process is allowed");
-            }
+            logger_.logDebugMessage("InPort found");
+            found_in_port_process = true;
         }
         if (dynamic_cast<OutPort*>(process)) {
-            if (!found_out_port_process) {
-                found_out_port_process = true;
-            }
-            else {
-                THROW_EXCEPTION(InvalidModelException,
-                                "Only one \"OutPort\" process is allowed");
-            }
+            logger_.logDebugMessage("OutPort found");
+            found_out_port_process = true;
         }
     }
+    if (!found_in_port_process) {
+        THROW_EXCEPTION(InvalidModelException, "No InPort process found");
+    }
     if (!found_out_port_process) {
-        THROW_EXCEPTION(InvalidModelException,
-                        "No \"OutPort\" process found");
+        THROW_EXCEPTION(InvalidModelException, "No OutPort process found");
     }
 }
 

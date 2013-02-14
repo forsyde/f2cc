@@ -368,8 +368,12 @@ class ModelModifier {
     /**
      * Gets the process chaining starting from the process connected at the
      * other end of a given port and ends at an end point. The end point will
-     * not be included in the chain. If there are multiple chains, it will
-     * select the first out port of the process where the flow diverges.
+     * not be included in the chain.
+     *
+     * The caller of this function must ensure that there is a path from the
+     * start to the end point. If the process chain contains loops or diverges
+     * then no guarantees are made on the order in which the processes will
+     * appear in the returned chain.
      *
      * @param start
      *        Starting point.
@@ -381,6 +385,27 @@ class ModelModifier {
      */
     std::list<Forsyde::Process*> getProcessChain(
         Forsyde::Process::Port* start, Forsyde::Process* end)
+        throw(OutOfMemoryException);
+
+    /**
+     * Help function for getProcessChain(Forsyde::Process::Port*,
+     * Forsyde::Process*) to allow recursive calls.
+     *
+     * @param start
+     *        Starting point.
+     * @param end
+     *        End point.
+     * @param visited
+     *        Set of visited processes.
+     * @returns Process chain.
+     * @throws OutOfMemoryException
+     *         When the chain cannot be created due to memory shortage.
+     * @see getProcessChain(Forsyde::Process::Port*, Forsyde::Process*)
+     */
+    std::list<Forsyde::Process*> getProcessChainR(
+        Forsyde::Process::Port* start,
+        Forsyde::Process* end,
+        std::set<Forsyde::Id>& visited)
         throw(OutOfMemoryException);
 
     /**
@@ -548,6 +573,24 @@ class ModelModifier {
      *         bug.
      */
     void replaceModelOutput(Process::Port* old_port, Process::Port* new_port)
+        throw(RuntimeException);
+
+    /**
+     * Attempts to visit a process. If the process has not already been visited,
+     * the process will be added to the set and \c true is returned. Otherwise
+     * \c false is returned.
+     * 
+     * @param visited
+     *        Set of visited processes.
+     * @param process
+     *        Process to visit.
+     * @returns \c true if the process had not already been visited and was
+     *          successfully added to the set; otherwise \c false.
+     * @throws RuntimeException
+     *         When a program error has occurred. This most likely indicates a
+     *         bug.
+     */
+    bool visitProcess(std::set<Forsyde::Id>& visited, Process* process)
         throw(RuntimeException);
 
   private:

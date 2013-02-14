@@ -105,7 +105,16 @@ class Frontend {
     /**
      * Creates a new ForSyDe model by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * Forsyde::Model object.
+     * Forsyde::Model object. After the model has been created, it is subjected
+     * to a series of checks and hook invocations to ensure that the model is
+     * sane and valid for the later steps in the synthesis procedure.
+     *
+     * The order of the hook calls are:
+     *   - checkModel(Forsyde::Model*)
+     *   - checkModelMore(Forsyde::Model*)
+     *   - postCheckFixes(Forsyde::Model*)
+     *   - ensureNoInPorts(Forsyde::Model*)
+     *   - ensureNoOutPorts(Forsyde::Model*)
      *
      * @param file
      *        Input file.
@@ -166,13 +175,9 @@ class Frontend {
 
   private:
     /**
-     * Checks that a given model is a valid ForSyde model by ensuring that:
-     *   - all in and out ports of all processes in the model are
-     *     connected,
-     *   - all ports are connected to processes that reside within the model,
-     *   - no output of any process is connected to the input of the
-     *     same process (i.e. avoiding combinatorial loops),
-     *   - all process type-related checks are passed.
+     * Runs standard checks on the model by invoking (in this order):
+     *   - checkProcess(Forsyde::Process*, Forsyde::Model*) on each process, and
+     *   - checkModelMore(Forsyde::Model*).
      * 
      * @param model
      *        Model to check.
@@ -185,8 +190,69 @@ class Frontend {
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
+     * @see checkProcess(Forsyde::Process*, Forsyde::Model*)
+     * @see checkModelMore(Forsyde::Model*)
      */
     void checkModel(Forsyde::Model* model)
+        throw(InvalidArgumentException, InvalidModelException, IOException,
+              RuntimeException);
+
+    /**
+     * Checks that the model contains no \c InPort processes at this stage.
+     * Since it is the responsibility of the frontend to remove such processes,
+     * an exception thrown from here indicates a serious error in the frontend.
+     *
+     * @param model
+     *        Model to check.
+     * @throws InvalidArgumentException
+     *         When \c model is \c NULL.
+     * @throws IOException
+     *         When the file cannot be read or the log file cannot be written.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     */
+    void ensureNoInPorts(Forsyde::Model* model)
+        throw(InvalidArgumentException, IOException, RuntimeException);
+
+    /**
+     * Checks that the model contains no \c OutPort processes at this stage.
+     * Since it is the responsibility of the frontend to remove such processes,
+     * an exception thrown from here indicates a serious error in the frontend.
+     *
+     * @param model
+     *        Model to check.
+     * @throws InvalidArgumentException
+     *         When \c model is \c NULL.
+     * @throws IOException
+     *         When the file cannot be read or the log file cannot be written.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     */
+    void ensureNoOutPorts(Forsyde::Model* model)
+        throw(InvalidArgumentException, IOException, RuntimeException);
+
+    /**
+     * Checks that a process is a valid by ensuring that:
+     *   - all process type-related checks are passed, and that
+     *   - all its inputs and ouputs passes the
+     *     checkPort(Forsyde::Process::Port*, Forsyde::Model*) check.
+     * 
+     * @param process
+     *        Process to check.
+     * @throws InvalidArgumentException
+     *         When \c model is \c NULL.
+     * @throws InvalidModelException
+     *         When any of the checks fails.
+     * @throws IOException
+     *         When the file cannot be read or the log file cannot be written.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     * @see checkPort(Forsyde::Process::Port*, Forsyde::Model*)
+     */
+    void checkProcess(Forsyde::Process* process, Forsyde::Model* model)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 

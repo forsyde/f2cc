@@ -24,6 +24,8 @@
  */
 
 #include "frontend.h"
+#include "../forsyde/inport.h"
+#include "../forsyde/outport.h"
 #include <list>
 
 using namespace f2cc;
@@ -49,7 +51,12 @@ Model* Frontend::parse(const string& file)
     checkModel(model);
     logger_.logInfoMessage("All checks passed");
 
+    logger_.logInfoMessage("Running post-check fixes...");
     postCheckFixes(model);
+    logger_.logInfoMessage("Post-check fixes done");
+
+    ensureNoInPorts(model);
+    ensureNoOutPorts(model);
 
     return model;
 }
@@ -57,33 +64,117 @@ Model* Frontend::parse(const string& file)
 void Frontend::checkModel(Model* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
+    if (!model) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    }
+
+    // Check processes
+    list<Process*> processes = model->getProcesses();
+    list<Process*>::iterator process_it;
+    for (process_it = processes.begin(); process_it != processes.end();
+         ++process_it) {
+        checkProcess(*process_it, model);
+    }
+
+    logger_.logInfoMessage("Running additional model checks...");
+    checkModelMore(model);
+    logger_.logInfoMessage("Additional model checks passed");    
+}
+
+void Frontend::ensureNoInPorts(Model* model)
+    throw(InvalidArgumentException, IOException, RuntimeException) {
+    if (!model) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    }
+
+    logger_.logDebugMessage("Checking that there are no InPort processes in "
+                            "the model at this stage...");
     list<Process*> processes = model->getProcesses();
     list<Process*>::iterator process_it;
     for (process_it = processes.begin(); process_it != processes.end();
          ++process_it) {
         Process* process = *process_it;
-        logger_.logMessage(Logger::DEBUG,
-                           string("Checking process \"")
-                           + process->getId()->getString() + "\"");
-
-        // Process type-related check
-        try {
-            process->check();
-        } catch (InvalidProcessException& ex) {
-            THROW_EXCEPTION(InvalidModelException, ex.getMessage());
+        logger_.logDebugMessage(string("Checking process \"")
+                                + process->getId()->getString() + "\"...");
+        if(dynamic_cast<InPort*>(process)) {
+            logger_.logDebugMessage("Is an InPort process");
+            THROW_EXCEPTION(IllegalStateException, string("Process \"")
+                            + process->getId()->getString()
+                            + "\" is an InPort - no InPort processes are "
+                            + "allowed at this stage");
         }
-
-        // Port checks
-        list<Process::Port*> ports = process->getInPorts();
-        list<Process::Port*>::iterator port_it;
-        for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            checkPort(*port_it, model);
-        }
-        ports = process->getOutPorts();
-        for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            checkPort(*port_it, model);
+        else {
+            logger_.logDebugMessage("Not an InPort process");
         }
     }
+    logger_.logDebugMessage("No InPort processes in the model");
+}
+
+void Frontend::ensureNoOutPorts(Model* model)
+    throw(InvalidArgumentException, IOException, RuntimeException) {
+    if (!model) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    }
+
+    logger_.logDebugMessage("Checking that there are no OutPort processes in "
+                            "the model at this stage...");
+    list<Process*> processes = model->getProcesses();
+    list<Process*>::iterator process_it;
+    for (process_it = processes.begin(); process_it != processes.end();
+         ++process_it) {
+        Process* process = *process_it;
+        logger_.logDebugMessage(string("Checking process \"")
+                                + process->getId()->getString() + "\"...");
+        if(dynamic_cast<OutPort*>(process)) {
+            logger_.logDebugMessage("Is an OutPort process");
+            THROW_EXCEPTION(IllegalStateException, string("Process \"")
+                            + process->getId()->getString()
+                            + "\" is an OutPort - no OutPort processes are "
+                            + "allowed at this stage");
+        }
+        else {
+            logger_.logDebugMessage("Not an OutPort process");
+        }
+    }
+    logger_.logDebugMessage("No OutPort processes in the model");
+}
+
+void Frontend::checkProcess(Process* process, Model* model)
+    throw(InvalidArgumentException, InvalidModelException, IOException,
+          RuntimeException) {
+    if (!process) {
+        THROW_EXCEPTION(InvalidArgumentException,
+                        "\"process\" must not be NULL");
+    }
+    if (!model) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    }
+
+    logger_.logDebugMessage(string("Checking process \"")
+                            + process->getId()->getString() + "\"...");
+
+    // Process type-related check
+    try {
+        process->check();
+    } catch (InvalidProcessException& ex) {
+        THROW_EXCEPTION(InvalidModelException, ex.getMessage());
+    }
+
+    // Port checks
+    logger_.logDebugMessage("Checking ports...");
+    list<Process::Port*> ports = process->getInPorts();
+    list<Process::Port*>::iterator port_it;
+    for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
+        checkPort(*port_it, model);
+    }
+    ports = process->getOutPorts();
+    for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
+        checkPort(*port_it, model);
+    }
+
+    logger_.logDebugMessage(string("Process \"")
+                            + process->getId()->getString()
+                            + "\" passed all checks");
 }
 
 void Frontend::checkPort(Process::Port* port, Model* model)
