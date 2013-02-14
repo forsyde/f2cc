@@ -2,6 +2,8 @@ var searchData=
 [
   ['end',['end',['../structf2cc_1_1Forsyde_1_1ModelModifier_1_1ContainedSection.html#a55379b801e4acaf91b08c53367034f1d',1,'f2cc::Forsyde::ModelModifier::ContainedSection']]],
   ['ensurearraysizes',['ensureArraySizes',['../classf2cc_1_1Synthesizer.html#a6f4b60aaebc917d06b479b75045200cb',1,'f2cc::Synthesizer']]],
+  ['ensurenoinports',['ensureNoInPorts',['../classf2cc_1_1Frontend.html#a1dab5c5704fedbb24d8d626e81578db2',1,'f2cc::Frontend']]],
+  ['ensurenooutports',['ensureNoOutPorts',['../classf2cc_1_1Frontend.html#a518940ec5808349c4f8c24474cfa6119',1,'f2cc::Frontend']]],
   ['ensurevariablearraycompatibilities',['ensureVariableArrayCompatibilities',['../classf2cc_1_1Synthesizer.html#aaa231a444002da734599270d32e5f8f7',1,'f2cc::Synthesizer']]],
   ['ensurevariabledatatypecompatibilities',['ensureVariableDataTypeCompatibilities',['../classf2cc_1_1Synthesizer.html#a5fae434d4505e18197259064aa421dc0',1,'f2cc::Synthesizer']]],
   ['ensurevariableisarray',['ensureVariableIsArray',['../classf2cc_1_1Synthesizer.html#a07da51ac711cafb5209d45eb1b6851a1',1,'f2cc::Synthesizer']]],

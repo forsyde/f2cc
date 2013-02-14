@@ -132,6 +132,7 @@ Private Member Functions</h2></td></tr>
 <tr class="memitem:a60c8e2593338bc1c0ce8f71277e8190a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#a60c8e2593338bc1c0ce8f71277e8190a">hasOnlyMapSys</a> (std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> * &gt; chain) const   throw ()</td></tr>
 <tr class="memitem:abdb8b521a21fda10175f34b9964b3ee2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#abdb8b521a21fda10175f34b9964b3ee2">areProcessChainsEqual</a> (std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> * &gt; first, std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> * &gt; second)  throw (IOException, RuntimeException)</td></tr>
 <tr class="memitem:aa96c565ac36229f1b20583dda137e6a0"><td class="memItemLeft" align="right" valign="top">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#aa96c565ac36229f1b20583dda137e6a0">getProcessChain</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Forsyde::Process::Port</a> *start, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> *end)  throw (OutOfMemoryException)</td></tr>
+<tr class="memitem:afc58946cbcd80c427b5e8de318da0748"><td class="memItemLeft" align="right" valign="top">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#afc58946cbcd80c427b5e8de318da0748">getProcessChainR</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Forsyde::Process::Port</a> *start, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> *end, std::set&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a> &gt; &amp;visited)  throw (OutOfMemoryException)</td></tr>
 <tr class="memitem:a4351069bd4e3af2250eaf3f85e88577a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#a4351069bd4e3af2250eaf3f85e88577a">coalesceProcessChain</a> (std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> * &gt; chain)  throw (RuntimeException)</td></tr>
 <tr class="memitem:a4f2d00985dc6f42d5b51509f3f54286f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#a4f2d00985dc6f42d5b51509f3f54286f">isParallelMapSyChainCoalescable</a> (std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1ParallelMapSY.html">Forsyde::ParallelMapSY</a> * &gt; chain)  throw (RuntimeException)</td></tr>
 <tr class="memitem:a6a816a1fb49a3805b17d916252e30089"><td class="memItemLeft" align="right" valign="top">std::list&lt; std::list<br class="typebreak"/>
@@ -146,6 +147,7 @@ Private Member Functions</h2></td></tr>
 <tr class="memitem:a16027ed08f6a78e7386a4da68e2a35a3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#a16027ed08f6a78e7386a4da68e2a35a3">redirectDataFlow</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *old_start, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *old_end, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *new_start, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *new_end)  throw (InvalidArgumentException, IOException, RuntimeException)</td></tr>
 <tr class="memitem:ac9264daf42a6cdfbef1fa787c20f99a3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#ac9264daf42a6cdfbef1fa787c20f99a3">replaceModelInput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *old_port, <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *new_port)  throw (RuntimeException)</td></tr>
 <tr class="memitem:a62cacd454c4e0a21d1feb7eef96ae547"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#a62cacd454c4e0a21d1feb7eef96ae547">replaceModelOutput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *old_port, <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *new_port)  throw (RuntimeException)</td></tr>
+<tr class="memitem:a7d988946d3827acbcba7962d0027489f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#a7d988946d3827acbcba7962d0027489f">visitProcess</a> (std::set&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a> &gt; &amp;visited, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *process)  throw (RuntimeException)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -813,7 +815,8 @@ Private Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Gets the process chaining starting from the process connected at the other end of a given port and ends at an end point. The end point will not be included in the chain. If there are multiple chains, it will select the first out port of the process where the flow diverges.</p>
+<p>Gets the process chaining starting from the process connected at the other end of a given port and ends at an end point. The end point will not be included in the chain.</p>
+<p>The caller of this function must ensure that there is a path from the start to the end point. If the process chain contains loops or diverges then no guarantees are made on the order in which the processes will appear in the returned chain.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">start</td><td>Starting point. </td></tr>
@@ -828,6 +831,63 @@ Private Attributes</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="afc58946cbcd80c427b5e8de318da0748"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a>*&gt; f2cc::Forsyde::ModelModifier::getProcessChainR </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Forsyde::Process::Port</a> *&#160;</td>
+          <td class="paramname"><em>start</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> *&#160;</td>
+          <td class="paramname"><em>end</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::set&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>visited</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>  throw (<a class="el" href="classf2cc_1_1OutOfMemoryException.html">OutOfMemoryException</a>)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Help function for getProcessChain(<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html" title="Class used for in- and out ports by the Process class.">Forsyde::Process::Port</a>*, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html" title="Base class for process nodes in the internal representation of ForSyDe models.">Forsyde::Process</a>*) to allow recursive calls.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">start</td><td>Starting point. </td></tr>
+    <tr><td class="paramname">end</td><td>End point. </td></tr>
+    <tr><td class="paramname">visited</td><td>Set of visited processes. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html" title="Base class for process nodes in the internal representation of ForSyDe models.">Process</a> chain. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1OutOfMemoryException.html" title="Used when an attempt to allocate new memory failed.">OutOfMemoryException</a></td><td>When the chain cannot be created due to memory shortage. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="classf2cc_1_1Forsyde_1_1ModelModifier.html#aa96c565ac36229f1b20583dda137e6a0">getProcessChain(Forsyde::Process::Port*, Forsyde::Process*)</a> </dd></dl>
 
 </div>
 </div>
@@ -1305,6 +1365,55 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a7d988946d3827acbcba7962d0027489f"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool f2cc::Forsyde::ModelModifier::visitProcess </td>
+          <td>(</td>
+          <td class="paramtype">std::set&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>visited</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *&#160;</td>
+          <td class="paramname"><em>process</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>  throw (<a class="el" href="classf2cc_1_1RuntimeException.html">RuntimeException</a>)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Attempts to visit a process. If the process has not already been visited, the process will be added to the set and <code>true</code> is returned. Otherwise <code>false</code> is returned.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">visited</td><td>Set of visited processes. </td></tr>
+    <tr><td class="paramname">process</td><td><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html" title="Base class for process nodes in the internal representation of ForSyDe models.">Process</a> to visit. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the process had not already been visited and was successfully added to the set; otherwise <code>false</code>. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1RuntimeException.html" title="Base class for runtime error.">RuntimeException</a></td><td>When a program error has occurred. This most likely indicates a bug. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <h2>Member Data Documentation</h2>
 <a class="anchor" id="af2a3d5494889984a407c72d452668742"></a>
 <div class="memitem">
@@ -1354,7 +1463,7 @@ Private Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Feb 13 2013 10:26:03 for f2cc by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Feb 14 2013 12:38:52 for f2cc by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.1.2
 </small></address>

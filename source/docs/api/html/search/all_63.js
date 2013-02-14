@@ -17,6 +17,7 @@ var searchData=
   ['checkmodel',['checkModel',['../classf2cc_1_1Frontend.html#a07b949de182ec1b68b46e8311e5ff301',1,'f2cc::Frontend::checkModel()'],['../classf2cc_1_1Synthesizer.html#ab5f346ea8b3e8ac864d4f6de0bccfc54',1,'f2cc::Synthesizer::checkModel()']]],
   ['checkmodelmore',['checkModelMore',['../classf2cc_1_1Frontend.html#aeecfd6c4cdbe455859c69bc7c4e1b21d',1,'f2cc::Frontend::checkModelMore()'],['../classf2cc_1_1GraphmlParser.html#a73962a5711005c552558782838e1d320',1,'f2cc::GraphmlParser::checkModelMore()']]],
   ['checkport',['checkPort',['../classf2cc_1_1Frontend.html#a87b08fec4990dcd820785416a6ebb66b',1,'f2cc::Frontend']]],
+  ['checkprocess',['checkProcess',['../classf2cc_1_1Frontend.html#a3231dfeb0747fb4342dbbcf5dc8cc3f8',1,'f2cc::Frontend']]],
   ['checkxmldocument',['checkXmlDocument',['../classf2cc_1_1GraphmlParser.html#ad15e7d83c30cc8f3253fe44b7682efe4',1,'f2cc::GraphmlParser']]],
   ['close',['close',['../classf2cc_1_1Logger.html#ae7283629d2ddae42ece5164da0d8c849',1,'f2cc::Logger']]],
   ['coalescedataparallelprocesses',['coalesceDataParallelProcesses',['../classf2cc_1_1Forsyde_1_1ModelModifier.html#a639d985524508988299819a762f8d2f5',1,'f2cc::Forsyde::ModelModifier']]],
@@ -47,7 +48,7 @@ var searchData=
   ['createsignals',['createSignals',['../classf2cc_1_1Synthesizer.html#aa8b550693c679d8a0c4d4f49302b52d4',1,'f2cc::Synthesizer']]],
   ['critical',['CRITICAL',['../classf2cc_1_1Logger.html#a483974cfb7880b97800d88b32df4b43bac956a24a1078f7295fec4d409188fd4b',1,'f2cc::Logger']]],
   ['cuda',['CUDA',['../classf2cc_1_1Config.html#a041ca839d9dfdbc74ed5145bdb2f3c9baa5dfca8e5ff3bb0c9a4ae3d76c448f80',1,'f2cc::Config']]],
-  ['cvariable',['CVariable',['../classf2cc_1_1CVariable.html',1,'f2cc']]],
   ['cvariable',['CVariable',['../classf2cc_1_1CVariable.html#a17bd74892670e58ef7a2c47299c53063',1,'f2cc::CVariable::CVariable()'],['../classf2cc_1_1CVariable.html#a6bfb04ac08940674dbcf63095436fc72',1,'f2cc::CVariable::CVariable(const std::string &amp;name, const CDataType &amp;type)']]],
+  ['cvariable',['CVariable',['../classf2cc_1_1CVariable.html',1,'f2cc']]],
   ['cvariable_2eh',['cvariable.h',['../cvariable_8h.html',1,'']]]
 ];

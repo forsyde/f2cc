@@ -131,6 +131,9 @@ Protected Attributes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
 <tr class="memitem:a07b949de182ec1b68b46e8311e5ff301"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Frontend.html#a07b949de182ec1b68b46e8311e5ff301">checkModel</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Model.html">Forsyde::Model</a> *model)  throw (InvalidArgumentException, InvalidModelException, IOException,              RuntimeException)</td></tr>
+<tr class="memitem:a1dab5c5704fedbb24d8d626e81578db2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Frontend.html#a1dab5c5704fedbb24d8d626e81578db2">ensureNoInPorts</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Model.html">Forsyde::Model</a> *model)  throw (InvalidArgumentException, IOException, RuntimeException)</td></tr>
+<tr class="memitem:a518940ec5808349c4f8c24474cfa6119"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Frontend.html#a518940ec5808349c4f8c24474cfa6119">ensureNoOutPorts</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Model.html">Forsyde::Model</a> *model)  throw (InvalidArgumentException, IOException, RuntimeException)</td></tr>
+<tr class="memitem:a3231dfeb0747fb4342dbbcf5dc8cc3f8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Frontend.html#a3231dfeb0747fb4342dbbcf5dc8cc3f8">checkProcess</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> *process, <a class="el" href="classf2cc_1_1Forsyde_1_1Model.html">Forsyde::Model</a> *model)  throw (InvalidArgumentException, InvalidModelException, IOException,              RuntimeException)</td></tr>
 <tr class="memitem:a87b08fec4990dcd820785416a6ebb66b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Frontend.html#a87b08fec4990dcd820785416a6ebb66b">checkPort</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Forsyde::Process::Port</a> *port, <a class="el" href="classf2cc_1_1Forsyde_1_1Model.html">Forsyde::Model</a> *model)  throw (InvalidArgumentException, InvalidModelException, IOException,              RuntimeException)</td></tr>
 </table>
 <a name="details" id="details"></a><h2>Detailed Description</h2>
@@ -206,12 +209,10 @@ Private Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Checks that a given model is a valid ForSyde model by ensuring that:</p>
+<p>Runs standard checks on the model by invoking (in this order):</p>
 <ul>
-<li>all in and out ports of all processes in the model are connected,</li>
-<li>all ports are connected to processes that reside within the model,</li>
-<li>no output of any process is connected to the input of the same process (i.e. avoiding combinatorial loops),</li>
-<li>all process type-related checks are passed.</li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#a3231dfeb0747fb4342dbbcf5dc8cc3f8">checkProcess(Forsyde::Process*, Forsyde::Model*)</a> on each process, and</li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#aeecfd6c4cdbe455859c69bc7c4e1b21d">checkModelMore(Forsyde::Model*)</a>.</li>
 </ul>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -228,6 +229,9 @@ Private Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="classf2cc_1_1Frontend.html#a3231dfeb0747fb4342dbbcf5dc8cc3f8">checkProcess(Forsyde::Process*, Forsyde::Model*)</a> </dd>
+<dd>
+<a class="el" href="classf2cc_1_1Frontend.html#aeecfd6c4cdbe455859c69bc7c4e1b21d">checkModelMore(Forsyde::Model*)</a> </dd></dl>
 
 </div>
 </div>
@@ -327,6 +331,62 @@ Private Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a3231dfeb0747fb4342dbbcf5dc8cc3f8"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void f2cc::Frontend::checkProcess </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Forsyde::Process</a> *&#160;</td>
+          <td class="paramname"><em>process</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html">Forsyde::Model</a> *&#160;</td>
+          <td class="paramname"><em>model</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>  throw (<a class="el" href="classf2cc_1_1InvalidArgumentException.html">InvalidArgumentException</a>, <a class="el" href="classf2cc_1_1InvalidModelException.html">InvalidModelException</a>, <a class="el" href="classf2cc_1_1IOException.html">IOException</a>,              <a class="el" href="classf2cc_1_1RuntimeException.html">RuntimeException</a>)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Checks that a process is a valid by ensuring that:</p>
+<ul>
+<li>all process type-related checks are passed, and that</li>
+<li>all its inputs and ouputs passes the <a class="el" href="classf2cc_1_1Frontend.html#a87b08fec4990dcd820785416a6ebb66b">checkPort(Forsyde::Process::Port*, Forsyde::Model*)</a> check.</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">process</td><td>Process to check. </td></tr>
+    <tr><td class="paramname">model</td><td>Model that the process using the port should belong to. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1InvalidArgumentException.html" title="Used when a method is invoked with invalid arguments which just should not happen. Throwing this exception is an indication of a bug.">InvalidArgumentException</a></td><td>When <code>model</code> is <code>NULL</code>. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1InvalidModelException.html" title="Used when a method was called with arguments of invalid model.">InvalidModelException</a></td><td>When any of the checks fails. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1IOException.html" title="Used to indicate that an I/O error has occurred when operating on a file.">IOException</a></td><td>When the file cannot be read or the log file cannot be written. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1RuntimeException.html" title="Base class for runtime error.">RuntimeException</a></td><td>When something unexpected occurs. This is most likely due to a bug. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="classf2cc_1_1Frontend.html#a87b08fec4990dcd820785416a6ebb66b">checkPort(Forsyde::Process::Port*, Forsyde::Model*)</a> </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a8d2ae80c512ab1f44e6d02acb545189d"></a>
 <div class="memitem">
 <div class="memproto">
@@ -348,7 +408,15 @@ Private Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Creates a new ForSyDe model by parsing a given input file. This method is responsible of dynamically allocating and returning a new <code><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html" title="Contains the internal representation of a ForSyDe model.">Forsyde::Model</a></code> object.</p>
+<p>Creates a new ForSyDe model by parsing a given input file. This method is responsible of dynamically allocating and returning a new <code><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html" title="Contains the internal representation of a ForSyDe model.">Forsyde::Model</a></code> object. After the model has been created, it is subjected to a series of checks and hook invocations to ensure that the model is sane and valid for the later steps in the synthesis procedure.</p>
+<p>The order of the hook calls are:</p>
+<ul>
+<li><a class="el" href="classf2cc_1_1Frontend.html#a07b949de182ec1b68b46e8311e5ff301">checkModel(Forsyde::Model*)</a></li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#aeecfd6c4cdbe455859c69bc7c4e1b21d">checkModelMore(Forsyde::Model*)</a></li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#a16c021fa6baa1f66dcea8876e726027b">postCheckFixes(Forsyde::Model*)</a></li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#a1dab5c5704fedbb24d8d626e81578db2">ensureNoInPorts(Forsyde::Model*)</a></li>
+<li><a class="el" href="classf2cc_1_1Frontend.html#a518940ec5808349c4f8c24474cfa6119">ensureNoOutPorts(Forsyde::Model*)</a></li>
+</ul>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">file</td><td>Input file. </td></tr>
@@ -363,6 +431,84 @@ Private Member Functions</h2></td></tr>
     <tr><td class="paramname"><a class="el" href="classf2cc_1_1IOException.html" title="Used to indicate that an I/O error has occurred when operating on a file.">IOException</a></td><td>When the file cannot be read or the log file cannot be written. </td></tr>
     <tr><td class="paramname"><a class="el" href="classf2cc_1_1ParseException.html" title="Used when a parse method fails.">ParseException</a></td><td>When the file fails to be parsed. </td></tr>
     <tr><td class="paramname"><a class="el" href="classf2cc_1_1InvalidModelException.html" title="Used when a method was called with arguments of invalid model.">InvalidModelException</a></td><td>When the model is invalid (but was successfully parsed). </td></tr>
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1RuntimeException.html" title="Base class for runtime error.">RuntimeException</a></td><td>When something unexpected occurs. This is most likely due to a bug. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a1dab5c5704fedbb24d8d626e81578db2"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void f2cc::Frontend::ensureNoInPorts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html">Forsyde::Model</a> *&#160;</td>
+          <td class="paramname"><em>model</em></td><td>)</td>
+          <td>  throw (<a class="el" href="classf2cc_1_1InvalidArgumentException.html">InvalidArgumentException</a>, <a class="el" href="classf2cc_1_1IOException.html">IOException</a>, <a class="el" href="classf2cc_1_1RuntimeException.html">RuntimeException</a>)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Checks that the model contains no <code>InPort</code> processes at this stage. Since it is the responsibility of the frontend to remove such processes, an exception thrown from here indicates a serious error in the frontend.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">model</td><td>Model to check. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1InvalidArgumentException.html" title="Used when a method is invoked with invalid arguments which just should not happen. Throwing this exception is an indication of a bug.">InvalidArgumentException</a></td><td>When <code>model</code> is <code>NULL</code>. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1IOException.html" title="Used to indicate that an I/O error has occurred when operating on a file.">IOException</a></td><td>When the file cannot be read or the log file cannot be written. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1RuntimeException.html" title="Base class for runtime error.">RuntimeException</a></td><td>When something unexpected occurs. This is most likely due to a bug. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a518940ec5808349c4f8c24474cfa6119"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void f2cc::Frontend::ensureNoOutPorts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html">Forsyde::Model</a> *&#160;</td>
+          <td class="paramname"><em>model</em></td><td>)</td>
+          <td>  throw (<a class="el" href="classf2cc_1_1InvalidArgumentException.html">InvalidArgumentException</a>, <a class="el" href="classf2cc_1_1IOException.html">IOException</a>, <a class="el" href="classf2cc_1_1RuntimeException.html">RuntimeException</a>)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Checks that the model contains no <code>OutPort</code> processes at this stage. Since it is the responsibility of the frontend to remove such processes, an exception thrown from here indicates a serious error in the frontend.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">model</td><td>Model to check. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1InvalidArgumentException.html" title="Used when a method is invoked with invalid arguments which just should not happen. Throwing this exception is an indication of a bug.">InvalidArgumentException</a></td><td>When <code>model</code> is <code>NULL</code>. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classf2cc_1_1IOException.html" title="Used to indicate that an I/O error has occurred when operating on a file.">IOException</a></td><td>When the file cannot be read or the log file cannot be written. </td></tr>
     <tr><td class="paramname"><a class="el" href="classf2cc_1_1RuntimeException.html" title="Base class for runtime error.">RuntimeException</a></td><td>When something unexpected occurs. This is most likely due to a bug. </td></tr>
   </table>
   </dd>
@@ -473,7 +619,7 @@ Private Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Feb 13 2013 10:26:03 for f2cc by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Feb 14 2013 12:38:52 for f2cc by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.1.2
 </small></address>

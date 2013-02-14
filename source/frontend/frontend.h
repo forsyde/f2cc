@@ -241,6 +241,8 @@ class Frontend {
      * 
      * @param process
      *        Process to check.
+     * @param model
+     *        Model that the process using the port should belong to.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws InvalidModelException
