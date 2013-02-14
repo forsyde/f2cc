@@ -23,16 +23,17 @@
 
 unexport
 
-SEP                 = "=============================="
-export PREBUILDMSG  = "$(SEP)\n Building % module...\n"
-export POSTBUILDMSG = " Done.\n$(SEP)\n\n"
-export ITEMBUILDMSG = " * %\n"
-export PRELINKMSG   = "$(SEP)\n Linking...\n"
-export POSTLINKMSG  = $(POSTBUILDMSG)
-export ITEMLINKMSG  = " * %\n"
-export PREDOCSMSG   = "$(SEP)"
-export POSTDOCSMSG  = " Done.\n$(SEP)\n\n"
-export PARTDOCSMSG  = "%...\n"
+SEP                     = "=============================="
+export PREBUILDMSG      = "$(SEP)\n Building % module...\n"
+export POSTBUILDMSG     = " Done.\n$(SEP)\n\n"
+export ITEMBUILDMSG     = " * %\n"
+export PRELINKMSG       = "$(SEP)\n Linking...\n"
+export POSTLINKMSG      = $(POSTBUILDMSG)
+export ITEMLINKMSG      = " * %\n"
+export PREDOCSBUILDMSG  = "$(SEP)\n Building API docs...\n"
+export POSTDOCSBUILDMSG = " Done.\n$(SEP)\n\n"
+export PARTDOCSBUILDMSG = "%...\n"
+
 
 export TARGET     = bin
 export TARGETPATH = $(CURDIR)/$(TARGET)

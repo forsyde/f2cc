@@ -1178,7 +1178,7 @@ void Synthesizer::propagateArraySizesBetweenSignals()
                             it->getString() + "\" not found");
         }
         logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->toString() + "\"");
+                                + current_process->getId()->getString() + "\"");
 
         list<Process::Port*> ports = current_process->getInPorts();
         list<Process::Port*>::iterator port_it;
@@ -1256,7 +1256,8 @@ throw(InvalidModelException, IOException, RuntimeException) {
     try {
         if (dynamic_cast<UnzipxSY*>(process)) {
             logger_.logDebugMessage(string("Found unzipxSY process \"")
-                                    + process->toString() + "\". Summing "
+                                    + process->getId()->getString()
+                                    + "\". Summing "
                                     "up array sizes from its out ports...");
             list<Process::Port*>::iterator it;
             for (it = out_ports.begin(); it != out_ports.end(); ++it) {
@@ -1321,7 +1322,8 @@ throw(InvalidModelException, IOException, RuntimeException) {
     try {
         if (dynamic_cast<ZipxSY*>(process)) {
             logger_.logDebugMessage(string("Found zipxSY process \"")
-                                    + process->toString() + "\". Summing "
+                                    + process->getId()->getString()
+                                    + "\". Summing "
                                     + "up array sizes from its in ports...");
             list<Process::Port*>::iterator it;
             for (it = in_ports.begin(); it != in_ports.end(); ++it) {
