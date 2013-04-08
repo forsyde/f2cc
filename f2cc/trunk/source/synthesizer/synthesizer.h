@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,8 +23,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_SYNTHESIZER_SYNTHESIZER_H_
-#define F2CC_SOURCE_SYNTHESIZER_SYNTHESIZER_H_
+#ifndef F2CC_SOURCE_NTHESIZER_NTHESIZER_H_
+#define F2CC_SOURCE_NTHESIZER_NTHESIZER_H_
 
 /**
  * @file
@@ -40,11 +40,11 @@
 #include "../forsyde/model.h"
 #include "../forsyde/process.h"
 #include "../forsyde/delaysy.h"
-#include "../forsyde/mapsy.h"
+#include "../forsyde/combsy.h"
 #include "../forsyde/unzipxsy.h"
 #include "../forsyde/zipxsy.h"
 #include "../forsyde/copysy.h"
-#include "../forsyde/zipwithnsy.h"
+#include "../forsyde/combsy.h"
 #include "../language/cfunction.h"
 #include "../language/cvariable.h"
 #include "../language/cdatatype.h"
@@ -150,7 +150,7 @@ class Synthesizer {
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      */
-    Synthesizer(Forsyde::Model* model, Logger& logger, Config& config)
+    Synthesizer(ForSyDe::SY::Model* model, Logger& logger, Config& config)
         throw(InvalidArgumentException);
 
     /**
@@ -260,15 +260,15 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignal(Forsyde::Process::Port* out_port,
-                     Forsyde::Process::Port* in_port)
+    Signal* getSignal(ForSyDe::SY::Process::Port* out_port,
+                     ForSyDe::SY::Process::Port* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const Forsyde::Process::Port*, const
-     * Forsyde::Process::Port*) but only requires the out port. The method takes
+     * Same as getSignal(const ForSyDe::SY::Process::Port*, const
+     * ForSyDe::SY::Process::Port*) but only requires the out port. The method takes
      * care of finding the in port and invokes getSignal(const
-     * Forsyde::Process::Port*, const Forsyde::Process::Port*) with the correct
+     * ForSyDe::SY::Process::Port*, const ForSyDe::SY::Process::Port*) with the correct
      * parameters.
      *
      * @param out_port
@@ -281,14 +281,14 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignalByOutPort(Forsyde::Process::Port* out_port)
+    Signal* getSignalByOutPort(ForSyDe::SY::Process::Port* out_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const Forsyde::Process::Port*, const
-     * Forsyde::Process::Port*) but only requires the in port. The method takes
+     * Same as getSignal(const ForSyDe::SY::Process::Port*, const
+     * ForSyDe::SY::Process::Port*) but only requires the in port. The method takes
      * care of finding the out port and invokes getSignal(const
-     * Forsyde::Process::Port*, const Forsyde::Process::Port*) with the correct
+     * ForSyDe::SY::Process::Port*, const ForSyDe::SY::Process::Port*) with the correct
      * parameters.
      *
      * @param in_port
@@ -301,11 +301,11 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignalByInPort(Forsyde::Process::Port* in_port)
+    Signal* getSignalByInPort(ForSyDe::SY::Process::Port* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Renames the functions of all MapSY processes present in the schedule to
+     * Renames the functions of all comb processes present in the schedule to
      * avoid name clashes in the generated code. Also, C is a bit picky about
      * variable and function names (for instance, they must not start with a
      * number).
@@ -317,11 +317,11 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void renameMapSYFunctions()
+    void renamecombFunctions()
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Combines functions between MapSY processes which are identical by
+     * Combines functions between comb processes which are identical by
      * renaming the duplicates. Functions are compared using the \c == operator.
      *
      * @throws InvalidModelException
@@ -335,12 +335,12 @@ class Synthesizer {
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Processes of type \c CoalescedMapSY may contain more than one process
+     * Processes of type \c CoalescedMap may contain more than one process
      * function argument. In order to be able to generate correct code and still
-     * treating them like any other \c MapSY process, wrapper functions need to
+     * treating them like any other \c comb process, wrapper functions need to
      * be created which invoke the other function arguments in subsequent order.
-     * The wrapper function are then added to the \c CoalescedMapSY process
-     * such that it is the function returned when calling MapSY::getFunction().
+     * The wrapper function are then added to the \c CoalescedMap process
+     * such that it is the function returned when calling comb::getFunction().
      *
      * @throws InvalidModelException
      *         When something is wrong with the model.
@@ -366,17 +366,17 @@ class Synthesizer {
      *         When access to the log file fails.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
-     * @see generateCoalescedSYWrapperFunctions()
+     * @see generateCoalescedWrapperFunctions()
      */
     CFunction generateCoalescedSyWrapperFunction(
         std::list<CFunction*> functions)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates CUDA kernel functions for \c ParallelMapSY processes. The
+     * Generates CUDA kernel functions for \c ParallelMap processes. The
      * kernel function is added to the process as first function, which will
-     * cause it to be retrieved when MapSY::getFunction() is invoked and thus
-     * the process can be handled like any other \c MapSY process.
+     * cause it to be retrieved when comb::getFunction() is invoked and thus
+     * the process can be handled like any other \c comb process.
      *
      * @throws InvalidModelException
      *         When something is wrong with the model.
@@ -440,11 +440,11 @@ class Synthesizer {
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates wrapper functions for \c ParallelMapSY processes. This is only
+     * Generates wrapper functions for \c ParallelMap processes. This is only
      * done when synthesizing C code. The wrapper function is added to the
      * process as first function, which will cause it to be retrieved when
-     * MapSY::getFunction() is invoked and thus the process can be handled like
-     * any other \c MapSY process.
+     * comb::getFunction() is invoked and thus the process can be handled like
+     * any other \c comb process.
      *
      * @throws InvalidModelException
      *         When something is wrong with the model.
@@ -495,11 +495,11 @@ class Synthesizer {
      * Generates code for the model function definition, which implements the
      * schedule.
      *
-     * Note that \c DelaySY processes are executed in two steps. The first step
-     * of all \c DelaySY processes is executed before all other processes. Then,
+     * Note that \c delay processes are executed in two steps. The first step
+     * of all \c delay processes is executed before all other processes. Then,
      * the processes are executed in order as defined by the schedule but the \c
-     * DelaySY processes are ignored. Once the schedule has been executed, the
-     * second step of all \c DelaySY processes is executed. This must be done in
+     * delay processes are ignored. Once the schedule has been executed, the
+     * second step of all \c delay processes is executed. This must be done in
      * order to first propagate the values of the delay variables to the signal
      * variables, and then save the new values in the delay variables until the
      * next model invocation.
@@ -549,13 +549,13 @@ class Synthesizer {
      * function to the appropriate signals. Input array parameters are ignored
      * (see generateArrayInputOutputsToSignalsAliasingCode()).
      *
-     * @returns Copying code.
+     * @returns fanouting code.
      * @throws InvalidModelException
      *         When something is wrong with the model.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateInputsToSignalsCopyingCode()
+    std::string generateInputsToSignalsfanoutingCode()
         throw(InvalidModelException, RuntimeException);
 
     /**
@@ -564,13 +564,13 @@ class Synthesizer {
      * output parameters are ignored (see
      * generateArrayInputOutputsToSignalsAliasingCode()).
      *
-     * @returns Copying code.
+     * @returns fanouting code.
      * @throws InvalidModelException
      *         When something is wrong with the model.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateSignalsToOutputsCopyingCode()
+    std::string generateSignalsToOutputsfanoutingCode()
         throw(InvalidModelException, RuntimeException);
 
     /**
@@ -578,7 +578,7 @@ class Synthesizer {
      * the corresponding signal array variables. This reduces the amount of
      * memory copying needed.
      *
-     * @returns Copying code.
+     * @returns fanouting code.
      * @throws InvalidModelException
      *         When something is wrong with the model.
      * @throws RuntimeException
@@ -620,14 +620,14 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateDelayVariableDeclarationsCode()
+    std::string generatedelayVariableDeclarationsCode()
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Gets the corresponding delay variable and initial value for a process.
      *
      * @param process
-     *        Delay process.
+     *        delay process.
      * @returns Pair where the first value is the variable and the second the
      *          initial value.
      * @throws InvalidArgumentException
@@ -635,8 +635,8 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::pair<CVariable, std::string> getDelayVariable(
-        Forsyde::DelaySY* process)
+    std::pair<CVariable, std::string> getdelayVariable(
+        ForSyDe::SY::delay* process)
         throw(InvalidArgumentException, RuntimeException);
 
     /**
@@ -701,7 +701,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void createDelayVariables() throw(IOException, RuntimeException);
+    void createdelayVariables() throw(IOException, RuntimeException);
 
     /**
      * Sets data types of array input signal variables as "const".  The
@@ -829,7 +829,7 @@ class Synthesizer {
 
     /**
      * Generates code which execute the semantic meaning of a process. Executing
-     * a \c DelaySY process with this method has no effect (i.e. the process
+     * a \c delay process with this method has no effect (i.e. the process
      * is ignored).
      *
      * @param process
@@ -842,7 +842,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessExecutionCode(Forsyde::Process* process)
+    std::string generateProcessExecutionCode(ForSyDe::SY::Process* process)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -862,7 +862,7 @@ class Synthesizer {
      *        using the destination variable afterwards. By default, all array
      *        variables copying is deep. Scalar variables are not affected by
      *        this parameter.
-     * @returns Copying code.
+     * @returns fanouting code.
      * @throws InvalidModelException
      *         When there is a data type or array size mismatch, or when the
      *         array size of either is unknown.
@@ -871,7 +871,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateVariableCopyingCode(CVariable to, CVariable from, bool
+    std::string generateVariablefanoutingCode(CVariable to, CVariable from, bool
         do_deep_copy = true) 
         throw(InvalidModelException, IOException, RuntimeException);
 
@@ -883,7 +883,7 @@ class Synthesizer {
      *        Destination variable.
      * @param from
      *        Source variables.
-     * @returns Copying code.
+     * @returns fanouting code.
      * @throws InvalidModelException
      *         When the \c to variable is not an array, or when its array size
      *         is unknown, or when there is a data type or array size mismatch.
@@ -892,7 +892,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateVariableCopyingCode(CVariable to, 
+    std::string generateVariablefanoutingCode(CVariable to, 
                                             std::list<CVariable>& from)
         throw(InvalidModelException, IOException, RuntimeException);
 
@@ -904,7 +904,7 @@ class Synthesizer {
      *        Destination variables.
      * @param from
      *        Source variable
-     * @returns Copying code.
+     * @returns fanouting code.
      * @throws InvalidModelException
      *         When the \c from variable is not an array, or when its array size
      *         is unknown, or when there is a data type or array size mismatch.
@@ -913,7 +913,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateVariableCopyingCode(std::list<CVariable>& to,
+    std::string generateVariablefanoutingCode(std::list<CVariable>& to,
                                             CVariable from)
         throw(InvalidModelException, IOException, RuntimeException);
 
@@ -1057,7 +1057,7 @@ class Synthesizer {
      *        Name of the function.
      * @returns Global function name.
      */
-    std::string getGlobalProcessFunctionName(Forsyde::Id process_id,
+    std::string getGlobalProcessFunctionName(ForSyDe::SY::Id process_id,
                                              const std::string& function_name)
         const throw();
 
@@ -1073,7 +1073,7 @@ class Synthesizer {
     bool dynamicallyAllocateMemoryForSignalVariable(Signal* signal);
 
     /**
-     * Generates code which execute the first step of given \c DelaySY
+     * Generates code which execute the first step of given \c delay
      * process. The generated code copies the value from the delay variable to
      * the out signal.
      *
@@ -1087,12 +1087,12 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessExecutionCodeForDelaySYStep1(
-        Forsyde::DelaySY* process)
+    std::string generateProcessExecutionCodeFordelayStep1(
+        ForSyDe::SY::delay* process)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute the second step of given \c DelaySY
+     * Generates code which execute the second step of given \c delay
      * process. The generated code copies the value from the in signal to the
      * delay variable.
      *
@@ -1106,12 +1106,12 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessExecutionCodeForDelaySYStep2(
-        Forsyde::DelaySY* process)
+    std::string generateProcessExecutionCodeFordelayStep2(
+        ForSyDe::SY::delay* process)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute a given \c MapSY process. The generated code
+     * Generates code which execute a given \c comb process. The generated code
      * uses the process' in signal as input parameter to its function argument,
      * and then writes the result to its out signal.
      *
@@ -1125,30 +1125,12 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessExecutionCodeForMapSY(Forsyde::MapSY* process)
+    std::string generateProcessExecutionCodeForcomb(
+        ForSyDe::SY::comb* process)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute a given \c ZipWithNSY process. The generated
-     * code uses the process' in signals as input parameters to its function
-     * argument, and then writes the result to its out signal.
-     *
-     * @param process
-     *        Process to execute.
-     * @returns Execution code.
-     * @throws InvalidModelException
-     *         When something is wrong with the model.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    std::string generateProcessExecutionCodeForZipWithNSY(
-        Forsyde::ZipWithNSY* process)
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Generates code which execute a given \c UnzipxSY process. The generated
+     * Generates code which execute a given \c unzipx process. The generated
      * code copies each value from its in signal (which is expected to be an
      * array) to all of its out signals. The index of the out port list is used
      * to decide which value it will receive from the input array.
@@ -1163,12 +1145,12 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessExecutionCodeForUnzipxSY(
-        Forsyde::UnzipxSY* process)
+    std::string generateProcessExecutionCodeForunzipx(
+        ForSyDe::SY::unzipx* process)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute a given \c ZipxSY process. The generated
+     * Generates code which execute a given \c zipx process. The generated
      * code copies all values from its in signals to its out signal, which is
      * expected to be an array. The index of the in port list is used to decide
      * where an in value ends up in the output array.
@@ -1183,11 +1165,11 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessExecutionCodeForZipxSY(Forsyde::ZipxSY* process)
+    std::string generateProcessExecutionCodeForzipx(ForSyDe::SY::zipx* process)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute a given \c CopySY process. The generated
+     * Generates code which execute a given \c fanout process. The generated
      * code copies the value from its in signal to all of its out signals.
      *
      * @param process
@@ -1200,14 +1182,14 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessExecutionCodeForCopySY(Forsyde::CopySY* process)
+    std::string generateProcessExecutionCodeForfanout(ForSyDe::SY::fanout* process)
         throw(InvalidModelException, IOException, RuntimeException);
 
   private:
     /**
      * ForSyDe model.
      */
-    Forsyde::Model* const model_;
+    ForSyDe::SY::Model* const model_;
 
     /**
      * Logger.
@@ -1222,7 +1204,7 @@ class Synthesizer {
     /**
      * Process schedule.
      */
-    std::list<Forsyde::Id> schedule_;
+    std::list<ForSyDe::SY::Id> schedule_;
 
     /**
      * Set of model signals.
@@ -1235,10 +1217,10 @@ class Synthesizer {
     TargetPlatform target_platform_;
 
     /**
-     * Mapset of delay variables. The delay process is used as key, and the
+     * combset of delay variables. The delay process is used as key, and the
      * value is a pair of a \c CVariable and its initial value.
      */
-    std::map< Forsyde::DelaySY*, std::pair<CVariable, std::string> >
+    std::map< ForSyDe::SY::delay*, std::pair<CVariable, std::string> >
     delay_variables_;
 
   private:
@@ -1263,8 +1245,8 @@ class Synthesizer {
          * @throws InvalidArgumentException
          *         When \c out_port and \c in_port are \c NULL.
          */
-        Signal(Forsyde::Process::Port* out_port,
-               Forsyde::Process::Port* in_port)
+        Signal(ForSyDe::SY::Process::Port* out_port,
+               ForSyDe::SY::Process::Port* in_port)
             throw(InvalidArgumentException);
         
         /**
@@ -1312,14 +1294,14 @@ class Synthesizer {
          *
          * @returns Out port, if any; otherwise \c NULL.
          */
-        Forsyde::Process::Port* getOutPort() const throw();
+        ForSyDe::SY::Process::Port* getOutPort() const throw();
 
         /**
          * Gets the in port of this signal.
          *
          * @returns In port, if any; otherwise \c NULL.
          */
-        Forsyde::Process::Port* getInPort() const throw();
+        ForSyDe::SY::Process::Port* getInPort() const throw();
 
         /**
          * Checks equality between this signal and another
@@ -1368,12 +1350,12 @@ class Synthesizer {
         /**
          * Out port of one signal.
          */
-        Forsyde::Process::Port* out_port_;
+        ForSyDe::SY::Process::Port* out_port_;
 
         /**
          * In port of another signal.
          */
-        Forsyde::Process::Port* in_port_;
+        ForSyDe::SY::Process::Port* in_port_;
 
         /**
          * Flag for checking if the signal has a data type set.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 #include "../tools/tools.h"
 
 using namespace f2cc;
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -36,7 +36,7 @@ using std::pair;
 using std::bad_alloc;
 using std::queue;
 
-ScheduleFinder::ScheduleFinder(Forsyde::Model* model, Logger& logger)
+ScheduleFinder::ScheduleFinder(ForSyDe::SY::Model* model, Logger& logger)
         throw(InvalidArgumentException) : model_(model), logger_(logger) {
     if (!model) {
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
@@ -113,9 +113,9 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
         return partial_schedule;
     }
 
-    // If this is a DelaySY, add the delay element to the schedule and add its
+    // If this is a delay, add the delay element to the schedule and add its
     // preceding process to starting point queue
-    if (dynamic_cast<DelaySY*>(start)) {
+    if (dynamic_cast<delay*>(start)) {
         Process::Port* inport = start->getInPorts().front();
         if (inport->isConnected()) {
             Process* preceding_process =
@@ -152,12 +152,12 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
     return partial_schedule;
 }
 
-bool ScheduleFinder::isGloballyVisited(Forsyde::Process* process) {
+bool ScheduleFinder::isGloballyVisited(ForSyDe::SY::Process* process) {
     return globally_visited_.find(*process->getId()) != globally_visited_.end();
 }
 
-bool ScheduleFinder::visitLocally(Forsyde::Process* process,
-                                  set<Forsyde::Id>& visited) {
+bool ScheduleFinder::visitLocally(ForSyDe::SY::Process* process,
+                                  set<ForSyDe::SY::Id>& visited) {
     return visited.insert(*process->getId()).second;
 }
 

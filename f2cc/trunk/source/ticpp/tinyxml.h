@@ -758,9 +758,9 @@ public:
 protected:
 	TiXmlNode( NodeType _type );
 
-	// Copy to the allocated object. Shared functionality between Clone, Copy constructor,
+	// fanout to the allocated object. Shared functionality between Clone, fanout constructor,
 	// and the assignment operator.
-	void CopyTo( TiXmlNode* target ) const;
+	void fanoutTo( TiXmlNode* target ) const;
 
 	#ifdef TIXML_USE_STL
 	    // The real work of the input operator.
@@ -1147,7 +1147,7 @@ public:
 
 protected:
 
-	void CopyTo( TiXmlElement* target ) const;
+	void fanoutTo( TiXmlElement* target ) const;
 	void ClearThis();	// like clear, but initializes 'this' object as well
 
 	// Used to be public [internal use]
@@ -1200,7 +1200,7 @@ public:
 	virtual bool Accept( TiXmlVisitor* visitor ) const;
 
 protected:
-	void CopyTo( TiXmlComment* target ) const;
+	void fanoutTo( TiXmlComment* target ) const;
 
 	// used to be public
 	#ifdef TIXML_USE_STL
@@ -1242,8 +1242,8 @@ public:
 	}
 	#endif
 
-	TiXmlText( const TiXmlText& copy ) : TiXmlNode( TiXmlNode::TEXT )	{ copy.CopyTo( this ); }
-	void operator=( const TiXmlText& base )							 	{ base.CopyTo( this ); }
+	TiXmlText( const TiXmlText& copy ) : TiXmlNode( TiXmlNode::TEXT )	{ copy.fanoutTo( this ); }
+	void operator=( const TiXmlText& base )							 	{ base.fanoutTo( this ); }
 
 	// Write this text object to a FILE stream.
 	virtual void Print( FILE* cfile, int depth ) const;
@@ -1265,7 +1265,7 @@ public:
 protected :
 	///  [internal use] Creates a new Element and returns it.
 	virtual TiXmlNode* Clone() const;
-	void CopyTo( TiXmlText* target ) const;
+	void fanoutTo( TiXmlText* target ) const;
 
 	bool Blank() const;	// returns true if all white space and new lines
 	// [internal use]
@@ -1339,7 +1339,7 @@ public:
 	virtual bool Accept( TiXmlVisitor* visitor ) const;
 
 protected:
-	void CopyTo( TiXmlDeclaration* target ) const;
+	void fanoutTo( TiXmlDeclaration* target ) const;
 	// used to be public
 	#ifdef TIXML_USE_STL
 	virtual void StreamIn( std::istream * in, TIXML_STRING * tag );
@@ -1405,7 +1405,7 @@ public:
 	virtual bool Accept( TiXmlVisitor* visitor ) const;
 
 protected:
-	void CopyTo( TiXmlStylesheetReference* target ) const;
+	void fanoutTo( TiXmlStylesheetReference* target ) const;
 	// used to be public
 	#ifdef TIXML_USE_STL
 	virtual void StreamIn( std::istream * in, TIXML_STRING * tag );
@@ -1430,8 +1430,8 @@ public:
 	TiXmlUnknown() : TiXmlNode( TiXmlNode::UNKNOWN )	{}
 	virtual ~TiXmlUnknown() {}
 
-	TiXmlUnknown( const TiXmlUnknown& copy ) : TiXmlNode( TiXmlNode::UNKNOWN )		{ copy.CopyTo( this ); }
-	void operator=( const TiXmlUnknown& copy )										{ copy.CopyTo( this ); }
+	TiXmlUnknown( const TiXmlUnknown& copy ) : TiXmlNode( TiXmlNode::UNKNOWN )		{ copy.fanoutTo( this ); }
+	void operator=( const TiXmlUnknown& copy )										{ copy.fanoutTo( this ); }
 
 	/// Creates a copy of this Unknown and returns it.
 	virtual TiXmlNode* Clone() const;
@@ -1448,7 +1448,7 @@ public:
 	virtual bool Accept( TiXmlVisitor* content ) const;
 
 protected:
-	void CopyTo( TiXmlUnknown* target ) const;
+	void fanoutTo( TiXmlUnknown* target ) const;
 
 	#ifdef TIXML_USE_STL
 	virtual void StreamIn( std::istream * in, TIXML_STRING * tag );
@@ -1621,7 +1621,7 @@ protected :
 	#endif
 
 private:
-	void CopyTo( TiXmlDocument* target ) const;
+	void fanoutTo( TiXmlDocument* target ) const;
 
 	bool error;
 	int  errorId;
@@ -1682,7 +1682,7 @@ private:
 
 	It is also safe to copy handles - internally they are nothing more than node pointers.
 	@verbatim
-	TiXmlHandle handleCopy = handle;
+	TiXmlHandle handlefanout = handle;
 	@endverbatim
 
 	What they should not be used for is iteration:
@@ -1717,7 +1717,7 @@ class TiXmlHandle
 public:
 	/// Create a handle from any node (at any depth of the tree.) This can be a null pointer.
 	TiXmlHandle( TiXmlNode* _node )					{ this->node = _node; }
-	/// Copy constructor
+	/// fanout constructor
 	TiXmlHandle( const TiXmlHandle& ref )			{ this->node = ref.node; }
 	TiXmlHandle operator=( const TiXmlHandle& ref ) { this->node = ref.node; return *this; }
 

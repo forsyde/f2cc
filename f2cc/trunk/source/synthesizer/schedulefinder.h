@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,8 +23,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_SYNTHESIZER_SCHEDULEFINDER_H_
-#define F2CC_SOURCE_SYNTHESIZER_SCHEDULEFINDER_H_
+#ifndef F2CC_SOURCE_NTHESIZER_SCHEDULEFINDER_H_
+#define F2CC_SOURCE_NTHESIZER_SCHEDULEFINDER_H_
 
 /**
  * @file
@@ -52,11 +52,11 @@
 namespace f2cc {
 
 /**
- * @brief A class for finding a process schedule for a given \c Forsyde::Model
+ * @brief A class for finding a process schedule for a given \c ForSyDe::SY::Model
  *        instance.
  *
  * The \c ScheduleFinder class implements an algorithm for finding a process
- * schedule for a given instance of a \c Forsyde::Model.
+ * schedule for a given instance of a \c ForSyDe::SY::Model.
  *
  * The algorithm is a recursive DFS algorithm which traverses over the processes
  * in the model. It starts by building a \em starting \em point \em queue,
@@ -64,7 +64,7 @@ namespace f2cc {
  * pops a process from the head of the queue, and creates a \em partial \em
  * process \em schedule. The partial process schedule is created by recursively
  * traversing upwards along the data flow, moving via the in ports (\c
- * Forsyde::Process::Port) of a \c Forsyde::Process. When no more traversing can
+ * ForSyDe::SY::Process::Port) of a \c ForSyDe::SY::Process. When no more traversing can
  * be done, it rewinds the stack, and adds the current process to the
  * schedule. If a process has more than one in port, then a partial schedule is
  * generated for each, concatenated together, and then the current process is
@@ -107,7 +107,7 @@ class ScheduleFinder {
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      */
-    ScheduleFinder(Forsyde::Model* model, Logger& logger)
+    ScheduleFinder(ForSyDe::SY::Model* model, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
@@ -129,7 +129,7 @@ class ScheduleFinder {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::list<Forsyde::Id> findSchedule() throw(IOException, RuntimeException);
+    std::list<ForSyDe::SY::Id> findSchedule() throw(IOException, RuntimeException);
 
     /**
      * Finds a partial schedule for unvisited processes when traversing from a
@@ -149,7 +149,7 @@ class ScheduleFinder {
      *         When a program error occurs. This most likely indicates a bug.
      */
     PartialSchedule findPartialSchedule(
-        Forsyde::Process* start, std::set<Forsyde::Id>& locally_visited)
+        ForSyDe::SY::Process* start, std::set<ForSyDe::SY::Id>& locally_visited)
         throw(IOException, RuntimeException);
 
     /**
@@ -160,7 +160,7 @@ class ScheduleFinder {
      *        Process.
      * @returns \c true if the process has already been visited.
      */
-    bool isGloballyVisited(Forsyde::Process* process);
+    bool isGloballyVisited(ForSyDe::SY::Process* process);
 
     /**
      * Visits a process in a local sense.
@@ -171,14 +171,14 @@ class ScheduleFinder {
      *        Set of locally visited processes.
      * @returns \c true if the process has not previously been locally visisted.
      */
-    bool visitLocally(Forsyde::Process* process,
-                      std::set<Forsyde::Id>& visited);
+    bool visitLocally(ForSyDe::SY::Process* process,
+                      std::set<ForSyDe::SY::Id>& visited);
 
   private:
     /**
      * ForSyDe model.
      */
-    Forsyde::Model* const model_;
+    ForSyDe::SY::Model* const model_;
 
     /**
      * Logger.
@@ -188,12 +188,12 @@ class ScheduleFinder {
     /**
      * Set of globally already visited processes.
      */
-    std::set<Forsyde::Id> globally_visited_;
+    std::set<ForSyDe::SY::Id> globally_visited_;
 
     /**
      * Queue of starting points.
      */
-    std::queue<Forsyde::Process*> starting_points_;
+    std::queue<ForSyDe::SY::Process*> starting_points_;
 
   private:
     /**
@@ -220,13 +220,13 @@ class ScheduleFinder {
          *        Schedule insertion point (leave undefined if \c at_beginning
          *        is set to \c true).
          */
-        PartialSchedule(std::list<Forsyde::Id>& schedule, bool at_beginning,
-                       Forsyde::Id insertion_point);
+        PartialSchedule(std::list<ForSyDe::SY::Id>& schedule, bool at_beginning,
+                       ForSyDe::SY::Id insertion_point);
 
         /**
          * Partial schedule.
          */
-        std::list<Forsyde::Id> schedule;
+        std::list<ForSyDe::SY::Id> schedule;
 
         /**
          * Whether the insertion point is at the beginning of the schedule.
@@ -238,7 +238,7 @@ class ScheduleFinder {
          * Process ID (only defined if the insertion point is not at the
          * beginning of the schedule).
          */
-        Forsyde::Id insertion_point;
+        ForSyDe::SY::Id insertion_point;
     };
 };
 

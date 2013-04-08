@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,15 +23,15 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_UNZIPXSY_H_
-#define F2CC_SOURCE_FORSYDE_UNZIPXSY_H_
+#ifndef F2CC_SOURCE_FORDE_UNZIPX_H_
+#define F2CC_SOURCE_FORDE_UNZIPX_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c unzipxSY process.
+ * @brief Implements the ForSyDe \c unzipx process.
  */
 
 #include "process.h"
@@ -39,22 +39,23 @@
 #include <string>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
+namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c unzipxSY process.
+ * @brief Implements the ForSyDe \c unzipx process.
  */
-class UnzipxSY : public Process {
+class unzipx : public Process {
   public:
     /**
      * @copydoc Process(const Id&)
      */
-    UnzipxSY(const Id& id) throw();
+    unzipx(const Id& id) throw();
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~UnzipxSY() throw();
+    virtual ~unzipx() throw();
 
     /**
      * @copydoc Process::operator==(const Process&) const
@@ -76,6 +77,7 @@ class UnzipxSY : public Process {
     virtual void moreChecks() throw(InvalidProcessException);
 };
 
+}
 }
 }
 

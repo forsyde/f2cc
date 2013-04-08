@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,8 +23,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_COPYSY_H_
-#define F2CC_SOURCE_FORSYDE_COPYSY_H_
+#ifndef F2CC_SOURCE_FORDE_COPY_H_
+#define F2CC_SOURCE_FORDE_COPY_H_
 
 /**
  * @file
@@ -40,31 +40,32 @@
 #include <string>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
+namespace SY {
 
 /**
  * @brief Implements the a process for copying a signal value to multiple output
  *        signals.
  *
- * The \c CopySY process is a special process whose only purpose is to copy the
+ * The \c fanout process is a special process whose only purpose is to copy the
  * value on the input signal to all of its output signals. The internal model
  * does no allow a port to be connected to multiple other ports. However,
  * ForSyDe itself does allow multiple signals to retrieve its values from the
  * same source. Thus, during parsing when encountering such instances, an
- * intermediate \c CopySY process is created and the signals redirected to its
+ * intermediate \c fanout process is created and the signals redirected to its
  * outputs.
  */
-class CopySY : public Process {
+class fanout : public Process {
   public:
     /**
      * @copydoc Process(const Id&)
      */
-    CopySY(const Id& id) throw();
+    fanout(const Id& id) throw();
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~CopySY() throw();
+    virtual ~fanout() throw();
 
     /**
      * @copydoc Process::operator==(const Process&) const
@@ -86,6 +87,7 @@ class CopySY : public Process {
     virtual void moreChecks() throw(InvalidProcessException);
 };
 
+}
 }
 }
 

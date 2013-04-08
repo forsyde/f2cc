@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,18 +23,18 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_COALESCEDMAPSY_H_
-#define F2CC_SOURCE_FORSYDE_COALESCEDMAPSY_H_
+#ifndef F2CC_SOURCE_FORDE_COALESCEDMAP_H_
+#define F2CC_SOURCE_FORDE_COALESCEDMAP_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements a synthesis-related \c coalescedmapSY process.
+ * @brief Implements a synthesis-related \c coalescedmap process.
  */
 
-#include "mapsy.h"
+#include "combsy.h"
 #include "../language/cfunction.h"
 #include "../exceptions/invalidargumentexception.h"
 #include "../exceptions/outofmemoryexception.h"
@@ -42,18 +42,19 @@
 #include <list>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
+namespace SY {
 
 /**
- * @brief Implements a synthesis-related \c coalescedmapSY process.
+ * @brief Implements a synthesis-related \c coalescedmap process.
  *
- * This class implements a specialized process \c coalescedMapSY which is not
- * part of the ForSyDe standard. It is used to replace coalesced \c MapSY
+ * This class implements a specialized process \c coalescedcomb which is not
+ * part of the ForSyDe standard. It is used to replace coalesced \c comb
  * processes into a single process which contains all function arguments of the
- * processes which it replaces. Thus, executing a single \c CoalescedMapSY
- * process produces the same result as executing a series of \c MapSY processes.
+ * processes which it replaces. Thus, executing a single \c CoalescedMap
+ * process produces the same result as executing a series of \c comb processes.
  */
-class CoalescedMapSY : public MapSY {
+class CoalescedMap : public comb {
   public:
     /**
      * Creates a process with a single function.
@@ -66,7 +67,7 @@ class CoalescedMapSY : public MapSY {
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    CoalescedMapSY(const Id& id, const CFunction& function)
+    CoalescedMap(const Id& id, const CFunction& function)
         throw(OutOfMemoryException);
 
     /**
@@ -82,13 +83,13 @@ class CoalescedMapSY : public MapSY {
      * @throws OutOfMemoryException
      *         When the process could not be created due to memory shortage.
      */
-    CoalescedMapSY(const Id& id, const std::list<CFunction>& functions)
+    CoalescedMap(const Id& id, const std::list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~CoalescedMapSY() throw();
+    virtual ~CoalescedMap() throw();
 
     /**
      * Gets the first function argument of this process.
@@ -170,14 +171,14 @@ class CoalescedMapSY : public MapSY {
      *
      * @param rhs
      */
-    CoalescedMapSY(CoalescedMapSY& rhs) throw();
+    CoalescedMap(CoalescedMap& rhs) throw();
 
     /**
-     * @copydoc CoalescedMapSY(CoalescedMapSY&)
+     * @copydoc CoalescedMap(CoalescedMap&)
      *
      * @returns
      */
-    CoalescedMapSY& operator=(CoalescedMapSY& rhs) throw();
+    CoalescedMap& operator=(CoalescedMap& rhs) throw();
 
   protected:
     /**
@@ -186,6 +187,7 @@ class CoalescedMapSY : public MapSY {
     std::list<CFunction*> functions_;
 };
 
+}
 }
 }
 

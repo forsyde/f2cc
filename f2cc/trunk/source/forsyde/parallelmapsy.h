@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,15 +23,15 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_PARALLELMAPSY_H_
-#define F2CC_SOURCE_FORSYDE_PARALLELMAPSY_H_
+#ifndef F2CC_SOURCE_FORDE_PARALLELMAP_H_
+#define F2CC_SOURCE_FORDE_PARALLELMAP_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements a synthesis-related \c parallelmapSY process.
+ * @brief Implements a synthesis-related \c parallelmap process.
  */
 
 #include "coalescedmapsy.h"
@@ -42,18 +42,19 @@
 #include <list>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
+namespace SY{
 
 /**
- * @brief Implements a synthesis-related \c parallelmapSY process.
+ * @brief Implements a synthesis-related \c parallelmap process.
  *
- * This class implements a specialized process \c parallelmapSY which is not
+ * This class implements a specialized process \c parallelmap which is not
  * part of the ForSyDe standard. Instead, it is used to replace data parallel
- * sections consisting of a \c UnzipxSY process, a set of \c MapSY or \c
- * CoalescedMapSY processes, followed by a \c ZipxSY process, with a single \c
- * ParallelMapSY process as it entails the same semantic meaning.
+ * sections consisting of a \c unzipx process, a set of \c comb or \c
+ * CoalescedMap processes, followed by a \c zipx process, with a single \c
+ * ParallelMap process as it entails the same semantic meaning.
  */
-class ParallelMapSY : public CoalescedMapSY {
+class ParallelMap : public CoalescedMap {
   public:
     /**
      * Creates a process with a single function argument.
@@ -61,7 +62,7 @@ class ParallelMapSY : public CoalescedMapSY {
      * @param id
      *        Process ID.
      * @param num_processes
-     *        Number of data parallel MapSY processes that this process will
+     *        Number of data parallel comb processes that this process will
      *        represent.
      * @param function
      *        Process function argument.
@@ -69,7 +70,7 @@ class ParallelMapSY : public CoalescedMapSY {
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    ParallelMapSY(const Id& id, int num_processes, const CFunction& function)
+    ParallelMap(const Id& id, int num_processes, const CFunction& function)
         throw(OutOfMemoryException);
 
     /**
@@ -78,7 +79,7 @@ class ParallelMapSY : public CoalescedMapSY {
      * @param id
      *        Process ID.
      * @param num_processes
-     *        Number of data parallel MapSY processes that this process will
+     *        Number of data parallel comb processes that this process will
      *        represent.
      * @param functions
      *        List of process function arguments.
@@ -88,22 +89,22 @@ class ParallelMapSY : public CoalescedMapSY {
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    ParallelMapSY(const Id& id, int num_processes,
+    ParallelMap(const Id& id, int num_processes,
                   const std::list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~ParallelMapSY() throw();
+    virtual ~ParallelMap() throw();
 
     /**
-     * @copydoc MapSY::operator==(const Process&) const
+     * @copydoc comb::operator==(const Process&) const
      */
     virtual bool operator==(const Process& rhs) const throw();
 
     /**
-     * Gets the number of data parallel MapSY or CoalescedMapSY processes that
+     * Gets the number of data parallel comb or CoalescedMap processes that
      * this process represents.
      *
      * @returns Number of processes.
@@ -122,6 +123,7 @@ class ParallelMapSY : public CoalescedMapSY {
     const int num_parallel_processes_;
 };
 
+}
 }
 }
 

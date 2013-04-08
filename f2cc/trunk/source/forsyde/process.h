@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,8 +23,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_PROCESS_H_
-#define F2CC_SOURCE_FORSYDE_PROCESS_H_
+#ifndef F2CC_SOURCE_FORDE_PROCESS_H_
+#define F2CC_SOURCE_FORDE_PROCESS_H_
 
 /**
  * @file
@@ -44,7 +44,8 @@
 #include <list>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
+namespace SY{
 
 /**
  * @brief Base class for process nodes in the internal representation of ForSyDe
@@ -65,7 +66,7 @@ class Process {
      * @param id
      *        Process ID.
      */
-    Process(const Forsyde::Id& id) throw();
+    Process(const ForSyDe::SY::Id& id) throw();
 
     /**
      * Destroys this process. This also destroys all ports and breaks all
@@ -78,7 +79,7 @@ class Process {
      *
      * @returns Process ID.
      */
-    const Forsyde::Id* getId() const throw();
+    const ForSyDe::SY::Id* getId() const throw();
 
     /**
      * Adds an in port to this process. Processes are not allowed to have
@@ -91,7 +92,7 @@ class Process {
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInPort(const Forsyde::Id& id) throw(OutOfMemoryException);
+    bool addInPort(const ForSyDe::SY::Id& id) throw(OutOfMemoryException);
 
     /**
      * Creates a new port with the same ID and connections as another port and
@@ -115,7 +116,7 @@ class Process {
      *        Port ID.
      * @returns \c true if such a port was found and successfully deleted.
      */
-    bool deleteInPort(const Forsyde::Id& id) throw();
+    bool deleteInPort(const ForSyDe::SY::Id& id) throw();
 
     /**
      * Gets the number of in ports of this process.
@@ -131,7 +132,7 @@ class Process {
      *        Port id.
      * @returns Port, if found; otherwise \c NULL.
      */
-    Port* getInPort(const Forsyde::Id& id) throw();
+    Port* getInPort(const ForSyDe::SY::Id& id) throw();
 
     /**
      * Gets a list of in ports belonging to this this process.
@@ -141,7 +142,7 @@ class Process {
     std::list<Port*> getInPorts() throw();
 
     /**
-     * Same as addIn Port(const Forsyde::Id&) but for out ports.
+     * Same as addIn Port(const ForSyDe::SY::Id&) but for out ports.
      *
      * @param id
      *        Port ID.
@@ -150,7 +151,7 @@ class Process {
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutPort(const Forsyde::Id& id) throw(OutOfMemoryException);
+    bool addOutPort(const ForSyDe::SY::Id& id) throw(OutOfMemoryException);
 
     /**
      * Same as addInPort(Port&) but for out ports.
@@ -165,13 +166,13 @@ class Process {
     bool addOutPort(Port& port) throw(OutOfMemoryException);
 
     /**
-     * Same as deleteOutPort(const Forsyde::Id&) but for out ports.
+     * Same as deleteOutPort(const ForSyDe::SY::Id&) but for out ports.
      *
      * @param id
      *        Port ID.
      * @returns \c true if such a port was found and successfully deleted.
      */
-    bool deleteOutPort(const Forsyde::Id& id) throw();
+    bool deleteOutPort(const ForSyDe::SY::Id& id) throw();
 
     /**
      * Same as getNumInPorts() but for out ports.
@@ -181,13 +182,13 @@ class Process {
     size_t getNumOutPorts() const throw();
 
     /**
-     * Same as getOutPort(const Forsyde::Id&) but for out ports.
+     * Same as getOutPort(const ForSyDe::SY::Id&) but for out ports.
      *
      * @param id
      *        Port ID.
      * @returns Port, if found; otherwise \c NULL.
      */
-    Port* getOutPort(const Forsyde::Id& id) throw();
+    Port* getOutPort(const ForSyDe::SY::Id& id) throw();
 
     /**
      * Same as getInPorts() but for out ports.
@@ -287,7 +288,7 @@ class Process {
      * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Port*>::iterator findPort(const Forsyde::Id& id,
+    std::list<Port*>::iterator findPort(const ForSyDe::SY::Id& id,
                                         std::list<Port*>& ports) const throw();
 
     /**
@@ -316,7 +317,7 @@ class Process {
     /**
      * Process ID.
      */
-    const Forsyde::Id id_;
+    const ForSyDe::SY::Id id_;
 
     /**
      * List of in ports.
@@ -343,7 +344,7 @@ class Process {
          * @param id
          *        Port ID.
          */
-        Port(const Forsyde::Id& id) throw();
+        Port(const ForSyDe::SY::Id& id) throw();
 
         /**
          * Creates a port belonging to a process.
@@ -355,7 +356,7 @@ class Process {
          * @throws InvalidArgumentException
          *         When \c process is \c NULL.
          */
-        Port(const Forsyde::Id& id, Process* process)
+        Port(const ForSyDe::SY::Id& id, Process* process)
             throw(InvalidArgumentException);
 
         /**
@@ -400,7 +401,7 @@ class Process {
          *
          * @returns Port ID.
          */
-        const Forsyde::Id* getId() const throw();
+        const ForSyDe::SY::Id* getId() const throw();
 
         /**
          * Checks if this port is connected to any other port.
@@ -479,7 +480,7 @@ class Process {
         /**
          * Port ID.
          */
-        const Forsyde::Id id_;
+        const ForSyDe::SY::Id id_;
 
         /**
          * Port name.
@@ -496,6 +497,7 @@ class Process {
 
 };
 
+}
 }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 #include "unzipxsy.h"
 #include "parallelmapsy.h"
 #include "coalescedmapsy.h"
-#include "zipwithnsy.h"
+#include "combsy.h"
 #include "../language/cfunction.h"
 #include "../language/cdatatype.h"
 #include "../tools/tools.h"
@@ -40,7 +40,7 @@
 #include <stdexcept>
 
 using namespace f2cc;
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -85,13 +85,13 @@ void ModelModifier::coalesceDataParallelProcesses()
 
 void ModelModifier::coalesceParallelMapSyProcesses()
     throw(IOException, RuntimeException) {
-    list< list<ParallelMapSY*> > chains = findParallelMapSyChains();
+    list< list<ParallelMap*> > chains = findParallelMapSyChains();
     if (chains.size() == 0) {
-        logger_.logInfoMessage("No ParallelMapSY chains found");
+        logger_.logInfoMessage("No ParallelMap chains found");
         return;
     }
 
-    list< list<ParallelMapSY*> >::iterator it;
+    list< list<ParallelMap*> >::iterator it;
     for (it = chains.begin(); it != chains.end(); ++it) {
         if (!isParallelMapSyChainCoalescable(*it)) continue;
         logger_.logInfoMessage(string("Coalescing process chain ")
@@ -130,7 +130,7 @@ void ModelModifier::splitDataParallelSegments()
     }
 }
 
-void ModelModifier::fuseUnzipMapZipProcesses()
+void ModelModifier::fuseUnzipcombZipProcesses()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections = findDataParallelSections();
     list<ContainedSection>::iterator it;
@@ -139,7 +139,7 @@ void ModelModifier::fuseUnzipMapZipProcesses()
         logger_.logInfoMessage(string("Fusing data parallel section ")
                                + section.toString() + "...");
 
-        // Get function arguments of mapSY or coalescedmapSY processes
+        // Get function arguments of map or coalescedmap processes
         if (getProcessChain(section.start->getOutPorts().front(),
                             section.end).size() != 1) {
             THROW_EXCEPTION(IllegalStateException, "Process chain is not of "
@@ -148,8 +148,8 @@ void ModelModifier::fuseUnzipMapZipProcesses()
         Process* data_process = section.start->getOutPorts().front()
             ->getConnectedPort()->getProcess();
         list<CFunction> functions;
-        CoalescedMapSY* cmapsy_process =
-            dynamic_cast<CoalescedMapSY*>(data_process);
+        CoalescedMap* cmapsy_process =
+            dynamic_cast<CoalescedMap*>(data_process);
         if (cmapsy_process) {
             list<CFunction*> functions_to_copy = cmapsy_process->getFunctions();
             list<CFunction*>::iterator func_it;
@@ -159,18 +159,18 @@ void ModelModifier::fuseUnzipMapZipProcesses()
             }
         }
         else {
-            MapSY* mapsy_process = dynamic_cast<MapSY*>(data_process);
+            comb* mapsy_process = dynamic_cast<comb*>(data_process);
             if (!mapsy_process) THROW_EXCEPTION(CastException);
             functions.push_back(*mapsy_process->getFunction());
         }
 
-        // Create new parallelmapSY process to replace the data parallel section
+        // Create new parallelmap process to replace the data parallel section
         int num_processes = section.start->getOutPorts().size();
-        ParallelMapSY* new_process = new (std::nothrow) ParallelMapSY(
-            model_->getUniqueProcessId("_parallelmapSY_"), num_processes,
+        ParallelMap* new_process = new (std::nothrow) ParallelMap(
+            model_->getUniqueProcessId("_parallelmap_"), num_processes,
             functions);
         if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
-        logger_.logDebugMessage(string("New ParallelMapSY process \"")
+        logger_.logDebugMessage(string("New ParallelMap process \"")
                                 + new_process->getId()->getString()
                                 + "\" created");
 
@@ -197,7 +197,7 @@ void ModelModifier::fuseUnzipMapZipProcesses()
     }
 }
 
-void ModelModifier::convertZipWith1ToMapSY()
+void ModelModifier::convertZipWith1Tocomb()
     throw(IOException, RuntimeException) {
     list<Process*> processes = model_->getProcesses();
     list<Process*>::iterator it;
@@ -205,12 +205,12 @@ void ModelModifier::convertZipWith1ToMapSY()
         logger_.logDebugMessage(string("Analyzing process \"")
                                 + (*it)->getId()->getString() + "\"...");
 
-        ZipWithNSY* process = dynamic_cast<ZipWithNSY*>(*it);
+        comb* process = dynamic_cast<comb*>(*it);
         if (process && process->getNumInPorts() == 1) {
-            MapSY* new_process = new (std::nothrow) MapSY(
-                model_->getUniqueProcessId("_mapSY_"), *process->getFunction());
+            comb* new_process = new (std::nothrow) comb(
+                model_->getUniqueProcessId("_map_"), *process->getFunction());
             if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
-            logger_.logDebugMessage(string("New MapSY process \"")
+            logger_.logDebugMessage(string("New comb process \"")
                                     + new_process->getId()->getString()
                                     + "\" created");
 
@@ -248,10 +248,10 @@ void ModelModifier::removeRedundantProcesses()
         logger_.logDebugMessage(string("Analyzing process \"")
                                 + process->getId()->getString() + "\"...");
 
-        // Remove ZipxSY and UnzipxSY processes which have only one in and out
+        // Remove zipx and unzipx processes which have only one in and out
         // port
-        bool is_zipxsy = dynamic_cast<ZipxSY*>(process);
-        bool is_unzipxsy = !is_zipxsy && dynamic_cast<UnzipxSY*>(process);
+        bool is_zipxsy = dynamic_cast<zipx*>(process);
+        bool is_unzipxsy = !is_zipxsy && dynamic_cast<unzipx*>(process);
         if (is_zipxsy || is_unzipxsy) {
             if (process->getNumInPorts() == 1
                 && process->getNumOutPorts() == 1) {
@@ -292,13 +292,13 @@ void ModelModifier::removeRedundantProcesses()
                 
                 if (is_zipxsy) {
                     logger_.logInfoMessage(string("Removed ")
-                                           + "redundant ZipxSY process \""
+                                           + "redundant zipx process \""
                                            + process_name + "\" (had only 1 in "
                                            + "port)");
                 }
                 else {
                     logger_.logInfoMessage(string("Removed ")
-                                           + "redundant UnzipxSY process \""
+                                           + "redundant unzipx process \""
                                            + process_name + "\" (had only 1 "
                                            "out port)");
                 }
@@ -370,26 +370,26 @@ ModelModifier::findContainedSections(Process* begin, set<Id>& visited)
     if (visitProcess(visited, begin)) {
         logger_.logDebugMessage(string("Analyzing process \"")
                                 + begin->getId()->getString() + "\"...");
-        ZipxSY* converge_point = dynamic_cast<ZipxSY*>(begin);
+        zipx* converge_point = dynamic_cast<zipx*>(begin);
         if (converge_point) {
-            logger_.logDebugMessage(string("Discovered zipxSY ")
+            logger_.logDebugMessage(string("Discovered zipx ")
                                     + "process \""
                                     + converge_point->getId()->getString()
                                     + "\"");
-            logger_.logDebugMessage("Searching for nearest unzipxSY "
+            logger_.logDebugMessage("Searching for nearest unzipx "
                                     "process...");
             set<Id> visited_for_nearest_unzipxsy;
-            UnzipxSY* diverge_point =
-                findNearestUnzipxSYProcess(converge_point,
+            unzipx* diverge_point =
+                findNearestunzipxProcess(converge_point,
                                            visited_for_nearest_unzipxsy);
             if (diverge_point) {
                 logger_.logDebugMessage(string("Found nearest ")
-                                        + "unzipxSY process \""
+                                        + "unzipx process \""
                                         + diverge_point->getId()->getString()
                                         + "\"");
             }
             else {
-                logger_.logDebugMessage("No unzipxSY process found");
+                logger_.logDebugMessage("No unzipx process found");
                 // Return empty list
                 return sections;
             }
@@ -447,7 +447,7 @@ bool ModelModifier::isAContainedSection(Process* start, Process* end)
         THROW_EXCEPTION(InvalidArgumentException, "\"end\" must not be NULL");
     }
 
-    set<Forsyde::Id> visited;
+    set<ForSyDe::SY::Id> visited;
     if (!checkDataFlowConvergence(start, end, visited, true)) {
         logger_.logDebugMessage(string("All flow from process \"")
                                 + start->getId()->getString() + "\" does not "
@@ -467,7 +467,7 @@ bool ModelModifier::isAContainedSection(Process* start, Process* end)
 }
 
 bool ModelModifier::checkDataFlowConvergence(Process* start, Process* end,
-                                             set<Forsyde::Id>& visited,
+                                             set<ForSyDe::SY::Id>& visited,
                                              bool forward)
     throw(IOException, RuntimeException) {
     if (start == end) return true;
@@ -511,14 +511,14 @@ bool ModelModifier::checkDataFlowConvergence(Process* start, Process* end,
     return true;
 }
 
-UnzipxSY* ModelModifier::findNearestUnzipxSYProcess(Forsyde::Process* begin,
+unzipx* ModelModifier::findNearestunzipxProcess(ForSyDe::SY::Process* begin,
                                                     set<Id>& visited)
     throw(IOException, RuntimeException) {
     if (!begin) return NULL;
     if (visitProcess(visited, begin)) {
         logger_.logDebugMessage(string("Analyzing process \"")
                                 + begin->getId()->getString() + "\"...");
-        UnzipxSY* sought_process = dynamic_cast<UnzipxSY*>(begin);
+        unzipx* sought_process = dynamic_cast<unzipx*>(begin);
         if (sought_process) return sought_process;
 
         list<Process::Port*> in_ports = begin->getInPorts();
@@ -526,7 +526,7 @@ UnzipxSY* ModelModifier::findNearestUnzipxSYProcess(Forsyde::Process* begin,
         for (it = in_ports.begin(); it != in_ports.end(); ++it) {
             if ((*it)->isConnected()) {
                 Process* next_process = (*it)->getConnectedPort()->getProcess();
-                sought_process = findNearestUnzipxSYProcess(next_process,
+                sought_process = findNearestunzipxProcess(next_process,
                                                             visited);
                 if (sought_process) return sought_process;
             }
@@ -550,11 +550,11 @@ bool ModelModifier::isContainedSectionDataParallel(
                                 + (*port_it)->toString() + "\"");
         logger_.logDebugMessage("Getting process chain...");
         list<Process*> current_chain = getProcessChain(*port_it, section.end);
-        if (!hasOnlyMapSys(current_chain)) {
+        if (!hasOnlycombSys(current_chain)) {
             logger_.logMessage(Logger::DEBUG,
                                string("Contained section ")
                                + section.toString() + " does not consist of "
-                               + "only MapSY processes");
+                               + "only comb processes");
             return false;
         }
         if (first) {
@@ -581,11 +581,11 @@ bool ModelModifier::isContainedSectionDataParallel(
     return true;
 }
 
-bool ModelModifier::hasOnlyMapSys(std::list<Forsyde::Process*> chain) const
+bool ModelModifier::hasOnlycombSys(std::list<ForSyDe::SY::Process*> chain) const
     throw() {
     list<Process*>::const_iterator it;
     for (it = chain.begin(); it != chain.end(); ++it) {
-        if (!dynamic_cast<MapSY*>(*it)) return false;
+        if (!dynamic_cast<comb*>(*it)) return false;
     }
     return true;
 }
@@ -679,37 +679,37 @@ list<Process*> ModelModifier::getProcessChainR(Process::Port* start,
     }
 }
 
-list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains()
+list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains()
     throw(IOException, RuntimeException) {
-    list< list<ParallelMapSY*> > chains;
+    list< list<ParallelMap*> > chains;
     set<Id> visited;
     list<Process::Port*> output_ports = model_->getOutputs();
     list<Process::Port*>::iterator it;
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
         logger_.logDebugMessage(string("Entering at output port \"")
                                 + (*it)->toString() + "\"");
-        tools::append< list<ParallelMapSY*> >(
+        tools::append< list<ParallelMap*> >(
             chains, findParallelMapSyChains((*it)->getProcess(), visited));
     }
     return chains;
 }
 
-list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains(
+list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains(
     Process* begin, set<Id>& visited) throw(IOException, RuntimeException) {
-    list< list<ParallelMapSY*> > chains;
+    list< list<ParallelMap*> > chains;
     if (visitProcess(visited, begin)) {
         logger_.logDebugMessage(string("Analyzing process \"")
                                 + begin->getId()->getString() + "\"...");
 
         // If this is a beginning of a chain, find the entire chain
         Process* continuation_point = begin;
-        ParallelMapSY* parallelmapsy = dynamic_cast<ParallelMapSY*>(begin);
+        ParallelMap* parallelmapsy = dynamic_cast<ParallelMap*>(begin);
         if (parallelmapsy) {
             logger_.logDebugMessage(string("Found begin of chain at ")
                                     + "processes \""
                                     + begin->getId()->getString() + "\"");
 
-            list<ParallelMapSY*> chain;
+            list<ParallelMap*> chain;
             while (parallelmapsy) {
                 // Since we are searching the model from outputs to inputs,
                 // the process must be added to the top of the list to avoid the
@@ -720,14 +720,14 @@ list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains(
                 if (!out_port->isConnected()) break;
                 Process* next_process = out_port->getConnectedPort()
                     ->getProcess();
-                parallelmapsy = dynamic_cast<ParallelMapSY*>(next_process);
+                parallelmapsy = dynamic_cast<ParallelMap*>(next_process);
             }
             logger_.logDebugMessage(string("Chain ended at process ")
                                     + "\"" + chain.back()->getId()->getString()
                                     + "\"");
             chains.push_back(chain);
 
-            logger_.logDebugMessage(string("ParallelMapSY process ")
+            logger_.logDebugMessage(string("ParallelMap process ")
                                     + "chain found: "
                                     + processChainToString(chain));
         }
@@ -738,7 +738,7 @@ list< list<ParallelMapSY*> > ModelModifier::findParallelMapSyChains(
         for (it = in_ports.begin(); it != in_ports.end(); ++it) {
             if ((*it)->isConnected()) {
                 Process* next_process = (*it)->getConnectedPort()->getProcess();
-                tools::append< list<ParallelMapSY*> >(
+                tools::append< list<ParallelMap*> >(
                     chains, findParallelMapSyChains(next_process, visited));
             }
         }
@@ -751,14 +751,14 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
     // Build function argument list
     list<CFunction> functions;
     for (list<Process*>::iterator it = chain.begin(); it != chain.end(); ++it) {
-        MapSY* mapsy = dynamic_cast<MapSY*>(*it);
+        comb* mapsy = dynamic_cast<comb*>(*it);
         if (!mapsy) THROW_EXCEPTION(CastException);
         functions.push_back(*mapsy->getFunction());
     }
 
-    // Create new coalescedmapSY process
-    CoalescedMapSY* new_process = new (std::nothrow) CoalescedMapSY(
-        model_->getUniqueProcessId("_coalescedmapSY_"), functions);
+    // Create new coalescedmap process
+    CoalescedMap* new_process = new (std::nothrow) CoalescedMap(
+        model_->getUniqueProcessId("_coalescedmap_"), functions);
     if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
     
     redirectDataFlow(chain.front(), chain.back(), new_process, new_process);
@@ -784,22 +784,22 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
     destroyProcessChain(chain.front());
 }
 
-bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMapSY*> chain)
+bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMap*> chain)
     throw(RuntimeException) {
     if (chain.size() <= 1) {
-        logger_.logInfoMessage(string("ParallelMapSY chain ")
+        logger_.logInfoMessage(string("ParallelMap chain ")
                                + processChainToString(chain)
                                + " only consists of one process - no "
                                + "process coalescing needed");
         return false;
     }
 
-    list<ParallelMapSY*>::iterator it;
+    list<ParallelMap*>::iterator it;
     bool first = true;
     int first_num_processes;
     CDataType prev_output_data_type;
     for (it = chain.begin(); it != chain.end(); ++it) {
-        ParallelMapSY* current_process = *it;
+        ParallelMap* current_process = *it;
         CFunction* function = current_process->getFunction();
         if (first) {
             first_num_processes = current_process->getNumProcesses();
@@ -810,7 +810,7 @@ bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMapSY*> chain)
             if (current_process->getNumProcesses() != first_num_processes) {
                 logger_.logWarningMessage(string("Number of processes are not ")
                                           + "equal for all processes in "
-                                          + "ParallelMapSY chain "
+                                          + "ParallelMap chain "
                                           + processChainToString(chain));
                 return false;
             }
@@ -822,7 +822,7 @@ bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMapSY*> chain)
             input_data_type.setIsConst(false);
             if (input_data_type != prev_output_data_type) {
                 logger_.logWarningMessage(string("Non-matching data types in ")
-                                          + "ParallelMapSY chain "
+                                          + "ParallelMap chain "
                                           + processChainToString(chain));
                 return false;
             }
@@ -842,19 +842,19 @@ bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMapSY*> chain)
     return true;
 }
 
-void ModelModifier::coalesceParallelMapSyChain(list<ParallelMapSY*> chain)
+void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
     throw(RuntimeException) {
     // Build function argument list
     list<CFunction> functions;
-    for (list<ParallelMapSY*>::iterator it = chain.begin(); it != chain.end();
+    for (list<ParallelMap*>::iterator it = chain.begin(); it != chain.end();
          ++it) {
         functions.push_back(*(*it)->getFunction());
     }
 
-    // Create new ParallelMapSY process
+    // Create new ParallelMap process
     int num_processes = chain.front()->getNumProcesses();
-    ParallelMapSY* new_process = new (std::nothrow) ParallelMapSY(
-        model_->getUniqueProcessId("_parallelmapSY_"), num_processes,
+    ParallelMap* new_process = new (std::nothrow) ParallelMap(
+        model_->getUniqueProcessId("_parallelmap_"), num_processes,
         functions);
     if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
     
@@ -893,17 +893,17 @@ string ModelModifier::processChainToString(list<Process*> chain) const throw() {
     return str;
 }
 
-string ModelModifier::processChainToString(list<ParallelMapSY*> chain)
+string ModelModifier::processChainToString(list<ParallelMap*> chain)
     const throw() {
     list<Process*> new_list;
-    list<ParallelMapSY*>::iterator it;
+    list<ParallelMap*>::iterator it;
     for (it = chain.begin(); it != chain.end(); ++it) {
         new_list.push_back(*it);
     }
     return processChainToString(new_list);
 }
 
-void ModelModifier::destroyProcessChain(Forsyde::Process* start)
+void ModelModifier::destroyProcessChain(ForSyDe::SY::Process* start)
     throw(InvalidArgumentException) {
     if (!start) {
         THROW_EXCEPTION(InvalidArgumentException, "\"start\" must not be NULL");
@@ -920,7 +920,7 @@ void ModelModifier::destroyProcessChain(Forsyde::Process* start)
 }
 
 void ModelModifier::splitDataParallelSegments(
-    vector< vector<Forsyde::Process*> > chains)
+    vector< vector<ForSyDe::SY::Process*> > chains)
     throw(IOException, RuntimeException) {
     try {
         size_t num_segments = chains.front().size();
@@ -932,85 +932,85 @@ void ModelModifier::splitDataParallelSegments(
                                    + " and "
                                    + tools::toString(current_segment) + "...");
 
-            // Create new processes zipxSY and unzipxSY
-            ZipxSY* new_zipxSY = new (std::nothrow) ZipxSY(
-                model_->getUniqueProcessId("_zipxSY_"));
-            if (!new_zipxSY) THROW_EXCEPTION(OutOfMemoryException);
-            logger_.logDebugMessage(string("New ZipxSY process \"")
-                                    + new_zipxSY->getId()->getString()
+            // Create new processes zipx and unzipx
+            zipx* new_zipx = new (std::nothrow) zipx(
+                model_->getUniqueProcessId("_zipx_"));
+            if (!new_zipx) THROW_EXCEPTION(OutOfMemoryException);
+            logger_.logDebugMessage(string("New zipx process \"")
+                                    + new_zipx->getId()->getString()
                                     + "\" created");
-            UnzipxSY* new_unzipxSY = new (std::nothrow) UnzipxSY(
-                model_->getUniqueProcessId("_unzipxSY_"));
-            if (!new_unzipxSY) THROW_EXCEPTION(OutOfMemoryException);
-            logger_.logDebugMessage(string("New UnzipxSY process \"")
-                                    + new_zipxSY->getId()->getString()
+            unzipx* new_unzipx = new (std::nothrow) unzipx(
+                model_->getUniqueProcessId("_unzipx_"));
+            if (!new_unzipx) THROW_EXCEPTION(OutOfMemoryException);
+            logger_.logDebugMessage(string("New unzipx process \"")
+                                    + new_zipx->getId()->getString()
                                     + "\" created");
 
-            // Connect the zipxSY to the unzipxSY
-            if (!new_zipxSY->addOutPort(Id("out"))) {
+            // Connect the zipx to the unzipx
+            if (!new_zipx->addOutPort(Id("out"))) {
                 THROW_EXCEPTION(IllegalStateException, "Failed to add port");
             }
-            if (!new_unzipxSY->addInPort(Id("in"))) {
+            if (!new_unzipx->addInPort(Id("in"))) {
                 THROW_EXCEPTION(IllegalStateException, "Failed to add port");
             }
-            new_zipxSY->getOutPort(Id("out"))->connect(
-                new_unzipxSY->getInPort(Id("in")));
+            new_zipx->getOutPort(Id("out"))->connect(
+                new_unzipx->getInPort(Id("in")));
             logger_.logDebugMessage("Ports added");
 
-            // Insert the zipxSY and unzipxSY process in between the current
+            // Insert the zipx and unzipx process in between the current
             // data parallel segment
             for (size_t i = 0; i < chains.size(); ++i) {
                 string num(tools::toString(i + 1));
 
-                // Connect left mapSY with zipxSY
-                if (!new_zipxSY->addInPort(Id(string("in") + num))) {
+                // Connect left map with zipx
+                if (!new_zipx->addInPort(Id(string("in") + num))) {
                     THROW_EXCEPTION(IllegalStateException, "Failed to add "
                                     "port");
                 }
-                Process::Port* left_mapSY_out_port = 
+                Process::Port* left_map_out_port = 
                     chains[i][current_segment - 1]->getOutPorts().front();
-                Process::Port* zipxSY_in_port = new_zipxSY->getInPorts().back();
+                Process::Port* zipx_in_port = new_zipx->getInPorts().back();
                 logger_.logDebugMessage(string("Connecting \"")
-                                        + left_mapSY_out_port->toString()
+                                        + left_map_out_port->toString()
                                         + "\" with \""
-                                        + zipxSY_in_port->toString() + "\"...");
-                left_mapSY_out_port->connect(zipxSY_in_port);
+                                        + zipx_in_port->toString() + "\"...");
+                left_map_out_port->connect(zipx_in_port);
 
-                // Connect right mapSY with unzipxSY
-                if (!new_unzipxSY->addOutPort(Id(string("out") + num))) {
+                // Connect right map with unzipx
+                if (!new_unzipx->addOutPort(Id(string("out") + num))) {
                     THROW_EXCEPTION(IllegalStateException, "Failed to add "
                                     "port");
                 }
-                Process::Port* right_mapSY_in_port = 
+                Process::Port* right_map_in_port = 
                     chains[i][current_segment]->getInPorts().front();
-                Process::Port* unzipxSY_out_port = 
-                    new_unzipxSY->getOutPorts().back();
+                Process::Port* unzipx_out_port = 
+                    new_unzipx->getOutPorts().back();
                 logger_.logDebugMessage(string("Connecting \"")
-                                        + right_mapSY_in_port->toString()
+                                        + right_map_in_port->toString()
                                         + "\" with \""
-                                        + unzipxSY_out_port->toString()
+                                        + unzipx_out_port->toString()
                                         + "\"...");
-                right_mapSY_in_port->connect(unzipxSY_out_port);
+                right_map_in_port->connect(unzipx_out_port);
             }
 
             // Add new processes to the model
-            if (!model_->addProcess(new_zipxSY)) {
+            if (!model_->addProcess(new_zipx)) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "new process: Process with ID "
-                                + "\"" + new_zipxSY->getId()->getString()
+                                + "\"" + new_zipx->getId()->getString()
                                 + "\" already existed");
             }
-            if (!model_->addProcess(new_unzipxSY)) {
+            if (!model_->addProcess(new_unzipx)) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "new process: Process with ID "
-                                + "\"" + new_unzipxSY->getId()->getString()
+                                + "\"" + new_unzipx->getId()->getString()
                                 + "\" already existed");
             }
 
             logger_.logDebugMessage(string("New processes \"")
-                                    + new_zipxSY->getId()->getString()
+                                    + new_zipx->getId()->getString()
                                     + "\" and \""
-                                    + new_unzipxSY->getId()->getString()
+                                    + new_unzipx->getId()->getString()
                                     + "\" added to the model");
         }
     }

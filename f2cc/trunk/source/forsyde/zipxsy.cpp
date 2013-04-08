@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,20 +26,20 @@
 #include "zipxsy.h"
 #include <typeinfo>
 
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-ZipxSY::ZipxSY(const Id& id) throw()
+zipx::zipx(const Id& id) throw()
         : Process(id) {}
 
-ZipxSY::~ZipxSY() throw() {}
+zipx::~zipx() throw() {}
 
-bool ZipxSY::operator==(const Process& rhs) const throw() {
+bool zipx::operator==(const Process& rhs) const throw() {
     if (Process::operator==(rhs)) return false;
 
     try {
-        dynamic_cast<const ZipxSY&>(rhs);
+        dynamic_cast<const zipx&>(rhs);
     }
     catch (bad_cast&) {
         return false;
@@ -47,11 +47,11 @@ bool ZipxSY::operator==(const Process& rhs) const throw() {
     return true;
 }
 
-string ZipxSY::type() const throw() {
-    return "zipxSY";
+string zipx::type() const throw() {
+    return "zipx";
 }
 
-void ZipxSY::moreChecks() throw(InvalidProcessException) {
+void zipx::moreChecks() throw(InvalidProcessException) {
     if (getOutPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
