@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,14 @@
 
 #include "synthesizer.h"
 #include "schedulefinder.h"
-#include "../forsyde/mapsy.h"
+#include "../forsyde/combsy.h"
 #include "../forsyde/coalescedmapsy.h"
 #include "../forsyde/parallelmapsy.h"
 #include "../forsyde/delaysy.h"
 #include "../forsyde/zipxsy.h"
 #include "../forsyde/unzipxsy.h"
 #include "../forsyde/copysy.h"
-#include "../forsyde/zipwithnsy.h"
+#include "../forsyde/combsy.h"
 #include "../language/cfunction.h"
 #include "../language/cdatatype.h"
 #include "../tools/tools.h"
@@ -41,7 +41,7 @@
 #include <map>
 
 using namespace f2cc;
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -94,7 +94,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
 
     logger_.logInfoMessage("Renaming process functions to avoid name "
                            "clashes...");
-    renameMapSYFunctions();
+    renamecombFunctions();
     logger_.logInfoMessage("Combining function duplicates through "
                            "renaming...");
     combineFunctionDuplicates();
@@ -108,7 +108,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
 
     if (target_platform_ == Synthesizer::CUDA) {
         logger_.logInfoMessage("Generating CUDA kernel functions for "
-                               "parallel MapSY processes...");
+                               "parallel comb processes...");
         generateCudaKernelFunctions();
         logger_.logInfoMessage("Combining function duplicates "
                                "through renaming...");
@@ -116,7 +116,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
     }
     else {
         logger_.logInfoMessage("Generating wrapper functions for "
-                               "parallel MapSY processes...");
+                               "parallel comb processes...");
         generateParallelMapSyWrapperFunctions();
         logger_.logInfoMessage("Combining function duplicates "
                                "through renaming...");
@@ -139,7 +139,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
     setInputArraySignalVariableDataTypesAsConst();
 
     logger_.logInfoMessage("Creating delay variables...");
-    createDelayVariables();
+    createdelayVariables();
 
     switch (target_platform_) {
         case C: {
@@ -291,7 +291,7 @@ Synthesizer::Signal* Synthesizer::getSignalByInPort(Process::Port* in_port)
     return getSignal(out_port, in_port);
 }
 
-void Synthesizer::renameMapSYFunctions()
+void Synthesizer::renamecombFunctions()
     throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
@@ -304,14 +304,14 @@ void Synthesizer::renameMapSYFunctions()
                                 + current_process->getId()->getString()
                                 + "\"...");
 
-        MapSY* mapsy = dynamic_cast<MapSY*>(current_process);
+        comb* mapsy = dynamic_cast<comb*>(current_process);
         if (mapsy) {
-            logger_.logDebugMessage("Is a mapSY process");
+            logger_.logDebugMessage("Is a map process");
 
             list<CFunction*> functions;
-            CoalescedMapSY* cmapsy = dynamic_cast<CoalescedMapSY*>(mapsy);
+            CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(mapsy);
             if (cmapsy) {
-                logger_.logDebugMessage("Is a coalescedMapSY process");
+                logger_.logDebugMessage("Is a coalescedcomb process");
 
                 functions = cmapsy->getFunctions();
             }
@@ -353,14 +353,14 @@ void Synthesizer::combineFunctionDuplicates()
                                 + current_process->getId()->getString()
                                 + "\"...");
 
-        MapSY* mapsy = dynamic_cast<MapSY*>(current_process);
+        comb* mapsy = dynamic_cast<comb*>(current_process);
         if (mapsy) {
-            logger_.logDebugMessage("Is a mapSY process");
+            logger_.logDebugMessage("Is a map process");
 
             list<CFunction*> functions;
-            CoalescedMapSY* cmapsy = dynamic_cast<CoalescedMapSY*>(mapsy);
+            CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(mapsy);
             if (cmapsy) {
-                logger_.logDebugMessage("Is a coalescedMapSY process");
+                logger_.logDebugMessage("Is a coalescedcomb process");
                 functions = cmapsy->getFunctions();
             }
             else {
@@ -409,9 +409,9 @@ void Synthesizer::generateCoalescedSyWrapperFunctions()
                                 + current_process->getId()->getString()
                                 + "\"...");
 
-        CoalescedMapSY* cmapsy = dynamic_cast<CoalescedMapSY*>(current_process);
+        CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(current_process);
         if (cmapsy) {
-            logger_.logDebugMessage("Is a coalescedMapSY process");
+            logger_.logDebugMessage("Is a coalescedcomb process");
 
             list<CFunction*> functions = cmapsy->getFunctions();
             if (functions.size() > 1) {
@@ -513,16 +513,16 @@ string Synthesizer::generateProcessFunctionDefinitionsCode()
                                 + "\"...");
 
         list<CFunction*> functions;
-        if (MapSY* mapsy = dynamic_cast<MapSY*>(current_process)) {
-            CoalescedMapSY* cmapsy = dynamic_cast<CoalescedMapSY*>(mapsy);
+        if (comb* mapsy = dynamic_cast<comb*>(current_process)) {
+            CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(mapsy);
             if (cmapsy) {
                 functions = cmapsy->getFunctions();
             }
             else {
                 functions.push_back(mapsy->getFunction());
             }
-        } else if (ZipWithNSY* zipwithnsy =
-                   dynamic_cast<ZipWithNSY*>(current_process)) {
+        } else if (comb* zipwithnsy =
+                   dynamic_cast<comb*>(current_process)) {
             functions.push_back(zipwithnsy->getFunction());
         }
 
@@ -561,12 +561,12 @@ string Synthesizer::generateModelFunctionDefinitionCode()
     code += kIndents + "int i; // Can safely be removed if the compiler warns\n"
         + kIndents + "       // about it being unused\n";
     code += generateSignalVariableDeclarationsCode() + "\n";
-    code += generateDelayVariableDeclarationsCode() + "\n";
+    code += generatedelayVariableDeclarationsCode() + "\n";
     code += generateArrayInputOutputsToSignalsAliasingCode() + "\n";
-    code += generateInputsToSignalsCopyingCode() + "\n";
+    code += generateInputsToSignalsfanoutingCode() + "\n";
     code += kIndents + "// Execute processes\n";
 
-    // First, execute the first step of all DelaySY processes
+    // First, execute the first step of all delay processes
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
         Process* current_process = model_->getProcess(*it);
@@ -574,9 +574,9 @@ string Synthesizer::generateModelFunctionDefinitionCode()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        if (DelaySY* delaysy = dynamic_cast<DelaySY*>(current_process)) {
+        if (delay* delaysy = dynamic_cast<delay*>(current_process)) {
             try {
-                code += generateProcessExecutionCodeForDelaySYStep1(delaysy);
+                code += generateProcessExecutionCodeFordelayStep1(delaysy);
             }
             catch (InvalidModelException& ex) {
                 THROW_EXCEPTION(InvalidModelException, "Error in process \""
@@ -586,7 +586,7 @@ string Synthesizer::generateModelFunctionDefinitionCode()
         }
     }
 
-    // Then, execute all processes in order, but ignore all DelaySY processes
+    // Then, execute all processes in order, but ignore all delay processes
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
         Process* current_process = model_->getProcess(*it);
@@ -605,7 +605,7 @@ string Synthesizer::generateModelFunctionDefinitionCode()
     }
 
     // After the entire schedule has been executed, execute the second step
-    // of all DelaySY processes
+    // of all delay processes
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
         Process* current_process = model_->getProcess(*it);
@@ -613,9 +613,9 @@ string Synthesizer::generateModelFunctionDefinitionCode()
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
         }
-        if (DelaySY* delaysy = dynamic_cast<DelaySY*>(current_process)) {
+        if (delay* delaysy = dynamic_cast<delay*>(current_process)) {
             try {
-                code += generateProcessExecutionCodeForDelaySYStep2(delaysy);
+                code += generateProcessExecutionCodeFordelayStep2(delaysy);
             }
             catch (InvalidModelException& ex) {
                 THROW_EXCEPTION(InvalidModelException, "Error in process \""
@@ -626,7 +626,7 @@ string Synthesizer::generateModelFunctionDefinitionCode()
     }
 
     code += "\n";
-    code += generateSignalsToOutputsCopyingCode() + "\n";
+    code += generateSignalsToOutputsfanoutingCode() + "\n";
     code += "\n";
     code += generateSignalVariableCleanupCode();
     code += "}";
@@ -713,7 +713,7 @@ string Synthesizer::generateModelFunctionParameterListCode()
     return code;
 }
 
-string Synthesizer::generateInputsToSignalsCopyingCode()
+string Synthesizer::generateInputsToSignalsfanoutingCode()
     throw(InvalidModelException, RuntimeException) {
     string code;
 
@@ -731,18 +731,18 @@ string Synthesizer::generateInputsToSignalsCopyingCode()
         at_least_one = true;
         CVariable input_parameter(
             kModelInputParameterPrefix + tools::toString(id), data_type);
-        code += generateVariableCopyingCode(signal->getVariable(),
+        code += generateVariablefanoutingCode(signal->getVariable(),
                                             input_parameter, false);
     }
 
     if (at_least_one) {
-        code = kIndents + "// Copy model inputs to signal variables\n" + code;
+        code = kIndents + "// fanout model inputs to signal variables\n" + code;
     }
 
     return code;
 }
 
-string Synthesizer::generateSignalsToOutputsCopyingCode()
+string Synthesizer::generateSignalsToOutputsfanoutingCode()
     throw(InvalidModelException, RuntimeException) {
     string code;
 
@@ -761,12 +761,12 @@ string Synthesizer::generateSignalsToOutputsCopyingCode()
         data_type.setIsPointer(true);
         CVariable output_parameter(
             kModelOutputParameterPrefix + tools::toString(id), data_type);
-        code += generateVariableCopyingCode(output_parameter,
+        code += generateVariablefanoutingCode(output_parameter,
                                             signal->getVariable(), false);
     }
 
     if (at_least_one) {
-        code = kIndents + "// Copy signal variables to model outputs\n" + code;
+        code = kIndents + "// fanout signal variables to model outputs\n" + code;
     }
 
     return code;
@@ -791,7 +791,7 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
         at_least_one = true;
         CVariable input_parameter(
             kModelInputParameterPrefix + tools::toString(id), data_type);
-        code += generateVariableCopyingCode(signal->getVariable(),
+        code += generateVariablefanoutingCode(signal->getVariable(),
                                             input_parameter, false);
     }
 
@@ -807,7 +807,7 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
         at_least_one = true;
         CVariable output_parameter(
             kModelOutputParameterPrefix + tools::toString(id), data_type);
-        code += generateVariableCopyingCode(signal->getVariable(),
+        code += generateVariablefanoutingCode(signal->getVariable(),
                                             output_parameter, false);
     }
 
@@ -848,7 +848,7 @@ void Synthesizer::createSignals()
                            + tools::toString(signals_.size()) + " signal(s)");
 }
 
-void Synthesizer::createDelayVariables() throw(IOException, RuntimeException) {
+void Synthesizer::createdelayVariables() throw(IOException, RuntimeException) {
     delay_variables_.clear();
 
     list<Id>::iterator it;
@@ -863,7 +863,7 @@ void Synthesizer::createDelayVariables() throw(IOException, RuntimeException) {
                                 + current_process->getId()->getString()
                                 + "\"...");
 
-        DelaySY* delay_process = dynamic_cast<DelaySY*>(current_process);
+        delay* delay_process = dynamic_cast<delay*>(current_process);
         if (delay_process) {
             string name = string("v_delay_element") + tools::toString(counter);
             ++counter;
@@ -873,12 +873,12 @@ void Synthesizer::createDelayVariables() throw(IOException, RuntimeException) {
             CVariable variable(name, data_type);
             pair<CVariable, string> value(variable,
                                           delay_process->getInitialValue());
-            pair< DelaySY*, pair<CVariable, string> > key_value(delay_process,
+            pair< delay*, pair<CVariable, string> > key_value(delay_process,
                                                                 value);
-            pair<map< DelaySY*, pair<CVariable, string> >::iterator, bool>
+            pair<map< delay*, pair<CVariable, string> >::iterator, bool>
                 result = delay_variables_.insert(key_value);
             if (!result.second) {
-                THROW_EXCEPTION(IllegalStateException, string("Delay variable ")
+                THROW_EXCEPTION(IllegalStateException, string("delay variable ")
                                 + "\" " + name + "\" already exist");
             }
         }
@@ -946,13 +946,13 @@ throw(InvalidModelException, IOException, RuntimeException) {
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port process is a MapSY or ZipWithN, and if so, get the
+    // Check if the in port process is a comb or comb, and if so, get the
     // data type from the function argument's corresponding input parameter;
     // if not, then the data type of a neighbouring signal is used
     CDataType data_type;
     Process* process = signal->getInPort()->getProcess();
-    if (MapSY* mapsy = dynamic_cast<MapSY*>(process)) {
-        logger_.logDebugMessage(string("Found mapSY process \"")
+    if (comb* mapsy = dynamic_cast<comb*>(process)) {
+        logger_.logDebugMessage(string("Found map process \"")
                                 + mapsy->getId()->getString() + "\"");
         data_type =
             *mapsy->getFunction()->getInputParameters().front()->getDataType();
@@ -964,8 +964,8 @@ throw(InvalidModelException, IOException, RuntimeException) {
                                     + "now \"" + data_type.toString() + "\"");
         }
     }
-    else if (ZipWithNSY* zipwithnsy = dynamic_cast<ZipWithNSY*>(process)) {
-        logger_.logDebugMessage(string("Found zipWithNSY process \"")
+    else if (comb* zipwithnsy = dynamic_cast<comb*>(process)) {
+        logger_.logDebugMessage(string("Found zipWithN process \"")
                                 + zipwithnsy->getId()->getString() + "\"");
 
         Process::Port* sought_port = signal->getInPort();
@@ -1026,18 +1026,18 @@ throw(InvalidModelException, IOException, RuntimeException) {
                             + " could be found");
         }
 
-        if (dynamic_cast<UnzipxSY*>(process)) {
-            logger_.logDebugMessage("Is an unzipxSY process");
+        if (dynamic_cast<unzipx*>(process)) {
+            logger_.logDebugMessage("Is an unzipx process");
             logger_.logDebugMessage("Setting data type to \"array\"");
             data_type.setIsArray(true);
         }
     }
 
-    // If this process is a ZipxSY and the data type is an array, then we cannot
+    // If this process is a zipx and the data type is an array, then we cannot
     // be sure of its array size at this point and therefore must make it
     // unknown
-    if (dynamic_cast<ZipxSY*>(process) && data_type.isArray()) {
-        logger_.logDebugMessage("Is a zipxSY process");
+    if (dynamic_cast<zipx*>(process) && data_type.isArray()) {
+        logger_.logDebugMessage("Is a zipx process");
         logger_.logDebugMessage("Resetting array size");
         data_type.setIsArray(true);
     }
@@ -1066,14 +1066,14 @@ throw(InvalidModelException, IOException, RuntimeException) {
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the out port process is a MapSY or ZipWithNSY, and if so, get
+    // Check if the out port process is a comb or comb, and if so, get
     // the data type of either its function argument's return value or its
     // function argument's last input parameter; if not, then the data type of
     // a neighbouring signal is used
     CDataType data_type;
     Process* process = signal->getOutPort()->getProcess();
-    if (MapSY* mapsy = dynamic_cast<MapSY*>(process)) {
-        logger_.logDebugMessage(string("Found mapSY process \"")
+    if (comb* mapsy = dynamic_cast<comb*>(process)) {
+        logger_.logDebugMessage(string("Found map process \"")
                                 + mapsy->getId()->getString() + "\"");
         logger_.logDebugMessage(string("Checking number of function ")
                                 + "arguments, expecting 1 or 2");
@@ -1091,13 +1091,13 @@ throw(InvalidModelException, IOException, RuntimeException) {
         }
         else {
             THROW_EXCEPTION(IllegalStateException, string("Function argument ")
-                            + "of MapSY process \""
+                            + "of comb process \""
                             + mapsy->getId()->getString() + "\" has too many "
                             + "input parameters");
         }
     }
-    else if (ZipWithNSY* zipwithnsy = dynamic_cast<ZipWithNSY*>(process)) {
-        logger_.logDebugMessage(string("Found zipWithNSY process \"")
+    else if (comb* zipwithnsy = dynamic_cast<comb*>(process)) {
+        logger_.logDebugMessage(string("Found zipWithN process \"")
                                 + zipwithnsy->getId()->getString() + "\"");
         logger_.logDebugMessage(string("Checking number of function ")
                                 + "arguments, expecting "
@@ -1120,7 +1120,7 @@ throw(InvalidModelException, IOException, RuntimeException) {
         }
         else {
             THROW_EXCEPTION(IllegalStateException, string("Function argument ")
-                            + "of ZipWithNSY process \""
+                            + "of comb process \""
                             + zipwithnsy->getId()->getString() + "\" has an "
                             + "unexpected number of input parameters");
         }
@@ -1146,18 +1146,18 @@ throw(InvalidModelException, IOException, RuntimeException) {
                             + " could be found");
         }
 
-        if (dynamic_cast<ZipxSY*>(process)) {
-            logger_.logDebugMessage("Is a zipxSY process");
+        if (dynamic_cast<zipx*>(process)) {
+            logger_.logDebugMessage("Is a zipx process");
             logger_.logDebugMessage("Setting data type to \"array\"");
             data_type.setIsArray(true);
         }
     }
 
-    // If this process is an UnzipxSY and the data type is an array, then we
+    // If this process is an unzipx and the data type is an array, then we
     // cannot be sure of its array size at this point and therefore must make it
     // unknown
-    if (dynamic_cast<UnzipxSY*>(process) && data_type.isArray()) {
-        logger_.logDebugMessage("Is an unzipxSY process");
+    if (dynamic_cast<unzipx*>(process) && data_type.isArray()) {
+        logger_.logDebugMessage("Is an unzipx process");
         logger_.logDebugMessage("Resetting array size");
         data_type.setIsArray(true);
     }
@@ -1242,9 +1242,9 @@ throw(InvalidModelException, IOException, RuntimeException) {
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port process is an UnzipxSY, and if so, get its array
+    // Check if the in port process is an unzipx, and if so, get its array
     // size by summing up the array sizes of its out port signals; if it is not
-    // an UnzipxSY, get the array size from a neighbouring signal
+    // an unzipx, get the array size from a neighbouring signal
     size_t array_size = 0;
     Process* process = signal->getInPort()->getProcess();
     list<Process::Port*> out_ports = process->getOutPorts();
@@ -1254,8 +1254,8 @@ throw(InvalidModelException, IOException, RuntimeException) {
                         "have any out ports");
     }
     try {
-        if (dynamic_cast<UnzipxSY*>(process)) {
-            logger_.logDebugMessage(string("Found unzipxSY process \"")
+        if (dynamic_cast<unzipx*>(process)) {
+            logger_.logDebugMessage(string("Found unzipx process \"")
                                     + process->getId()->getString()
                                     + "\". Summing "
                                     "up array sizes from its out ports...");
@@ -1308,9 +1308,9 @@ throw(InvalidModelException, IOException, RuntimeException) {
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port process is a ZipxSY, and if so, get its array
+    // Check if the in port process is a zipx, and if so, get its array
     // size by summing up the array sizes of its in port signals; if it is not
-    // a ZipxSY, get the array size from a neighbouring signal
+    // a zipx, get the array size from a neighbouring signal
     size_t array_size = 0;
     Process* process = signal->getOutPort()->getProcess();
     list<Process::Port*> in_ports = process->getInPorts();
@@ -1320,8 +1320,8 @@ throw(InvalidModelException, IOException, RuntimeException) {
                         "have any in ports");
     }
     try {
-        if (dynamic_cast<ZipxSY*>(process)) {
-            logger_.logDebugMessage(string("Found zipxSY process \"")
+        if (dynamic_cast<zipx*>(process)) {
+            logger_.logDebugMessage(string("Found zipx process \"")
                                     + process->getId()->getString()
                                     + "\". Summing "
                                     + "up array sizes from its in ports...");
@@ -1399,14 +1399,14 @@ string Synthesizer::generateSignalVariableDeclarationsCode()
     }
 }
 
-string Synthesizer::generateDelayVariableDeclarationsCode()
+string Synthesizer::generatedelayVariableDeclarationsCode()
     throw(InvalidModelException, IOException, RuntimeException) {
     try {
         string code;
         if (delay_variables_.size() > 0) {
             code += kIndents + "// Declare delay variables\n";
         }
-        map< DelaySY*, pair<CVariable, std::string> >::iterator it;
+        map< delay*, pair<CVariable, std::string> >::iterator it;
         for (it = delay_variables_.begin(); it != delay_variables_.end();
              ++it) {
             CVariable variable = it->second.first;
@@ -1424,19 +1424,19 @@ string Synthesizer::generateDelayVariableDeclarationsCode()
     }
 }
 
-pair<CVariable, string> Synthesizer::getDelayVariable(DelaySY* process)
+pair<CVariable, string> Synthesizer::getdelayVariable(delay* process)
     throw(InvalidArgumentException, RuntimeException) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException, "process must not be NULL");
     }
 
-    map< DelaySY*, pair<CVariable, string> >::iterator it = 
+    map< delay*, pair<CVariable, string> >::iterator it = 
         delay_variables_.find(process);
     if (it != delay_variables_.end()) {
         return it->second;
     }
     else {
-        THROW_EXCEPTION(IllegalStateException, string("Delay variable for ")
+        THROW_EXCEPTION(IllegalStateException, string("delay variable for ")
                         + "process \"" + process->getId()->getString()
                         + "\" not found");
     }
@@ -1479,24 +1479,24 @@ throw(InvalidModelException, IOException, RuntimeException) {
                             + "\"...");
 
     string code;
-    if (dynamic_cast<DelaySY*>(process)) {
+    if (dynamic_cast<delay*>(process)) {
         // Do nothing
         return "";
     }
-    else if (MapSY* cast_process = dynamic_cast<MapSY*>(process)) {
-        return generateProcessExecutionCodeForMapSY(cast_process);
+    else if (comb* cast_process = dynamic_cast<comb*>(process)) {
+        return generateProcessExecutionCodeForcomb(cast_process);
     }
-    else if (ZipWithNSY* cast_process = dynamic_cast<ZipWithNSY*>(process)) {
-        return generateProcessExecutionCodeForZipWithNSY(cast_process);
+    else if (comb* cast_process = dynamic_cast<comb*>(process)) {
+        return generateProcessExecutionCodeForcomb(cast_process);
     }
-    else if (ZipxSY* cast_process = dynamic_cast<ZipxSY*>(process)) {
-        return generateProcessExecutionCodeForZipxSY(cast_process);
+    else if (zipx* cast_process = dynamic_cast<zipx*>(process)) {
+        return generateProcessExecutionCodeForzipx(cast_process);
     }
-    else if (UnzipxSY* cast_process = dynamic_cast<UnzipxSY*>(process)) {
-        return generateProcessExecutionCodeForUnzipxSY(cast_process);
+    else if (unzipx* cast_process = dynamic_cast<unzipx*>(process)) {
+        return generateProcessExecutionCodeForunzipx(cast_process);
     }
-    else if (CopySY* cast_process = dynamic_cast<CopySY*>(process)) {
-        return generateProcessExecutionCodeForCopySY(cast_process);
+    else if (fanout* cast_process = dynamic_cast<fanout*>(process)) {
+        return generateProcessExecutionCodeForfanout(cast_process);
     }
     else {
         THROW_EXCEPTION(InvalidArgumentException, string("Process \"")
@@ -1520,7 +1520,7 @@ void Synthesizer::generateCudaKernelFunctions()
                                 + current_process->getId()->getString()
                                 + "\"...");
 
-        ParallelMapSY* parmapsy = dynamic_cast<ParallelMapSY*>(current_process);
+        ParallelMap* parmapsy = dynamic_cast<ParallelMap*>(current_process);
         if (parmapsy) {
             // Add "__device__" prefix to all existing functions
             list<CFunction*> functions = parmapsy->getFunctions();
@@ -1909,7 +1909,7 @@ void Synthesizer::generateParallelMapSyWrapperFunctions()
                                 + current_process->getId()->getString()
                                 + "\"...");
 
-        ParallelMapSY* parmapsy = dynamic_cast<ParallelMapSY*>(current_process);
+        ParallelMap* parmapsy = dynamic_cast<ParallelMap*>(current_process);
         if (parmapsy) {
             try {
                 CFunction wrapper_function =
@@ -2042,7 +2042,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
     return CFunction(new_name, new_return_type, new_parameters, new_body);
 }
 
-string Synthesizer::generateVariableCopyingCode(CVariable to, CVariable from,
+string Synthesizer::generateVariablefanoutingCode(CVariable to, CVariable from,
                                                 bool do_deep_copy) 
     throw(InvalidModelException, IOException, RuntimeException) {
     ensureVariableDataTypeCompatibilities(from, to);
@@ -2077,7 +2077,7 @@ string Synthesizer::generateVariableCopyingCode(CVariable to, CVariable from,
     return code;
 }
 
-string Synthesizer::generateVariableCopyingCode(CVariable to,
+string Synthesizer::generateVariablefanoutingCode(CVariable to,
                                                 list<CVariable>& from) 
     throw(InvalidModelException, IOException, RuntimeException) {
     ensureVariableIsNotConst(to);
@@ -2121,7 +2121,7 @@ string Synthesizer::generateVariableCopyingCode(CVariable to,
     return code;
 }
 
-string Synthesizer::generateVariableCopyingCode(list<CVariable>& to,
+string Synthesizer::generateVariablefanoutingCode(list<CVariable>& to,
                                                 CVariable from)
     throw(InvalidModelException, IOException, RuntimeException) {
     size_t num_to_elements = 0;
@@ -2421,7 +2421,7 @@ string Synthesizer::generateKernelConfigFunctionDefinitionCode()
 }
 
 string Synthesizer::getGlobalProcessFunctionName(
-    Forsyde::Id process_id, const string& function_name) const throw() {
+    ForSyDe::SY::Id process_id, const string& function_name) const throw() {
     return string("f") + process_id.getString() + "_" + function_name;
 }
 
@@ -2433,37 +2433,26 @@ bool Synthesizer::dynamicallyAllocateMemoryForSignalVariable(Signal* signal) {
         && signal->getVariable().getDataType()->isArray();
 }
 
-string Synthesizer::generateProcessExecutionCodeForDelaySYStep1(
-    DelaySY* process)
+string Synthesizer::generateProcessExecutionCodeFordelayStep1(
+    delay* process)
 throw(InvalidModelException, IOException, RuntimeException) {
     CVariable output =
         getSignalByOutPort(process->getOutPorts().front())->getVariable();
-    CVariable delay_variable = getDelayVariable(process).first;
-    return generateVariableCopyingCode(output, delay_variable);
+    CVariable delay_variable = getdelayVariable(process).first;
+    return generateVariablefanoutingCode(output, delay_variable);
 }
 
-string Synthesizer::generateProcessExecutionCodeForDelaySYStep2(
-    DelaySY* process)
+string Synthesizer::generateProcessExecutionCodeFordelayStep2(
+    delay* process)
 throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input = 
         getSignalByInPort(process->getInPorts().front())->getVariable();
-    CVariable delay_variable = getDelayVariable(process).first;
-    return generateVariableCopyingCode(delay_variable, input);
+    CVariable delay_variable = getdelayVariable(process).first;
+    return generateVariablefanoutingCode(delay_variable, input);
 }
 
-string Synthesizer::generateProcessExecutionCodeForMapSY(MapSY* process)
-throw(InvalidModelException, IOException, RuntimeException) {
-    list<CVariable> inputs;
-    inputs.push_back(getSignalByInPort(process->getInPorts().front())
-                     ->getVariable());
-    CVariable output =
-        getSignalByOutPort(process->getOutPorts().front())->getVariable();
-    CFunction* function = process->getFunction();
-    return generateProcessFunctionExecutionCode(function, inputs, output);
-}
-
-string Synthesizer::generateProcessExecutionCodeForZipWithNSY(
-    ZipWithNSY* process)
+string Synthesizer::generateProcessExecutionCodeForcomb(
+    comb* process)
 throw(InvalidModelException, IOException, RuntimeException) {
     list<CVariable> inputs;
     list<Process::Port*> in_ports = process->getInPorts();
@@ -2477,7 +2466,7 @@ throw(InvalidModelException, IOException, RuntimeException) {
     return generateProcessFunctionExecutionCode(function, inputs, output);
 }
 
-string Synthesizer::generateProcessExecutionCodeForUnzipxSY(UnzipxSY* process)
+string Synthesizer::generateProcessExecutionCodeForunzipx(unzipx* process)
 throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(process->getInPorts().front())->getVariable();
@@ -2487,10 +2476,10 @@ throw(InvalidModelException, IOException, RuntimeException) {
     for (it = out_ports.begin(); it != out_ports.end(); ++it) {
         outputs.push_back(getSignalByOutPort(*it)->getVariable());
     }
-    return generateVariableCopyingCode(outputs, input);
+    return generateVariablefanoutingCode(outputs, input);
 }
 
-string Synthesizer::generateProcessExecutionCodeForZipxSY(ZipxSY* process)
+string Synthesizer::generateProcessExecutionCodeForzipx(zipx* process)
 throw(InvalidModelException, IOException, RuntimeException) {
     CVariable output =
         getSignalByOutPort(process->getOutPorts().front())->getVariable();
@@ -2502,11 +2491,11 @@ throw(InvalidModelException, IOException, RuntimeException) {
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
         inputs.push_back(getSignalByInPort(*it)->getVariable());
     }
-    code += generateVariableCopyingCode(output, inputs);
+    code += generateVariablefanoutingCode(output, inputs);
     return code;
 }
 
-string Synthesizer::generateProcessExecutionCodeForCopySY(CopySY* process)
+string Synthesizer::generateProcessExecutionCodeForfanout(fanout* process)
 throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(process->getInPorts().front())->getVariable();
@@ -2516,7 +2505,7 @@ throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     for (it = out_ports.begin(); it != out_ports.end(); ++it) {
         CVariable output = getSignalByOutPort(*it)->getVariable();
-        code += generateVariableCopyingCode(output, input);
+        code += generateVariablefanoutingCode(output, input);
     }
     return code;
 }

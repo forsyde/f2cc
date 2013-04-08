@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -249,7 +249,7 @@ void f2cc::tools::breakLongLines(string& str, size_t maximum_length,
         }
         next_cut_pos = offset;
 
-        // Copy words until either line break, length limit or end of string is 
+        // fanout words until either line break, length limit or end of string is 
         // hit
         for (size_t i = offset; ; ++i) {
             ++current_length;

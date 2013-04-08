@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@
 #include <set>
 
 using namespace f2cc;
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::cout;
 using std::endl;
@@ -159,9 +159,9 @@ int main(int argc, const char* argv[]) {
             ModelModifier modifier(model, logger);
             logger.logInfoMessage("Removing redundant processes...");
             modifier.removeRedundantProcesses();
-            logger.logInfoMessage("Converting ZipWithN processes "
-                              "with one in port to MapSY processes...");
-            modifier.convertZipWith1ToMapSY();
+            logger.logInfoMessage("Converting comb processes "
+                              "with one in port to comb processes...");
+            modifier.convertZipWith1Tocomb();
             if (config.getTargetPlatform() == Config::CUDA) {
                 string process_coalescing_message("DATA PARALLEL PROCESS "
                                                   "COALESCING: ");
@@ -174,7 +174,7 @@ int main(int argc, const char* argv[]) {
                 logger.logInfoMessage(process_coalescing_message);
                 if (config.doDataParallelProcessCoalesing()) {
                     logger.logInfoMessage(""
-                                      "Performing data parallel MapSY process "
+                                      "Performing data parallel comb process "
                                       "coalescing...");
                     modifier.coalesceDataParallelProcesses();
                 }
@@ -184,13 +184,13 @@ int main(int argc, const char* argv[]) {
                 modifier.splitDataParallelSegments();
 
                 logger.logMessage(Logger::INFO,
-                                  "Fusing chains of unzipxSY-mapSY-zipxSY "
+                                  "Fusing chains of unzipx-map-zipx "
                                   "processes...");
-                modifier.fuseUnzipMapZipProcesses();
+                modifier.fuseUnzipcombZipProcesses();
 
                 if (config.doDataParallelProcessCoalesing()) {
                     logger.logInfoMessage(""
-                                      "Performing ParallelMapSY process "
+                                      "Performing ParallelMap process "
                                       "coalescing...");
                     modifier.coalesceParallelMapSyProcesses();
                 }
@@ -219,7 +219,7 @@ int main(int argc, const char* argv[]) {
             tools::writeFile(config.getImplementationOutputFile(),
                              code.implementation);
 
-            logger.logInfoMessage("MODEL SYNTHESIS COMPLETE");
+            logger.logInfoMessage("MODEL NTHESIS COMPLETE");
 
             // Clean up
             delete model;

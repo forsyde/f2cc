@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,8 +23,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_MODEL_H_
-#define F2CC_SOURCE_FORSYDE_MODEL_H_
+#ifndef F2CC_SOURCE_FORDE_MODEL_H_
+#define F2CC_SOURCE_FORDE_MODEL_H_
 
 /**
  * @file
@@ -44,7 +44,8 @@
 #include <list>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
+namespace SY{
 
 /**
  * @brief Contains the internal representation of a ForSyDe model.
@@ -86,7 +87,7 @@ class Model {
      * Adds multiple processes to this model at the same time.
      *
      * @param processes
-     *        Mapset of processes to add.
+     *        combset of processes to add.
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
@@ -221,7 +222,7 @@ class Model {
      *
      * @returns A unique process ID.
      */
-    Forsyde::Id getUniqueProcessId() const throw();
+    ForSyDe::SY::Id getUniqueProcessId() const throw();
 
     /**
      * Same as getUniqueProcessId() but allows an arbitrary string to be
@@ -231,7 +232,7 @@ class Model {
      *        ID prefix.
      * @returns A unique process ID.
      */
-    Forsyde::Id getUniqueProcessId(const std::string& prefix) const throw();
+    ForSyDe::SY::Id getUniqueProcessId(const std::string& prefix) const throw();
 
     /**
      * Converts this model into a string representation. The resultant string
@@ -316,7 +317,7 @@ class Model {
 
   private:
     /**
-     * Mapset of processes.
+     * combset of processes.
      */
     std::map<const Id, Process*> processes_;
 
@@ -331,6 +332,7 @@ class Model {
     std::list<Process::Port*> outputs_;
 };
 
+}
 }
 }
 

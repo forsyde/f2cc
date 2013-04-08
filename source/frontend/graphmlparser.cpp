@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,6 @@
 #include "../ticpp/ticpp.h"
 #include "../ticpp/tinyxml.h"
 #include "../tools/tools.h"
-#include "../forsyde/mapsy.h"
 #include "../forsyde/parallelmapsy.h"
 #include "../forsyde/zipxsy.h"
 #include "../forsyde/unzipxsy.h"
@@ -35,7 +34,7 @@
 #include "../forsyde/inport.h"
 #include "../forsyde/outport.h"
 #include "../forsyde/copysy.h"
-#include "../forsyde/zipwithnsy.h"
+#include "../forsyde/combsy.h"
 #include "../language/cdatatype.h"
 #include "../exceptions/invalidprocessexception.h"
 #include "../exceptions/invalidformatexception.h"
@@ -47,7 +46,7 @@
 #include <new>
 
 using namespace f2cc;
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using ticpp::Document;
 using ticpp::Node;
 using ticpp::Element;
@@ -393,23 +392,23 @@ Process* GraphmlParser::generateProcess(Element* xml)
             process = new OutPort(Id(process_id));
         }
         else if (process_type == "mapsy") {
-            process = new MapSY(Id(process_id), generateProcessFunction(xml));
+            process = new comb(Id(process_id), generateProcessFunction(xml));
         }
         else if (process_type == "parallelmapsy") {
-            process = new ParallelMapSY(Id(process_id), getNumProcesses(xml),
+            process = new ParallelMap(Id(process_id), getNumProcesses(xml),
                                         generateProcessFunction(xml));
         }
         else if (process_type == "unzipxsy") {
-            process = new UnzipxSY(Id(process_id));
+            process = new unzipx(Id(process_id));
         }
         else if (process_type == "zipxsy") {
-            process = new ZipxSY(Id(process_id));
+            process = new zipx(Id(process_id));
         }
         else if (process_type == "delaysy") {
-            process = new DelaySY(Id(process_id), getInitialDelayValue(xml));
+            process = new delay(Id(process_id), getInitialdelayValue(xml));
         }
         else if (process_type == "zipwithnsy") {
-            process = new ZipWithNSY(Id(process_id),
+            process = new comb(Id(process_id),
                                      generateProcessFunction(xml));
         }
         else {
@@ -819,7 +818,7 @@ size_t GraphmlParser::findArraySize(ticpp::Element* xml)
     return 0;
 }
 
-string GraphmlParser::getInitialDelayValue(Element* xml)
+string GraphmlParser::getInitialdelayValue(Element* xml)
 throw(InvalidArgumentException, ParseException, IOException,
       RuntimeException) {
     if (!xml) {
@@ -990,14 +989,14 @@ void GraphmlParser::generateConnection(Element* xml, Model* model,
                                 + target_port->toString() + "\"");
     }
     else {
-        // Source port already connected; use intermediate CopySY process
+        // Source port already connected; use intermediate fanout process
         logger_.logDebugMessage(string("Source port \"")
                                 + source_port->toString()
                                 + "\" already connected to \""
                                 + source_port->getConnectedPort()->toString()
-                                + "\". Using intermediate CopySY process.");
+                                + "\". Using intermediate fanout process.");
 
-        // Get CopySY process
+        // Get fanout process
         Process* copy_process;
         map<Process::Port*, Process*>::iterator it =
             copy_processes.find(source_port);
@@ -1005,13 +1004,13 @@ void GraphmlParser::generateConnection(Element* xml, Model* model,
             copy_process = it->second;
         }
         else {
-            // No such CopySY process; create a new one
+            // No such fanout process; create a new one
             copy_process = new (std::nothrow)
-                CopySY(model->getUniqueProcessId("_copySY_"));
+                fanout(model->getUniqueProcessId("_copy_"));
             if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
             copy_processes.insert(pair<Process::Port*, Process*>(source_port,
                                                                  copy_process));
-            logger_.logDebugMessage(string("New CopySY process \"")
+            logger_.logDebugMessage(string("New fanout process \"")
                                     + copy_process->getId()->getString()
                                     + "\" created");
 
@@ -1027,7 +1026,7 @@ void GraphmlParser::generateConnection(Element* xml, Model* model,
                                     + "\" added to the model");
 
             // Break the current connection and connect the source and previous
-            // target connection through the CopySY process
+            // target connection through the fanout process
             if(!copy_process->addInPort(Id("in"))) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "in port to process \""
@@ -1107,7 +1106,7 @@ void GraphmlParser::checkModelMore(Model* model)
     }
 }
 
-void GraphmlParser::postCheckFixes(Forsyde::Model* model)
+void GraphmlParser::postCheckFixes(ForSyDe::SY::Model* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     fixModelInputsOutputs(model);
 }

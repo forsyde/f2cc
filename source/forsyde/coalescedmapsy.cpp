@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,14 @@
 #include <new>
 
 using namespace f2cc;
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 using std::bad_alloc;
 using std::bad_cast;
 
-CoalescedMapSY::CoalescedMapSY(const Id& id, const CFunction& function) 
-        throw(OutOfMemoryException) : MapSY(id, function) {
+CoalescedMap::CoalescedMap(const Id& id, const CFunction& function) 
+        throw(OutOfMemoryException) : comb(id, function) {
     try {
         CFunction* new_function = new CFunction(function);
         functions_.push_back(new_function);
@@ -45,13 +45,13 @@ CoalescedMapSY::CoalescedMapSY(const Id& id, const CFunction& function)
     }
 }
 
-CoalescedMapSY::CoalescedMapSY(const Id& id,
+CoalescedMap::CoalescedMap(const Id& id,
                                const list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException)
-        // MapSY requires a function, but can not be certain at this point that
-        // functions is not empty, so we provide MapSY with a dummy function
+        // comb requires a function, but can not be certain at this point that
+        // functions is not empty, so we provide comb with a dummy function
         // (we will never access it anyway)
-        : MapSY(id, CFunction()) {
+        : comb(id, CFunction()) {
     if (functions.size() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"functions\" must not be "
                         "an empty list");
@@ -68,22 +68,22 @@ CoalescedMapSY::CoalescedMapSY(const Id& id,
     }
 }
 
-CoalescedMapSY::~CoalescedMapSY() throw() {
+CoalescedMap::~CoalescedMap() throw() {
     list<CFunction*>::iterator it;
     for (it = functions_.begin(); it != functions_.end(); ++it) {
         delete *it;
     }
 }
 
-CFunction* CoalescedMapSY::getFunction() throw() {
+CFunction* CoalescedMap::getFunction() throw() {
     return functions_.front();
 }
 
-list<CFunction*> CoalescedMapSY::getFunctions() throw() {
+list<CFunction*> CoalescedMap::getFunctions() throw() {
     return functions_;
 }
 
-void CoalescedMapSY::insertFunctionFirst(const CFunction& function)
+void CoalescedMap::insertFunctionFirst(const CFunction& function)
     throw(OutOfMemoryException) {
     try {
         CFunction* new_function = new CFunction(function);
@@ -94,7 +94,7 @@ void CoalescedMapSY::insertFunctionFirst(const CFunction& function)
     }
 }
 
-void CoalescedMapSY::insertFunctionLast(const CFunction& function)
+void CoalescedMap::insertFunctionLast(const CFunction& function)
     throw(OutOfMemoryException) {
     try {
         CFunction* new_function = new CFunction(function);
@@ -105,11 +105,11 @@ void CoalescedMapSY::insertFunctionLast(const CFunction& function)
     }
 }
 
-bool CoalescedMapSY::operator==(const Process& rhs) const throw() {
+bool CoalescedMap::operator==(const Process& rhs) const throw() {
     if (!Process::operator==(rhs)) return false;
 
     try {
-        const CoalescedMapSY& other = dynamic_cast<const CoalescedMapSY&>(rhs);
+        const CoalescedMap& other = dynamic_cast<const CoalescedMap&>(rhs);
         if (functions_.size() != other.functions_.size()) return false;
         list<CFunction*>::const_iterator it1;
         list<CFunction*>::const_iterator it2;
@@ -124,11 +124,11 @@ bool CoalescedMapSY::operator==(const Process& rhs) const throw() {
     return true;
 }
 
-string CoalescedMapSY::type() const throw() {
-    return "CoalescedMapSY";
+string CoalescedMap::type() const throw() {
+    return "CoalescedMap";
 }
 
-void CoalescedMapSY::moreChecks() throw(InvalidProcessException) {
+void CoalescedMap::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
@@ -141,11 +141,11 @@ void CoalescedMapSY::moreChecks() throw(InvalidProcessException) {
     }
     list<CFunction*>::const_iterator it;
     for (it = functions_.begin(); it != functions_.end(); ++it) {
-        checkFunction(**it);
+        checkFunction(**it,1);
     }
 }
 
-string CoalescedMapSY::moreToString() const throw() {
+string CoalescedMap::moreToString() const throw() {
     string str;
     list<CFunction*>::const_iterator it;
     for (it = functions_.begin(); it != functions_.end(); ++it) {

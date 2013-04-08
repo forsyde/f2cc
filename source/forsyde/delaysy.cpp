@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,11 @@
 #include "../tools/tools.h"
 #include <typeinfo>
 
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-DelaySY::DelaySY(const Id& id, const string& initial_value)
+delay::delay(const Id& id, const string& initial_value)
         throw(InvalidArgumentException)
         : Process(id), initial_value_(initial_value) {
     if (initial_value_.length() == 0) {
@@ -40,17 +40,17 @@ DelaySY::DelaySY(const Id& id, const string& initial_value)
     }
 }
 
-DelaySY::~DelaySY() throw() {}
+delay::~delay() throw() {}
 
-string DelaySY::getInitialValue() throw() {
+string delay::getInitialValue() throw() {
     return initial_value_;
 }
 
-bool DelaySY::operator==(const Process& rhs) const throw() {
+bool delay::operator==(const Process& rhs) const throw() {
     if (!Process::operator==(rhs)) return false;
 
     try {
-        const DelaySY& other = dynamic_cast<const DelaySY&>(rhs);
+        const delay& other = dynamic_cast<const delay&>(rhs);
         if (initial_value_ != other.initial_value_) return false;
     }
     catch (bad_cast&) {
@@ -59,11 +59,11 @@ bool DelaySY::operator==(const Process& rhs) const throw() {
     return true;
 }
 
-string DelaySY::type() const throw() {
-    return "DelaySY";
+string delay::type() const throw() {
+    return "delay";
 }
 
-void DelaySY::moreChecks() throw(InvalidProcessException) {
+void delay::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
@@ -76,6 +76,6 @@ void DelaySY::moreChecks() throw(InvalidProcessException) {
     }
 }
 
-string DelaySY::moreToString() const throw() {
-    return string("InitialDelayValue: ") + initial_value_;
+string delay::moreToString() const throw() {
+    return string("InitialdelayValue: ") + initial_value_;
 }

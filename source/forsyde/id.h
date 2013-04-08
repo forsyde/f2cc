@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,8 +23,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_ID_H_
-#define F2CC_SOURCE_FORSYDE_ID_H_
+#ifndef F2CC_SOURCE_FORDE_ID_H_
+#define F2CC_SOURCE_FORDE_ID_H_
 
 /**
  * @file
@@ -38,7 +38,9 @@
 #include <iostream>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
+namespace SY{
+
 
 /**
  * @brief A class used for identifying elements in the ForSyDe model.
@@ -119,6 +121,7 @@ class Id {
  */
 std::ostream& operator<<(std::ostream& stream, const Id& id);
 
+}
 }
 }
 

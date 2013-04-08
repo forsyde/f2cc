@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
 #include <list>
 
 using namespace f2cc;
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 
@@ -216,10 +216,10 @@ void Frontend::checkPort(Process::Port* port, Model* model)
     }
 }
 
-void Frontend::checkModelMore(Forsyde::Model* model)
+void Frontend::checkModelMore(ForSyDe::SY::Model* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {}
 
 
-void Frontend::postCheckFixes(Forsyde::Model* model)
+void Frontend::postCheckFixes(ForSyDe::SY::Model* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {}

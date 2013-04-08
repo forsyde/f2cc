@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -183,7 +183,7 @@ void CFunction::copy(const CFunction& rhs) throw(OutOfMemoryException) {
     name_ = rhs.name_;
     return_data_type_ = rhs.return_data_type_;
     destroyInputParameters();
-    // Copy input parameters
+    // fanout input parameters
     list<CVariable*>::const_iterator it;
     for (it = rhs.input_parameters_.begin(); it != rhs.input_parameters_.end(); 
          ++it) {

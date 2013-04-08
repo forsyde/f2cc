@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,20 +26,20 @@
 #include "copysy.h"
 #include <typeinfo>
 
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-CopySY::CopySY(const Id& id) throw()
+fanout::fanout(const Id& id) throw()
         : Process(id) {}
 
-CopySY::~CopySY() throw() {}
+fanout::~fanout() throw() {}
 
-bool CopySY::operator==(const Process& rhs) const throw() {
+bool fanout::operator==(const Process& rhs) const throw() {
     if (Process::operator==(rhs)) return false;
 
     try {
-        dynamic_cast<const CopySY&>(rhs);
+        dynamic_cast<const fanout&>(rhs);
     }
     catch (bad_cast&) {
         return false;
@@ -47,11 +47,11 @@ bool CopySY::operator==(const Process& rhs) const throw() {
     return true;
 }
 
-string CopySY::type() const throw() {
-    return "copySY";
+string fanout::type() const throw() {
+    return "copy";
 }
 
-void CopySY::moreChecks() throw(InvalidProcessException) {
+void fanout::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""

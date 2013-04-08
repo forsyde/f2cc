@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,15 +23,15 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_ZIPXSY_H_
-#define F2CC_SOURCE_FORSYDE_ZIPXSY_H_
+#ifndef F2CC_SOURCE_FORDE_ZIPX_H_
+#define F2CC_SOURCE_FORDE_ZIPX_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c zipxSY process.
+ * @brief Implements the ForSyDe \c zipx process.
  */
 
 #include "process.h"
@@ -39,22 +39,23 @@
 #include <string>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
+namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c zipxSY process.
+ * @brief Implements the ForSyDe \c zipx process.
  */
-class ZipxSY : public Process {
+class zipx : public Process {
   public:
     /**
      * @copydoc Process(const Id&)
      */
-    ZipxSY(const Id& id) throw();
+    zipx(const Id& id) throw();
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~ZipxSY() throw();
+    virtual ~zipx() throw();
 
     /**
      * @copydoc Process::operator==(const Process&) const
@@ -76,6 +77,7 @@ class ZipxSY : public Process {
     virtual void moreChecks() throw(InvalidProcessException);
 };
 
+}
 }
 }
 

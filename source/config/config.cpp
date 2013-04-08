@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ string Config::getHelpMenu() const throw() {
     string str = string()
         + "Developer: Gabriel Hjort Blindell <ghb@kth.se>\n"
         + "KTH - Royal Institute of Technology, Stockholm, Sweden\n"
-        + "Copyright (c) 2011-2012\n"
+        + "fanoutright (c) 2011-2012\n"
         + "\n";
 
     part = "This tool is part of the ForSyDe framework for synthesizing "
@@ -67,12 +67,12 @@ string Config::getHelpMenu() const throw() {
         "Currently, the tool supports the following processes:\n";
     tools::breakLongLines(part, maximum_line_length, 0);
     part += ""
-        "   * MapSY\n"
-        "   * ParallelMapSY\n"
-        "   * ZipWithNSY\n"
-        "   * UnzipxSY\n"
-        "   * ZipxSY\n"
-        "   * DelaySY\n"
+        "   * comb\n"
+        "   * ParallelMap\n"
+        "   * comb\n"
+        "   * unzipx\n"
+        "   * zipx\n"
+        "   * delay\n"
         "\n";
     str += part;
 

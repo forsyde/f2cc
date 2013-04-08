@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ class GraphmlParser : public Frontend {
     /**
      * @copydoc Frontend::createModel(const std::string&)
      */
-    virtual Forsyde::Model* createModel(const std::string& file)
+    virtual ForSyDe::SY::Model* createModel(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
               ParseException, InvalidModelException, RuntimeException);
 
@@ -177,7 +177,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    Forsyde::Model* generateModel(ticpp::Element* xml)
+    ForSyDe::SY::Model* generateModel(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException);
 
@@ -200,7 +200,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlNodes(ticpp::Element* xml, Forsyde::Model* model)
+    void parseXmlNodes(ticpp::Element* xml, ForSyDe::SY::Model* model)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -213,7 +213,7 @@ class GraphmlParser : public Frontend {
      * @param model
      *        Model object.
      * @param copy_processes
-     *        Mapset which contains the \c CopySY processes created during the
+     *        combset which contains the \c fanout processes created during the
      *        parsing process.
      * @throws InvalidArgumentException
      *         When \c xml or \c model is \c NULL.
@@ -225,8 +225,8 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlEdges(ticpp::Element* xml, Forsyde::Model* model,
-                       std::map<Forsyde::Process::Port*, Forsyde::Process*>&
+    void parseXmlEdges(ticpp::Element* xml, ForSyDe::SY::Model* model,
+                       std::map<ForSyDe::SY::Process::Port*, ForSyDe::SY::Process*>&
                        copy_processes)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
@@ -248,7 +248,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void verifyProcessConnections(Forsyde::Model* model)
+    void verifyProcessConnections(ForSyDe::SY::Model* model)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -267,7 +267,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void fixModelInputsOutputs(Forsyde::Model* model)
+    void fixModelInputsOutputs(ForSyDe::SY::Model* model)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
@@ -287,7 +287,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    Forsyde::Process* generateProcess(ticpp::Element* xml)
+    ForSyDe::SY::Process* generateProcess(ticpp::Element* xml)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -502,7 +502,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    std::string getInitialDelayValue(ticpp::Element* xml)
+    std::string getInitialdelayValue(ticpp::Element* xml)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -522,7 +522,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    Forsyde::Process::Port* generatePort(ticpp::Element* xml)
+    ForSyDe::SY::Process::Port* generatePort(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException);
 
@@ -534,7 +534,7 @@ class GraphmlParser : public Frontend {
      * @param model
      *        Model object to add the process to.
      * @param copy_processes
-     *        Mapset which contains the \c CopySY processes created during the
+     *        combset which contains the \c fanout processes created during the
      *        parsing process.
      * @throws InvalidArgumentException
      *         When \c xml or \c model is \c NULL.
@@ -546,9 +546,9 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void generateConnection(ticpp::Element* xml, Forsyde::Model* model,
-                            std::map<Forsyde::Process::Port*,
-                                     Forsyde::Process*>& copy_processes)
+    void generateConnection(ticpp::Element* xml, ForSyDe::SY::Model* model,
+                            std::map<ForSyDe::SY::Process::Port*,
+                                     ForSyDe::SY::Process*>& copy_processes)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -603,7 +603,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkModelMore(Forsyde::Model* model)
+    void checkModelMore(ForSyDe::SY::Model* model)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
@@ -622,7 +622,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void postCheckFixes(Forsyde::Model* model)
+    void postCheckFixes(ForSyDe::SY::Model* model)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
   private:
