@@ -8,11 +8,17 @@
  */
 
 /**
- * @namespace f2cc::ForSyDe::SY
+ * @namespace f2cc::ForSyDe
  * @brief Contains all classes used in the internal representation of a ForSyDe 
  *        model.
  *
  * The \c ForSyDe namespace contains all the model, process, ports classes used 
- * to construct the internal representation of a ForSyDe model. It also contains
- * classes which operate on such models.
+ * to construct the internal representation of a ForSyDe model. 
+ */
+
+ /**
+ * @namespace f2cc::ForSyDe::SY
+ * @brief Contains all processes in SY MoC.
+ *
+ * The \c SY namespace contains all the process constructor in SYnchronous MoC
  */

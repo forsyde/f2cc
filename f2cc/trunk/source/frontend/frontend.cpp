@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
 #include <list>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::ForSyDe;
 using std::string;
 using std::list;
 
@@ -37,7 +37,7 @@ Frontend::Frontend(Logger& logger) throw() : logger_(logger) {}
 
 Frontend::~Frontend() throw() {}
 
-Model* Frontend::parse(const string& file)
+Processnetwork* Frontend::parse(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
           ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
@@ -45,10 +45,10 @@ Model* Frontend::parse(const string& file)
                         "string");
     }
 
-    Model* model = createModel(file);
+    Processnetwork* model = createProcessnetwork(file);
 
     logger_.logInfoMessage("Checking that the internal model is sane...");
-    checkModel(model);
+    checkProcessnetwork(model);
     logger_.logInfoMessage("All checks passed");
 
     logger_.logInfoMessage("Running post-check fixes...");
@@ -61,7 +61,7 @@ Model* Frontend::parse(const string& file)
     return model;
 }
 
-void Frontend::checkModel(Model* model)
+void Frontend::checkProcessnetwork(Processnetwork* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     if (!model) {
@@ -77,11 +77,11 @@ void Frontend::checkModel(Model* model)
     }
 
     logger_.logInfoMessage("Running additional model checks...");
-    checkModelMore(model);
+    checkProcessnetworkMore(model);
     logger_.logInfoMessage("Additional model checks passed");    
 }
 
-void Frontend::ensureNoInPorts(Model* model)
+void Frontend::ensureNoInPorts(Processnetwork* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!model) {
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
@@ -110,7 +110,7 @@ void Frontend::ensureNoInPorts(Model* model)
     logger_.logDebugMessage("No InPort processes in the model");
 }
 
-void Frontend::ensureNoOutPorts(Model* model)
+void Frontend::ensureNoOutPorts(Processnetwork* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!model) {
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
@@ -139,7 +139,7 @@ void Frontend::ensureNoOutPorts(Model* model)
     logger_.logDebugMessage("No OutPort processes in the model");
 }
 
-void Frontend::checkProcess(Process* process, Model* model)
+void Frontend::checkProcess(Process* process, Processnetwork* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     if (!process) {
@@ -177,7 +177,7 @@ void Frontend::checkProcess(Process* process, Model* model)
                             + "\" passed all checks");
 }
 
-void Frontend::checkPort(Process::Port* port, Model* model)
+void Frontend::checkPort(Process::Port* port, Processnetwork* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     if (!port) {
@@ -216,10 +216,10 @@ void Frontend::checkPort(Process::Port* port, Model* model)
     }
 }
 
-void Frontend::checkModelMore(ForSyDe::SY::Model* model)
+void Frontend::checkProcessnetworkMore(ForSyDe::Processnetwork* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {}
 
 
-void Frontend::postCheckFixes(ForSyDe::SY::Model* model)
+void Frontend::postCheckFixes(ForSyDe::Processnetwork* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {}

@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,19 +23,20 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORDE_DELAY_H_
-#define F2CC_SOURCE_FORDE_DELAY_H_
+#ifndef F2CC_SOURCE_FORSYDE_COPY_H_
+#define F2CC_SOURCE_FORSYDE_COPY_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c delay process.
+ * @brief Implements the a process for copying a signal value to multiple output
+ *        signals.
  */
 
-#include "process.h"
-#include "../exceptions/invalidargumentexception.h"
+#include "../process.h"
+#include "../../exceptions/notsupportedexception.h"
 #include <string>
 
 namespace f2cc {
@@ -43,42 +44,31 @@ namespace ForSyDe {
 namespace SY {
 
 /**
- * @brief Implements the ForSyDe \c delay process.
+ * @brief Implements the a process for copying a signal value to multiple output
+ *        signals.
+ *
+ * The \c fanout process is a special process whose only purpose is to copy the
+ * value on the input signal to all of its output signals. The internal model
+ * does no allow a port to be connected to multiple other ports. However,
+ * ForSyDe itself does allow multiple signals to retrieve its values from the
+ * same source. Thus, during parsing when encountering such instances, an
+ * intermediate \c fanout process is created and the signals redirected to its
+ * outputs.
  */
-class delay : public Process {
+class fanout : public Process {
   public:
     /**
-     * Creates a process.
-     *
-     * @param id
-     *        Process ID.
-     * @param initial_value
-     *        Initial delay value.
-     * @throws InvalidArgumentException
-     *         When the initial delay value is empty string.
+     * @copydoc Process(const Id&)
      */
-    delay(const Id& id, const std::string& initial_value)
-        throw(InvalidArgumentException);
+    fanout(const Id& id) throw();
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~delay() throw();
+    virtual ~fanout() throw();
 
     /**
-     * Gets the initial value for this process.
-     *
-     * @returns Initial value.
-     */
-    std::string getInitialValue() throw();
-
-    /**
-     * Same as Process::operator==(const Process&) const but with the additional
-     * check that the processes' initial values must also be equal.
-     *
-     * @param rhs
-     *        Process to compare with.
-     * @returns \c true if both processes are equal.
+     * @copydoc Process::operator==(const Process&) const
      */
     virtual bool operator==(const Process& rhs) const throw();
 
@@ -89,30 +79,12 @@ class delay : public Process {
 
   protected:
     /**
-     * Checks that this process has only one in port and one out port.
+     * Checks that this process has only one in port.
      *
      * @throws InvalidProcessException
      *         When the check fails.
      */
     virtual void moreChecks() throw(InvalidProcessException);
-
-    /**
-     * Gets the function argument as string representation in the following
-     * format:
-     * @code
-     * ProcessFunction: <function_argument>
-     * @endcode
-     *
-     * @returns Additional string representation data.
-     * @see toString()
-     */
-    virtual std::string moreToString() const throw();
-
-  protected:
-    /**
-     * Process function argument.
-     */
-    std::string initial_value_;
 };
 
 }

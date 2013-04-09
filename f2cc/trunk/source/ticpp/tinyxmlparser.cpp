@@ -254,7 +254,7 @@ void TiXmlParsingData::Stamp( const char* now, TiXmlEncoding encoding )
 				// Eat the character
 				++p;
 
-				// Skip to next tab stop
+				// Skip to next tab sprocessnetwork
 				col = (col / tabsize + 1) * tabsize;
 				break;
 

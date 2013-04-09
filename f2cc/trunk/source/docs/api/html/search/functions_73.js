@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['schedulefinder',['ScheduleFinder',['../classf2cc_1_1ScheduleFinder.html#afa6766da452e3137f7ce117f87135001',1,'f2cc::ScheduleFinder']]],
+  ['schedulefinder',['ScheduleFinder',['../classf2cc_1_1ScheduleFinder.html#a840c01529a1ab30bd4d25d2d25552b50',1,'f2cc::ScheduleFinder']]],
   ['scheduletostring',['scheduleToString',['../classf2cc_1_1Synthesizer.html#a535b1f20287aaba50d67cca1be11ca81',1,'f2cc::Synthesizer']]],
   ['searchreplace',['searchReplace',['../namespacef2cc_1_1tools.html#acbce83862ee90b06ecea3d728fbf3686',1,'f2cc::tools']]],
   ['setarraysize',['setArraySize',['../classf2cc_1_1CDataType.html#a16c8e6ef5648167078c8f0b614701ccc',1,'f2cc::CDataType']]],
@@ -22,10 +22,10 @@ var searchData=
   ['settargetplatform',['setTargetPlatform',['../classf2cc_1_1Config.html#ae5c6642e9eb0acc78cc90d47a31f7b16',1,'f2cc::Config']]],
   ['setusesharedmemoryforinput',['setUseSharedMemoryForInput',['../classf2cc_1_1Config.html#afa672cdf7745bd96084557344b4f7d13',1,'f2cc::Config']]],
   ['setusesharedmemoryforoutput',['setUseSharedMemoryForOutput',['../classf2cc_1_1Config.html#ad93e1ee340c86934c2707d58b604090b',1,'f2cc::Config']]],
-  ['signal',['Signal',['../classf2cc_1_1Synthesizer_1_1Signal.html#afe7e0779509acaacb4bffa45dd678277',1,'f2cc::Synthesizer::Signal']]],
+  ['signal',['Signal',['../classf2cc_1_1Synthesizer_1_1Signal.html#a47c91c0940c6519ace880c2c3c97c6db',1,'f2cc::Synthesizer::Signal']]],
   ['split',['split',['../namespacef2cc_1_1tools.html#a493f76a5b3c63fd66041f9b864e75e30',1,'f2cc::tools']]],
-  ['splitdataparallelsegments',['splitDataParallelSegments',['../classf2cc_1_1Forsyde_1_1ModelModifier.html#a167d2167514a7a5b12f44367e3bb01bf',1,'f2cc::Forsyde::ModelModifier::splitDataParallelSegments()'],['../classf2cc_1_1Forsyde_1_1ModelModifier.html#ada13c942a3707058d5f5d97d7d532bcd',1,'f2cc::Forsyde::ModelModifier::splitDataParallelSegments(std::vector&lt; std::vector&lt; Forsyde::Process * &gt; &gt; chains)']]],
+  ['splitdataparallelsegments',['splitDataParallelSegments',['../classf2cc_1_1ForSyDe_1_1SY_1_1ProcessnetworkModifier.html#abf6abca25ddafaf65f656c743d0e17e5',1,'f2cc::ForSyDe::SY::ProcessnetworkModifier::splitDataParallelSegments()'],['../classf2cc_1_1ForSyDe_1_1SY_1_1ProcessnetworkModifier.html#ae740873d93d929d1bbbc6b46cecb9671',1,'f2cc::ForSyDe::SY::ProcessnetworkModifier::splitDataParallelSegments(std::vector&lt; std::vector&lt; ForSyDe::Process * &gt; &gt; chains)']]],
   ['stringtologlevel',['stringToLogLevel',['../classf2cc_1_1Logger.html#a60a483e4edf8fd88e5c2d4405f97c292',1,'f2cc::Logger']]],
   ['stringtotype',['stringToType',['../classf2cc_1_1CDataType.html#ac3c92c4cf3cdd421f3ee38491ac3daa9',1,'f2cc::CDataType']]],
-  ['synthesizer',['Synthesizer',['../classf2cc_1_1Synthesizer.html#addd19c82d9cacddf73c9016180beaa20',1,'f2cc::Synthesizer']]]
+  ['synthesizer',['Synthesizer',['../classf2cc_1_1Synthesizer.html#a520c792f7c547e2ba7a0285de69b9764',1,'f2cc::Synthesizer']]]
 ];

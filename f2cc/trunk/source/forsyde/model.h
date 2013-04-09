@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,15 +23,16 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORDE_MODEL_H_
-#define F2CC_SOURCE_FORDE_MODEL_H_
+#ifndef F2CC_SOURCE_FORSYDE_MODEL_H_
+#define F2CC_SOURCE_FORSYDE_MODEL_H_
 
 /**
  * @file
- * @author  Gabriel Hjort Blindell <ghb@kth.se>
- * @version 0.1
+ * @author  Gabriel Hjort Blindell <ghb@kth.se> & George Ungureanu <ugeorge@kth.se>
+ * @version 0.2
  *
- * @brief Defines the model part of the internal ForSyDe representation.
+ * @brief Defines the model abstract class for the internal ForSyDe representation,
+ * which will be inherited by \c Processnetwork and \c Composite.
  */
 
 #include "id.h"
@@ -45,15 +46,13 @@
 
 namespace f2cc {
 namespace ForSyDe {
-namespace SY{
 
 /**
  * @brief Contains the internal representation of a ForSyDe model.
  *
- * The \c Model embodies a complete ForSyDe network of connected \c Process
- * objects. The class also provides inputs and outputs to the network, which
- * actually are inports and outports, respectively, to one or more of the
- * processes within the network.
+ * The \c Model embodies one or more of the
+ * processes within the process network. It provides common methods for both
+ * \c Processnetwork and \c Composite classes.
  */
 class Model {
   public:
@@ -127,102 +126,11 @@ class Model {
     bool deleteProcess(const Id& id) throw();
 
     /**
-     * Adds an input to this model. The input must such that it is an inport to
-     * a process already existing in the model. If the input is \c NULL, nothing
-     * happens and \c false is returned.
-     *
-     * @param port
-     *        Inport of a process.
-     * @returns \c true if the port did not already exist as input and was
-     *          successfully added.
-     * @throws InvalidArgumentException
-     *         When \c port is \c NULL.
-     * @throws IllegalStateException
-     *         When the port belongs to a process not residing in the model.
-     * @throws OutOfMemoryException
-     *         When a port cannot be added due to memory shortage.
-     */
-    bool addInput(Process::Port* port)
-        throw(InvalidArgumentException, IllegalStateException,
-              OutOfMemoryException);
-
-    /**
-     * Deletes an input port of this model.
-     *
-     * @param port
-     *        Port.
-     * @returns \c true if such an input port was found and successfully
-     *          deleted.
-     * @throws InvalidArgumentException
-     *         When \c port is \c NULL.
-     */
-    bool deleteInput(Process::Port* port) throw(InvalidArgumentException);
-
-    /**
-     * Gets the number of inputs of this model.
-     *
-     * @returns Number of inputs.
-     */
-    int getNumInputs() const throw();
-
-    /**
-     * Gets a list of inputs belonging to this model.
-     *
-     * @returns List of inputs.
-     */
-    std::list<Process::Port*> getInputs() throw();
-
-    /**
-     * Same as addInput(const Process::Port*) but for outputs.
-     *
-     * @param port
-     *        Outport of a process.
-     * @returns \c true if the port did not already exist as output and was
-     *          successfully added.
-     * @throws InvalidArgumentException
-     *         When \c port is \c NULL.
-     * @throws IllegalStateException
-     *         When the port belongs to a process not residing in the model.
-     * @throws OutOfMemoryException
-     *         When a port cannot be added due to memory shortage.
-     */
-    bool addOutput(Process::Port* port)
-        throw(InvalidArgumentException, IllegalStateException,
-              OutOfMemoryException);
-
-    /**
-     * Same as deleteInput(Process::Port*) but for outputs.
-     *
-     * @param port
-     *        Port.
-     * @returns \c true if such an output port was found and successfully
-     *          deleted.
-     * @throws InvalidArgumentException
-     *         When \c port is \c NULL.
-     */
-    bool deleteOutput(Process::Port* port) throw(InvalidArgumentException);
-
-    /**
-     * Same as addInput(const Process::Port*) but for outputs.
-     * Gets the number of inputs of this model.
-     *
-     * @returns Number of inputs.
-     */
-    int getNumOutputs() const throw();
-
-    /**
-     * Same as getInputs() but for outputs.
-     *
-     * @returns List of outputs.
-     */
-    std::list<Process::Port*> getOutputs() throw();
-
-    /**
      * Gets a new process ID which is not currently in use within this model.
      *
      * @returns A unique process ID.
      */
-    ForSyDe::SY::Id getUniqueProcessId() const throw();
+    ForSyDe::Id getUniqueProcessId() const throw();
 
     /**
      * Same as getUniqueProcessId() but allows an arbitrary string to be
@@ -232,27 +140,9 @@ class Model {
      *        ID prefix.
      * @returns A unique process ID.
      */
-    ForSyDe::SY::Id getUniqueProcessId(const std::string& prefix) const throw();
+    ForSyDe::Id getUniqueProcessId(const std::string& prefix) const throw();
 
-    /**
-     * Converts this model into a string representation. The resultant string
-     * is as follows:
-     * @code
-     * {
-     *  Model,
-     *  NumInputs: <num_inputs>,
-     *  Inputs = { ... },
-     *  NumOututs: <num_outports>,
-     *  Outputs = { ... },
-     *  NumProcesses: <num_processes>
-     * }
-     * @endcode
-     *
-     * @returns String representation.
-     */
-    std::string toString() const throw();
-
-  private:
+  protected:
     /**
      * Attempts to find a process with a given ID. If the mapset of processes is
      * not empty and such a process is found, an iterator pointing to that port
@@ -266,73 +156,18 @@ class Model {
     std::map<const Id, Process*>::iterator findProcess(const Id& id) throw();
 
     /**
-     * Attempts to find a port with a given ID from a list of ports. If the list
-     * is not empty and such a port is found, an iterator pointing to that port
-     * is returned; otherwise the list's \c end() iterator is returned.
-     *
-     * @param id
-     *        Port ID.
-     * @param ports
-     *        List of ports.
-     * @returns Iterator pointing either at the found port, or an iterator equal
-     *          to the list's \c end() iterator.
-     */
-    std::list<Process::Port*>::iterator findPort(
-        const Id& id, std::list<Process::Port*>& ports) const throw();
-
-    /**
-     * Checks if a port exists in a given list of ports. If the list is not
-     * empty and such a port is found, an iterator pointing to that port is
-     * returned; otherwise the list's \c end() iterator is returned.
-     *
-     * @param port
-     *        Port.
-     * @param ports
-     *        List of ports.
-     * @returns Iterator pointing either at the found port, or an iterator equal
-     *          to the list's \c end() iterator.
-     */
-    std::list<Process::Port*>::iterator findPort(
-        Process::Port* port, std::list<Process::Port*>& ports) const throw();
-
-    /**
      * Destroys all processes in this model.
      */
     void destroyAllProcesses() throw();
 
-    /**
-     * Takes a list of ports and converts it into a string representation. Each
-     * port is converted into
-     * @code
-     *  PortID: <port_id>, belonging to <process>,
-     *  ...
-     * @endcode
-     *
-     * @param ports
-     *        Port list.
-     * @returns String representation.
-     */
-    std::string portsToString(const std::list<Process::Port*> ports) const
-        throw();
-
-  private:
+  protected:
     /**
      * combset of processes.
      */
     std::map<const Id, Process*> processes_;
 
-    /**
-     * List of inputs.
-     */
-    std::list<Process::Port*> inputs_;
-
-    /**
-     * List of outputs.
-     */
-    std::list<Process::Port*> outputs_;
 };
 
-}
 }
 }
 

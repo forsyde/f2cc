@@ -429,7 +429,7 @@ private:
 };
 
 
-/** The parent class for everything in the Document Object Model.
+/** The parent class for everything in the Document Object Processnetwork.
 	(Except for attributes).
 	Nodes have siblings, a parent, and children. A node can be
 	in a document, or stand on its own. The type of a TiXmlNode
@@ -1459,7 +1459,7 @@ private:
 };
 
 
-/** Always the top level node. A document binds together all the
+/** Always the processnetwork level node. A document binds together all the
 	XML pieces. It can be saved, loaded, and printed to the screen.
 	The 'value' of a document node is the xml file name.
 */
@@ -1522,7 +1522,7 @@ public:
 	*/
 	virtual const char* Parse( const char* p, TiXmlParsingData* data = 0, TiXmlEncoding encoding = TIXML_DEFAULT_ENCODING );
 
-	/** Get the root element -- the only top level element -- of the document.
+	/** Get the root element -- the only processnetwork level element -- of the document.
 		In well formed XML, there should only be one. TinyXml is tolerant of
 		multiple elements at the document level.
 	*/

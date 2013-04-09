@@ -34,17 +34,18 @@
  * @brief Implements the generic ForSyDe \c zipWithN process.
  */
 
-#include "process.h"
-#include "../language/cfunction.h"
+#include "../process.h"
+#include "../../language/cfunction.h"
 #include <string>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
+namespace SY{
 
 /**
  * @brief Implements the generic ForSyDe \c zipWithN process.
  */
-class ZipWithNSY : public Process {
+class comb : public Process {
   public:
     /**
      * Creates a process.
@@ -54,12 +55,12 @@ class ZipWithNSY : public Process {
      * @param function
      *        Process function argument.
      */
-    ZipWithNSY(const Id& id, const CFunction& function) throw();
+    comb(const Id& id, const CFunction& function) throw();
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~ZipWithNSY() throw();
+    virtual ~comb() throw();
 
     /**
      * Gets the function argument of this process.
@@ -137,6 +138,7 @@ class ZipWithNSY : public Process {
     CFunction function_;
 };
 
+}
 }
 }
 

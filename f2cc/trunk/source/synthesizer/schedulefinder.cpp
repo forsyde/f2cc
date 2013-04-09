@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -24,11 +24,11 @@
  */
 
 #include "schedulefinder.h"
-#include "../forsyde/delaysy.h"
+#include "../forsyde/SY/delaysy.h"
 #include "../tools/tools.h"
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::ForSyDe;
 using std::string;
 using std::list;
 using std::set;
@@ -36,8 +36,8 @@ using std::pair;
 using std::bad_alloc;
 using std::queue;
 
-ScheduleFinder::ScheduleFinder(ForSyDe::SY::Model* model, Logger& logger)
-        throw(InvalidArgumentException) : model_(model), logger_(logger) {
+ScheduleFinder::ScheduleFinder(ForSyDe::Processnetwork* model, Logger& logger)
+        throw(InvalidArgumentException) : processnetwork_(model), logger_(logger) {
     if (!model) {
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
     }
@@ -47,7 +47,7 @@ ScheduleFinder::~ScheduleFinder() throw() {}
 
 list<Id> ScheduleFinder::findSchedule() throw(IOException, RuntimeException) {
     // Add all processes at model outputs to starting point queue
-    list<Process::Port*> output_ports = model_->getOutputs();
+    list<Process::Port*> output_ports = processnetwork_->getOutputs();
     logger_.logMessage(Logger::DEBUG, string("Scanning all model outputs..."));
     for (list<Process::Port*>::iterator it = output_ports.begin();
          it != output_ports.end(); ++it) {
@@ -115,7 +115,7 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
 
     // If this is a delay, add the delay element to the schedule and add its
     // preceding process to starting point queue
-    if (dynamic_cast<delay*>(start)) {
+    if (dynamic_cast<SY::delay*>(start)) {
         Process::Port* inport = start->getInPorts().front();
         if (inport->isConnected()) {
             Process* preceding_process =
@@ -152,12 +152,12 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
     return partial_schedule;
 }
 
-bool ScheduleFinder::isGloballyVisited(ForSyDe::SY::Process* process) {
+bool ScheduleFinder::isGloballyVisited(ForSyDe::Process* process) {
     return globally_visited_.find(*process->getId()) != globally_visited_.end();
 }
 
-bool ScheduleFinder::visitLocally(ForSyDe::SY::Process* process,
-                                  set<ForSyDe::SY::Id>& visited) {
+bool ScheduleFinder::visitLocally(ForSyDe::Process* process,
+                                  set<ForSyDe::Id>& visited) {
     return visited.insert(*process->getId()).second;
 }
 

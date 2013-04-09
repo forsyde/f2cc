@@ -34,7 +34,7 @@ PROJECT_NAME           = f2cc
 PROJECT_NUMBER         =
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
-# for a project that appears at the top of each page and should give viewer
+# for a project that appears at the processnetwork of each page and should give viewer
 # a quick idea about the purpose of the project. Keep the description short.
 
 PROJECT_BRIEF          = "A CUDA C synthesizer for ForSyDe models"
@@ -1059,7 +1059,7 @@ GENERATE_ECLIPSEHELP   = NO
 ECLIPSE_DOC_ID         = org.doxygen.Project
 
 # The DISABLE_INDEX tag can be used to turn on/off the condensed index at
-# top of each HTML page. The value NO (the default) enables the index and
+# processnetwork of each HTML page. The value NO (the default) enables the index and
 # the value YES disables it.
 
 DISABLE_INDEX          = NO
@@ -1593,7 +1593,7 @@ COLLABORATION_GRAPH    = YES
 GROUP_GRAPHS           = YES
 
 # If the UML_LOOK tag is set to YES doxygen will generate inheritance and
-# collaboration diagrams in a style similar to the OMG's Unified Modeling
+# collaboration diagrams in a style similar to the OMG's Unified Processnetworking
 # Language.
 
 UML_LOOK               = YES

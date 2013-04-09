@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,14 @@
 #include "../ticpp/ticpp.h"
 #include "../ticpp/tinyxml.h"
 #include "../tools/tools.h"
-#include "../forsyde/parallelmapsy.h"
-#include "../forsyde/zipxsy.h"
-#include "../forsyde/unzipxsy.h"
-#include "../forsyde/delaysy.h"
+#include "../forsyde/SY/parallelmapsy.h"
+#include "../forsyde/SY/zipxsy.h"
+#include "../forsyde/SY/unzipxsy.h"
+#include "../forsyde/SY/delaysy.h"
 #include "../forsyde/inport.h"
 #include "../forsyde/outport.h"
-#include "../forsyde/copysy.h"
-#include "../forsyde/combsy.h"
+#include "../forsyde/SY/fanoutsy.h"
+#include "../forsyde/SY/combsy.h"
 #include "../language/cdatatype.h"
 #include "../exceptions/invalidprocessexception.h"
 #include "../exceptions/invalidformatexception.h"
@@ -46,6 +46,7 @@
 #include <new>
 
 using namespace f2cc;
+using namespace f2cc::ForSyDe;
 using namespace f2cc::ForSyDe::SY;
 using ticpp::Document;
 using ticpp::Node;
@@ -61,7 +62,7 @@ GraphmlParser::GraphmlParser(Logger& logger) throw() : Frontend(logger) {}
 
 GraphmlParser::~GraphmlParser() throw() {}
 
-Model* GraphmlParser::createModel(const string& file)
+Processnetwork* GraphmlParser::createProcessnetwork(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
           ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
@@ -100,7 +101,7 @@ Model* GraphmlParser::createModel(const string& file)
     logger_.logInfoMessage("All checks passed");
 
     logger_.logInfoMessage("Generating internal model...");
-    Model* model = generateModel(findXmlGraphElement(&xml));
+    Processnetwork* model = generateProcessnetwork(findXmlGraphElement(&xml));
 
     return model;
 }
@@ -208,14 +209,14 @@ Element* GraphmlParser::findXmlGraphElement(Document* xml)
     return xml_graph;
 }
 
-Model* GraphmlParser::generateModel(Element* xml)
+Processnetwork* GraphmlParser::generateProcessnetwork(Element* xml)
     throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Model* model = new (std::nothrow) Model();
+    Processnetwork* model = new (std::nothrow) Processnetwork();
     if (!model) THROW_EXCEPTION(OutOfMemoryException);
 
     logger_.logDebugMessage("Parsing \"node\" elements...");
@@ -228,7 +229,7 @@ Model* GraphmlParser::generateModel(Element* xml)
     return model;
 }
 
-void GraphmlParser::parseXmlNodes(Element* xml, Model* model)
+void GraphmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -258,7 +259,7 @@ void GraphmlParser::parseXmlNodes(Element* xml, Model* model)
     }
 }
 
-void GraphmlParser::parseXmlEdges(Element* xml, Model* model,
+void GraphmlParser::parseXmlEdges(Element* xml, Processnetwork* model,
                                   map<Process::Port*, Process*>& copy_processes)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
@@ -278,7 +279,7 @@ void GraphmlParser::parseXmlEdges(Element* xml, Model* model,
     }
 }
 
-void GraphmlParser::fixModelInputsOutputs(Model* model)
+void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!model) {
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
@@ -748,15 +749,15 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
     // the in port XML elements
     list<CVariable*> parameters = function.getInputParameters();
     list<CVariable*>::iterator param_it = parameters.begin();
-    list<CVariable*>::iterator param_stop_point;
+    list<CVariable*>::iterator param_sprocessnetwork_point;
     list<Element*>::iterator xml_it = elements.begin();
     if (function.getNumInputParameters() > 1) {
-        param_stop_point = --parameters.end();
+        param_sprocessnetwork_point = --parameters.end();
     }
     else {
-        param_stop_point = parameters.end();
+        param_sprocessnetwork_point = parameters.end();
     }
-    while (param_it != param_stop_point && xml_it != elements.end()) {
+    while (param_it != param_sprocessnetwork_point && xml_it != elements.end()) {
         if (param_it == parameters.begin()) {
             logger_.logDebugMessage("Searching array size for "
                                     "input parameter data type...");
@@ -900,7 +901,7 @@ bool GraphmlParser::isValidPortId(const std::string& id,
     return false;
 }
 
-void GraphmlParser::generateConnection(Element* xml, Model* model,
+void GraphmlParser::generateConnection(Element* xml, Processnetwork* model,
                                        map<Process::Port*, Process*>&
                                        copy_processes)
     throw(InvalidArgumentException, ParseException, IOException,
@@ -1072,7 +1073,7 @@ void GraphmlParser::generateConnection(Element* xml, Model* model,
     }
 }
 
-void GraphmlParser::checkModelMore(Model* model)
+void GraphmlParser::checkProcessnetworkMore(Processnetwork* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     logger_.logInfoMessage("Checking that the model contains at least one "
@@ -1106,7 +1107,7 @@ void GraphmlParser::checkModelMore(Model* model)
     }
 }
 
-void GraphmlParser::postCheckFixes(ForSyDe::SY::Model* model)
+void GraphmlParser::postCheckFixes(ForSyDe::Processnetwork* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {
-    fixModelInputsOutputs(model);
+    fixProcessnetworkInputsOutputs(model);
 }

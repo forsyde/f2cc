@@ -9,7 +9,7 @@
     position: absolute;
     float: none;
     display: inline;
-    margin-top: 8px;
+    margin-processnetwork: 8px;
     right: 0px;
     width: 170px;
     z-index: 102;
@@ -64,7 +64,7 @@
     display:block;
     position:absolute;
     right:10px;
-    top:0px;
+    processnetwork:0px;
     width:20px;
     height:19px;
     background:url('search_r.png') no-repeat;
@@ -74,7 +74,7 @@
 #MSearchClose {
     display: none;
     position: absolute;
-    top: 4px;
+    processnetwork: 4px;
     background : none;
     border: none;
     margin: 0px 4px 0px 0px;
@@ -99,15 +99,15 @@
 #MSearchSelectWindow {
     display: none;
     position: absolute;
-    left: 0; top: 0;
+    left: 0; processnetwork: 0;
     border: 1px solid #90A5CE;
     background-color: #F9FAFC;
     z-index: 1;
-    padding-top: 4px;
+    padding-processnetwork: 4px;
     padding-bottom: 4px;
     -moz-border-radius: 4px;
-    -webkit-border-top-left-radius: 4px;
-    -webkit-border-top-right-radius: 4px;
+    -webkit-border-processnetwork-left-radius: 4px;
+    -webkit-border-processnetwork-right-radius: 4px;
     -webkit-border-bottom-left-radius: 4px;
     -webkit-border-bottom-right-radius: 4px;
     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
@@ -162,7 +162,7 @@ iframe#MSearchResults {
 #MSearchResultsWindow {
     display: none;
     position: absolute;
-    left: 0; top: 0;
+    left: 0; processnetwork: 0;
     border: 1px solid #000;
     background-color: #EEF1F7;
 }

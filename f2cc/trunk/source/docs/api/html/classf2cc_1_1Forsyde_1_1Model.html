@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>f2cc: f2cc::Forsyde::Model Class Reference</title>
+<title>f2cc: f2cc::Forsyde::Processnetwork Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -15,7 +15,7 @@
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="processnetwork"><!-- do not remove this div, it is closed by doxygen! -->
 <div id="titlearea">
 <table cellspacing="0" cellpadding="0">
  <tbody>
@@ -83,73 +83,73 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="namespacef2cc.html">f2cc</a></li><li class="navelem"><a class="el" href="namespacef2cc_1_1Forsyde.html">Forsyde</a></li><li class="navelem"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html">Model</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacef2cc.html">f2cc</a></li><li class="navelem"><a class="el" href="namespacef2cc_1_1Forsyde.html">Forsyde</a></li><li class="navelem"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html">Processnetwork</a></li>  </ul>
 </div>
-</div><!-- top -->
+</div><!-- processnetwork -->
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
-<a href="classf2cc_1_1Forsyde_1_1Model-members.html">List of all members</a>  </div>
+<a href="classf2cc_1_1Forsyde_1_1Processnetwork-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">f2cc::Forsyde::Model Class Reference</div>  </div>
+<div class="title">f2cc::Forsyde::Processnetwork Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
 <p>Contains the internal representation of a ForSyDe model.  
- <a href="classf2cc_1_1Forsyde_1_1Model.html#details">More...</a></p>
+ <a href="classf2cc_1_1Forsyde_1_1Processnetwork.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="model_8h_source.html">model.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="processnetwork_8h_source.html">model.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a8279d11472714c38fdced4744c94af69"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a8279d11472714c38fdced4744c94af69">Model</a> ()  throw ()</td></tr>
-<tr class="memitem:aa709ece44df9a5e2b3f50c58f116efd1"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#aa709ece44df9a5e2b3f50c58f116efd1">~Model</a> ()  throw ()</td></tr>
-<tr class="memitem:a117850fa9d7293e5e2858bd09ebe8a2a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a117850fa9d7293e5e2858bd09ebe8a2a">addProcess</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *process)  throw (InvalidArgumentException, OutOfMemoryException)</td></tr>
-<tr class="memitem:a3e9bd534f61b9ade09f3ae9403ad14e5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a3e9bd534f61b9ade09f3ae9403ad14e5">addProcesses</a> (std::map&lt; const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> * &gt; processes)  throw (OutOfMemoryException)</td></tr>
-<tr class="memitem:a191ee71e5b9186838543b316ffbf5fcd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a191ee71e5b9186838543b316ffbf5fcd">getProcess</a> (const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;id)  throw ()</td></tr>
-<tr class="memitem:ac27f073e782e004a15cb491f376c801f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#ac27f073e782e004a15cb491f376c801f">getNumProcesses</a> () const   throw ()</td></tr>
-<tr class="memitem:acbad3626d366652eeaec585a3aad9696"><td class="memItemLeft" align="right" valign="top">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#acbad3626d366652eeaec585a3aad9696">getProcesses</a> ()  throw ()</td></tr>
-<tr class="memitem:ad0f9b14986f03daee3b872bb2793d9e0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#ad0f9b14986f03daee3b872bb2793d9e0">deleteProcess</a> (const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;id)  throw ()</td></tr>
-<tr class="memitem:a5b61ced3a1dea6b83bfc7566ec10cd1f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a5b61ced3a1dea6b83bfc7566ec10cd1f">addInput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port)  throw (InvalidArgumentException, IllegalStateException,              OutOfMemoryException)</td></tr>
-<tr class="memitem:a7c06ec367a6aeaedd684efb12b5a96b1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a7c06ec367a6aeaedd684efb12b5a96b1">deleteInput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port)  throw (InvalidArgumentException)</td></tr>
-<tr class="memitem:a6e96602a32dcf9e77c1bc7c709128554"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a6e96602a32dcf9e77c1bc7c709128554">getNumInputs</a> () const   throw ()</td></tr>
-<tr class="memitem:ac6ff6b58f20566610657928f6f15023a"><td class="memItemLeft" align="right" valign="top">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#ac6ff6b58f20566610657928f6f15023a">getInputs</a> ()  throw ()</td></tr>
-<tr class="memitem:a19ae09a33aa763ef65f0beafb20c802f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a19ae09a33aa763ef65f0beafb20c802f">addOutput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port)  throw (InvalidArgumentException, IllegalStateException,              OutOfMemoryException)</td></tr>
-<tr class="memitem:a7df74ad2b2a6ac425a7029f55f53df35"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a7df74ad2b2a6ac425a7029f55f53df35">deleteOutput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port)  throw (InvalidArgumentException)</td></tr>
-<tr class="memitem:a5dbd3351697d016205595a87d8594f7d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a5dbd3351697d016205595a87d8594f7d">getNumOutputs</a> () const   throw ()</td></tr>
-<tr class="memitem:a2e88fd3f9ff7a2949415c1f62b54c73a"><td class="memItemLeft" align="right" valign="top">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a2e88fd3f9ff7a2949415c1f62b54c73a">getOutputs</a> ()  throw ()</td></tr>
-<tr class="memitem:adfe1363a2a834d692c6a2f7d35c3fb85"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#adfe1363a2a834d692c6a2f7d35c3fb85">getUniqueProcessId</a> () const   throw ()</td></tr>
-<tr class="memitem:a0e7b339d7a3a2d062bc5eb8b4d2af2a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a0e7b339d7a3a2d062bc5eb8b4d2af2a7">getUniqueProcessId</a> (const std::string &amp;prefix) const   throw ()</td></tr>
-<tr class="memitem:a7abeaa7795735d1422451e79f21d9897"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a7abeaa7795735d1422451e79f21d9897">toString</a> () const   throw ()</td></tr>
+<tr class="memitem:a8279d11472714c38fdced4744c94af69"><td class="memItemLeft" align="right" valign="processnetwork">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a8279d11472714c38fdced4744c94af69">Processnetwork</a> ()  throw ()</td></tr>
+<tr class="memitem:aa709ece44df9a5e2b3f50c58f116efd1"><td class="memItemLeft" align="right" valign="processnetwork">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#aa709ece44df9a5e2b3f50c58f116efd1">~Processnetwork</a> ()  throw ()</td></tr>
+<tr class="memitem:a117850fa9d7293e5e2858bd09ebe8a2a"><td class="memItemLeft" align="right" valign="processnetwork">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a117850fa9d7293e5e2858bd09ebe8a2a">addProcess</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *process)  throw (InvalidArgumentException, OutOfMemoryException)</td></tr>
+<tr class="memitem:a3e9bd534f61b9ade09f3ae9403ad14e5"><td class="memItemLeft" align="right" valign="processnetwork">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a3e9bd534f61b9ade09f3ae9403ad14e5">addProcesses</a> (std::map&lt; const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> * &gt; processes)  throw (OutOfMemoryException)</td></tr>
+<tr class="memitem:a191ee71e5b9186838543b316ffbf5fcd"><td class="memItemLeft" align="right" valign="processnetwork"><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a191ee71e5b9186838543b316ffbf5fcd">getProcess</a> (const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;id)  throw ()</td></tr>
+<tr class="memitem:ac27f073e782e004a15cb491f376c801f"><td class="memItemLeft" align="right" valign="processnetwork">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#ac27f073e782e004a15cb491f376c801f">getNumProcesses</a> () const   throw ()</td></tr>
+<tr class="memitem:acbad3626d366652eeaec585a3aad9696"><td class="memItemLeft" align="right" valign="processnetwork">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#acbad3626d366652eeaec585a3aad9696">getProcesses</a> ()  throw ()</td></tr>
+<tr class="memitem:ad0f9b14986f03daee3b872bb2793d9e0"><td class="memItemLeft" align="right" valign="processnetwork">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#ad0f9b14986f03daee3b872bb2793d9e0">deleteProcess</a> (const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;id)  throw ()</td></tr>
+<tr class="memitem:a5b61ced3a1dea6b83bfc7566ec10cd1f"><td class="memItemLeft" align="right" valign="processnetwork">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a5b61ced3a1dea6b83bfc7566ec10cd1f">addInput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port)  throw (InvalidArgumentException, IllegalStateException,              OutOfMemoryException)</td></tr>
+<tr class="memitem:a7c06ec367a6aeaedd684efb12b5a96b1"><td class="memItemLeft" align="right" valign="processnetwork">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a7c06ec367a6aeaedd684efb12b5a96b1">deleteInput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port)  throw (InvalidArgumentException)</td></tr>
+<tr class="memitem:a6e96602a32dcf9e77c1bc7c709128554"><td class="memItemLeft" align="right" valign="processnetwork">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a6e96602a32dcf9e77c1bc7c709128554">getNumInputs</a> () const   throw ()</td></tr>
+<tr class="memitem:ac6ff6b58f20566610657928f6f15023a"><td class="memItemLeft" align="right" valign="processnetwork">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#ac6ff6b58f20566610657928f6f15023a">getInputs</a> ()  throw ()</td></tr>
+<tr class="memitem:a19ae09a33aa763ef65f0beafb20c802f"><td class="memItemLeft" align="right" valign="processnetwork">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a19ae09a33aa763ef65f0beafb20c802f">addOutput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port)  throw (InvalidArgumentException, IllegalStateException,              OutOfMemoryException)</td></tr>
+<tr class="memitem:a7df74ad2b2a6ac425a7029f55f53df35"><td class="memItemLeft" align="right" valign="processnetwork">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a7df74ad2b2a6ac425a7029f55f53df35">deleteOutput</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port)  throw (InvalidArgumentException)</td></tr>
+<tr class="memitem:a5dbd3351697d016205595a87d8594f7d"><td class="memItemLeft" align="right" valign="processnetwork">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a5dbd3351697d016205595a87d8594f7d">getNumOutputs</a> () const   throw ()</td></tr>
+<tr class="memitem:a2e88fd3f9ff7a2949415c1f62b54c73a"><td class="memItemLeft" align="right" valign="processnetwork">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a2e88fd3f9ff7a2949415c1f62b54c73a">getOutputs</a> ()  throw ()</td></tr>
+<tr class="memitem:adfe1363a2a834d692c6a2f7d35c3fb85"><td class="memItemLeft" align="right" valign="processnetwork"><a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#adfe1363a2a834d692c6a2f7d35c3fb85">getUniqueProcessId</a> () const   throw ()</td></tr>
+<tr class="memitem:a0e7b339d7a3a2d062bc5eb8b4d2af2a7"><td class="memItemLeft" align="right" valign="processnetwork"><a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a0e7b339d7a3a2d062bc5eb8b4d2af2a7">getUniqueProcessId</a> (const std::string &amp;prefix) const   throw ()</td></tr>
+<tr class="memitem:a7abeaa7795735d1422451e79f21d9897"><td class="memItemLeft" align="right" valign="processnetwork">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a7abeaa7795735d1422451e79f21d9897">toString</a> () const   throw ()</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:a56e65989e19fb56b711c26606472592f"><td class="memItemLeft" align="right" valign="top">std::map&lt; const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> * &gt;<br class="typebreak"/>
-::iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a56e65989e19fb56b711c26606472592f">findProcess</a> (const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;id)  throw ()</td></tr>
-<tr class="memitem:acdb66a8693f77a23e91650b9083f742e"><td class="memItemLeft" align="right" valign="top">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;<br class="typebreak"/>
-::iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#acdb66a8693f77a23e91650b9083f742e">findPort</a> (const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;id, std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt; &amp;ports) const   throw ()</td></tr>
-<tr class="memitem:aacbd52cb8301dace2c35ac833f0a6e80"><td class="memItemLeft" align="right" valign="top">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;<br class="typebreak"/>
-::iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#aacbd52cb8301dace2c35ac833f0a6e80">findPort</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port, std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt; &amp;ports) const   throw ()</td></tr>
-<tr class="memitem:a84eeee5fded3eba4bb73b9b610389c15"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a84eeee5fded3eba4bb73b9b610389c15">destroyAllProcesses</a> ()  throw ()</td></tr>
-<tr class="memitem:a894d9f186ccd43039e2738314edccc81"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a894d9f186ccd43039e2738314edccc81">portsToString</a> (const std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt; ports) const   throw ()</td></tr>
+<tr class="memitem:a56e65989e19fb56b711c26606472592f"><td class="memItemLeft" align="right" valign="processnetwork">std::map&lt; const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> * &gt;<br class="typebreak"/>
+::iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a56e65989e19fb56b711c26606472592f">findProcess</a> (const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;id)  throw ()</td></tr>
+<tr class="memitem:acdb66a8693f77a23e91650b9083f742e"><td class="memItemLeft" align="right" valign="processnetwork">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;<br class="typebreak"/>
+::iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#acdb66a8693f77a23e91650b9083f742e">findPort</a> (const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;id, std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt; &amp;ports) const   throw ()</td></tr>
+<tr class="memitem:aacbd52cb8301dace2c35ac833f0a6e80"><td class="memItemLeft" align="right" valign="processnetwork">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;<br class="typebreak"/>
+::iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#aacbd52cb8301dace2c35ac833f0a6e80">findPort</a> (<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *port, std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt; &amp;ports) const   throw ()</td></tr>
+<tr class="memitem:a84eeee5fded3eba4bb73b9b610389c15"><td class="memItemLeft" align="right" valign="processnetwork">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a84eeee5fded3eba4bb73b9b610389c15">destroyAllProcesses</a> ()  throw ()</td></tr>
+<tr class="memitem:a894d9f186ccd43039e2738314edccc81"><td class="memItemLeft" align="right" valign="processnetwork">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a894d9f186ccd43039e2738314edccc81">portsToString</a> (const std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt; ports) const   throw ()</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a9e396e89af53d3ab3b52b4238f39e0a8"><td class="memItemLeft" align="right" valign="top">std::map&lt; const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a9e396e89af53d3ab3b52b4238f39e0a8">processes_</a></td></tr>
-<tr class="memitem:a0beb5269c9492e59cea7f02a4d52db09"><td class="memItemLeft" align="right" valign="top">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a0beb5269c9492e59cea7f02a4d52db09">inputs_</a></td></tr>
-<tr class="memitem:a3f990ad092f33e9d8ee30cdaaec30a37"><td class="memItemLeft" align="right" valign="top">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a3f990ad092f33e9d8ee30cdaaec30a37">outputs_</a></td></tr>
+<tr class="memitem:a9e396e89af53d3ab3b52b4238f39e0a8"><td class="memItemLeft" align="right" valign="processnetwork">std::map&lt; const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a9e396e89af53d3ab3b52b4238f39e0a8">processes_</a></td></tr>
+<tr class="memitem:a0beb5269c9492e59cea7f02a4d52db09"><td class="memItemLeft" align="right" valign="processnetwork">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a0beb5269c9492e59cea7f02a4d52db09">inputs_</a></td></tr>
+<tr class="memitem:a3f990ad092f33e9d8ee30cdaaec30a37"><td class="memItemLeft" align="right" valign="processnetwork">std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a3f990ad092f33e9d8ee30cdaaec30a37">outputs_</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock"><p>The <code><a class="el" href="classf2cc_1_1Forsyde_1_1Model.html" title="Contains the internal representation of a ForSyDe model.">Model</a></code> embodies a complete ForSyDe network of connected <code><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html" title="Base class for process nodes in the internal representation of ForSyDe models.">Process</a></code> objects. The class also provides inputs and outputs to the network, which actually are inports and outports, respectively, to one or more of the processes within the network. </p>
+<div class="textblock"><p>The <code><a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html" title="Contains the internal representation of a ForSyDe model.">Processnetwork</a></code> embodies a complete ForSyDe network of connected <code><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html" title="Base class for process nodes in the internal representation of ForSyDe models.">Process</a></code> objects. The class also provides inputs and outputs to the network, which actually are inports and outports, respectively, to one or more of the processes within the network. </p>
 </div><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a8279d11472714c38fdced4744c94af69"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">f2cc::Forsyde::Model::Model </td>
+          <td class="memname">f2cc::Forsyde::Processnetwork::Processnetwork </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td>  throw ()</td>
@@ -168,7 +168,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual f2cc::Forsyde::Model::~Model </td>
+          <td class="memname">virtual f2cc::Forsyde::Processnetwork::~Processnetwork </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td>  throw ()</td>
@@ -190,7 +190,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool f2cc::Forsyde::Model::addInput </td>
+          <td class="memname">bool f2cc::Forsyde::Processnetwork::addInput </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *&#160;</td>
           <td class="paramname"><em>port</em></td><td>)</td>
@@ -222,7 +222,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool f2cc::Forsyde::Model::addOutput </td>
+          <td class="memname">bool f2cc::Forsyde::Processnetwork::addOutput </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *&#160;</td>
           <td class="paramname"><em>port</em></td><td>)</td>
@@ -254,7 +254,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool f2cc::Forsyde::Model::addProcess </td>
+          <td class="memname">bool f2cc::Forsyde::Processnetwork::addProcess </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> *&#160;</td>
           <td class="paramname"><em>process</em></td><td>)</td>
@@ -262,7 +262,7 @@ Private Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adds a process to this model. Models are not allowed to have multiple processes with the same ID.</p>
+<p>Adds a process to this model. Processnetworks are not allowed to have multiple processes with the same ID.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">process</td><td><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html" title="Base class for process nodes in the internal representation of ForSyDe models.">Process</a> to add. </td></tr>
@@ -285,7 +285,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void f2cc::Forsyde::Model::addProcesses </td>
+          <td class="memname">void f2cc::Forsyde::Processnetwork::addProcesses </td>
           <td>(</td>
           <td class="paramtype">std::map&lt; const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a> * &gt;&#160;</td>
           <td class="paramname"><em>processes</em></td><td>)</td>
@@ -314,7 +314,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool f2cc::Forsyde::Model::deleteInput </td>
+          <td class="memname">bool f2cc::Forsyde::Processnetwork::deleteInput </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *&#160;</td>
           <td class="paramname"><em>port</em></td><td>)</td>
@@ -344,7 +344,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool f2cc::Forsyde::Model::deleteOutput </td>
+          <td class="memname">bool f2cc::Forsyde::Processnetwork::deleteOutput </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *&#160;</td>
           <td class="paramname"><em>port</em></td><td>)</td>
@@ -352,7 +352,7 @@ Private Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Same as <a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#a7c06ec367a6aeaedd684efb12b5a96b1">deleteInput(Process::Port*)</a> but for outputs.</p>
+<p>Same as <a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a7c06ec367a6aeaedd684efb12b5a96b1">deleteInput(Process::Port*)</a> but for outputs.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">port</td><td>Port. </td></tr>
@@ -374,7 +374,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool f2cc::Forsyde::Model::deleteProcess </td>
+          <td class="memname">bool f2cc::Forsyde::Processnetwork::deleteProcess </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;&#160;</td>
           <td class="paramname"><em>id</em></td><td>)</td>
@@ -401,7 +401,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void f2cc::Forsyde::Model::destroyAllProcesses </td>
+          <td class="memname">void f2cc::Forsyde::Processnetwork::destroyAllProcesses </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td>  throw ()</td>
@@ -425,7 +425,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt;::iterator f2cc::Forsyde::Model::findPort </td>
+          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt;::iterator f2cc::Forsyde::Processnetwork::findPort </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;&#160;</td>
           <td class="paramname"><em>id</em>, </td>
@@ -468,7 +468,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt;::iterator f2cc::Forsyde::Model::findPort </td>
+          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt;::iterator f2cc::Forsyde::Processnetwork::findPort </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> *&#160;</td>
           <td class="paramname"><em>port</em>, </td>
@@ -511,7 +511,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::map&lt;const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a>*&gt;::iterator f2cc::Forsyde::Model::findProcess </td>
+          <td class="memname">std::map&lt;const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a>*&gt;::iterator f2cc::Forsyde::Processnetwork::findProcess </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;&#160;</td>
           <td class="paramname"><em>id</em></td><td>)</td>
@@ -540,7 +540,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt; f2cc::Forsyde::Model::getInputs </td>
+          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt; f2cc::Forsyde::Processnetwork::getInputs </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td>  throw ()</td>
@@ -557,7 +557,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int f2cc::Forsyde::Model::getNumInputs </td>
+          <td class="memname">int f2cc::Forsyde::Processnetwork::getNumInputs </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const  throw ()</td>
@@ -574,7 +574,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int f2cc::Forsyde::Model::getNumOutputs </td>
+          <td class="memname">int f2cc::Forsyde::Processnetwork::getNumOutputs </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const  throw ()</td>
@@ -591,7 +591,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int f2cc::Forsyde::Model::getNumProcesses </td>
+          <td class="memname">int f2cc::Forsyde::Processnetwork::getNumProcesses </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const  throw ()</td>
@@ -608,14 +608,14 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt; f2cc::Forsyde::Model::getOutputs </td>
+          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt; f2cc::Forsyde::Processnetwork::getOutputs </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td>  throw ()</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Same as <a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#ac6ff6b58f20566610657928f6f15023a">getInputs()</a> but for outputs.</p>
+<p>Same as <a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#ac6ff6b58f20566610657928f6f15023a">getInputs()</a> but for outputs.</p>
 <dl class="section return"><dt>Returns</dt><dd>List of outputs. </dd></dl>
 
 </div>
@@ -625,7 +625,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a>* f2cc::Forsyde::Model::getProcess </td>
+          <td class="memname"><a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a>* f2cc::Forsyde::Processnetwork::getProcess </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a> &amp;&#160;</td>
           <td class="paramname"><em>id</em></td><td>)</td>
@@ -649,7 +649,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a>*&gt; f2cc::Forsyde::Model::getProcesses </td>
+          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a>*&gt; f2cc::Forsyde::Processnetwork::getProcesses </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td>  throw ()</td>
@@ -666,7 +666,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a> f2cc::Forsyde::Model::getUniqueProcessId </td>
+          <td class="memname"><a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a> f2cc::Forsyde::Processnetwork::getUniqueProcessId </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const  throw ()</td>
@@ -683,7 +683,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a> f2cc::Forsyde::Model::getUniqueProcessId </td>
+          <td class="memname"><a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Forsyde::Id</a> f2cc::Forsyde::Processnetwork::getUniqueProcessId </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
           <td class="paramname"><em>prefix</em></td><td>)</td>
@@ -691,7 +691,7 @@ Private Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Same as <a class="el" href="classf2cc_1_1Forsyde_1_1Model.html#adfe1363a2a834d692c6a2f7d35c3fb85">getUniqueProcessId()</a> but allows an arbitrary string to be prefixed to the ID.</p>
+<p>Same as <a class="el" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#adfe1363a2a834d692c6a2f7d35c3fb85">getUniqueProcessId()</a> but allows an arbitrary string to be prefixed to the ID.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">prefix</td><td>ID prefix. </td></tr>
@@ -710,7 +710,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::string f2cc::Forsyde::Model::portsToString </td>
+          <td class="memname">std::string f2cc::Forsyde::Processnetwork::portsToString </td>
           <td>(</td>
           <td class="paramtype">const std::list&lt; <a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a> * &gt;&#160;</td>
           <td class="paramname"><em>ports</em></td><td>)</td>
@@ -741,7 +741,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string f2cc::Forsyde::Model::toString </td>
+          <td class="memname">std::string f2cc::Forsyde::Processnetwork::toString </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const  throw ()</td>
@@ -750,7 +750,7 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>Converts this model into a string representation. The resultant string is as follows: </p>
 <div class="fragment"><div class="line">{</div>
-<div class="line"> <a class="code" href="classf2cc_1_1Forsyde_1_1Model.html#a8279d11472714c38fdced4744c94af69">Model</a>,</div>
+<div class="line"> <a class="code" href="classf2cc_1_1Forsyde_1_1Processnetwork.html#a8279d11472714c38fdced4744c94af69">Processnetwork</a>,</div>
 <div class="line"> NumInputs: &lt;num_inputs&gt;,</div>
 <div class="line"> Inputs = { ... },</div>
 <div class="line"> NumOututs: &lt;num_outports&gt;,</div>
@@ -770,7 +770,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt; f2cc::Forsyde::Model::inputs_</td>
+          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt; f2cc::Forsyde::Processnetwork::inputs_</td>
         </tr>
       </table>
   </td>
@@ -791,7 +791,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt; f2cc::Forsyde::Model::outputs_</td>
+          <td class="memname">std::list&lt;<a class="el" href="classf2cc_1_1Forsyde_1_1Process_1_1Port.html">Process::Port</a>*&gt; f2cc::Forsyde::Processnetwork::outputs_</td>
         </tr>
       </table>
   </td>
@@ -812,7 +812,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::map&lt;const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a>*&gt; f2cc::Forsyde::Model::processes_</td>
+          <td class="memname">std::map&lt;const <a class="el" href="classf2cc_1_1Forsyde_1_1Id.html">Id</a>, <a class="el" href="classf2cc_1_1Forsyde_1_1Process.html">Process</a>*&gt; f2cc::Forsyde::Processnetwork::processes_</td>
         </tr>
       </table>
   </td>
@@ -826,7 +826,7 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>forsyde/<a class="el" href="model_8h_source.html">model.h</a></li>
+<li>forsyde/<a class="el" href="processnetwork_8h_source.html">model.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

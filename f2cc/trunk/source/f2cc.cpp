@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #include "logger/logger.h"
 #include "frontend/frontend.h"
 #include "frontend/graphmlparser.h"
-#include "forsyde/model.h"
+#include "forsyde/processnetwork.h"
 #include "forsyde/process.h"
 #include "forsyde/modelmodifier.h"
 #include "synthesizer/synthesizer.h"
@@ -57,14 +57,14 @@
 #include <set>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::ForSyDe;
 using std::string;
 using std::cout;
 using std::endl;
 using std::list;
 using std::set;
 
-string getModelInfo(Model* model) {
+string getProcessnetworkInfo(Processnetwork* model) {
     string info;
     info += "Number of processes: ";
     info += tools::toString(model->getNumProcesses());
@@ -80,7 +80,7 @@ string getModelInfo(Model* model) {
 int main(int argc, const char* argv[]) {
     const string error_abort_str("\nProgram aborted.\n\n");
     const string parse_error_str("PARSE ERROR:\n");
-    const string model_error_str("INVALID MODEL ERROR:\n");
+    const string processnetwork_error_str("INVALID MODEL ERROR:\n");
     const string io_error_str("I/O ERROR:\n");
     const string critical_error_str("CRITICAL PROGRAM ERROR:\n");
 
@@ -134,12 +134,12 @@ int main(int argc, const char* argv[]) {
             logger.logInfoMessage(string("MODEL INPUT FILE: ")
                                   + config.getInputFile());
             logger.logInfoMessage("Parsing input file...");
-            Model* model = parser->parse(config.getInputFile());
+            Processnetwork* model = parser->parse(config.getInputFile());
             delete parser;
 
-            string model_info_message("MODEL INFO:\n");
-            model_info_message += getModelInfo(model);
-            logger.logInfoMessage(model_info_message);
+            string processnetwork_info_message("MODEL INFO:\n");
+            processnetwork_info_message += getProcessnetworkInfo(model);
+            logger.logInfoMessage(processnetwork_info_message);
 
             string target_platform_message("TARGET PLATFORM: ");
             switch (config.getTargetPlatform()) {
@@ -195,9 +195,9 @@ int main(int argc, const char* argv[]) {
                     modifier.coalesceParallelMapSyProcesses();
                 }
             }
-            model_info_message = "NEW MODEL INFO:\n";
-            model_info_message += getModelInfo(model);
-            logger.logInfoMessage(model_info_message);
+            processnetwork_info_message = "NEW MODEL INFO:\n";
+            processnetwork_info_message += getProcessnetworkInfo(model);
+            logger.logInfoMessage(processnetwork_info_message);
 
             // Generate code and write to file
             Synthesizer synthesizer(model, logger, config);
@@ -230,7 +230,7 @@ int main(int argc, const char* argv[]) {
         } catch (ParseException& ex) {
             logger.logErrorMessage(parse_error_str + ex.getMessage());
         } catch (InvalidModelException& ex) {
-            logger.logErrorMessage(model_error_str + ex.getMessage());
+            logger.logErrorMessage(processnetwork_error_str + ex.getMessage());
         } catch (IOException& ex) {
             logger.logErrorMessage(io_error_str + ex.getMessage());
         } catch (Exception& ex) {

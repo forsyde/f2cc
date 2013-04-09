@@ -1,7 +1,7 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright notice,
@@ -9,7 +9,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -23,38 +23,56 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "copysy.h"
-#include <typeinfo>
+#include "composite.h"
+#include "../tools/tools.h"
+#include <new>
+#include <map>
+#include <vector>
 
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::ForSyDe;
 using std::string;
-using std::bad_cast;
+using std::list;
+using std::bad_alloc;
+using std::vector;
 
-fanout::fanout(const Id& id) throw()
-        : Process(id) {}
+Composite::Composite(const Id& id) throw() : id_(id) {}
 
-fanout::~fanout() throw() {}
-
-bool fanout::operator==(const Process& rhs) const throw() {
-    if (Process::operator==(rhs)) return false;
-
-    try {
-        dynamic_cast<const fanout&>(rhs);
-    }
-    catch (bad_cast&) {
-        return false;
-    }
-    return true;
+Composite::~Composite() throw() {
+	destroyAllProcesses();
 }
 
-string fanout::type() const throw() {
-    return "copy";
+const Id* Composite::getId() const throw() {
+    return &id_;
 }
 
-void fanout::moreChecks() throw(InvalidProcessException) {
-    if (getInPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
-                        + getId()->getString() + "\" of type \""
-                        + type() + "\" must have exactly one (1) in port");
-    }
+
+string Composite::toString() const throw() {
+    string str;
+    str += "{\n";
+    str += "  Composite Process: ";
+    str += getId()->getString();
+    str += ",\n";
+    str += " List of Processes : ";
+    str += ProcessesToString(processes_);
+    str += ",\n";
+    str += "}";
+
+    return str;
+}
+
+string Composite::ProcessesToString(std::map<const Id, Process*> processes) const throw() {
+    string str;
+    str += "\n";
+    std::map<const Id, Process*>::iterator it;
+	for (it = processes.begin(); it != processes.end(); ++it) {
+		str+= "ID = ";
+		str += it->second->getId()->getString();
+		str += "\n";
+	}
+    return str;
+}
+
+
+void Composite::check() throw(InvalidProcessException) {
+	//TODO: implement checks
 }
