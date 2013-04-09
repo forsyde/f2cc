@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,35 +23,35 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "parallelmapsy.h"
+#include "delaysy.h"
+#include "../../tools/tools.h"
 #include <typeinfo>
 
 using namespace f2cc::ForSyDe::SY;
 using std::string;
-using std::list;
 using std::bad_cast;
 
-ParallelMap::ParallelMap(const Id& id, int num_processes,
-                             const CFunction& function)
-        throw(OutOfMemoryException) : CoalescedMap(id, function),
-                                      num_parallel_processes_(num_processes) {}
+delay::delay(const Id& id, const string& initial_value)
+        throw(InvalidArgumentException)
+        : Process(id), initial_value_(initial_value) {
+    if (initial_value_.length() == 0) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"initial_value\" must not "
+                        "be empty string");
+    }
+}
 
-ParallelMap::ParallelMap(const Id& id, int num_processes,
-                             const list<CFunction>& functions)
-        throw(InvalidArgumentException, OutOfMemoryException)
-        : CoalescedMap(id, functions),
-          num_parallel_processes_(num_processes) {}
+delay::~delay() throw() {}
 
-ParallelMap::~ParallelMap() throw() {}
+string delay::getInitialValue() throw() {
+    return initial_value_;
+}
 
-bool ParallelMap::operator==(const Process& rhs) const throw() {
-    if (CoalescedMap::operator==(rhs)) return false;
+bool delay::operator==(const Process& rhs) const throw() {
+    if (!Process::operator==(rhs)) return false;
 
     try {
-        const ParallelMap& other = dynamic_cast<const ParallelMap&>(rhs);
-        if (num_parallel_processes_ != other.num_parallel_processes_) {
-            return false;
-        }
+        const delay& other = dynamic_cast<const delay&>(rhs);
+        if (initial_value_ != other.initial_value_) return false;
     }
     catch (bad_cast&) {
         return false;
@@ -59,10 +59,23 @@ bool ParallelMap::operator==(const Process& rhs) const throw() {
     return true;
 }
 
-int ParallelMap::getNumProcesses() const throw() {
-    return num_parallel_processes_;
+string delay::type() const throw() {
+    return "delay";
 }
 
-string ParallelMap::type() const throw() {
-    return "ParallelMap";
+void delay::moreChecks() throw(InvalidProcessException) {
+    if (getInPorts().size() != 1) {
+        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+                        + getId()->getString() + "\" of type \""
+                        + type() + "\" must have exactly one (1) in port");
+    }
+    if (getOutPorts().size() != 1) {
+        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+                        + getId()->getString() + "\" of type \""
+                        + type() + "\" must have exactly one (1) out port");
+    }
+}
+
+string delay::moreToString() const throw() {
+    return string("InitialdelayValue: ") + initial_value_;
 }

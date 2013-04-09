@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
 #include "frontend.h"
 #include "../logger/logger.h"
 #include "../forsyde/id.h"
-#include "../forsyde/model.h"
+#include "../forsyde/processnetwork.h"
 #include "../forsyde/process.h"
 #include "../language/cfunction.h"
 #include "../language/cdatatype.h"
@@ -80,9 +80,9 @@ class GraphmlParser : public Frontend {
 
   private:
     /**
-     * @copydoc Frontend::createModel(const std::string&)
+     * @copydoc Frontend::createProcessnetwork(const std::string&)
      */
-    virtual ForSyDe::SY::Model* createModel(const std::string& file)
+    virtual ForSyDe::Processnetwork* createProcessnetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
               ParseException, InvalidModelException, RuntimeException);
 
@@ -177,7 +177,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::SY::Model* generateModel(ticpp::Element* xml)
+    ForSyDe::Processnetwork* generateProcessnetwork(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException);
 
@@ -189,7 +189,7 @@ class GraphmlParser : public Frontend {
      * @param xml
      *        \c graph XML element containing the \c node XML elements.
      * @param model
-     *        Model object to add the process to.
+     *        Processnetwork object to add the process to.
      * @throws InvalidArgumentException
      *         When \c xml or \c model is \c NULL.
      * @throws ParseException
@@ -200,7 +200,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlNodes(ticpp::Element* xml, ForSyDe::SY::Model* model)
+    void parseXmlNodes(ticpp::Element* xml, ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -211,7 +211,7 @@ class GraphmlParser : public Frontend {
      * @param xml
      *        \c graph XML element containing the \c edge XML elements.
      * @param model
-     *        Model object.
+     *        Processnetwork object.
      * @param copy_processes
      *        combset which contains the \c fanout processes created during the
      *        parsing process.
@@ -225,8 +225,8 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlEdges(ticpp::Element* xml, ForSyDe::SY::Model* model,
-                       std::map<ForSyDe::SY::Process::Port*, ForSyDe::SY::Process*>&
+    void parseXmlEdges(ticpp::Element* xml, ForSyDe::Processnetwork* model,
+                       std::map<ForSyDe::Process::Port*, ForSyDe::Process*>&
                        copy_processes)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
@@ -236,7 +236,7 @@ class GraphmlParser : public Frontend {
      * connected, and only connected to processes within the model.
      *
      * @param model
-     *        Model to verify.
+     *        Processnetwork to verify.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws ParseException
@@ -248,7 +248,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void verifyProcessConnections(ForSyDe::SY::Model* model)
+    void verifyProcessConnections(ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -258,7 +258,7 @@ class GraphmlParser : public Frontend {
      * Outport processes are then removed.
      *
      * @param model
-     *        Model.
+     *        Processnetwork.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws IOException
@@ -267,7 +267,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void fixModelInputsOutputs(ForSyDe::SY::Model* model)
+    void fixProcessnetworkInputsOutputs(ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
@@ -287,7 +287,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::SY::Process* generateProcess(ticpp::Element* xml)
+    ForSyDe::Process* generateProcess(ticpp::Element* xml)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -522,7 +522,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::SY::Process::Port* generatePort(ticpp::Element* xml)
+    ForSyDe::Process::Port* generatePort(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException);
 
@@ -532,7 +532,7 @@ class GraphmlParser : public Frontend {
      * @param xml
      *        \c edge element containing the connection.
      * @param model
-     *        Model object to add the process to.
+     *        Processnetwork object to add the process to.
      * @param copy_processes
      *        combset which contains the \c fanout processes created during the
      *        parsing process.
@@ -546,9 +546,9 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void generateConnection(ticpp::Element* xml, ForSyDe::SY::Model* model,
-                            std::map<ForSyDe::SY::Process::Port*,
-                                     ForSyDe::SY::Process*>& copy_processes)
+    void generateConnection(ticpp::Element* xml, ForSyDe::Processnetwork* model,
+                            std::map<ForSyDe::Process::Port*,
+                                     ForSyDe::Process*>& copy_processes)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -592,7 +592,7 @@ class GraphmlParser : public Frontend {
      * within the model.
      * 
      * @param model
-     *        Model to check.
+     *        Processnetwork to check.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws InvalidModelException
@@ -603,7 +603,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkModelMore(ForSyDe::SY::Model* model)
+    void checkProcessnetworkMore(ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
@@ -613,7 +613,7 @@ class GraphmlParser : public Frontend {
      * Outport processes are then removed.
      * 
      * @param model
-     *        Model to fix.
+     *        Processnetwork to fix.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws IOException
@@ -622,7 +622,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void postCheckFixes(ForSyDe::SY::Model* model)
+    void postCheckFixes(ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
   private:

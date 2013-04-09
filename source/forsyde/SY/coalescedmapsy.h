@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,8 +23,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORDE_COALESCEDMAP_H_
-#define F2CC_SOURCE_FORDE_COALESCEDMAP_H_
+#ifndef F2CC_SOURCE_FORSYDE_COALESCEDMAP_H_
+#define F2CC_SOURCE_FORSYDE_COALESCEDMAP_H_
 
 /**
  * @file
@@ -35,9 +35,9 @@
  */
 
 #include "combsy.h"
-#include "../language/cfunction.h"
-#include "../exceptions/invalidargumentexception.h"
-#include "../exceptions/outofmemoryexception.h"
+#include "../../language/cfunction.h"
+#include "../../exceptions/invalidargumentexception.h"
+#include "../../exceptions/outofmemoryexception.h"
 #include <string>
 #include <list>
 

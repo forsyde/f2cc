@@ -1,6 +1,6 @@
 /*
 http://code.google.com/p/ticpp/
-fanoutright (c) 2006 Ryan Pusztai, Ryan Mulder
+Copyright (c) 2006 Ryan Pusztai, Ryan Mulder
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

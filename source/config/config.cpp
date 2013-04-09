@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ string Config::getHelpMenu() const throw() {
     string str = string()
         + "Developer: Gabriel Hjort Blindell <ghb@kth.se>\n"
         + "KTH - Royal Institute of Technology, Stockholm, Sweden\n"
-        + "fanoutright (c) 2011-2012\n"
+        + "Copyright (c) 2011-2012\n"
         + "\n";
 
     part = "This tool is part of the ForSyDe framework for synthesizing "

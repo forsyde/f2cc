@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,23 +23,23 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "unzipxsy.h"
+#include "fanoutsy.h"
 #include <typeinfo>
 
 using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-unzipx::unzipx(const Id& id) throw()
+fanout::fanout(const Id& id) throw()
         : Process(id) {}
 
-unzipx::~unzipx() throw() {}
+fanout::~fanout() throw() {}
 
-bool unzipx::operator==(const Process& rhs) const throw() {
+bool fanout::operator==(const Process& rhs) const throw() {
     if (Process::operator==(rhs)) return false;
 
     try {
-        dynamic_cast<const unzipx&>(rhs);
+        dynamic_cast<const fanout&>(rhs);
     }
     catch (bad_cast&) {
         return false;
@@ -47,11 +47,11 @@ bool unzipx::operator==(const Process& rhs) const throw() {
     return true;
 }
 
-string unzipx::type() const throw() {
-    return "unzipx";
+string fanout::type() const throw() {
+    return "copy";
 }
 
-void unzipx::moreChecks() throw(InvalidProcessException) {
+void fanout::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""

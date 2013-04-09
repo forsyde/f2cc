@@ -23,30 +23,30 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "zipwithnsy.h"
+#include "combsy.h"
 #include <typeinfo>
 #include <list>
 
 using namespace f2cc;
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 using std::list;
 
-ZipWithNSY::ZipWithNSY(const Id& id, const CFunction& function) throw()
+comb::comb(const Id& id, const CFunction& function) throw()
         : Process(id), function_(function) {}
 
-ZipWithNSY::~ZipWithNSY() throw() {}
+comb::~comb() throw() {}
 
-CFunction* ZipWithNSY::getFunction() throw() {
+CFunction* comb::getFunction() throw() {
     return &function_;
 }
 
-bool ZipWithNSY::operator==(const Process& rhs) const throw() {
+bool comb::operator==(const Process& rhs) const throw() {
     if (!Process::operator==(rhs)) return false;
 
     try {
-        const ZipWithNSY& other = dynamic_cast<const ZipWithNSY&>(rhs);
+        const comb& other = dynamic_cast<const comb&>(rhs);
         if (function_ != other.function_) return false;
     }
     catch (bad_cast&) {
@@ -55,11 +55,11 @@ bool ZipWithNSY::operator==(const Process& rhs) const throw() {
     return true;
 }
 
-string ZipWithNSY::type() const throw() {
-    return "ZipWithNSY";
+string comb::type() const throw() {
+    return "comb";
 }
 
-void ZipWithNSY::moreChecks() throw(InvalidProcessException) {
+void comb::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() < 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
@@ -73,11 +73,11 @@ void ZipWithNSY::moreChecks() throw(InvalidProcessException) {
     checkFunction(function_, getNumInPorts());
 }
 
-string ZipWithNSY::moreToString() const throw() {
+string comb::moreToString() const throw() {
     return string("ProcessFunction: ") + function_.toString();
 }
 
-void ZipWithNSY::checkFunction(CFunction& function, size_t num_in_ports) const
+void comb::checkFunction(CFunction& function, size_t num_in_ports) const
     throw(InvalidProcessException) {
     if (function.getInputParameters().size() == num_in_ports) {
         if (function.getReturnDataType()->getFunctionReturnDataTypeString()

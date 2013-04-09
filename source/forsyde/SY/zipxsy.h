@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,19 +23,19 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORDE_UNZIPX_H_
-#define F2CC_SOURCE_FORDE_UNZIPX_H_
+#ifndef F2CC_SOURCE_FORSYDE_ZIPX_H_
+#define F2CC_SOURCE_FORSYDE_ZIPX_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c unzipx process.
+ * @brief Implements the ForSyDe \c zipx process.
  */
 
-#include "process.h"
-#include "../exceptions/notsupportedexception.h"
+#include "../process.h"
+#include "../../exceptions/notsupportedexception.h"
 #include <string>
 
 namespace f2cc {
@@ -43,19 +43,19 @@ namespace ForSyDe {
 namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c unzipx process.
+ * @brief Implements the ForSyDe \c zipx process.
  */
-class unzipx : public Process {
+class zipx : public Process {
   public:
     /**
      * @copydoc Process(const Id&)
      */
-    unzipx(const Id& id) throw();
+    zipx(const Id& id) throw();
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~unzipx() throw();
+    virtual ~zipx() throw();
 
     /**
      * @copydoc Process::operator==(const Process&) const
@@ -69,7 +69,7 @@ class unzipx : public Process {
 
   protected:
     /**
-     * Checks that this process has only one in port.
+     * Checks that this process has only one out port.
      *
      * @throws InvalidProcessException
      *         When the check fails.

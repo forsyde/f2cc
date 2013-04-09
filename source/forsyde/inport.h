@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,8 +23,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORDE_INPORT_H_
-#define F2CC_SOURCE_FORDE_INPORT_H_
+#ifndef F2CC_SOURCE_FORSYDE_INPORT_H_
+#define F2CC_SOURCE_FORSYDE_INPORT_H_
 
 /**
  * @file
@@ -40,7 +40,6 @@
 
 namespace f2cc {
 namespace ForSyDe {
-namespace SY{
 
 /**
  * @brief Implements a dummy process for network inports.
@@ -78,7 +77,6 @@ class InPort : public Process {
 
 };
 
-}
 }
 }
 

@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,62 +23,46 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORDE_ZIPX_H_
-#define F2CC_SOURCE_FORDE_ZIPX_H_
+#include "parallelmapsy.h"
+#include <typeinfo>
 
-/**
- * @file
- * @author  Gabriel Hjort Blindell <ghb@kth.se>
- * @version 0.1
- *
- * @brief Implements the ForSyDe \c zipx process.
- */
+using namespace f2cc::ForSyDe::SY;
+using std::string;
+using std::list;
+using std::bad_cast;
 
-#include "process.h"
-#include "../exceptions/notsupportedexception.h"
-#include <string>
+ParallelMap::ParallelMap(const Id& id, int num_processes,
+                             const CFunction& function)
+        throw(OutOfMemoryException) : CoalescedMap(id, function),
+                                      num_parallel_processes_(num_processes) {}
 
-namespace f2cc {
-namespace ForSyDe {
-namespace SY{
+ParallelMap::ParallelMap(const Id& id, int num_processes,
+                             const list<CFunction>& functions)
+        throw(InvalidArgumentException, OutOfMemoryException)
+        : CoalescedMap(id, functions),
+          num_parallel_processes_(num_processes) {}
 
-/**
- * @brief Implements the ForSyDe \c zipx process.
- */
-class zipx : public Process {
-  public:
-    /**
-     * @copydoc Process(const Id&)
-     */
-    zipx(const Id& id) throw();
+ParallelMap::~ParallelMap() throw() {}
 
-    /**
-     * @copydoc ~Process()
-     */
-    virtual ~zipx() throw();
+bool ParallelMap::operator==(const Process& rhs) const throw() {
+    if (CoalescedMap::operator==(rhs)) return false;
 
-    /**
-     * @copydoc Process::operator==(const Process&) const
-     */
-    virtual bool operator==(const Process& rhs) const throw();
-
-    /**
-     * @copydoc Process::type()
-     */
-    virtual std::string type() const throw();
-
-  protected:
-    /**
-     * Checks that this process has only one out port.
-     *
-     * @throws InvalidProcessException
-     *         When the check fails.
-     */
-    virtual void moreChecks() throw(InvalidProcessException);
-};
-
-}
-}
+    try {
+        const ParallelMap& other = dynamic_cast<const ParallelMap&>(rhs);
+        if (num_parallel_processes_ != other.num_parallel_processes_) {
+            return false;
+        }
+    }
+    catch (bad_cast&) {
+        return false;
+    }
+    return true;
 }
 
-#endif
+int ParallelMap::getNumProcesses() const throw() {
+    return num_parallel_processes_;
+}
+
+string ParallelMap::type() const throw() {
+    return "ParallelMap";
+}

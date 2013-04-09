@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -37,14 +37,14 @@
 #include "../logger/logger.h"
 #include "../config/config.h"
 #include "../forsyde/id.h"
-#include "../forsyde/model.h"
+#include "../forsyde/processnetwork.h"
 #include "../forsyde/process.h"
-#include "../forsyde/delaysy.h"
-#include "../forsyde/combsy.h"
-#include "../forsyde/unzipxsy.h"
-#include "../forsyde/zipxsy.h"
-#include "../forsyde/copysy.h"
-#include "../forsyde/combsy.h"
+#include "../forsyde/SY/delaysy.h"
+#include "../forsyde/SY/combsy.h"
+#include "../forsyde/SY/unzipxsy.h"
+#include "../forsyde/SY/zipxsy.h"
+#include "../forsyde/SY/fanoutsy.h"
+#include "../forsyde/SY/combsy.h"
 #include "../language/cfunction.h"
 #include "../language/cvariable.h"
 #include "../language/cdatatype.h"
@@ -102,12 +102,12 @@ class Synthesizer {
     /**
      * Prefix to use for the input parameters in the model C function.
      */
-    static const std::string kModelInputParameterPrefix;
+    static const std::string kProcessnetworkInputParameterPrefix;
 
     /**
      * Prefix to use for the output parameters in the model C function.
      */
-    static const std::string kModelOutputParameterPrefix;
+    static const std::string kProcessnetworkOutputParameterPrefix;
 
     /**
      * Code target platforms.
@@ -150,7 +150,7 @@ class Synthesizer {
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      */
-    Synthesizer(ForSyDe::SY::Model* model, Logger& logger, Config& config)
+    Synthesizer(ForSyDe::Processnetwork* processnetwork, Logger& logger, Config& config)
         throw(InvalidArgumentException);
 
     /**
@@ -198,7 +198,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When something goes wrong during the synthesis process.
      */
-    void checkModel()
+    void checkProcessnetwork()
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -260,15 +260,15 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignal(ForSyDe::SY::Process::Port* out_port,
-                     ForSyDe::SY::Process::Port* in_port)
+    Signal* getSignal(ForSyDe::Process::Port* out_port,
+                     ForSyDe::Process::Port* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const ForSyDe::SY::Process::Port*, const
-     * ForSyDe::SY::Process::Port*) but only requires the out port. The method takes
+     * Same as getSignal(const ForSyDe::Process::Port*, const
+     * ForSyDe::Process::Port*) but only requires the out port. The method takes
      * care of finding the in port and invokes getSignal(const
-     * ForSyDe::SY::Process::Port*, const ForSyDe::SY::Process::Port*) with the correct
+     * ForSyDe::Process::Port*, const ForSyDe::Process::Port*) with the correct
      * parameters.
      *
      * @param out_port
@@ -281,14 +281,14 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignalByOutPort(ForSyDe::SY::Process::Port* out_port)
+    Signal* getSignalByOutPort(ForSyDe::Process::Port* out_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const ForSyDe::SY::Process::Port*, const
-     * ForSyDe::SY::Process::Port*) but only requires the in port. The method takes
+     * Same as getSignal(const ForSyDe::Process::Port*, const
+     * ForSyDe::Process::Port*) but only requires the in port. The method takes
      * care of finding the out port and invokes getSignal(const
-     * ForSyDe::SY::Process::Port*, const ForSyDe::SY::Process::Port*) with the correct
+     * ForSyDe::Process::Port*, const ForSyDe::Process::Port*) with the correct
      * parameters.
      *
      * @param in_port
@@ -301,7 +301,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignalByInPort(ForSyDe::SY::Process::Port* in_port)
+    Signal* getSignalByInPort(ForSyDe::Process::Port* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
@@ -504,7 +504,7 @@ class Synthesizer {
      * variables, and then save the new values in the delay variables until the
      * next model invocation.
      *
-     * @returns Model function definition code.
+     * @returns Processnetwork function definition code.
      * @throws InvalidModelException
      *         When something is wrong with the model.
      * @throws IOException
@@ -512,14 +512,14 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateModelFunctionDefinitionCode()
+    std::string generateProcessnetworkFunctionDefinitionCode()
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for the model function prototype. This is used for the
      * header file.
      *
-     * @returns Model function prototype.
+     * @returns Processnetwork function prototype.
      * @throws InvalidModelException
      *         When something is wrong with the model.
      * @throws IOException
@@ -527,13 +527,13 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateModelFunctionPrototypeCode()
+    std::string generateProcessnetworkFunctionPrototypeCode()
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates a method description (Java style) for the model function.
      *
-     * @returns Model function description.
+     * @returns Processnetwork function description.
      * @throws InvalidModelException
      *         When something is wrong with the model.
      * @throws IOException
@@ -541,7 +541,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateModelFunctionDescription() 
+    std::string generateProcessnetworkFunctionDescription() 
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -657,8 +657,8 @@ class Synthesizer {
 
     /**
      * Generates code for the model input parameters. Each parameter will have
-     * prefix specified by Synthesizer::kModelInputParameterPrefix_ or
-     * Synthesizer::kModelOutputParameterPrefix_, followed by an integer value.
+     * prefix specified by Synthesizer::kProcessnetworkInputParameterPrefix_ or
+     * Synthesizer::kProcessnetworkOutputParameterPrefix_, followed by an integer value.
      * All output parameters will be declared as pointers (except arrays, which
      * are already pointers).
      *
@@ -670,13 +670,13 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateModelFunctionParameterListCode()
+    std::string generateProcessnetworkFunctionParameterListCode()
         throw(InvalidModelException, RuntimeException);
 
     /**
      * Creates all signals needed for the processes present in the
      * schedule. This is necessary in order be able to declare all variables at
-     * the top of the function definition in C. However, the data type of all
+     * the processnetwork of the function definition in C. However, the data type of all
      * signals are \em not detected. The method also clears any previously
      * generated signals.
      *
@@ -693,7 +693,7 @@ class Synthesizer {
     /**
      * Creates all delay variables needed for the delay processes present in the
      * schedule. This is necessary in order be able to declare all variables at
-     * the top of the function definition in C. The method also clears any
+     * the processnetwork of the function definition in C. The method also clears any
      * previously generated variables.
      *
      * @throws IOException
@@ -842,7 +842,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessExecutionCode(ForSyDe::SY::Process* process)
+    std::string generateProcessExecutionCode(ForSyDe::Process* process)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1057,7 +1057,7 @@ class Synthesizer {
      *        Name of the function.
      * @returns Global function name.
      */
-    std::string getGlobalProcessFunctionName(ForSyDe::SY::Id process_id,
+    std::string getGlobalProcessFunctionName(ForSyDe::Id process_id,
                                              const std::string& function_name)
         const throw();
 
@@ -1189,7 +1189,7 @@ class Synthesizer {
     /**
      * ForSyDe model.
      */
-    ForSyDe::SY::Model* const model_;
+    ForSyDe::Processnetwork* const processnetwork_;
 
     /**
      * Logger.
@@ -1204,7 +1204,7 @@ class Synthesizer {
     /**
      * Process schedule.
      */
-    std::list<ForSyDe::SY::Id> schedule_;
+    std::list<ForSyDe::Id> schedule_;
 
     /**
      * Set of model signals.
@@ -1245,8 +1245,8 @@ class Synthesizer {
          * @throws InvalidArgumentException
          *         When \c out_port and \c in_port are \c NULL.
          */
-        Signal(ForSyDe::SY::Process::Port* out_port,
-               ForSyDe::SY::Process::Port* in_port)
+        Signal(ForSyDe::Process::Port* out_port,
+               ForSyDe::Process::Port* in_port)
             throw(InvalidArgumentException);
         
         /**
@@ -1294,14 +1294,14 @@ class Synthesizer {
          *
          * @returns Out port, if any; otherwise \c NULL.
          */
-        ForSyDe::SY::Process::Port* getOutPort() const throw();
+        ForSyDe::Process::Port* getOutPort() const throw();
 
         /**
          * Gets the in port of this signal.
          *
          * @returns In port, if any; otherwise \c NULL.
          */
-        ForSyDe::SY::Process::Port* getInPort() const throw();
+        ForSyDe::Process::Port* getInPort() const throw();
 
         /**
          * Checks equality between this signal and another
@@ -1350,12 +1350,12 @@ class Synthesizer {
         /**
          * Out port of one signal.
          */
-        ForSyDe::SY::Process::Port* out_port_;
+        ForSyDe::Process::Port* out_port_;
 
         /**
          * In port of another signal.
          */
-        ForSyDe::SY::Process::Port* in_port_;
+        ForSyDe::Process::Port* in_port_;
 
         /**
          * Flag for checking if the signal has a data type set.

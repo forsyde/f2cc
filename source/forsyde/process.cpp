@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 #include <new>
 #include <vector>
 
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::ForSyDe;
 using std::string;
 using std::list;
 using std::bad_alloc;

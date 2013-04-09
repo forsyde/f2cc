@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
 #include <list>
 #include <new>
 
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::ForSyDe;
 using std::string;
 using std::map;
 using std::list;
@@ -102,89 +102,6 @@ bool Model::deleteProcess(const Id& id) throw() {
     }
 }
 
-bool Model::addInput(Process::Port* port)
-    throw(InvalidArgumentException, IllegalStateException,
-          OutOfMemoryException) {
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (!port) return false;
-    if (findPort(port, inputs_) != inputs_.end()) return false;
-
-    try {
-        inputs_.push_back(port);
-        return true;
-    }
-    catch (bad_alloc& ex) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-bool Model::deleteInput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, inputs_);
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (it != inputs_.end()) {
-        inputs_.erase(it);
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-int Model::getNumInputs() const throw() {
-    return inputs_.size();
-}
-
-std::list<Process::Port*> Model::getInputs() throw() {
-    return inputs_;
-}
-
-bool Model::addOutput(Process::Port* port)
-    throw(InvalidArgumentException, IllegalStateException,
-          OutOfMemoryException) {
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (!port) return false;
-    if (findPort(port, outputs_) != outputs_.end()) return false;
-
-    try {
-        outputs_.push_back(port);
-        return true;
-    }
-    catch (bad_alloc& ex) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-bool Model::deleteOutput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, outputs_);
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (it != outputs_.end()) {
-        outputs_.erase(it);
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-int Model::getNumOutputs() const throw() {
-    return outputs_.size();
-}
-
-std::list<Process::Port*> Model::getOutputs() throw() {
-    return outputs_;
-}
 
 Id Model::getUniqueProcessId() const throw() {
     return getUniqueProcessId("");
@@ -208,75 +125,4 @@ map<const Id, Process*>::iterator Model::findProcess(const Id& id) throw() {
     return processes_.find(id);
 }
 
-list<Process::Port*>::iterator Model::findPort(
-    const Id& id, list<Process::Port*>& ports) const throw() {
-    list<Process::Port*>::iterator it;
-    for (it = ports.begin(); it != ports.end(); ++it) {
-        if (*(*it)->getId() == id) {
-            return it;
-        }
-    }
 
-    // No such port was found
-    return it;
-}
-
-list<Process::Port*>::iterator Model::findPort(
-    Process::Port* port, std::list<Process::Port*>& ports) const throw() {
-    list<Process::Port*>::iterator it;
-    for (it = ports.begin(); it != ports.end(); ++it) {
-        if (*it == port) {
-            return it;
-        }
-    }
-
-    // No such port was found
-    return it;
-}
-
-std::string Model::toString() const throw() {
-    string str;
-    str += "{\n";
-    str += " Model\n";
-    str += " NumInputs: ";
-    str += tools::toString(getNumInputs());
-    str += ",\n";
-    str += " Inputs = {";
-    str += portsToString(inputs_);
-    str += "}";
-    str += ",\n";
-    str += " NumOutputs: ";
-    str += tools::toString(getNumOutputs());
-    str += ",\n";
-    str += " Outputs = {";
-    str += portsToString(outputs_);
-    str += "}\n";
-    str += "}";
-    return str;
-}
-
-string Model::portsToString(const list<Process::Port*> ports) const throw() {
-    string str;
-    if (ports.size() > 0) {
-        str += "\n";
-        bool first = true;
-        for (list<Process::Port*>::const_iterator it = ports.begin();
-             it != ports.end(); ++it) {
-            if (!first) {
-                str += ",\n";
-            }
-            else {
-                first = false;
-            }
-
-            Process::Port* port = *it;
-            str += "  ID: ";
-            str += port->getId()->getString();
-            str += ", ";
-            str += "belonging to ";
-            str += port->getProcess()->getId()->getString();
-        }
-        str += "\n ";
-    }
-    return str;
-}

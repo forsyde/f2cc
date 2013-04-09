@@ -149,7 +149,7 @@ JAVADOC_AUTOBRIEF      = YES
 MULTILINE_CPP_IS_BRIEF = NO
 
 # If the DETAILS_AT_TOP tag is set to YES then Doxygen 
-# will output the detailed description near the top, like JavaDoc.
+# will output the detailed description near the processnetwork, like JavaDoc.
 # If set to NO, the detailed description appears after the member 
 # documentation.
 
@@ -697,7 +697,7 @@ BINARY_TOC             = NO
 TOC_EXPAND             = NO
 
 # The DISABLE_INDEX tag can be used to turn on/off the condensed index at 
-# top of each HTML page. The value NO (the default) enables the index and 
+# processnetwork of each HTML page. The value NO (the default) enables the index and 
 # the value YES disables it.
 
 DISABLE_INDEX          = NO
@@ -1103,7 +1103,7 @@ COLLABORATION_GRAPH    = YES
 GROUP_GRAPHS           = YES
 
 # If the UML_LOOK tag is set to YES doxygen will generate inheritance and 
-# collaboration diagrams in a style similar to the OMG's Unified Modeling 
+# collaboration diagrams in a style similar to the OMG's Unified Processnetworking 
 # Language.
 
 UML_LOOK               = NO

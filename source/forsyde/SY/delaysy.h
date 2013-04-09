@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,55 +23,58 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORDE_ZIPWITHN_H_
-#define F2CC_SOURCE_FORDE_ZIPWITHN_H_
+#ifndef F2CC_SOURCE_FORSYDE_DELAY_H_
+#define F2CC_SOURCE_FORSYDE_DELAY_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the generic ForSyDe \c zipWithN process.
+ * @brief Implements the ForSyDe \c delay process.
  */
 
-#include "process.h"
-#include "../language/cfunction.h"
+#include "../process.h"
+#include "../../exceptions/invalidargumentexception.h"
 #include <string>
 
 namespace f2cc {
 namespace ForSyDe {
-namespace SY{
+namespace SY {
 
 /**
- * @brief Implements the generic ForSyDe \c zipWithN process.
+ * @brief Implements the ForSyDe \c delay process.
  */
-class comb : public Process {
+class delay : public Process {
   public:
     /**
      * Creates a process.
      *
      * @param id
      *        Process ID.
-     * @param function
-     *        Process function argument.
+     * @param initial_value
+     *        Initial delay value.
+     * @throws InvalidArgumentException
+     *         When the initial delay value is empty string.
      */
-    comb(const Id& id, const CFunction& function) throw();
+    delay(const Id& id, const std::string& initial_value)
+        throw(InvalidArgumentException);
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~comb() throw();
+    virtual ~delay() throw();
 
     /**
-     * Gets the function argument of this process.
+     * Gets the initial value for this process.
      *
-     * @returns Function argument.
+     * @returns Initial value.
      */
-    virtual CFunction* getFunction() throw();
+    std::string getInitialValue() throw();
 
     /**
      * Same as Process::operator==(const Process&) const but with the additional
-     * check that the processes' function arguments must also be equal.
+     * check that the processes' initial values must also be equal.
      *
      * @param rhs
      *        Process to compare with.
@@ -86,38 +89,12 @@ class comb : public Process {
 
   protected:
     /**
-     * Checks that this process has at least one in port and only one out
-     * port. It also checks the function (see checkFunction(const CFunction&)).
+     * Checks that this process has only one in port and one out port.
      *
      * @throws InvalidProcessException
      *         When the check fails.
      */
     virtual void moreChecks() throw(InvalidProcessException);
-
-    /**
-     * Performs a series of checks:
-     *    - The function must have either equal number of input parameters as
-     *      the process has in ports, or equal number of input parameters as
-     *      the process has in ports + 1 (for the out port).
-     *    - If the function has the same number of input parameters as the
-     *      process has in ports, then the function must return data (i.e. have
-     *      return data type other than \c void) which also is not an array.
-     *    - If the function has the same number of input parameters as the
-     *      process has in ports + 1 (for the out port), then the function must
-     *      not return data (i.e. have return data type \c void).
-     *    - If any input parameter is an array or pointer, it must also be
-     *      declared \c const. If the function returns \c void, then the last
-     *      input parameter is not considered.
-     *
-     * @param function
-     *        Function to check.
-     * @param num_in_ports
-     *        Number of in ports to the process.
-     * @throws InvalidProcessException
-     *         When the check fails.
-     */
-    virtual void checkFunction(CFunction& function, size_t num_in_ports) const
-        throw(InvalidProcessException);
 
     /**
      * Gets the function argument as string representation in the following
@@ -135,7 +112,7 @@ class comb : public Process {
     /**
      * Process function argument.
      */
-    CFunction function_;
+    std::string initial_value_;
 };
 
 }

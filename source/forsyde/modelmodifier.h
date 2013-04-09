@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -23,24 +23,24 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORDE_MODELMODIFIER_H_
-#define F2CC_SOURCE_FORDE_MODELMODIFIER_H_
+#ifndef F2CC_SOURCE_FORSYDE_MODELMODIFIER_H_
+#define F2CC_SOURCE_FORSYDE_MODELMODIFIER_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines a class for performing \c Model modifications.
+ * @brief Defines a class for performing \c Processnetwork modifications.
  */
 
 #include "id.h"
-#include "model.h"
+#include "processnetwork.h"
 #include "process.h"
-#include "combsy.h"
-#include "parallelmapsy.h"
-#include "unzipxsy.h"
-#include "zipxsy.h"
+#include "SY/combsy.h"
+#include "SY/parallelmapsy.h"
+#include "SY/unzipxsy.h"
+#include "SY/zipxsy.h"
 #include "../logger/logger.h"
 #include "../exceptions/ioexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -51,10 +51,9 @@
 
 namespace f2cc {
 namespace ForSyDe {
-namespace SY{
 
 /**
- * @brief Performs semantic-preserving modifications on a \c Model
+ * @brief Performs semantic-preserving modifications on a \c Processnetwork
  *        object.
  *
  * The \c ModelModifier is a class which provides a set of model modification
@@ -78,7 +77,7 @@ class ModelModifier {
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      */
-    ModelModifier(ForSyDe::SY::Model* model, Logger& logger)
+    ModelModifier(ForSyDe::Processnetwork* model, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
@@ -188,7 +187,7 @@ class ModelModifier {
      *         bug.
      */
     void splitDataParallelSegments(
-        std::vector< std::vector<ForSyDe::SY::Process*> > chains)
+        std::vector< std::vector<ForSyDe::Process*> > chains)
             throw(IOException, RuntimeException);
 
     /**
@@ -245,7 +244,7 @@ class ModelModifier {
      *         bug.
      */
     std::list<ContainedSection> findContainedSections(
-        ForSyDe::SY::Process* begin, std::set<ForSyDe::SY::Id>& visited)
+        ForSyDe::Process* begin, std::set<ForSyDe::Id>& visited)
         throw(IOException, RuntimeException);
     
     /**
@@ -264,7 +263,7 @@ class ModelModifier {
      *         bug.
      */
     ForSyDe::SY::unzipx* findNearestunzipxProcess(
-        ForSyDe::SY::Process* begin, std::set<ForSyDe::SY::Id>& visited)
+        ForSyDe::Process* begin, std::set<ForSyDe::Id>& visited)
     throw(IOException, RuntimeException);
 
     /**
@@ -312,7 +311,7 @@ class ModelModifier {
     bool checkDataFlowConvergence(
         Process* start,
         Process* end,
-        std::set<ForSyDe::SY::Id>& visited,
+        std::set<ForSyDe::Id>& visited,
         bool forward)
         throw(IOException, RuntimeException);
 
@@ -345,7 +344,7 @@ class ModelModifier {
      *        Process chain.
      * @returns \c true if the chain consists of only \c comb processes.
      */
-    bool hasOnlycombSys(std::list<ForSyDe::SY::Process*> chain) const throw();
+    bool hasOnlycombSys(std::list<ForSyDe::Process*> chain) const throw();
 
     /**
      * Checks if two process chains are of equal lengths and have the same order
@@ -362,8 +361,8 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    bool areProcessChainsEqual(std::list<ForSyDe::SY::Process*> first,
-                               std::list<ForSyDe::SY::Process*> second)
+    bool areProcessChainsEqual(std::list<ForSyDe::Process*> first,
+                               std::list<ForSyDe::Process*> second)
         throw(IOException, RuntimeException);
 
     /**
@@ -384,13 +383,13 @@ class ModelModifier {
      * @throws OutOfMemoryException
      *         When the chain cannot be created due to memory shortage.
      */
-    std::list<ForSyDe::SY::Process*> getProcessChain(
-        ForSyDe::SY::Process::Port* start, ForSyDe::SY::Process* end)
+    std::list<ForSyDe::Process*> getProcessChain(
+        ForSyDe::Process::Port* start, ForSyDe::Process* end)
         throw(OutOfMemoryException);
 
     /**
-     * Help function for getProcessChain(ForSyDe::SY::Process::Port*,
-     * ForSyDe::SY::Process*) to allow recursive calls.
+     * Help function for getProcessChain(ForSyDe::Process::Port*,
+     * ForSyDe::Process*) to allow recursive calls.
      *
      * @param start
      *        Starting point.
@@ -401,12 +400,12 @@ class ModelModifier {
      * @returns Process chain.
      * @throws OutOfMemoryException
      *         When the chain cannot be created due to memory shortage.
-     * @see getProcessChain(ForSyDe::SY::Process::Port*, ForSyDe::SY::Process*)
+     * @see getProcessChain(ForSyDe::Process::Port*, ForSyDe::Process*)
      */
-    std::list<ForSyDe::SY::Process*> getProcessChainR(
-        ForSyDe::SY::Process::Port* start,
-        ForSyDe::SY::Process* end,
-        std::set<ForSyDe::SY::Id>& visited)
+    std::list<ForSyDe::Process*> getProcessChainR(
+        ForSyDe::Process::Port* start,
+        ForSyDe::Process* end,
+        std::set<ForSyDe::Id>& visited)
         throw(OutOfMemoryException);
 
     /**
@@ -421,7 +420,7 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void coalesceProcessChain(std::list<ForSyDe::SY::Process*> chain)
+    void coalesceProcessChain(std::list<ForSyDe::Process*> chain)
         throw(RuntimeException);
 
     /**
@@ -470,8 +469,8 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    std::list< std::list<ParallelMap*> > findParallelMapSyChains(
-        ForSyDe::SY::Process* begin, std::set<ForSyDe::SY::Id>& visited)
+    std::list< std::list<SY::ParallelMap*> > findParallelMapSyChains(
+        ForSyDe::Process* begin, std::set<ForSyDe::Id>& visited)
         throw(IOException, RuntimeException);
 
     /**
@@ -496,11 +495,11 @@ class ModelModifier {
      *        Process chain.
      * @returns String representation.
      */
-    std::string processChainToString(std::list<ForSyDe::SY::Process*> chain)
+    std::string processChainToString(std::list<ForSyDe::Process*> chain)
         const throw();
 
     /**
-     * @copydoc processChainToString(std::list<ForSyDe::SY::Process*>) const
+     * @copydoc processChainToString(std::list<ForSyDe::Process*>) const
      */
     std::string processChainToString(std::list<ForSyDe::SY::ParallelMap*> chain)
         const throw();
@@ -514,7 +513,7 @@ class ModelModifier {
      * @throws InvalidArgumentExceptionException
      *         When \c process is \c NULL.
      */
-    void destroyProcessChain(ForSyDe::SY::Process* start)
+    void destroyProcessChain(ForSyDe::Process* start)
         throw(InvalidArgumentException);
 
     /**
@@ -558,11 +557,11 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void replaceModelInput(Process::Port* old_port, Process::Port* new_port)
+    void replaceProcessnetworkInput(Process::Port* old_port, Process::Port* new_port)
         throw(RuntimeException);
 
     /**
-     * Same as replaceModelInput(Process::Port*, Process::Port*) but for
+     * Same as replaceProcessnetworkInput(Process::Port*, Process::Port*) but for
      * outputs.
      * 
      * @param old_port
@@ -573,7 +572,7 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void replaceModelOutput(Process::Port* old_port, Process::Port* new_port)
+    void replaceProcessnetworkOutput(Process::Port* old_port, Process::Port* new_port)
         throw(RuntimeException);
 
     /**
@@ -591,7 +590,7 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    bool visitProcess(std::set<ForSyDe::SY::Id>& visited, Process* process)
+    bool visitProcess(std::set<ForSyDe::Id>& visited, Process* process)
         throw(RuntimeException);
 
   private:
@@ -606,12 +605,12 @@ class ModelModifier {
         /**
          * First process in the chain.
          */
-        ForSyDe::SY::Process* start;
+        ForSyDe::Process* start;
 
         /**
          * Last process in the chain.
          */
-        ForSyDe::SY::Process* end;
+        ForSyDe::Process* end;
 
         /**
          * Creates a contained section.
@@ -623,7 +622,7 @@ class ModelModifier {
          * @throws InvalidArgumentException
          *         When either \c start or \c end is \c NULL.
          */
-        ContainedSection(ForSyDe::SY::Process* start, ForSyDe::SY::Process* end)
+        ContainedSection(ForSyDe::Process* start, ForSyDe::Process* end)
             throw(InvalidArgumentException);
 
         /**
@@ -638,7 +637,7 @@ class ModelModifier {
     /**
      * ForSyDe model.
      */
-    ForSyDe::SY::Model* const model_;
+    ForSyDe::Processnetwork* const processnetwork_;
 
     /**
      * Logger.
@@ -646,7 +645,6 @@ class ModelModifier {
     Logger& logger_;
 };
 
-}
 }
 }
 

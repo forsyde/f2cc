@@ -9,7 +9,6 @@ for parallel execution on a CUDA-enabled NVIDIA graphics card. Currently, the
 tool can handle models which contain the following process types:
    - \c f2cc::ForSyDe::SY::comb
    - \c f2cc::ForSyDe::SY::ParallelMap
-   - \c f2cc::ForSyDe::SY::comb
    - \c f2cc::ForSyDe::SY::unzipx
    - \c f2cc::ForSyDe::SY::zipx
    - \c f2cc::ForSyDe::SY::delay
@@ -32,7 +31,7 @@ For licensing and copyright information, see the \ref license "License" page.
 
 f2cc is licensed under the BSD 2-clause license.
 
-fanoutright &copy; 2011-2012 Gabriel Hjort Blindell &lt;ghb@kth.se&gt;
+Copyright &copy; 2011-2012 Gabriel Hjort Blindell &lt;ghb@kth.se&gt;
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

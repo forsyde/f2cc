@@ -1,5 +1,5 @@
 /*
- * fanoutright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
  */
 
 #include "../logger/logger.h"
-#include "../forsyde/model.h"
+#include "../forsyde/processnetwork.h"
 #include "../exceptions/filenotfoundexception.h"
 #include "../exceptions/parseexception.h"
 #include "../exceptions/invalidmodelexception.h"
@@ -97,7 +97,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::SY::Model* parse(const std::string& file)
+    ForSyDe::Processnetwork* parse(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
               ParseException, InvalidModelException, RuntimeException);
 
@@ -105,16 +105,16 @@ class Frontend {
     /**
      * Creates a new ForSyDe model by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::SY::Model object. After the model has been created, it is subjected
+     * ForSyDe::Processnetwork object. After the model has been created, it is subjected
      * to a series of checks and hook invocations to ensure that the model is
      * sane and valid for the later steps in the synthesis procedure.
      *
      * The order of the hook calls are:
-     *   - checkModel(ForSyDe::SY::Model*)
-     *   - checkModelMore(ForSyDe::SY::Model*)
-     *   - postCheckFixes(ForSyDe::SY::Model*)
-     *   - ensureNoInPorts(ForSyDe::SY::Model*)
-     *   - ensureNoOutPorts(ForSyDe::SY::Model*)
+     *   - checkProcessnetwork(ForSyDe::Processnetwork*)
+     *   - checkProcessnetworkMore(ForSyDe::Processnetwork*)
+     *   - postCheckFixes(ForSyDe::Processnetwork*)
+     *   - ensureNoInPorts(ForSyDe::Processnetwork*)
+     *   - ensureNoOutPorts(ForSyDe::Processnetwork*)
      *
      * @param file
      *        Input file.
@@ -133,7 +133,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual ForSyDe::SY::Model* createModel(const std::string& file)
+    virtual ForSyDe::Processnetwork* createProcessnetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
               ParseException, InvalidModelException, RuntimeException) = 0;
 
@@ -141,7 +141,7 @@ class Frontend {
      * Performs more model checks. By default, this does nothing.
      * 
      * @param model
-     *        Model to check.
+     *        Processnetwork to check.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws InvalidModelException
@@ -152,7 +152,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual void checkModelMore(ForSyDe::SY::Model* model)
+    virtual void checkProcessnetworkMore(ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
@@ -161,7 +161,7 @@ class Frontend {
      * does nothing.
      * 
      * @param model
-     *        Model to fix.
+     *        Processnetwork to fix.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws IOException
@@ -170,17 +170,17 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual void postCheckFixes(ForSyDe::SY::Model* model)
+    virtual void postCheckFixes(ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
   private:
     /**
      * Runs standard checks on the model by invoking (in this order):
-     *   - checkProcess(ForSyDe::SY::Process*, ForSyDe::SY::Model*) on each process, and
-     *   - checkModelMore(ForSyDe::SY::Model*).
+     *   - checkProcess(ForSyDe::Process*, ForSyDe::Processnetwork*) on each process, and
+     *   - checkProcessnetworkMore(ForSyDe::Processnetwork*).
      * 
      * @param model
-     *        Model to check.
+     *        Processnetwork to check.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws InvalidModelException
@@ -190,10 +190,10 @@ class Frontend {
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
-     * @see checkProcess(ForSyDe::SY::Process*, ForSyDe::SY::Model*)
-     * @see checkModelMore(ForSyDe::SY::Model*)
+     * @see checkProcess(ForSyDe::Process*, ForSyDe::Processnetwork*)
+     * @see checkProcessnetworkMore(ForSyDe::Processnetwork*)
      */
-    void checkModel(ForSyDe::SY::Model* model)
+    void checkProcessnetwork(ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
@@ -203,7 +203,7 @@ class Frontend {
      * an exception thrown from here indicates a serious error in the frontend.
      *
      * @param model
-     *        Model to check.
+     *        Processnetwork to check.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws IOException
@@ -212,7 +212,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void ensureNoInPorts(ForSyDe::SY::Model* model)
+    void ensureNoInPorts(ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
@@ -221,7 +221,7 @@ class Frontend {
      * an exception thrown from here indicates a serious error in the frontend.
      *
      * @param model
-     *        Model to check.
+     *        Processnetwork to check.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws IOException
@@ -230,19 +230,19 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void ensureNoOutPorts(ForSyDe::SY::Model* model)
+    void ensureNoOutPorts(ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
      * Checks that a process is a valid by ensuring that:
      *   - all process type-related checks are passed, and that
      *   - all its inputs and ouputs passes the
-     *     checkPort(ForSyDe::SY::Process::Port*, ForSyDe::SY::Model*) check.
+     *     checkPort(ForSyDe::Process::Port*, ForSyDe::Processnetwork*) check.
      * 
      * @param process
      *        Process to check.
      * @param model
-     *        Model that the process using the port should belong to.
+     *        Processnetwork that the process using the port should belong to.
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      * @throws InvalidModelException
@@ -252,9 +252,9 @@ class Frontend {
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
-     * @see checkPort(ForSyDe::SY::Process::Port*, ForSyDe::SY::Model*)
+     * @see checkPort(ForSyDe::Process::Port*, ForSyDe::Processnetwork*)
      */
-    void checkProcess(ForSyDe::SY::Process* process, ForSyDe::SY::Model* model)
+    void checkProcess(ForSyDe::Process* process, ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
@@ -268,7 +268,7 @@ class Frontend {
      * @param port
      *        Port to check.
      * @param model
-     *        Model that the process using the port should belong to.
+     *        Processnetwork that the process using the port should belong to.
      * @throws InvalidArgumentException
      *         When either \c port or \c model is \c NULL.     
      * @throws InvalidModelException
@@ -279,7 +279,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkPort(ForSyDe::SY::Process::Port* port, ForSyDe::SY::Model* model)
+    void checkPort(ForSyDe::Process::Port* port, ForSyDe::Processnetwork* model)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
