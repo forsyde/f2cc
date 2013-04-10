@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -203,6 +204,14 @@ string f2cc::tools::getFileName(string file) throw() {
     int start_pos = last_slash_pos == string::npos ? 0 : last_slash_pos + 1;
     size_t last_dot_pos = file.find_last_of(".");
     int end_pos = last_dot_pos == string::npos ? file.length() : last_dot_pos;
+    return file.substr(start_pos, end_pos - start_pos);
+}
+
+string f2cc::tools::getFileExtension(string file) throw() {
+    if (file.length() == 0) return "";
+
+    size_t start_pos = file.find_last_of(".") + 1;
+    int end_pos = file.length();
     return file.substr(start_pos, end_pos - start_pos);
 }
 

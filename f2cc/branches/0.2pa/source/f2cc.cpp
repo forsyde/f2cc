@@ -41,6 +41,7 @@
 #include "logger/logger.h"
 #include "frontend/frontend.h"
 #include "frontend/graphmlparser.h"
+#include "frontend/xmlparser.h"
 #include "forsyde/processnetwork.h"
 #include "forsyde/process.h"
 #include "forsyde/modelmodifier.h"
@@ -129,7 +130,25 @@ int main(int argc, const char* argv[]) {
     // Execute
     try {
         try {
-            Frontend* parser = new (std::nothrow) GraphmlParser(logger);
+        	Frontend* parser;
+        	switch (config.getFrontendFormat()) {
+				case Config::GraphML: {
+					logger.logInfoMessage("File of type GraphML. Will use the old f2cc execution flow...");
+					parser = new (std::nothrow) GraphmlParser(logger);
+					break;
+				}
+
+				case Config::XML: {
+					logger.logInfoMessage("File of type XML. Will use the new f2cc execution flow...");
+					parser = new (std::nothrow) XmlParser(logger);
+					break;
+				}
+				case Config::unknown: {
+					THROW_EXCEPTION(OutOfMemoryException);
+					break;
+				}
+			}
+
             if (!parser) THROW_EXCEPTION(OutOfMemoryException);
             logger.logInfoMessage(string("MODEL INPUT FILE: ")
                                   + config.getInputFile());

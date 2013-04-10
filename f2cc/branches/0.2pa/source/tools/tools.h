@@ -189,6 +189,16 @@ void writeFile(const std::string& file, const std::string& data)
 std::string getFileName(std::string file) throw();
 
 /**
+ * Gets the file extension from a file path. If no file name is found, an empty
+ * string is returned.
+ *
+ * @param file
+ *        File path.
+ * @returns File extension.
+ */
+std::string getFileExtension(std::string file) throw();
+
+/**
  * Copies and appends the content of one list to the end of another.
  *
  * @tparam T

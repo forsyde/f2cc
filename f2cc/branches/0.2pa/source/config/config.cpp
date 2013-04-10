@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -192,6 +193,7 @@ void Config::setDefaults() throw() {
     use_shared_memory_for_input_ = false;
     use_shared_memory_for_output_ = false;
     target_platform_ = Config::CUDA;
+    frontend_format_ = Config::unknown;
 }
 
 void Config::setFromCommandLine(int argc, const char** argv)
@@ -350,6 +352,16 @@ void Config::setFromCommandLine(int argc, const char** argv)
         if (!found_input_file && !do_print_help_ && !do_print_version_) {
             THROW_EXCEPTION(InvalidFormatException, "No input file");
         }
+        if (found_input_file){
+        	string extension = tools::getFileExtension(input_file_);
+        	if (extension=="graphml") frontend_format_ = Config::GraphML;
+        	if (extension=="xml") frontend_format_ = Config::XML;
+        	if (extension=="unknown")
+        		THROW_EXCEPTION(InvalidFormatException,
+							string("Unknown input format \"") + extension
+							+ "\"");
+        	std::cout<<"EXTENSION IS: "<<extension;
+        }
         if (!is_output_file_set) {
             output_file_ = tools::getFileName(input_file_);
             switch (target_platform_) {
@@ -398,8 +410,16 @@ Config::TargetPlatform Config::getTargetPlatform() const throw() {
     return target_platform_;
 }
 
+Config::FrontendFormat Config::getFrontendFormat() const throw() {
+    return frontend_format_;
+}
+
 void Config::setTargetPlatform(Config::TargetPlatform platform) throw() {
     target_platform_ = platform;
+}
+
+void Config::setFrontendFormat(Config::FrontendFormat format) throw() {
+	frontend_format_ = format;
 }
 
 bool Config::isOption(const string& str) const throw() {

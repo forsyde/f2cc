@@ -2,7 +2,7 @@
  * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
  *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright notice,
@@ -10,7 +10,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -24,7 +24,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "graphmlparser.h"
+#include "xmlparser.h"
 #include "../ticpp/ticpp.h"
 #include "../ticpp/tinyxml.h"
 #include "../tools/tools.h"
@@ -59,11 +59,11 @@ using std::list;
 using std::vector;
 using std::bad_alloc;
 
-GraphmlParser::GraphmlParser(Logger& logger) throw() : Frontend(logger) {}
+XmlParser::XmlParser(Logger& logger) throw() : Frontend(logger) {}
 
-GraphmlParser::~GraphmlParser() throw() {}
+XmlParser::~XmlParser() throw() {}
 
-Processnetwork* GraphmlParser::createProcessnetwork(const string& file)
+Processnetwork* XmlParser::createProcessnetwork(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
           ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
@@ -96,18 +96,18 @@ Processnetwork* GraphmlParser::createProcessnetwork(const string& file)
         // @todo throw more detailed ParseException (with line and column)
         THROW_EXCEPTION(ParseException, file_, ex.what());
     }
-            
+
     logger_.logInfoMessage("Checking xml structure...");
     checkXmlDocument(&xml);
     logger_.logInfoMessage("All checks passed");
 
     logger_.logInfoMessage("Generating internal model...");
-    Processnetwork* model = generateProcessnetwork(findXmlGraphElement(&xml));
+    Processnetwork* model = generateProcessnetwork(findRootElement(&xml));
 
     return model;
 }
 
-list<Element*> GraphmlParser::getElementsByName(Node* xml, const string& name)
+list<Element*> XmlParser::getElementsByName(Node* xml, const string& name)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
@@ -162,7 +162,7 @@ list<Element*> GraphmlParser::getElementsByName(Node* xml, const string& name)
     return elements;
 }
 
-void GraphmlParser::checkXmlDocument(Document* xml)
+void XmlParser::checkXmlDocument(Document* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -173,44 +173,31 @@ void GraphmlParser::checkXmlDocument(Document* xml)
     logger_.logWarningMessage("XML document check not implemented");
 }
 
-Element* GraphmlParser::findXmlGraphElement(Document* xml)
+Element* XmlParser::findRootElement(Document* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Node* xml_graphml_node = xml->FirstChild("graphml", false);
-    if (!xml_graphml_node) {
+    Node* xml_root_node = xml->FirstChild("process_network", false);
+    if (!xml_root_node) {
         THROW_EXCEPTION(ParseException, file_,
-                        string("Could not find root element \"graphml\""));
+                        string("Could not find root element \"process_network\""));
     }
-    if (xml_graphml_node->Type() != TiXmlNode::ELEMENT) {
-        THROW_EXCEPTION(ParseException, file_, xml_graphml_node->Row(),
-                        xml_graphml_node->Column(),
+    if (xml_root_node->Type() != TiXmlNode::ELEMENT) {
+        THROW_EXCEPTION(ParseException, file_, xml_root_node->Row(),
+        		xml_root_node->Column(),
                         string("Found \"graphml\" structure is not an "
                                "element"));
     }
-    Element* xml_graphml = dynamic_cast<Element*>(
-        xml_graphml_node);
-    if (!xml_graphml) THROW_EXCEPTION(CastException);
-    Node* xml_graph_node = xml_graphml->FirstChild("graph", false);
-    if (!xml_graph_node) {
-        THROW_EXCEPTION(ParseException, file_,
-                        string("Could not find element \"graph\""));
-    }
-    if (xml_graph_node->Type() != TiXmlNode::ELEMENT) {
-        THROW_EXCEPTION(ParseException, file_, xml_graphml_node->Row(),
-                        xml_graphml_node->Column(),
-                        string("Found \"graph\" structure is not an element"));
-    }
-    Element* xml_graph = dynamic_cast<Element*>(xml_graph_node);
-    if (!xml_graph) THROW_EXCEPTION(CastException);
+    Element* xml_processnetwork = dynamic_cast<Element*>(xml_root_node);
+    if (!xml_processnetwork) THROW_EXCEPTION(CastException);
 
-    return xml_graph;
+    return xml_processnetwork;
 }
 
-Processnetwork* GraphmlParser::generateProcessnetwork(Element* xml)
+Processnetwork* XmlParser::generateProcessnetwork(Element* xml)
     throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException) {
     if (!xml) {
@@ -230,7 +217,7 @@ Processnetwork* GraphmlParser::generateProcessnetwork(Element* xml)
     return model;
 }
 
-void GraphmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
+void XmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -260,7 +247,7 @@ void GraphmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
     }
 }
 
-void GraphmlParser::parseXmlEdges(Element* xml, Processnetwork* model,
+void XmlParser::parseXmlEdges(Element* xml, Processnetwork* model,
                                   map<Process::Port*, Process*>& copy_processes)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
@@ -280,7 +267,7 @@ void GraphmlParser::parseXmlEdges(Element* xml, Processnetwork* model,
     }
 }
 
-void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* model)
+void XmlParser::fixProcessnetworkInputsOutputs(Processnetwork* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!model) {
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
@@ -370,7 +357,7 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* model)
     logger_.logInfoMessage("Post-check fixes complete");
 }
 
-Process* GraphmlParser::generateProcess(Element* xml)
+Process* XmlParser::generateProcess(Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -459,11 +446,11 @@ Process* GraphmlParser::generateProcess(Element* xml)
                                 + process->getId()->getString() + "\"");
         delete port;
     }
-    
+
     return process;
 }
 
-string GraphmlParser::getId(Element* xml)
+string XmlParser::getId(Element* xml)
 throw(InvalidArgumentException, ParseException, IOException,
       RuntimeException) {
     if (!xml) {
@@ -478,7 +465,7 @@ throw(InvalidArgumentException, ParseException, IOException,
     return tools::trim(id);
 }
 
-string GraphmlParser::getName(Element* xml)
+string XmlParser::getName(Element* xml)
 throw(InvalidArgumentException, ParseException, IOException,
       RuntimeException) {
     string name = xml->GetAttribute("name");
@@ -489,7 +476,7 @@ throw(InvalidArgumentException, ParseException, IOException,
     return tools::trim(name);
 }
 
-string GraphmlParser::getProcessType(Element* xml)
+string XmlParser::getProcessType(Element* xml)
 throw(InvalidArgumentException, ParseException, IOException,
       RuntimeException) {
     if (!xml) {
@@ -512,7 +499,7 @@ throw(InvalidArgumentException, ParseException, IOException,
     THROW_EXCEPTION(ParseException, file_, xml->Row(), "No process type found");
 }
 
-CFunction GraphmlParser::generateProcessFunction(Element* xml)
+CFunction XmlParser::generateProcessFunction(Element* xml)
 throw(InvalidArgumentException, ParseException, IOException,
       RuntimeException) {
     if (!xml) {
@@ -545,7 +532,7 @@ throw(InvalidArgumentException, ParseException, IOException,
                     "No process function argument found");
 }
 
-CFunction GraphmlParser::generateProcessFunctionFromString(
+CFunction XmlParser::generateProcessFunctionFromString(
     const std::string& str) throw(InvalidFormatException) {
     // Find function prototype and body
     size_t pos = str.find("{");
@@ -572,7 +559,7 @@ CFunction GraphmlParser::generateProcessFunctionFromString(
     }
     string input_params_str = prototype.substr(pos + 1, pos2 - pos - 1);
     string function_head = prototype.substr(0, pos);
-    
+
     try {
         string function_name = getNameFromDeclaration(function_head);
         CDataType function_return_data_type =
@@ -587,7 +574,7 @@ CFunction GraphmlParser::generateProcessFunctionFromString(
                                             getDataTypeFromDeclaration(*it));
             input_parameters.push_back(parameter);
         }
-        
+
         return CFunction(function_name, function_return_data_type,
                          input_parameters, function_body);
     }
@@ -599,7 +586,7 @@ CFunction GraphmlParser::generateProcessFunctionFromString(
     }
 }
 
-CDataType GraphmlParser::getDataTypeFromDeclaration(const string& str) const
+CDataType XmlParser::getDataTypeFromDeclaration(const string& str) const
 throw(InvalidFormatException) {
     size_t pos = str.find_last_of(" ");
     if (pos == string::npos) {
@@ -656,7 +643,7 @@ throw(InvalidFormatException) {
     }
 }
 
-string GraphmlParser::getNameFromDeclaration(const string& str) const
+string XmlParser::getNameFromDeclaration(const string& str) const
 throw(InvalidFormatException) {
     size_t pos = str.find_last_of(" ");
     if (pos == string::npos) {
@@ -668,7 +655,7 @@ throw(InvalidFormatException) {
     return name;
 }
 
-int GraphmlParser::getNumProcesses(ticpp::Element* xml)
+int XmlParser::getNumProcesses(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -699,7 +686,7 @@ int GraphmlParser::getNumProcesses(ticpp::Element* xml)
                     "not found");
 }
 
-void GraphmlParser::findFunctionArraySizes(CFunction& function,
+void XmlParser::findFunctionArraySizes(CFunction& function,
                                            ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
@@ -788,7 +775,7 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
     }
 }
 
-size_t GraphmlParser::findArraySize(ticpp::Element* xml)
+size_t XmlParser::findArraySize(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -820,7 +807,7 @@ size_t GraphmlParser::findArraySize(ticpp::Element* xml)
     return 0;
 }
 
-string GraphmlParser::getInitialdelayValue(Element* xml)
+string XmlParser::getInitialdelayValue(Element* xml)
 throw(InvalidArgumentException, ParseException, IOException,
       RuntimeException) {
     if (!xml) {
@@ -849,7 +836,7 @@ throw(InvalidArgumentException, ParseException, IOException,
                     "No initial delay value found");
 }
 
-Process::Port* GraphmlParser::generatePort(Element* xml)
+Process::Port* XmlParser::generatePort(Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -863,15 +850,15 @@ Process::Port* GraphmlParser::generatePort(Element* xml)
     return port;
 }
 
-bool GraphmlParser::isInPort(const std::string& id) const throw() {
+bool XmlParser::isInPort(const std::string& id) const throw() {
     return isValidPortId(id, "in");
 }
 
-bool GraphmlParser::isOutPort(const std::string& id) const throw() {
+bool XmlParser::isOutPort(const std::string& id) const throw() {
     return isValidPortId(id, "out");
 }
 
-bool GraphmlParser::isValidPortId(const std::string& id,
+bool XmlParser::isValidPortId(const std::string& id,
                                   const std::string direction) const throw() {
     try {
         size_t separator_pos = id.find_last_of("_");
@@ -898,11 +885,11 @@ bool GraphmlParser::isValidPortId(const std::string& id,
     } catch (std::out_of_range&) {
         // Do nothing, but a check will fail because of this
     }
-    
+
     return false;
 }
 
-void GraphmlParser::generateConnection(Element* xml, Processnetwork* model,
+void XmlParser::generateConnection(Element* xml, Processnetwork* model,
                                        map<Process::Port*, Process*>&
                                        copy_processes)
     throw(InvalidArgumentException, ParseException, IOException,
@@ -1074,7 +1061,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* model,
     }
 }
 
-void GraphmlParser::checkProcessnetworkMore(Processnetwork* model)
+void XmlParser::checkProcessnetworkMore(Processnetwork* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     logger_.logInfoMessage("Checking that the model contains at least one "
@@ -1108,7 +1095,7 @@ void GraphmlParser::checkProcessnetworkMore(Processnetwork* model)
     }
 }
 
-void GraphmlParser::postCheckFixes(ForSyDe::Processnetwork* model)
+void XmlParser::postCheckFixes(ForSyDe::Processnetwork* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     fixProcessnetworkInputsOutputs(model);
 }

@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +68,26 @@ class Config {
          */
         CUDA
     };
+    /**
+	 * Denotes the frontend format, which will determine which path the
+	 * component execution will follow.
+	 */
+    enum FrontendFormat {
+		/**
+		 * GraphML format. This enables the old f2cc execution path.
+		 */
+		GraphML,
+
+		/**
+		 * XML format. This enables the new execution path.
+		 */
+		XML,
+
+		/**
+		 * Unknown format. This cancels the component execution.
+		 */
+		unknown
+	};
 
     /**
      * Creates a configuration with default settings.
@@ -241,12 +262,27 @@ class Config {
     TargetPlatform getTargetPlatform() const throw();
 
     /**
+     * Gets the frontend format (XML, GraphML or unknown).
+     *
+     * @returns Frontend format.
+     */
+    FrontendFormat getFrontendFormat() const throw();
+
+    /**
      * Sets the target platform.
      *
      * @param platform
      *        Target platform.
      */
     void setTargetPlatform(TargetPlatform platform) throw();
+
+    /**
+     * Sets thefrontend format.
+     *
+     * @param platform
+     *        Frontend format.
+     */
+    void setFrontendFormat(FrontendFormat format) throw();
 
     /**
      * Parses the command line and sets its specified settings to this
@@ -356,6 +392,11 @@ class Config {
      * Specifies the target platform.
      */
     TargetPlatform target_platform_;
+
+    /**
+	 * Specifies the target platform.
+	 */
+    FrontendFormat frontend_format_;
 };
 
 }

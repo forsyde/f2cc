@@ -2,7 +2,7 @@
  * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
  *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright notice,
@@ -10,7 +10,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -24,15 +24,15 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FRONTEND_GRAPHMLPARSER_H_
-#define F2CC_SOURCE_FRONTEND_GRAPHMLPARSER_H_
+#ifndef F2CC_SOURCE_FRONTEND_XMLPARSER_H_
+#define F2CC_SOURCE_FRONTEND_XMLPARSER_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines the Grapml-parsing frontend.
+ * @brief Defines the XML-parsing frontend.
  */
 
 #include "frontend.h"
@@ -57,27 +57,27 @@ namespace f2cc {
  * @brief A class for parsing a GraphML file into an internal ForSyDe model
  *        representation.
  *
- * The \c GraphmlParser is a frontend to the \c f2cc which parses a GraphML
+ * The \c XmlParser is a frontend to the \c f2cc which parses an XML
  * representation of a ForSyDe model and converts it into an internal
  * equivalent. Any unrecognized elements in the XML file will be ignored.
  *
  * The class uses <a href="http://code.google.com/p/ticpp/">TinyXML++</a> for
  * parsing the XML file.
  */
-class GraphmlParser : public Frontend {
+class XmlParser : public Frontend {
   public:
     /**
-     * Creates a GraphML parser.
+     * Creates an XML parser.
      *
      * @param logger
      *        Reference to the logger.
      */
-    GraphmlParser(Logger& logger) throw();
+	XmlParser(Logger& logger) throw();
 
     /**
      * Destroys this parser. The logger remains open.
      */
-    ~GraphmlParser() throw();
+    ~XmlParser() throw();
 
   private:
     /**
@@ -95,7 +95,7 @@ class GraphmlParser : public Frontend {
      *        XML object to search.
      * @param name
      *        Name of the elements to search for.
-     * @returns List of 
+     * @returns List of
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL or when \c name is an empty string.
      * @throws IOException
@@ -114,7 +114,7 @@ class GraphmlParser : public Frontend {
      * are not needed for the latter parsing stages. This primarily means data
      * not included in the GraphML specification, but also data which actually
      * is part of the specification but not used by the synthesis component.
-     * 
+     *
      * Each pruned data which belongs to the GraphML specification generates an
      * entry of type \c Logger::LogLevel::INFO in the log file. Each pruned data
      * which does not belongs to the GraphML specification generates an entry of
@@ -129,7 +129,7 @@ class GraphmlParser : public Frontend {
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
-     *         When something unexpected occurs. This is most likely due to a 
+     *         When something unexpected occurs. This is most likely due to a
      *         bug.
      * @todo Implement this method (currently it does nothing).
      */
@@ -139,7 +139,7 @@ class GraphmlParser : public Frontend {
 
     /**
      * Locates the \c graph XML element in the XML document.
-     * 
+     *
      * @param xml
      *        XML document.
      * @returns graph element.
@@ -153,7 +153,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ticpp::Element* findXmlGraphElement(ticpp::Document* xml)
+    ticpp::Element* findRootElement(ticpp::Document* xml)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -162,7 +162,7 @@ class GraphmlParser : public Frontend {
      * method makes no checks on whether the resultant model appears sane or
      * not.  It is the caller's responsibility to destroy the model when it is
      * no longer used.
-     * 
+     *
      * @param xml
      *        \c graph XML element containing the model.
      * @returns Internal ForSyDe model object.
@@ -274,7 +274,7 @@ class GraphmlParser : public Frontend {
     /**
      * Converts an XML \c node element into an internal ForSyDe process of the
      * same type along with its ports and function argument, if any.
-     * 
+     *
      * @param xml
      *        \c node element containing the process.
      * @returns Internal process object.
@@ -295,7 +295,7 @@ class GraphmlParser : public Frontend {
     /**
      * Gets the ID of an XML element. The ID is specified in an XML attribute
      * named \c id. Any surrounding whitespace will be trimmed.
-     * 
+     *
      * @param xml
      *        XML element.
      * @returns Its ID.
@@ -316,7 +316,7 @@ class GraphmlParser : public Frontend {
     /**
      * Gets the name of an XML element. The name is specified in an XML
      * attribute named \c name. Any surrounding whitespace will be trimmed.
-     * 
+     *
      * @param xml
      *        XML element.
      * @returns Its name.
@@ -338,7 +338,7 @@ class GraphmlParser : public Frontend {
      * Gets the process type from a XML \c node element. The type is specified
      * in an XML \c data child element with attribute \c key="process_type".
      * Any surrounding whitespace will be trimmed.
-     * 
+     *
      * @param xml
      *        \c node element.
      * @returns Its process type.
@@ -359,7 +359,7 @@ class GraphmlParser : public Frontend {
     /**
      * Gets the process function argument from a XML \c node element. The
      * function argument is specified in an XML "data" child element.
-     * 
+     *
      * @param xml
      *        \c node element.
      * @returns Process function argument.
@@ -422,7 +422,7 @@ class GraphmlParser : public Frontend {
      * Gets the number of processes from an XML \c node element. The number is
      * specified in an XML \c data child element with attribute \c
      * key="num_processes".
-     * 
+     *
      * @param xml
      *        \c node element.
      * @returns Number of processes.
@@ -445,7 +445,7 @@ class GraphmlParser : public Frontend {
      * argument.  The array sizes are extracted from XML "data" elements, with
      * argument "array_size", inside the XML "port" elements, which in turn are
      * children to the XML \c node element where the function was found.
-     * 
+     *
      * @param function
      *        Process function argument.
      * @param xml
@@ -467,7 +467,7 @@ class GraphmlParser : public Frontend {
     /**
      * Gets the array size from an XML "port" element. The array size is
      * located in an XML "data" element with argument "array_size".
-     * 
+     *
      * @param xml
      *        XML element.
      * @returns Array size, if found; otherwise 0.
@@ -489,7 +489,7 @@ class GraphmlParser : public Frontend {
     /**
      * Gets the initial delay value from a XML \c node element. The value is
      * specified in an XML "data" child element.
-     * 
+     *
      * @param xml
      *        \c node element.
      * @returns Initial delay value.
@@ -509,7 +509,7 @@ class GraphmlParser : public Frontend {
 
     /**
      * Converts an XML \c port element into an internal ForSyDe port.
-     * 
+     *
      * @param xml
      *        \c port element containing the port.
      * @returns Internal process port object.
@@ -529,7 +529,7 @@ class GraphmlParser : public Frontend {
 
     /**
      * Converts an XML \c edge element into a port connection.
-     * 
+     *
      * @param xml
      *        \c edge element containing the connection.
      * @param model
@@ -591,7 +591,7 @@ class GraphmlParser : public Frontend {
     /**
      * Checks that there is at least one InPort and at least one OutPort process
      * within the model.
-     * 
+     *
      * @param model
      *        Processnetwork to check.
      * @throws InvalidArgumentException
@@ -612,7 +612,7 @@ class GraphmlParser : public Frontend {
      * Sets the out and in ports of the InPort and OutPort processes,
      * respectively, as inputs and outputs of the model. The InPort and
      * Outport processes are then removed.
-     * 
+     *
      * @param model
      *        Processnetwork to fix.
      * @throws InvalidArgumentException
