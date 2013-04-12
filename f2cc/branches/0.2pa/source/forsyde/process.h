@@ -424,6 +424,27 @@ class Process{
         bool isConnected() const throw();
 
         /**
+         * Checks if this IO port is connected to a port outside the composite process.
+         *
+         * @returns \c true if connected.
+         */
+        bool IOisConnectedOutside() const throw();
+
+        /**
+         * Checks if this IO port is connected to a port inside the composite process.
+         *
+         * @returns \c true if connected.
+         */
+        bool IOisConnectedInside() const throw();
+
+        /**
+         * Checks if this IO port is fully connected to both an upstream port and a downstream port.
+         *
+         * @returns \c true if connected.
+         */
+        bool IOisConnected() const throw();
+
+        /**
          * Connects this port to another. This also sets the other port as
          * connected to this port. If there already is a connection it will
          * automatically be broken. 
@@ -438,17 +459,78 @@ class Process{
         void connect(Port* port) throw();
 
         /**
+         * Connects this OP port to another, outside the composite process.
+         * This also sets the other port as
+         * connected to this port. If there already is a connection it will
+         * automatically be broken.
+         *
+         * Setting the port parameter to \c NULL is equivalent to breaking the
+         * connection. If both ends of a connection is the same port, this
+         * method call is effectively ignored.
+         *
+         * @param port
+         *        Port to connect.
+         */
+        void IOconnectOutside(Port* port) throw();
+
+        /**
+         * Connects this OP port to another, inside the composite process.
+         * This also sets the other port as
+         * connected to this port. If there already is a connection it will
+         * automatically be broken.
+         *
+         * Setting the port parameter to \c NULL is equivalent to breaking the
+         * connection. If both ends of a connection is the same port, this
+         * method call is effectively ignored.
+         *
+         * @param port
+         *        Port to connect.
+         */
+        void IOconnectInside(Port* port) throw();
+
+        /**
+         * Connects this OP port to another, inside the composite process.
+         * This also sets the other port as
+         * connected to this port. If there already is a connection it will
+         * automatically be broken.
+         *
+         * Setting the port parameter to \c NULL is equivalent to breaking the
+         * connection. If both ends of a connection is the same port, this
+         * method call is effectively ignored.
+         *
+         * @param port
+         *        Port to connect.
+         */
+        void IOconnect(Port* inside, Port* outside) throw();
+
+        /**
          * Breaks the connection that this port may have to another. If there is
          * no connection, nothing happens.
          */
         void unconnect() throw();
 
         /**
-         * Gets the port at the other end of the connection, if any.
+         * Searches recursively through composites and gets
+         * the port at the other end of the connection, if any.
          *
          * @returns Connected port, if any; otherwise \c NULL.
          */
         Port* getConnectedPort() const throw();
+
+        /**
+         * Gets the immediate adjacent port at the other end of the connection, if any.
+         *
+         * @returns Connected port, if any; otherwise \c NULL.
+         */
+        Port* getConnectedPortImmediate() const throw();
+
+        /**
+		 * Gets the immediate adjacent ports at the other ends of the connection, if any,
+		 * for an IO port
+		 *
+		 * @returns Connected port, if any; otherwise \c NULL.
+		 */
+        std::pair<Port*,Port*> IOgetConnectedPortsImmediate() const throw();
 
         /**
          * Checks for equality between this port and another.
@@ -503,12 +585,13 @@ class Process{
         /**
          * Pointer to the other end of a connection.
          */
-        Port* connected_port_;
+        Port* connected_port_outside_;
 
         /**
-		 * In case it is an IO Port, a pair with both connections will be used.
+		 * In case it is an IO Port, this will contain a connection inside the
+		 * composite process as well
 		 */
-        std::pair<Port*,Port*> connected_ports_;
+        Port* connected_port_inside_;
     };
 
 };
