@@ -36,19 +36,19 @@ using std::pair;
 using std::bad_alloc;
 using std::queue;
 
-ScheduleFinder::ScheduleFinder(ForSyDe::Processnetwork* model, Logger& logger)
-        throw(InvalidArgumentException) : processnetwork_(model), logger_(logger) {
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+ScheduleFinder::ScheduleFinder(ForSyDe::Processnetwork* processnetwork, Logger& logger)
+        throw(InvalidArgumentException) : processnetwork_(processnetwork), logger_(logger) {
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 }
 
 ScheduleFinder::~ScheduleFinder() throw() {}
 
 list<Id> ScheduleFinder::findSchedule() throw(IOException, RuntimeException) {
-    // Add all processes at model outputs to starting point queue
+    // Add all processes at processnetwork outputs to starting point queue
     list<Process::Port*> output_ports = processnetwork_->getOutputs();
-    logger_.logMessage(Logger::DEBUG, string("Scanning all model outputs..."));
+    logger_.logMessage(Logger::DEBUG, string("Scanning all processnetwork outputs..."));
     for (list<Process::Port*>::iterator it = output_ports.begin();
          it != output_ports.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string("Adding \"")

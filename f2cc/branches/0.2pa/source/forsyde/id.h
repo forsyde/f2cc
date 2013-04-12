@@ -41,12 +41,12 @@ namespace f2cc {
 namespace ForSyDe {
 
 /**
- * @brief A class used for identifying elements in the ForSyDe model.
+ * @brief A class used for identifying elements in the ForSyDe processnetwork.
  *
  * The \c Id class is used to represent IDs in the internal
- * representation of ForSyDe models. Although the ID itself is actually just a
+ * representation of ForSyDe processnetworks. Although the ID itself is actually just a
  * string, wrapping it inside a class allows the class to be improved in case
- * the performance suffers for very large models due to working with string
+ * the performance suffers for very large processnetworks due to working with string
  * comparison (which is not very efficient).
  */
 class Id {

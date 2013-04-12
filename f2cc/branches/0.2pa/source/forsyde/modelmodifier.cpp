@@ -23,7 +23,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "modelmodifier.h"
+#include "processnetworkmodifier.h"
 #include "SY/zipxsy.h"
 #include "SY/unzipxsy.h"
 #include "SY/parallelmapsy.h"
@@ -49,16 +49,16 @@ using std::vector;
 using std::bad_alloc;
 using std::pair;
 
-ModelModifier::ModelModifier(Processnetwork* model, Logger& logger)
-        throw(InvalidArgumentException) : processnetwork_(model), logger_(logger) {
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+ProcessnetworkModifier::ProcessnetworkModifier(Processnetwork* processnetwork, Logger& logger)
+        throw(InvalidArgumentException) : processnetwork_(processnetwork), logger_(logger) {
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 }
 
-ModelModifier::~ModelModifier() throw() {}
+ProcessnetworkModifier::~ProcessnetworkModifier() throw() {}
 
-void ModelModifier::coalesceDataParallelProcesses()
+void ProcessnetworkModifier::coalesceDataParallelProcesses()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections = findDataParallelSections();
     list<ContainedSection>::iterator it;
@@ -84,7 +84,7 @@ void ModelModifier::coalesceDataParallelProcesses()
     }
 }
 
-void ModelModifier::coalesceParallelMapSyProcesses()
+void ProcessnetworkModifier::coalesceParallelMapSyProcesses()
     throw(IOException, RuntimeException) {
     list< list<ParallelMap*> > chains = findParallelMapSyChains();
     if (chains.size() == 0) {
@@ -101,7 +101,7 @@ void ModelModifier::coalesceParallelMapSyProcesses()
     }
 }
 
-void ModelModifier::splitDataParallelSegments()
+void ProcessnetworkModifier::splitDataParallelSegments()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections = findDataParallelSections();
     list<ContainedSection>::iterator it;
@@ -131,7 +131,7 @@ void ModelModifier::splitDataParallelSegments()
     }
 }
 
-void ModelModifier::fuseUnzipcombZipProcesses()
+void ProcessnetworkModifier::fuseUnzipcombZipProcesses()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections = findDataParallelSections();
     list<ContainedSection>::iterator it;
@@ -177,7 +177,7 @@ void ModelModifier::fuseUnzipcombZipProcesses()
 
         redirectDataFlow(section.start, section.end, new_process, new_process);
 
-        // Add new process to the model
+        // Add new process to the processnetwork
         if (processnetwork_->addProcess(new_process)) {
             logger_.logInfoMessage(string("Data parallel section ")
                                    + section.toString() + " replaced by new "
@@ -191,14 +191,14 @@ void ModelModifier::fuseUnzipcombZipProcesses()
                             + "\" already existed");
         }
 
-        // Destroy and delete the section from the model
+        // Destroy and delete the section from the processnetwork
         logger_.logDebugMessage(string("Destroying section \"")
                                 + section.toString() + "...");
         destroyProcessChain(section.start);
     }
 }
 
-void ModelModifier::convertZipWith1Tocomb()
+void ProcessnetworkModifier::convertZipWith1Tocomb()
     throw(IOException, RuntimeException) {
     list<Process*> processes = processnetwork_->getProcesses();
     list<Process*>::iterator it;
@@ -217,7 +217,7 @@ void ModelModifier::convertZipWith1Tocomb()
 
             redirectDataFlow(process, process, new_process, new_process);
 
-            // Add new process to the model
+            // Add new process to the processnetwork
             if (processnetwork_->addProcess(new_process)) {
                 logger_.logInfoMessage(string("Process \"")
                                        + process->getId()->getString() + "\" "
@@ -232,7 +232,7 @@ void ModelModifier::convertZipWith1Tocomb()
                                 + "\" already existed");
             }
 
-            // Destroy and delete the old process from the model
+            // Destroy and delete the old process from the processnetwork
             logger_.logDebugMessage(string("Destroying process \"")
                                     + process->getId()->getString() + "...");
             processnetwork_->deleteProcess(*process->getId());
@@ -240,7 +240,7 @@ void ModelModifier::convertZipWith1Tocomb()
     }
 }
 
-void ModelModifier::removeRedundantProcesses()
+void ProcessnetworkModifier::removeRedundantProcesses()
     throw(IOException, RuntimeException) {
     list<Process*> processes = processnetwork_->getProcesses();
     list<Process*>::iterator it;
@@ -272,8 +272,8 @@ void ModelModifier::removeRedundantProcesses()
                     other_end_at_in_port->connect(other_end_at_out_port);
                 }
 
-                // Update model in- and ouputs, if necessary
-                logger_.logDebugMessage("Updating model in- and "
+                // Update processnetwork in- and ouputs, if necessary
+                logger_.logDebugMessage("Updating processnetwork in- and "
                                         "outputs...");
                 if (other_end_at_in_port == NULL) {
                     replaceProcessnetworkInput(in_port,
@@ -284,7 +284,7 @@ void ModelModifier::removeRedundantProcesses()
                                        other_end_at_in_port);
                 }
 
-                // Delete process from model
+                // Delete process from processnetwork
                 if (!processnetwork_->deleteProcess(*process->getId())) {
                     THROW_EXCEPTION(IllegalStateException, string("Could not ") 
                                     + "delete process \"" + process_name
@@ -308,7 +308,7 @@ void ModelModifier::removeRedundantProcesses()
     }
 }
 
-list<ModelModifier::ContainedSection> ModelModifier::findDataParallelSections()
+list<ProcessnetworkModifier::ContainedSection> ProcessnetworkModifier::findDataParallelSections()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections;
 
@@ -349,8 +349,8 @@ list<ModelModifier::ContainedSection> ModelModifier::findDataParallelSections()
     return sections;
 }
 
-list<ModelModifier::ContainedSection>
-ModelModifier::findContainedSections() throw(IOException, RuntimeException) {
+list<ProcessnetworkModifier::ContainedSection>
+ProcessnetworkModifier::findContainedSections() throw(IOException, RuntimeException) {
     list<ContainedSection> sections;
     set<Id> visited;
     list<Process::Port*> output_ports = processnetwork_->getOutputs();
@@ -364,8 +364,8 @@ ModelModifier::findContainedSections() throw(IOException, RuntimeException) {
     return sections;
 }
 
-list<ModelModifier::ContainedSection>
-ModelModifier::findContainedSections(Process* begin, set<Id>& visited)
+list<ProcessnetworkModifier::ContainedSection>
+ProcessnetworkModifier::findContainedSections(Process* begin, set<Id>& visited)
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections;
     if (visitProcess(visited, begin)) {
@@ -439,7 +439,7 @@ ModelModifier::findContainedSections(Process* begin, set<Id>& visited)
     return sections;
 }
 
-bool ModelModifier::isAContainedSection(Process* start, Process* end)
+bool ProcessnetworkModifier::isAContainedSection(Process* start, Process* end)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!start) {
         THROW_EXCEPTION(InvalidArgumentException, "\"start\" must not be NULL");
@@ -467,7 +467,7 @@ bool ModelModifier::isAContainedSection(Process* start, Process* end)
     return true;
 }
 
-bool ModelModifier::checkDataFlowConvergence(Process* start, Process* end,
+bool ProcessnetworkModifier::checkDataFlowConvergence(Process* start, Process* end,
                                              set<ForSyDe::Id>& visited,
                                              bool forward)
     throw(IOException, RuntimeException) {
@@ -512,7 +512,7 @@ bool ModelModifier::checkDataFlowConvergence(Process* start, Process* end,
     return true;
 }
 
-unzipx* ModelModifier::findNearestunzipxProcess(ForSyDe::Process* begin,
+unzipx* ProcessnetworkModifier::findNearestunzipxProcess(ForSyDe::Process* begin,
                                                     set<Id>& visited)
     throw(IOException, RuntimeException) {
     if (!begin) return NULL;
@@ -537,7 +537,7 @@ unzipx* ModelModifier::findNearestunzipxProcess(ForSyDe::Process* begin,
     return NULL;
 }
 
-bool ModelModifier::isContainedSectionDataParallel(
+bool ProcessnetworkModifier::isContainedSectionDataParallel(
     const ContainedSection& section) throw(IOException, RuntimeException) {
     logger_.logDebugMessage(string("Analyzing contained section ")
                             + section.toString() + "...");
@@ -582,7 +582,7 @@ bool ModelModifier::isContainedSectionDataParallel(
     return true;
 }
 
-bool ModelModifier::hasOnlycombSys(std::list<ForSyDe::Process*> chain) const
+bool ProcessnetworkModifier::hasOnlycombSys(std::list<ForSyDe::Process*> chain) const
     throw() {
     list<Process*>::const_iterator it;
     for (it = chain.begin(); it != chain.end(); ++it) {
@@ -591,7 +591,7 @@ bool ModelModifier::hasOnlycombSys(std::list<ForSyDe::Process*> chain) const
     return true;
 }
 
-bool ModelModifier::areProcessChainsEqual(list<Process*> first,
+bool ProcessnetworkModifier::areProcessChainsEqual(list<Process*> first,
                                           list<Process*> second)
     throw(IOException, RuntimeException) {
     if (first.size() != second.size()) {
@@ -622,7 +622,7 @@ bool ModelModifier::areProcessChainsEqual(list<Process*> first,
     return true;
 }
 
-list<Process*> ModelModifier::getProcessChain(Process::Port* start,
+list<Process*> ProcessnetworkModifier::getProcessChain(Process::Port* start,
                                               Process* end)
     throw(OutOfMemoryException) {
     logger_.logDebugMessage(string("Getting process chain from \"")
@@ -632,7 +632,7 @@ list<Process*> ModelModifier::getProcessChain(Process::Port* start,
     return getProcessChainR(start, end, visited);
 }
 
-list<Process*> ModelModifier::getProcessChainR(Process::Port* start,
+list<Process*> ProcessnetworkModifier::getProcessChainR(Process::Port* start,
                                                Process* end, set<Id>& visited)
     throw(OutOfMemoryException) {
     try {
@@ -680,7 +680,7 @@ list<Process*> ModelModifier::getProcessChainR(Process::Port* start,
     }
 }
 
-list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains()
+list< list<ParallelMap*> > ProcessnetworkModifier::findParallelMapSyChains()
     throw(IOException, RuntimeException) {
     list< list<ParallelMap*> > chains;
     set<Id> visited;
@@ -695,7 +695,7 @@ list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains()
     return chains;
 }
 
-list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains(
+list< list<ParallelMap*> > ProcessnetworkModifier::findParallelMapSyChains(
     Process* begin, set<Id>& visited) throw(IOException, RuntimeException) {
     list< list<ParallelMap*> > chains;
     if (visitProcess(visited, begin)) {
@@ -712,7 +712,7 @@ list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains(
 
             list<ParallelMap*> chain;
             while (parallelmapsy) {
-                // Since we are searching the model from outputs to inputs,
+                // Since we are searching the processnetwork from outputs to inputs,
                 // the process must be added to the processnetwork of the list to avoid the
                 // chain from being reversed
                 chain.push_front(parallelmapsy);
@@ -747,7 +747,7 @@ list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains(
     return chains;
 }
 
-void ModelModifier::coalesceProcessChain(list<Process*> chain)
+void ProcessnetworkModifier::coalesceProcessChain(list<Process*> chain)
     throw(RuntimeException) {
     // Build function argument list
     list<CFunction> functions;
@@ -764,7 +764,7 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
     
     redirectDataFlow(chain.front(), chain.back(), new_process, new_process);
 
-    // Add new process to the model
+    // Add new process to the processnetwork
     if (processnetwork_->addProcess(new_process)) {
         logger_.logInfoMessage(string("Process chain ")
                                + processChainToString(chain)
@@ -779,13 +779,13 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
                         + "\" already existed");
     }
 
-    // Destroy and delete the section from the model
+    // Destroy and delete the section from the processnetwork
     logger_.logDebugMessage(string("Destroying process chain ")
                             + processChainToString(chain) + "...");
     destroyProcessChain(chain.front());
 }
 
-bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMap*> chain)
+bool ProcessnetworkModifier::isParallelMapSyChainCoalescable(list<ParallelMap*> chain)
     throw(RuntimeException) {
     if (chain.size() <= 1) {
         logger_.logInfoMessage(string("ParallelMap chain ")
@@ -843,7 +843,7 @@ bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMap*> chain)
     return true;
 }
 
-void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
+void ProcessnetworkModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
     throw(RuntimeException) {
     // Build function argument list
     list<CFunction> functions;
@@ -861,7 +861,7 @@ void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
     
     redirectDataFlow(chain.front(), chain.back(), new_process, new_process);
 
-    // Add new process to the model
+    // Add new process to the processnetwork
     if (processnetwork_->addProcess(new_process)) {
         logger_.logInfoMessage(string("Process chain ")
                                + processChainToString(chain)
@@ -876,13 +876,13 @@ void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
                         + "\" already existed");
     }
 
-    // Destroy and delete the section from the model
+    // Destroy and delete the section from the processnetwork
     logger_.logDebugMessage(string("Destroying process chain ")
                             + processChainToString(chain) + "...");
     destroyProcessChain(chain.front());
 }
 
-string ModelModifier::processChainToString(list<Process*> chain) const throw() {
+string ProcessnetworkModifier::processChainToString(list<Process*> chain) const throw() {
     string str;
     list<Process*>::iterator it;
     bool first = true;
@@ -894,7 +894,7 @@ string ModelModifier::processChainToString(list<Process*> chain) const throw() {
     return str;
 }
 
-string ModelModifier::processChainToString(list<ParallelMap*> chain)
+string ProcessnetworkModifier::processChainToString(list<ParallelMap*> chain)
     const throw() {
     list<Process*> new_list;
     list<ParallelMap*>::iterator it;
@@ -904,7 +904,7 @@ string ModelModifier::processChainToString(list<ParallelMap*> chain)
     return processChainToString(new_list);
 }
 
-void ModelModifier::destroyProcessChain(ForSyDe::Process* start)
+void ProcessnetworkModifier::destroyProcessChain(ForSyDe::Process* start)
     throw(InvalidArgumentException) {
     if (!start) {
         THROW_EXCEPTION(InvalidArgumentException, "\"start\" must not be NULL");
@@ -920,7 +920,7 @@ void ModelModifier::destroyProcessChain(ForSyDe::Process* start)
     processnetwork_->deleteProcess(*start->getId());
 }
 
-void ModelModifier::splitDataParallelSegments(
+void ProcessnetworkModifier::splitDataParallelSegments(
     vector< vector<ForSyDe::Process*> > chains)
     throw(IOException, RuntimeException) {
     try {
@@ -994,7 +994,7 @@ void ModelModifier::splitDataParallelSegments(
                 right_map_in_port->connect(unzipx_out_port);
             }
 
-            // Add new processes to the model
+            // Add new processes to the processnetwork
             if (!processnetwork_->addProcess(new_zipx)) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "new process: Process with ID "
@@ -1012,7 +1012,7 @@ void ModelModifier::splitDataParallelSegments(
                                     + new_zipx->getId()->getString()
                                     + "\" and \""
                                     + new_unzipx->getId()->getString()
-                                    + "\" added to the model");
+                                    + "\" added to the processnetwork");
         }
     }
     catch (std::out_of_range&) {
@@ -1020,7 +1020,7 @@ void ModelModifier::splitDataParallelSegments(
     }
 }
 
-ModelModifier::ContainedSection::ContainedSection(Process* start, Process* end)
+ProcessnetworkModifier::ContainedSection::ContainedSection(Process* start, Process* end)
         throw(InvalidArgumentException) : start(start), end(end) {
     if (!start) {
         THROW_EXCEPTION(InvalidArgumentException, "\"start\" must not be NULL");
@@ -1030,12 +1030,12 @@ ModelModifier::ContainedSection::ContainedSection(Process* start, Process* end)
     }
 }
 
-string ModelModifier::ContainedSection::toString() const throw() {
+string ProcessnetworkModifier::ContainedSection::toString() const throw() {
     return string("\"") + start->getId()->getString() + "--" + 
         end->getId()->getString() + "\"";
 }
 
-void ModelModifier::redirectDataFlow(Process* old_start, Process* old_end,
+void ProcessnetworkModifier::redirectDataFlow(Process* old_start, Process* old_end,
                                      Process* new_start, Process* new_end)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!old_start) {
@@ -1106,7 +1106,7 @@ void ModelModifier::redirectDataFlow(Process* old_start, Process* old_end,
     }
 }
 
-void ModelModifier::replaceProcessnetworkInput(Process::Port* old_port,
+void ProcessnetworkModifier::replaceProcessnetworkInput(Process::Port* old_port,
                                       Process::Port* new_port)
     throw(RuntimeException) {
     list<Process::Port*> inputs(processnetwork_->getInputs());
@@ -1120,7 +1120,7 @@ void ModelModifier::replaceProcessnetworkInput(Process::Port* old_port,
     }
 }
 
-void ModelModifier::replaceProcessnetworkOutput(Process::Port* old_port,
+void ProcessnetworkModifier::replaceProcessnetworkOutput(Process::Port* old_port,
                                        Process::Port* new_port)
     throw(RuntimeException) {
     list<Process::Port*> outputs(processnetwork_->getOutputs());
@@ -1134,7 +1134,7 @@ void ModelModifier::replaceProcessnetworkOutput(Process::Port* old_port,
     }
 }
 
-bool ModelModifier::visitProcess(set<Id>& visited, Process* process)
+bool ProcessnetworkModifier::visitProcess(set<Id>& visited, Process* process)
     throw(RuntimeException) {
     return visited.insert(*process->getId()).second;
 }

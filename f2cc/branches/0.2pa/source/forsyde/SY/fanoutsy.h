@@ -48,7 +48,7 @@ namespace SY {
  *        signals.
  *
  * The \c fanout process is a special process whose only purpose is to copy the
- * value on the input signal to all of its output signals. The internal model
+ * value on the input signal to all of its output signals. The internal processnetwork
  * does no allow a port to be connected to multiple other ports. However,
  * ForSyDe itself does allow multiple signals to retrieve its values from the
  * same source. Thus, during parsing when encountering such instances, an

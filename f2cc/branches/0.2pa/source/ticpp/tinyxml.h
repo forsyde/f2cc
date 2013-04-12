@@ -602,7 +602,7 @@ public:
 		NOTE: the node to be added is passed by pointer, and will be
 		henceforth owned (and deleted) by tinyXml. This method is efficient
 		and avoids an extra copy, but should be used with care as it
-		uses a different memory model than the other insert functions.
+		uses a different memory processnetwork than the other insert functions.
 
 		@sa InsertEndChild
 	*/
@@ -791,7 +791,7 @@ private:
 	number of attributes, each with a unique name.
 
 	@note The attributes are not TiXmlNodes, since they are not
-		  part of the tinyXML document object model. There are other
+		  part of the tinyXML document object processnetwork. There are other
 		  suggested ways to look at this problem.
 */
 class TiXmlAttribute : public TiXmlBase

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,30 +34,34 @@
  * @version 0.1
  *
  * @brief Defines the base class for a composite process in the internal
- *        representation of ForSyDe models.
+ *        representation of ForSyDe processnetworks.
  */
 
 #include "id.h"
 #include "model.h"
+#include "process.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/notsupportedexception.h"
 #include "../exceptions/invalidprocessexception.h"
 #include "../exceptions/invalidformatexception.h"
 #include "../exceptions/invalidargumentexception.h"
 #include <list>
+#include <utility>
+
 
 namespace f2cc {
 namespace ForSyDe {
 
+
 /**
  * @brief Base class for composite processes in the internal representation of ForSyDe
- * models.
+ * processnetworks.
  *
  * \c Composite is a base class for composite processes in internal representation
- * of ForSyDe models. It inherits the Model class, hence it encapsulates a list of processes, but has
+ * of ForSyDe processnetworks. It inherits the Processnetwork class, hence it encapsulates a list of processes, but has
  * a unique ID
  */
-class Composite : public Model {
+class Composite : public Model, public Process {
   public:
     /**
      * Creates a composite process.
@@ -71,25 +77,17 @@ class Composite : public Model {
     virtual ~Composite() throw();
 
     /**
-     * Gets the ID of this composite process.
-     *
-     * @returns Process ID.
-     */
-    const ForSyDe::Id* getId() const throw();
-
-    /**
      * Converts this composite process into a string representation. The resultant string
      * is as follows:
      * @code
      * {
-     *  Composite Process: <process_id>,
      *  List of Processes : {...}
-     * }
      * @endcode
      *
-     * @returns String representation.
+     * @returns Additional string representation data.
+     * @see toString()
      */
-    virtual std::string toString() const throw();
+    virtual std::string moreToString() const throw();
 
     /**
 	 * Returns a string with all the process IDs
@@ -106,12 +104,6 @@ class Composite : public Model {
      */
     void check() throw(InvalidProcessException);
 
-
-  private:
-    /**
-     * Process ID.
-     */
-    const ForSyDe::Id id_;
 
 };
 

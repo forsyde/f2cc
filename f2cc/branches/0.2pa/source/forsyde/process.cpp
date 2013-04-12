@@ -34,7 +34,7 @@ using std::list;
 using std::bad_alloc;
 using std::vector;
 
-Process::Process(const Id& id) throw() : id_(id) {}
+Process::Process(const Id& id, const Id& parent) throw() : id_(id), parent_ (parent) {}
 
 Process::~Process() throw() {
     destroyAllPorts(in_ports_);
@@ -43,6 +43,10 @@ Process::~Process() throw() {
 
 const Id* Process::getId() const throw() {
     return &id_;
+}
+
+const Id* Process::getParent() const throw() {
+    return &parent_;
 }
 
 bool Process::addInPort(const Id& id) throw(OutOfMemoryException) {
@@ -168,6 +172,9 @@ string Process::toString() const throw() {
     str += " ProcessType: ";
     str += type();
     str += ",\n";
+    str += " Parent: ";
+	str += (getId()!=NULL) ? getParent()->getString() : "The Process Network's Top Module";
+	str += ",\n";
     str += " NumInPorts: ";
     str += tools::toString(getNumInPorts());
     str += ",\n";

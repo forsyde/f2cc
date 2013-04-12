@@ -56,34 +56,34 @@ namespace ForSyDe {
  * @brief Performs semantic-preserving modifications on a \c Processnetwork
  *        object.
  *
- * The \c ModelModifier is a class which provides a set of model modification
+ * The \c ProcessnetworkModifier is a class which provides a set of processnetwork modification
  * methods. The modifications are such that they preserve the semantics of the
- * model, and are used to simplify the latter synthesis process or affect the
+ * processnetwork, and are used to simplify the latter synthesis process or affect the
  * structure of the generated code (i.e. whether to generate sequential C code
  * or parallel CUDA C code).
  */
-class ModelModifier {
+class ProcessnetworkModifier {
   private:
     class ContainedSection;
 
   public:
     /**
-     * Creates a model modifier.
+     * Creates a processnetwork modifier.
      *
-     * @param model
-     *        ForSyDe model.
+     * @param processnetwork
+     *        ForSyDe processnetwork.
      * @param logger
      *        Reference to the logger.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
+     *         When \c processnetwork is \c NULL.
      */
-    ModelModifier(ForSyDe::Processnetwork* model, Logger& logger)
+    ProcessnetworkModifier(ForSyDe::Processnetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
-     * Destroys this model modifier. The logger remains open.
+     * Destroys this processnetwork modifier. The logger remains open.
      */
-    ~ModelModifier() throw();
+    ~ProcessnetworkModifier() throw();
 
     /**
      * Coalesces data parallel processes across different segments into a
@@ -99,7 +99,7 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Coalesces \c ParallelMap processes within the model into a single
+     * Coalesces \c ParallelMap processes within the processnetwork into a single
      * process.
      *
      * @throws IOException
@@ -158,8 +158,8 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Removes redundant processes from the model. Redundant processes are
-     * instances which does not affect the semantic behaviour of the model when
+     * Removes redundant processes from the processnetwork. Redundant processes are
+     * instances which does not affect the semantic behaviour of the processnetwork when
      * removed, such as \c unzipxSy and \c zipxSy processes with only one in
      * and out port.
      *
@@ -191,7 +191,7 @@ class ModelModifier {
             throw(IOException, RuntimeException);
 
     /**
-     * Searches for data parallel sections within the model. A data parallel
+     * Searches for data parallel sections within the processnetwork. A data parallel
      * section is a section which is both contained and passes the check
      * performed in isContainedSectionDataParallel(const ContainedSection&).
      *
@@ -206,8 +206,8 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Searches for contained sections within the model. A contained section is
-     * a part of the model which:
+     * Searches for contained sections within the processnetwork. A contained section is
+     * a part of the processnetwork which:
      *   - start with a \c unzipx process, and
      *   - ends with a \c zipx process, where
      *   - all data flow diverging from the starting point converges at the end
@@ -411,7 +411,7 @@ class ModelModifier {
     /**
      * Coalesces a process chain into a single new process. The process chain
      * \em must be ordered such that the output of a process is consumed by the
-     * following process. The old processes will be removed from the model and
+     * following process. The old processes will be removed from the processnetwork and
      * replaced by the new process.
      * 
      * @param chain
@@ -440,7 +440,7 @@ class ModelModifier {
         std::list<ForSyDe::SY::ParallelMap*> chain) throw(RuntimeException);
 
     /**
-     * Searches for chains for \c ParallelMap processes within the model.
+     * Searches for chains for \c ParallelMap processes within the processnetwork.
      *
      * @returns List of \c ParallelMap process chains.
      * @throws IOException
@@ -477,7 +477,7 @@ class ModelModifier {
      * Coalesces a chain of \c ParallelMap processes into a single new
      * process. The process chain \em must be ordered such that the output of a
      * process is consumed by the following process. The old processes will be
-     * removed from the model and replaced by the new process.
+     * removed from the processnetwork and replaced by the new process.
      * 
      * @param chain
      *        Process chain.
@@ -506,7 +506,7 @@ class ModelModifier {
 
     /**
      * Removes and destroys a process and all its succeeding processes from the
-     * model.
+     * processnetwork.
      *
      * @param start
      *        Start of process chain to destroy.
@@ -521,7 +521,7 @@ class ModelModifier {
      * processes \e C and \e D. The data flow is redirected by adding the in
      * ports of \e A to \e C, and the out ports of \e B to \e D. This will
      * break all connections to \e A and from \e B, thus unconnecting that
-     * segment from the model (but it does \em not delete it). Processes \e C
+     * segment from the processnetwork (but it does \em not delete it). Processes \e C
      * and \e D can be the same process.
      *
      * @param old_start
@@ -546,7 +546,7 @@ class ModelModifier {
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Replaces the old port, if set as part of the inputs for the model, with
+     * Replaces the old port, if set as part of the inputs for the processnetwork, with
      * the new port.
      * 
      * @param old_port
@@ -635,7 +635,7 @@ class ModelModifier {
 
   private:
     /**
-     * ForSyDe model.
+     * ForSyDe processnetwork.
      */
     ForSyDe::Processnetwork* const processnetwork_;
 

@@ -54,11 +54,11 @@
 namespace f2cc {
 
 /**
- * @brief A class for parsing a GraphML file into an internal ForSyDe model
+ * @brief A class for parsing a GraphML file into an internal ForSyDe processnetwork
  *        representation.
  *
  * The \c XmlParser is a frontend to the \c f2cc which parses an XML
- * representation of a ForSyDe model and converts it into an internal
+ * representation of a ForSyDe processnetwork and converts it into an internal
  * equivalent. Any unrecognized elements in the XML file will be ignored.
  *
  * The class uses <a href="http://code.google.com/p/ticpp/">TinyXML++</a> for
@@ -85,7 +85,7 @@ class XmlParser : public Frontend {
      */
     virtual ForSyDe::Processnetwork* createProcessnetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidModelException, RuntimeException);
+              ParseException, InvalidProcessnetworkException, RuntimeException);
 
     /**
      * Gets a list of elements with a particular name which are immediate
@@ -158,20 +158,20 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Converts an \c graph XML element into an internal ForSyDe model. The
-     * method makes no checks on whether the resultant model appears sane or
-     * not.  It is the caller's responsibility to destroy the model when it is
+     * Converts an \c graph XML element into an internal ForSyDe processnetwork. The
+     * method makes no checks on whether the resultant processnetwork appears sane or
+     * not.  It is the caller's responsibility to destroy the processnetwork when it is
      * no longer used.
      *
      * @param xml
-     *        \c graph XML element containing the model.
-     * @returns Internal ForSyDe model object.
+     *        \c graph XML element containing the processnetwork.
+     * @returns Internal ForSyDe processnetwork object.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
-     * @throws InvalidModelException
-     *         When the model is invalid (but was successfully parsed).
+     * @throws InvalidProcessnetworkException
+     *         When the processnetwork is invalid (but was successfully parsed).
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -179,20 +179,20 @@ class XmlParser : public Frontend {
      *         bug.
      */
     ForSyDe::Processnetwork* generateProcessnetwork(ticpp::Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidModelException,
+    throw(InvalidArgumentException, ParseException, InvalidProcessnetworkException,
           IOException, RuntimeException);
 
     /**
      * Parses the \c node XML elements in a \c graph XML element and converts
-     * them into corresponding processes, which are then added to the model.
+     * them into corresponding processes, which are then added to the processnetwork.
      * mapset.
      *
      * @param xml
      *        \c graph XML element containing the \c node XML elements.
-     * @param model
+     * @param processnetwork
      *        Processnetwork object to add the process to.
      * @throws InvalidArgumentException
-     *         When \c xml or \c model is \c NULL.
+     *         When \c xml or \c processnetwork is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
      * @throws IOException
@@ -201,23 +201,23 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlNodes(ticpp::Element* xml, ForSyDe::Processnetwork* model)
+    void parseXmlNodes(ticpp::Element* xml, ForSyDe::Processnetwork* processnetwork)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
     /**
      * Parses the \c edge XML elements in a \c graph XML element and uses them
-     * to connect the ports of the processes in the model.
+     * to connect the ports of the processes in the processnetwork.
      *
      * @param xml
      *        \c graph XML element containing the \c edge XML elements.
-     * @param model
+     * @param processnetwork
      *        Processnetwork object.
      * @param copy_processes
      *        combset which contains the \c fanout processes created during the
      *        parsing process.
      * @throws InvalidArgumentException
-     *         When \c xml or \c model is \c NULL.
+     *         When \c xml or \c processnetwork is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
      * @throws IOException
@@ -226,49 +226,49 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlEdges(ticpp::Element* xml, ForSyDe::Processnetwork* model,
+    void parseXmlEdges(ticpp::Element* xml, ForSyDe::Processnetwork* processnetwork,
                        std::map<ForSyDe::Process::Port*, ForSyDe::Process*>&
                        copy_processes)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
     /**
-     * Verifies that all in and out ports of all processes in the model are
-     * connected, and only connected to processes within the model.
+     * Verifies that all in and out ports of all processes in the processnetwork are
+     * connected, and only connected to processes within the processnetwork.
      *
-     * @param model
+     * @param processnetwork
      *        Processnetwork to verify.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
+     *         When \c processnetwork is \c NULL.
      * @throws ParseException
      *         When a port is not connected or connected to a process which does
-     *         not belong to the model.
+     *         not belong to the processnetwork.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void verifyProcessConnections(ForSyDe::Processnetwork* model)
+    void verifyProcessConnections(ForSyDe::Processnetwork* processnetwork)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
     /**
      * Sets the out and in ports of the InPort and OutPort processes,
-     * respectively, as inputs and outputs of the model. The InPort and
+     * respectively, as inputs and outputs of the processnetwork. The InPort and
      * Outport processes are then removed.
      *
-     * @param model
+     * @param processnetwork
      *        Processnetwork.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
+     *         When \c processnetwork is \c NULL.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void fixProcessnetworkInputsOutputs(ForSyDe::Processnetwork* model)
+    void fixProcessnetworkInputsOutputs(ForSyDe::Processnetwork* processnetwork)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
@@ -532,13 +532,13 @@ class XmlParser : public Frontend {
      *
      * @param xml
      *        \c edge element containing the connection.
-     * @param model
+     * @param processnetwork
      *        Processnetwork object to add the process to.
      * @param copy_processes
      *        combset which contains the \c fanout processes created during the
      *        parsing process.
      * @throws InvalidArgumentException
-     *         When \c xml or \c model is \c NULL.
+     *         When \c xml or \c processnetwork is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
      * @throws IOException
@@ -547,7 +547,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void generateConnection(ticpp::Element* xml, ForSyDe::Processnetwork* model,
+    void generateConnection(ticpp::Element* xml, ForSyDe::Processnetwork* processnetwork,
                             std::map<ForSyDe::Process::Port*,
                                      ForSyDe::Process*>& copy_processes)
         throw(InvalidArgumentException, ParseException, IOException,
@@ -590,13 +590,13 @@ class XmlParser : public Frontend {
 
     /**
      * Checks that there is at least one InPort and at least one OutPort process
-     * within the model.
+     * within the processnetwork.
      *
-     * @param model
+     * @param processnetwork
      *        Processnetwork to check.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
-     * @throws InvalidModelException
+     *         When \c processnetwork is \c NULL.
+     * @throws InvalidProcessnetworkException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -604,26 +604,26 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkProcessnetworkMore(ForSyDe::Processnetwork* model)
-        throw(InvalidArgumentException, InvalidModelException, IOException,
+    void checkProcessnetworkMore(ForSyDe::Processnetwork* processnetwork)
+        throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
               RuntimeException);
 
     /**
      * Sets the out and in ports of the InPort and OutPort processes,
-     * respectively, as inputs and outputs of the model. The InPort and
+     * respectively, as inputs and outputs of the processnetwork. The InPort and
      * Outport processes are then removed.
      *
-     * @param model
+     * @param processnetwork
      *        Processnetwork to fix.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
+     *         When \c processnetwork is \c NULL.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void postCheckFixes(ForSyDe::Processnetwork* model)
+    void postCheckFixes(ForSyDe::Processnetwork* processnetwork)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
   private:

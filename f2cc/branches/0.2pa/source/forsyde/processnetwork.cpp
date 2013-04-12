@@ -23,7 +23,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "processnetwork.h"
+#include "model.h"
 #include "../tools/tools.h"
 #include <map>
 #include <list>
@@ -36,13 +36,13 @@ using std::list;
 using std::pair;
 using std::bad_alloc;
 
-Processnetwork::Processnetwork() throw() {}
+Model::Model() throw() {}
 
-Processnetwork::~Processnetwork() throw() {
+Model::~Model() throw() {
     destroyAllProcesses();
 }
 
-bool Processnetwork::addInput(Process::Port* port)
+bool Model::addInput(Process::Port* port)
     throw(InvalidArgumentException, IllegalStateException,
           OutOfMemoryException) {
     if (!port) {
@@ -61,7 +61,7 @@ bool Processnetwork::addInput(Process::Port* port)
     }
 }
 
-bool Processnetwork::deleteInput(Process::Port* port) throw(InvalidArgumentException) {
+bool Model::deleteInput(Process::Port* port) throw(InvalidArgumentException) {
     list<Process::Port*>::iterator it = findPort(port, inputs_);
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
@@ -76,15 +76,15 @@ bool Processnetwork::deleteInput(Process::Port* port) throw(InvalidArgumentExcep
     }
 }
 
-int Processnetwork::getNumInputs() const throw() {
+int Model::getNumInputs() const throw() {
     return inputs_.size();
 }
 
-std::list<Process::Port*> Processnetwork::getInputs() throw() {
+std::list<Process::Port*> Model::getInputs() throw() {
     return inputs_;
 }
 
-bool Processnetwork::addOutput(Process::Port* port)
+bool Model::addOutput(Process::Port* port)
     throw(InvalidArgumentException, IllegalStateException,
           OutOfMemoryException) {
     if (!port) {
@@ -103,7 +103,7 @@ bool Processnetwork::addOutput(Process::Port* port)
     }
 }
 
-bool Processnetwork::deleteOutput(Process::Port* port) throw(InvalidArgumentException) {
+bool Model::deleteOutput(Process::Port* port) throw(InvalidArgumentException) {
     list<Process::Port*>::iterator it = findPort(port, outputs_);
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
@@ -118,15 +118,15 @@ bool Processnetwork::deleteOutput(Process::Port* port) throw(InvalidArgumentExce
     }
 }
 
-int Processnetwork::getNumOutputs() const throw() {
+int Model::getNumOutputs() const throw() {
     return outputs_.size();
 }
 
-std::list<Process::Port*> Processnetwork::getOutputs() throw() {
+std::list<Process::Port*> Model::getOutputs() throw() {
     return outputs_;
 }
 
-list<Process::Port*>::iterator Processnetwork::findPort(
+list<Process::Port*>::iterator Model::findPort(
     const Id& id, list<Process::Port*>& ports) const throw() {
     list<Process::Port*>::iterator it;
     for (it = ports.begin(); it != ports.end(); ++it) {
@@ -139,7 +139,7 @@ list<Process::Port*>::iterator Processnetwork::findPort(
     return it;
 }
 
-list<Process::Port*>::iterator Processnetwork::findPort(
+list<Process::Port*>::iterator Model::findPort(
     Process::Port* port, std::list<Process::Port*>& ports) const throw() {
     list<Process::Port*>::iterator it;
     for (it = ports.begin(); it != ports.end(); ++it) {
@@ -152,10 +152,10 @@ list<Process::Port*>::iterator Processnetwork::findPort(
     return it;
 }
 
-std::string Processnetwork::toString() const throw() {
+std::string Model::toString() const throw() {
     string str;
     str += "{\n";
-    str += " Processnetwork Module\n";
+    str += " Model Module\n";
     str += " NumInputs: ";
     str += tools::toString(getNumInputs());
     str += ",\n";
@@ -173,7 +173,7 @@ std::string Processnetwork::toString() const throw() {
     return str;
 }
 
-string Processnetwork::portsToString(const list<Process::Port*> ports) const throw() {
+string Model::portsToString(const list<Process::Port*> ports) const throw() {
     string str;
     if (ports.size() > 0) {
         str += "\n";

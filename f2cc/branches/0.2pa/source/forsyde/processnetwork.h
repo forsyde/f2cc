@@ -36,6 +36,7 @@
 
 #include "id.h"
 #include "model.h"
+#include "process.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"

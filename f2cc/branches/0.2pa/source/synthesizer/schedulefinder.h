@@ -59,8 +59,8 @@ namespace f2cc {
  * schedule for a given instance of a \c ForSyDe::Processnetwork.
  *
  * The algorithm is a recursive DFS algorithm which traverses over the processes
- * in the model. It starts by building a \em starting \em point \em queue,
- * containing all processes connected directly to the model outputs. It then
+ * in the processnetwork. It starts by building a \em starting \em point \em queue,
+ * containing all processes connected directly to the processnetwork outputs. It then
  * pops a process from the head of the queue, and creates a \em partial \em
  * process \em schedule. The partial process schedule is created by recursively
  * traversing upwards along the data flow, moving via the in ports (\c
@@ -73,13 +73,13 @@ namespace f2cc {
  * already-visited process is reached, then an empty schedule is returned and
  * the function stack starts to rewind.
  *
- * This works very well as long as the model contains no loops. However, if it
+ * This works very well as long as the processnetwork contains no loops. However, if it
  * does, then more needs to be done to get a correct schedule. First, the
  * visited process set is split into a \em global and a \em local set. Whenever
  * a process is popped from the starting point queue, the local set is reset,
  * and once the partial search has finished for that starting point process, the
  * local set is added to the global set. In addition to halting the search
- * whenever no more traversing can be done (i.e. when reaching a model input)
+ * whenever no more traversing can be done (i.e. when reaching a processnetwork input)
  * and when a process has already been visited, the search also halts whenever a
  * delay element is hit. In such instances, the preceding process (if any) is
  * added to the starting point queue, the delay element is added to the partial
@@ -87,7 +87,7 @@ namespace f2cc {
  *
  * Lastly, for a given partial schedule, we need to know where to insert it
  * into the final schedule. If the partial search was halted due to hitting a
- * model input, then the partial schedule is inserted at the beginning of the
+ * processnetwork input, then the partial schedule is inserted at the beginning of the
  * schedule. If the partial search was halted due to hitting a globally-visited
  * process \em P, then the partial schedule is inserted after the process \em P
  * in the schedule.
@@ -100,14 +100,14 @@ class ScheduleFinder {
     /**
      * Creates a schedule finder.
      *
-     * @param model
-     *        ForSyDe model.
+     * @param processnetwork
+     *        ForSyDe processnetwork.
      * @param logger
      *        Reference to the logger object.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
+     *         When \c processnetwork is \c NULL.
      */
-    ScheduleFinder(ForSyDe::Processnetwork* model, Logger& logger)
+    ScheduleFinder(ForSyDe::Processnetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
@@ -116,7 +116,7 @@ class ScheduleFinder {
     ~ScheduleFinder() throw();
 
     /**
-     * Finds a process schedule for the model. The schedule is such that if the
+     * Finds a process schedule for the processnetwork. The schedule is such that if the
      * processes are executed one by one the result will be the same as if the
      * perfect synchrony hypothesis still applied.
      *
@@ -133,7 +133,7 @@ class ScheduleFinder {
 
     /**
      * Finds a partial schedule for unvisited processes when traversing from a
-     * given process to an input port of the model.
+     * given process to an input port of the processnetwork.
      *
      * See detailed class description for information on how the algorithm
      * works.
@@ -176,7 +176,7 @@ class ScheduleFinder {
 
   private:
     /**
-     * ForSyDe model.
+     * ForSyDe processnetwork.
      */
     ForSyDe::Processnetwork* const processnetwork_;
 

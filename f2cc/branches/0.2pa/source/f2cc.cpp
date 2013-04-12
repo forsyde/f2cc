@@ -44,7 +44,7 @@
 #include "frontend/xmlparser.h"
 #include "forsyde/processnetwork.h"
 #include "forsyde/process.h"
-#include "forsyde/modelmodifier.h"
+#include "forsyde/processnetworkmodifier.h"
 #include "synthesizer/synthesizer.h"
 #include "exceptions/exception.h"
 #include "exceptions/ioexception.h"
@@ -65,16 +65,16 @@ using std::endl;
 using std::list;
 using std::set;
 
-string getProcessnetworkInfo(Processnetwork* model) {
+string getProcessnetworkInfo(Processnetwork* processnetwork) {
     string info;
     info += "Number of processes: ";
-    info += tools::toString(model->getNumProcesses());
+    info += tools::toString(processnetwork->getNumProcesses());
     info += "\n";
     info += "Number of inputs: ";
-    info += tools::toString(model->getNumInputs());
+    info += tools::toString(processnetwork->getNumInputs());
     info += "\n";
     info += "Number of outputs: ";
-    info += tools::toString(model->getNumOutputs());
+    info += tools::toString(processnetwork->getNumOutputs());
     return info;
 }
 
@@ -86,7 +86,7 @@ int main(int argc, const char* argv[]) {
     const string critical_error_str("CRITICAL PROGRAM ERROR:\n");
 
     string header = string()
-        + "f2cc - A CUDA C synthesizer for ForSyDe models\n\n";
+        + "f2cc - A CUDA C synthesizer for ForSyDe processnetworks\n\n";
     cout << header;
 
     // Get configuration
@@ -153,11 +153,11 @@ int main(int argc, const char* argv[]) {
             logger.logInfoMessage(string("MODEL INPUT FILE: ")
                                   + config.getInputFile());
             logger.logInfoMessage("Parsing input file...");
-            Processnetwork* model = parser->parse(config.getInputFile());
+            Processnetwork* processnetwork = parser->parse(config.getInputFile());
             delete parser;
 
             string processnetwork_info_message("MODEL INFO:\n");
-            processnetwork_info_message += getProcessnetworkInfo(model);
+            processnetwork_info_message += getProcessnetworkInfo(processnetwork);
             logger.logInfoMessage(processnetwork_info_message);
 
             string target_platform_message("TARGET PLATFORM: ");
@@ -174,8 +174,8 @@ int main(int argc, const char* argv[]) {
             }
             logger.logInfoMessage(target_platform_message);
 
-            // Make model modifications, if necessary
-            ModelModifier modifier(model, logger);
+            // Make processnetwork modifications, if necessary
+            ProcessnetworkModifier modifier(processnetwork, logger);
             logger.logInfoMessage("Removing redundant processes...");
             modifier.removeRedundantProcesses();
             logger.logInfoMessage("Converting comb processes "
@@ -215,11 +215,11 @@ int main(int argc, const char* argv[]) {
                 }
             }
             processnetwork_info_message = "NEW MODEL INFO:\n";
-            processnetwork_info_message += getProcessnetworkInfo(model);
+            processnetwork_info_message += getProcessnetworkInfo(processnetwork);
             logger.logInfoMessage(processnetwork_info_message);
 
             // Generate code and write to file
-            Synthesizer synthesizer(model, logger, config);
+            Synthesizer synthesizer(processnetwork, logger, config);
             Synthesizer::CodeSet code;
             switch (config.getTargetPlatform()) {
                 case Config::C: {
@@ -241,14 +241,14 @@ int main(int argc, const char* argv[]) {
             logger.logInfoMessage("MODEL NTHESIS COMPLETE");
 
             // Clean up
-            delete model;
+            delete processnetwork;
             logger.logDebugMessage("Closing logger...");
             logger.close();
         } catch (FileNotFoundException& ex) {
             logger.logErrorMessage(ex.getMessage());
         } catch (ParseException& ex) {
             logger.logErrorMessage(parse_error_str + ex.getMessage());
-        } catch (InvalidModelException& ex) {
+        } catch (InvalidProcessnetworkException& ex) {
             logger.logErrorMessage(processnetwork_error_str + ex.getMessage());
         } catch (IOException& ex) {
             logger.logErrorMessage(io_error_str + ex.getMessage());

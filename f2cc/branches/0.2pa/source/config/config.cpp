@@ -59,12 +59,12 @@ string Config::getHelpMenu() const throw() {
         + "\n";
 
     part = "This tool is part of the ForSyDe framework for synthesizing "
-        "programs modeled at a high level of abstraction into compilable C or "
+        "programs processnetworked at a high level of abstraction into compilable C or "
         "CUDA C code. The synthesis process is semantic-preserving which means "
-        "that a model which is proven to be correct will also yield correct C "
+        "that a processnetwork which is proven to be correct will also yield correct C "
         "or CUDA C code.\n"
         "\n"
-        "The tool expects the model to be represented as a GraphML file. "
+        "The tool expects the processnetwork to be represented as a GraphML file. "
         "Currently, the tool supports the following processes:\n";
     tools::breakLongLines(part, maximum_line_length, 0);
     part += ""
@@ -99,7 +99,7 @@ string Config::getHelpMenu() const throw() {
     part = "   -no-pc, --no-process-coalescing\n"
         "      CUDA ONLY. Specifies that the tool should not coalesce "
         "processes, even "
-        "when it is possible to do so for the given input model."
+        "when it is possible to do so for the given input processnetwork."
         "\n\n";
     tools::breakLongLines(part, maximum_line_length, indents);
     str += part;

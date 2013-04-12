@@ -39,57 +39,57 @@ Frontend::~Frontend() throw() {}
 
 Processnetwork* Frontend::parse(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidModelException, RuntimeException) {
+          ParseException, InvalidProcessnetworkException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
     }
 
-    Processnetwork* model = createProcessnetwork(file);
+    Processnetwork* processnetwork = createProcessnetwork(file);
 
-    logger_.logInfoMessage("Checking that the internal model is sane...");
-    checkProcessnetwork(model);
+    logger_.logInfoMessage("Checking that the internal processnetwork is sane...");
+    checkProcessnetwork(processnetwork);
     logger_.logInfoMessage("All checks passed");
 
     logger_.logInfoMessage("Running post-check fixes...");
-    postCheckFixes(model);
+    postCheckFixes(processnetwork);
     logger_.logInfoMessage("Post-check fixes done");
 
-    ensureNoInPorts(model);
-    ensureNoOutPorts(model);
+    ensureNoInPorts(processnetwork);
+    ensureNoOutPorts(processnetwork);
 
-    return model;
+    return processnetwork;
 }
 
-void Frontend::checkProcessnetwork(Processnetwork* model)
-    throw(InvalidArgumentException, InvalidModelException, IOException,
+void Frontend::checkProcessnetwork(Processnetwork* processnetwork)
+    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
           RuntimeException) {
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
     // Check processes
-    list<Process*> processes = model->getProcesses();
+    list<Process*> processes = processnetwork->getProcesses();
     list<Process*>::iterator process_it;
     for (process_it = processes.begin(); process_it != processes.end();
          ++process_it) {
-        checkProcess(*process_it, model);
+        checkProcess(*process_it, processnetwork);
     }
 
-    logger_.logInfoMessage("Running additional model checks...");
-    checkProcessnetworkMore(model);
-    logger_.logInfoMessage("Additional model checks passed");    
+    logger_.logInfoMessage("Running additional processnetwork checks...");
+    checkProcessnetworkMore(processnetwork);
+    logger_.logInfoMessage("Additional processnetwork checks passed");    
 }
 
-void Frontend::ensureNoInPorts(Processnetwork* model)
+void Frontend::ensureNoInPorts(Processnetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
     logger_.logDebugMessage("Checking that there are no InPort processes in "
-                            "the model at this stage...");
-    list<Process*> processes = model->getProcesses();
+                            "the processnetwork at this stage...");
+    list<Process*> processes = processnetwork->getProcesses();
     list<Process*>::iterator process_it;
     for (process_it = processes.begin(); process_it != processes.end();
          ++process_it) {
@@ -107,18 +107,18 @@ void Frontend::ensureNoInPorts(Processnetwork* model)
             logger_.logDebugMessage("Not an InPort process");
         }
     }
-    logger_.logDebugMessage("No InPort processes in the model");
+    logger_.logDebugMessage("No InPort processes in the processnetwork");
 }
 
-void Frontend::ensureNoOutPorts(Processnetwork* model)
+void Frontend::ensureNoOutPorts(Processnetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
     logger_.logDebugMessage("Checking that there are no OutPort processes in "
-                            "the model at this stage...");
-    list<Process*> processes = model->getProcesses();
+                            "the processnetwork at this stage...");
+    list<Process*> processes = processnetwork->getProcesses();
     list<Process*>::iterator process_it;
     for (process_it = processes.begin(); process_it != processes.end();
          ++process_it) {
@@ -136,18 +136,18 @@ void Frontend::ensureNoOutPorts(Processnetwork* model)
             logger_.logDebugMessage("Not an OutPort process");
         }
     }
-    logger_.logDebugMessage("No OutPort processes in the model");
+    logger_.logDebugMessage("No OutPort processes in the processnetwork");
 }
 
-void Frontend::checkProcess(Process* process, Processnetwork* model)
-    throw(InvalidArgumentException, InvalidModelException, IOException,
+void Frontend::checkProcess(Process* process, Processnetwork* processnetwork)
+    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
           RuntimeException) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException,
                         "\"process\" must not be NULL");
     }
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
     logger_.logDebugMessage(string("Checking process \"")
@@ -157,7 +157,7 @@ void Frontend::checkProcess(Process* process, Processnetwork* model)
     try {
         process->check();
     } catch (InvalidProcessException& ex) {
-        THROW_EXCEPTION(InvalidModelException, ex.getMessage());
+        THROW_EXCEPTION(InvalidProcessnetworkException, ex.getMessage());
     }
 
     // Port checks
@@ -165,11 +165,11 @@ void Frontend::checkProcess(Process* process, Processnetwork* model)
     list<Process::Port*> ports = process->getInPorts();
     list<Process::Port*>::iterator port_it;
     for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-        checkPort(*port_it, model);
+        checkPort(*port_it, processnetwork);
     }
     ports = process->getOutPorts();
     for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-        checkPort(*port_it, model);
+        checkPort(*port_it, processnetwork);
     }
 
     logger_.logDebugMessage(string("Process \"")
@@ -177,18 +177,18 @@ void Frontend::checkProcess(Process* process, Processnetwork* model)
                             + "\" passed all checks");
 }
 
-void Frontend::checkPort(Process::Port* port, Processnetwork* model)
-    throw(InvalidArgumentException, InvalidModelException, IOException,
+void Frontend::checkPort(Process::Port* port, Processnetwork* processnetwork)
+    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
           RuntimeException) {
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
     }
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
     if (!port->isConnected()) {
-        THROW_EXCEPTION(InvalidModelException, string("Port \"")
+        THROW_EXCEPTION(InvalidProcessnetworkException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in process \""
                         + port->getProcess()->getId()->getString()
@@ -197,29 +197,29 @@ void Frontend::checkPort(Process::Port* port, Processnetwork* model)
 
     // Check that the port is not connected to its own process
     if (port->getConnectedPort()->getProcess() == port->getProcess()) {
-        THROW_EXCEPTION(InvalidModelException, string("Port \"")
+        THROW_EXCEPTION(InvalidProcessnetworkException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in process \""
                         + port->getProcess()->getId()->getString()
-                        + "\" is connected to its own model "
+                        + "\" is connected to its own processnetwork "
                         + "(combinatorial looping)");
     }
 
-    // Check that the other port belongs to a process in the model
-    if (!model->getProcess(*port->getConnectedPort()->getProcess()->getId())) {
-        THROW_EXCEPTION(InvalidModelException, string("Port \"")
+    // Check that the other port belongs to a process in the processnetwork
+    if (!processnetwork->getProcess(*port->getConnectedPort()->getProcess()->getId())) {
+        THROW_EXCEPTION(InvalidProcessnetworkException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in process \""
                         + port->getProcess()->getId()->getString()
                         + "\" is connected to a process outside the "
-                        + "model");
+                        + "processnetwork");
     }
 }
 
-void Frontend::checkProcessnetworkMore(ForSyDe::Processnetwork* model)
-    throw(InvalidArgumentException, InvalidModelException, IOException,
+void Frontend::checkProcessnetworkMore(ForSyDe::Processnetwork* processnetwork)
+    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
           RuntimeException) {}
 
 
-void Frontend::postCheckFixes(ForSyDe::Processnetwork* model)
+void Frontend::postCheckFixes(ForSyDe::Processnetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {}

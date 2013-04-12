@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +33,7 @@
  * @version 0.1
  *
  * @brief Defines the base class for process nodes in the internal
- *        representation of ForSyDe models.
+ *        representation of ForSyDe processnetworks.
  */
 
 #include "id.h"
@@ -42,22 +43,22 @@
 #include "../exceptions/invalidformatexception.h"
 #include "../exceptions/invalidargumentexception.h"
 #include <list>
+#include <utility>
 
 namespace f2cc {
 namespace ForSyDe {
 
 /**
  * @brief Base class for process nodes in the internal representation of ForSyDe
- * models.
+ * processnetworks.
  *
  * The \c Process is a base class for process nodes in internal representation
- * of ForSyDe models. It provides functionality common for all processes such as
+ * of ForSyDe processnetworks. It provides functionality common for all processes such as
  * in and out port definition and signal management.
  */
 class Process{
-  public:
-    class Port;
-
+ public:
+	class Port;
   public:
     /**
      * Creates a process node.
@@ -65,7 +66,7 @@ class Process{
      * @param id
      *        Process ID.
      */
-    Process(const ForSyDe::Id& id) throw();
+    Process(const Id& id, const Id& parent) throw();
 
     /**
      * Destroys this process. This also destroys all ports and breaks all
@@ -79,6 +80,13 @@ class Process{
      * @returns Process ID.
      */
     const ForSyDe::Id* getId() const throw();
+
+    /**
+     * Gets the parent of this process.
+     *
+     * @returns The parent process.
+     */
+    const ForSyDe::Id* getParent() const throw();
 
     /**
      * Adds an in port to this process. Processes are not allowed to have
@@ -98,6 +106,7 @@ class Process{
      * adds it as in port to this process. The connections at the other port are
      * broken. Processes are not allowed to have multiple in ports with the same
      * ID.
+     *
      *
      * @param port
      *        Port.
@@ -213,6 +222,7 @@ class Process{
      * {
      *  ProcessID: <process_id>,
      *  ProcessType: <process_type>
+     *  Parent: <parent_process>
      *  NumInPorts : <num_in_ports>
      *  InPorts = {...}
      *  NumOutPorts : <num_out_ports>
@@ -318,6 +328,10 @@ class Process{
 	 * Process ID.
 	 */
 	const ForSyDe::Id id_;
+    /**
+	 * Parent ID.
+	 */
+	const ForSyDe::Id parent_;
     /**
      * List of in ports.
      */
@@ -490,9 +504,12 @@ class Process{
          * Pointer to the other end of a connection.
          */
         Port* connected_port_;
-    };
 
-  public:
+        /**
+		 * In case it is an IO Port, a pair with both connections will be used.
+		 */
+        std::pair<Port*,Port*> connected_ports_;
+    };
 
 };
 

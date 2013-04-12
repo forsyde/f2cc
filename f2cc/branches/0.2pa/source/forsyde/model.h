@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +33,7 @@
  * @version 0.2
  *
  * @brief Defines the model abstract class for the internal ForSyDe representation,
- * which will be inherited by \c Processnetwork and \c Composite.
+ * which will be inherited by \c Model and \c Composite.
  */
 
 #include "id.h"
@@ -47,12 +48,14 @@
 namespace f2cc {
 namespace ForSyDe {
 
+class Composite;		//FORWARD DECLARATION
+
 /**
  * @brief Contains the internal representation of a ForSyDe model.
  *
  * The \c Model embodies one or more of the
  * processes within the process network. It provides common methods for both
- * \c Processnetwork and \c Composite classes.
+ * \c Model and \c Composite classes.
  */
 class Model {
   public:
@@ -67,7 +70,7 @@ class Model {
     virtual ~Model() throw();
 
     /**
-     * Adds a process to this model. Models are not allowed to have multiple
+     * Adds a process to this model. Processnetworks are not allowed to have multiple
      * processes with the same ID.
      *
      * @param process
@@ -126,6 +129,85 @@ class Model {
     bool deleteProcess(const Id& id) throw();
 
     /**
+     * Adds a process to this model. Processnetworks are not allowed to have multiple
+     * processes with the same ID.
+     *
+     * @param process
+     *        Process to add.
+     * @returns \c true if such a process did not already exist and was
+     *          successfully added.
+     * @throws InvalidArgumentException
+     *         When \c process is \c NULL.
+     * @throws OutOfMemoryException
+     *         When a process cannot be added due to memory shortage.
+     */
+    bool addComposite(Composite* composite)
+        throw(InvalidArgumentException, OutOfMemoryException);
+
+    /**
+     * Adds a composite containing a list of processes to this model. Processnetworks are not allowed to have multiple
+     * composite processes with the same ID.
+     *
+     * @param composite
+     *        Composite to add.
+     * @param processes
+     *        List of processes contained by the composite;
+     * @returns \c true if such a process did not already exist and was
+     *          successfully added.
+     * @throws InvalidArgumentException
+     *         When \c process is \c NULL.
+     * @throws OutOfMemoryException
+     *         When a process cannot be added due to memory shortage.
+     */
+    bool addComposite(Composite* composite, std::map<const Id, Process*> processes)
+        throw(InvalidArgumentException, OutOfMemoryException);
+
+    /**
+     * Adds multiple processes to this model at the same time.
+     *
+     * @param processes
+     *        combset of processes to add.
+     * @throws OutOfMemoryException
+     *         When a process cannot be added due to memory shortage.
+     */
+    void addComposites(std::map<const Id, Composite*> composites)
+        throw(OutOfMemoryException);
+
+    /**
+     * Gets a composite process by ID.
+     *
+     * @param id
+     *        Process ID.
+     * @returns Process, if found; otherwise \c NULL.
+     */
+    Composite* getComposite(const Id& id) throw();
+
+    /**
+     * Gets the number of processes in this model.
+     *
+     * @returns Process count.
+     */
+    int getNumComposites() const throw();
+
+    /**
+     * Gets a list of all processes in this model.
+     *
+     * @returns Process list.
+     */
+    std::list<Composite*> getComposites() throw();
+
+    /**
+     * Removes and destroys a process by ID.
+     *
+     * @param id
+     *        Process ID.
+     * @returns \c true if such a process was found and successfully deleted.
+     */
+    bool deleteComposite(const Id& id) throw();
+
+
+    ////////////////////////
+    /**
      * Gets a new process ID which is not currently in use within this model.
      *
      * @returns A unique process ID.
@@ -159,14 +241,37 @@ class Model {
      * Destroys all processes in this model.
      */
     void destroyAllProcesses() throw();
+    /**
+     * Attempts to find a process with a given ID. If the mapset of processes is
+     * not empty and such a process is found, an iterator pointing to that port
+     * is returned; otherwise the mapset's \c end() iterator is returned.
+     *
+     * @param id
+     *        Process ID.
+     * @returns Iterator pointing either at the found process, or an iterator
+     *          equal to mapset's \c end() iterator.
+     */
+    std::map<const Id, Composite*>::iterator findComposite(const Id& id) throw();
+
+    /**
+     * Destroys all processes in this model.
+     */
+    void destroyAllComposites() throw();
+
+
 
   protected:
     /**
-     * combset of processes.
+     * combset of leaf processes.
      */
     std::map<const Id, Process*> processes_;
+    /**
+     * combset of composite processes.
+     */
+    std::map<const Id, Composite*> composites_;
 
 };
+
 
 }
 }

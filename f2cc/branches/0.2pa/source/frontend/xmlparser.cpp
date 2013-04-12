@@ -65,7 +65,7 @@ XmlParser::~XmlParser() throw() {}
 
 Processnetwork* XmlParser::createProcessnetwork(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidModelException, RuntimeException) {
+          ParseException, InvalidProcessnetworkException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
@@ -101,10 +101,10 @@ Processnetwork* XmlParser::createProcessnetwork(const string& file)
     checkXmlDocument(&xml);
     logger_.logInfoMessage("All checks passed");
 
-    logger_.logInfoMessage("Generating internal model...");
-    Processnetwork* model = generateProcessnetwork(findRootElement(&xml));
+    logger_.logInfoMessage("Generating internal processnetwork...");
+    Processnetwork* processnetwork = generateProcessnetwork(findRootElement(&xml));
 
-    return model;
+    return processnetwork;
 }
 
 list<Element*> XmlParser::getElementsByName(Node* xml, const string& name)
@@ -198,33 +198,33 @@ Element* XmlParser::findRootElement(Document* xml)
 }
 
 Processnetwork* XmlParser::generateProcessnetwork(Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidModelException,
+    throw(InvalidArgumentException, ParseException, InvalidProcessnetworkException,
           IOException, RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Processnetwork* model = new (std::nothrow) Processnetwork();
-    if (!model) THROW_EXCEPTION(OutOfMemoryException);
+    Processnetwork* processnetwork = new (std::nothrow) Processnetwork();
+    if (!processnetwork) THROW_EXCEPTION(OutOfMemoryException);
 
     logger_.logDebugMessage("Parsing \"node\" elements...");
-    parseXmlNodes(xml, model);
+    parseXmlNodes(xml, processnetwork);
 
     logger_.logDebugMessage("Parsing \"edge\" elements...");
     map<Process::Port*, Process*> copy_processes;
-    parseXmlEdges(xml, model, copy_processes);
+    parseXmlEdges(xml, processnetwork, copy_processes);
 
-    return model;
+    return processnetwork;
 }
 
-void XmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
+void XmlParser::parseXmlNodes(Element* xml, Processnetwork* processnetwork)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
     list<Element*> elements = getElementsByName(xml, "node");
@@ -235,7 +235,7 @@ void XmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
                                        + "..."));
         Process* process = generateProcess(*it);
         try {
-            if (!model->addProcess(process)) {
+            if (!processnetwork->addProcess(process)) {
                 THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
                                 (*it)->Column(),
                                 string("Multiple processes with ID \"")
@@ -247,15 +247,15 @@ void XmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
     }
 }
 
-void XmlParser::parseXmlEdges(Element* xml, Processnetwork* model,
+void XmlParser::parseXmlEdges(Element* xml, Processnetwork* processnetwork,
                                   map<Process::Port*, Process*>& copy_processes)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
     list<Element*> elements = getElementsByName(xml, "edge");
@@ -263,25 +263,25 @@ void XmlParser::parseXmlEdges(Element* xml, Processnetwork* model,
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logDebugMessage(string("Analyzing line ")
                                 + tools::toString((*it)->Row()) + "...");
-        generateConnection(*it, model, copy_processes);
+        generateConnection(*it, processnetwork, copy_processes);
     }
 }
 
-void XmlParser::fixProcessnetworkInputsOutputs(Processnetwork* model)
+void XmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
     logger_.logInfoMessage("Running post-check fixes - removing InPort and "
-                            "OutPort processes from the model...");
+                            "OutPort processes from the processnetwork...");
 
     list<Process*> inport_processes;
     list<Process*> outport_processes;
 
-    // Get InPort and OutPort processes from the model
+    // Get InPort and OutPort processes from the processnetwork
     logger_.logDebugMessage("Searching for InPort and OutPort processes...");
-    list<Process*> processes = model->getProcesses();
+    list<Process*> processes = processnetwork->getProcesses();
     list<Process*>::iterator process_it;
     for (process_it = processes.begin(); process_it != processes.end();
          ++process_it) {
@@ -316,15 +316,15 @@ void XmlParser::fixProcessnetworkInputsOutputs(Processnetwork* model)
 
         logger_.logDebugMessage(string("Redirecting out ports of InPort ")
                                 + "process \"" + process->getId()->getString()
-                                + " to model inputs...");
+                                + " to processnetwork inputs...");
         list<Process::Port*> ports = process->getOutPorts();
         list<Process::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            model->addInput((*port_it)->getConnectedPort());
+            processnetwork->addInput((*port_it)->getConnectedPort());
         }
 
         Id id = *process->getId();
-        if (!model->deleteProcess(id)) {
+        if (!processnetwork->deleteProcess(id)) {
             THROW_EXCEPTION(IllegalStateException,
                             string("Failed to delete InPort process \"")
                             + id.getString() + "\"");
@@ -339,15 +339,15 @@ void XmlParser::fixProcessnetworkInputsOutputs(Processnetwork* model)
 
         logger_.logDebugMessage(string("Redirecting in ports of OutPort ")
                                 + "process \"" + process->getId()->getString()
-                                + " to model outputs...");
+                                + " to processnetwork outputs...");
         list<Process::Port*> ports = process->getInPorts();
         list<Process::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            model->addOutput((*port_it)->getConnectedPort());
+            processnetwork->addOutput((*port_it)->getConnectedPort());
         }
 
         Id id = *process->getId();
-        if (!model->deleteProcess(id)) {
+        if (!processnetwork->deleteProcess(id)) {
             THROW_EXCEPTION(IllegalStateException,
                             string("Failed to delete OutPort process \"")
                             + id.getString() + "\"");
@@ -889,7 +889,7 @@ bool XmlParser::isValidPortId(const std::string& id,
     return false;
 }
 
-void XmlParser::generateConnection(Element* xml, Processnetwork* model,
+void XmlParser::generateConnection(Element* xml, Processnetwork* processnetwork,
                                        map<Process::Port*, Process*>&
                                        copy_processes)
     throw(InvalidArgumentException, ParseException, IOException,
@@ -897,8 +897,8 @@ void XmlParser::generateConnection(Element* xml, Processnetwork* model,
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
     // Get source process ID
@@ -930,13 +930,13 @@ void XmlParser::generateConnection(Element* xml, Processnetwork* model,
     }
 
     // Get source and target processes
-    Process* source_process = model->getProcess(source_process_id);
+    Process* source_process = processnetwork->getProcess(source_process_id);
     if (source_process == NULL) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         string("No source process \"")
                         + source_process_id + "\" found");
     }
-    Process* target_process = model->getProcess(target_process_id);
+    Process* target_process = processnetwork->getProcess(target_process_id);
     if (target_process == NULL) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         string("No target process \"")
@@ -995,7 +995,7 @@ void XmlParser::generateConnection(Element* xml, Processnetwork* model,
         else {
             // No such fanout process; create a new one
             copy_process = new (std::nothrow)
-                fanout(model->getUniqueProcessId("_copy_"));
+                fanout(processnetwork->getUniqueProcessId("_copy_"));
             if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
             copy_processes.insert(pair<Process::Port*, Process*>(source_port,
                                                                  copy_process));
@@ -1003,8 +1003,8 @@ void XmlParser::generateConnection(Element* xml, Processnetwork* model,
                                     + copy_process->getId()->getString()
                                     + "\" created");
 
-            // Add to model
-            if (!model->addProcess(copy_process)) {
+            // Add to processnetwork
+            if (!processnetwork->addProcess(copy_process)) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to ")
                                 + "add new process: Process with ID \""
                                 + copy_process->getId()->getString()
@@ -1012,7 +1012,7 @@ void XmlParser::generateConnection(Element* xml, Processnetwork* model,
             }
             logger_.logDebugMessage(string("New process \"")
                                     + copy_process->getId()->getString()
-                                    + "\" added to the model");
+                                    + "\" added to the processnetwork");
 
             // Break the current connection and connect the source and previous
             // target connection through the fanout process
@@ -1061,15 +1061,15 @@ void XmlParser::generateConnection(Element* xml, Processnetwork* model,
     }
 }
 
-void XmlParser::checkProcessnetworkMore(Processnetwork* model)
-    throw(InvalidArgumentException, InvalidModelException, IOException,
+void XmlParser::checkProcessnetworkMore(Processnetwork* processnetwork)
+    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
           RuntimeException) {
-    logger_.logInfoMessage("Checking that the model contains at least one "
+    logger_.logInfoMessage("Checking that the processnetwork contains at least one "
                             "InPort and OutPort process...");
 
     bool found_in_port_process = false;
     bool found_out_port_process = false;
-    list<Process*> processes = model->getProcesses();
+    list<Process*> processes = processnetwork->getProcesses();
     list<Process*>::iterator process_it;
     for (process_it = processes.begin(); process_it != processes.end();
          ++process_it) {
@@ -1088,14 +1088,14 @@ void XmlParser::checkProcessnetworkMore(Processnetwork* model)
         }
     }
     if (!found_in_port_process) {
-        THROW_EXCEPTION(InvalidModelException, "No InPort process found");
+        THROW_EXCEPTION(InvalidProcessnetworkException, "No InPort process found");
     }
     if (!found_out_port_process) {
-        THROW_EXCEPTION(InvalidModelException, "No OutPort process found");
+        THROW_EXCEPTION(InvalidProcessnetworkException, "No OutPort process found");
     }
 }
 
-void XmlParser::postCheckFixes(ForSyDe::Processnetwork* model)
+void XmlParser::postCheckFixes(ForSyDe::Processnetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {
-    fixProcessnetworkInputsOutputs(model);
+    fixProcessnetworkInputsOutputs(processnetwork);
 }
