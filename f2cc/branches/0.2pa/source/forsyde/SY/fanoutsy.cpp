@@ -30,8 +30,8 @@ using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-fanout::fanout(const Id& id) throw()
-        : Process(id) {}
+fanout::fanout(const Id& id, const Id& parent) throw()
+        : Process(id, parent) {}
 
 fanout::~fanout() throw() {}
 

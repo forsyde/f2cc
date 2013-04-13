@@ -60,7 +60,7 @@ class fanout : public Process {
     /**
      * @copydoc Process(const Id&)
      */
-    fanout(const Id& id) throw();
+    fanout(const Id& id, const Id& parent) throw();
 
     /**
      * @copydoc ~Process()

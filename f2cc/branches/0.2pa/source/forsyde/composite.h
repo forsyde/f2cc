@@ -69,13 +69,29 @@ class Composite : public Model, public Process {
      * @param id
      *        Process ID.
      */
-    Composite(const ForSyDe::Id& id) throw();
+    Composite(const ForSyDe::Id& id, const ForSyDe::Id& parent, std::string name) throw();
 
     /**
      * Destroys this composite process. This also destroys all contained processes
      */
     virtual ~Composite() throw();
 
+    /**
+     * Same as Process::operator==(const Process&) const but with the additional
+     * check that the processes' function arguments must also be equal.
+     *
+     * @param rhs
+     *        Process to compare with.
+     * @returns \c true if both processes are equal.
+     */
+    virtual bool operator==(const Process& rhs) const throw();
+
+    /**
+     * @copydoc Process::type()
+     */
+    virtual std::string type() const throw();
+
+  protected:
     /**
      * Converts this composite process into a string representation. The resultant string
      * is as follows:
@@ -90,21 +106,16 @@ class Composite : public Model, public Process {
     virtual std::string moreToString() const throw();
 
     /**
-	 * Returns a string with all the process IDs
-     * @param processes
-     *        list of processes that need their ID extracted.
-	 */
-    std::string ProcessesToString(std::map<const Id, Process*> processes)const throw();
-
-    /**
-     * Checks that this process is valid.
+     * Checks that this process has at least one in port and only one out
+     * port. It also checks the function (see checkFunction(const CFunction&)).
      *
      * @throws InvalidProcessException
      *         When the check fails.
      */
-    void check() throw(InvalidProcessException);
+    virtual void moreChecks() throw(InvalidProcessException);
 
-
+  private:
+    std::string composite_name_;
 };
 
 }

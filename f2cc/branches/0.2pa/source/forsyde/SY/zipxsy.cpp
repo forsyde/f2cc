@@ -30,8 +30,8 @@ using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-zipx::zipx(const Id& id) throw()
-        : Process(id) {}
+zipx::zipx(const Id& id, const Id& parent) throw()
+        : Process(id, parent) {}
 
 zipx::~zipx() throw() {}
 

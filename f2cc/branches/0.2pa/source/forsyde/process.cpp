@@ -33,6 +33,7 @@ using std::string;
 using std::list;
 using std::bad_alloc;
 using std::vector;
+using std::pair;
 
 Process::Process(const Id& id, const Id& parent) throw() : id_(id), parent_ (parent) {}
 
@@ -173,7 +174,7 @@ string Process::toString() const throw() {
     str += type();
     str += ",\n";
     str += " Parent: ";
-	str += (getId()!=NULL) ? getParent()->getString() : "The Process Network's Top Module";
+	str += getParent()->getString();
 	str += ",\n";
     str += " NumInPorts: ";
     str += tools::toString(getNumInPorts());
@@ -252,6 +253,7 @@ string Process::portsToString(const list<Port*> ports) const throw() {
         str += "\n ";
     }
     return str;
+    //TODO: resolve IO ports
 }
 
 void Process::destroyAllPorts(list<Port*>& ports) throw() {
@@ -277,36 +279,46 @@ bool Process::operator!=(const Process& rhs) const throw() {
 }
 
 Process::Port::Port(const Id& id) throw()
-        : id_(id), process_(NULL), connected_port_(NULL) {}
+        : id_(id), process_(NULL), connected_port_outside_(NULL), connected_port_inside_(NULL) {}
 
 Process::Port::Port(const Id& id, Process* process)
         throw(InvalidArgumentException)
-        : id_(id), process_(process), connected_port_(NULL) {
+        : id_(id), process_(process), connected_port_outside_(NULL), connected_port_inside_(NULL) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException, "process must not be NULL");
     }
 }
 
 Process::Port::Port(Port& rhs) throw()
-        : id_(rhs.id_), process_(NULL), connected_port_(NULL) {
+        : id_(rhs.id_), process_(NULL), connected_port_outside_(NULL), connected_port_inside_(NULL) {
     if (rhs.isConnected()) {
-        Port* port = rhs.connected_port_;
+        Port* port = rhs.connected_port_outside_;
         rhs.unconnect();
         connect(port);
+    }
+    if (rhs.IOisConnectedInside()) {
+        Port* port = rhs.connected_port_inside_;
+        rhs.IOunconnectInside();
+        IOconnectInside(port);
     }
 }
 
 Process::Port::Port(Port& rhs, Process* process) throw(InvalidArgumentException)
-        : id_(rhs.id_), process_(process), connected_port_(NULL) {
+        : id_(rhs.id_), process_(process), connected_port_outside_(NULL), connected_port_inside_(NULL) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
                         "NULL");
     }
 
     if (rhs.isConnected()) {
-        Port* port = rhs.connected_port_;
+        Port* port = rhs.connected_port_outside_;
         rhs.unconnect();
         connect(port);
+    }
+    if (rhs.IOisConnectedInside()) {
+        Port* port = rhs.connected_port_inside_;
+        rhs.IOunconnectInside();
+        IOconnectInside(port);
     }
 }
 
@@ -323,7 +335,19 @@ const Id* Process::Port::getId() const throw() {
 }
 
 bool Process::Port::isConnected() const throw() {
-    return connected_port_;
+    return connected_port_outside_;
+}
+
+bool Process::Port::IOisConnectedOutside() const throw() {
+    return connected_port_outside_;
+}
+
+bool Process::Port::IOisConnectedInside() const throw() {
+    return connected_port_inside_;
+}
+
+bool Process::Port::IOisConnected() const throw() {
+    return (connected_port_inside_ && connected_port_outside_);
 }
 
 void Process::Port::connect(Port* port) throw() {
@@ -333,22 +357,103 @@ void Process::Port::connect(Port* port) throw() {
         return;
     }
 
-    if (connected_port_) {
+    if (connected_port_outside_) {
         unconnect();
     }
-    connected_port_ = port;
-    port->connected_port_ = this;
+    connected_port_outside_ = port;
+    port->connected_port_outside_ = this;
+}
+
+void Process::Port::IOconnectOutside(Port* port) throw() {
+	connect(port);
+}
+
+void Process::Port::IOconnectInside(Port* port) throw() {
+    if (port == this) return;
+    if (!port) {
+        unconnect();
+        return;
+    }
+
+    if (connected_port_inside_) {
+    	IOunconnectInside();
+    }
+    connected_port_inside_ = port;
+    port->connected_port_inside_ = this;
+}
+
+void Process::Port::IOconnect(Port* inside, Port* outside) throw() {
+	IOconnectInside(inside);
+	IOconnectOutside(outside);
 }
 
 void Process::Port::unconnect() throw() {
-    if (connected_port_) {
-        connected_port_->connected_port_ = NULL;
-        connected_port_ = NULL;
+	IOunconnectOutside();
+	IOunconnectInside();
+}
+
+void Process::Port::IOunconnect() throw() {
+	unconnect();
+}
+
+void Process::Port::IOunconnectOutside() throw() {
+    if (connected_port_outside_) {
+        connected_port_outside_->connected_port_outside_ = NULL;
+        connected_port_outside_ = NULL;
+    }
+}
+
+void Process::Port::IOunconnectInside() throw() {
+    if (connected_port_inside_) {
+    	connected_port_inside_->connected_port_inside_ = NULL;
+    	connected_port_inside_ = NULL;
     }
 }
 
 Process::Port* Process::Port::getConnectedPort() const throw() {
-    return connected_port_;
+	std::string process_type (connected_port_inside_->getProcess()->type());
+	std::string composite_type ("composite");
+    if (process_type.compare(composite_type) != 0){
+    	return connected_port_inside_->getConnectedPort();
+    }
+    else return connected_port_inside_;
+}
+
+Process::Port* Process::Port::IOgetConnectedPortOutside() const throw() {
+    return getConnectedPort();
+}
+
+Process::Port* Process::Port::IOgetConnectedPortInside() const throw() {
+	std::string process_type (connected_port_inside_->getProcess()->type());
+	std::string composite_type ("composite");
+    if (process_type.compare(composite_type) != 0){
+    	return connected_port_inside_->IOgetConnectedPortInside();
+    }
+    else return connected_port_inside_;
+}
+
+pair<Process::Port*,Process::Port*> Process::Port::IOgetConnectedPorts() const throw() {
+	pair <Process::Port*,Process::Port*> port_pair;
+	port_pair = std::make_pair (IOgetConnectedPortOutside(), IOgetConnectedPortInside());
+	return port_pair;
+}
+
+Process::Port* Process::Port::getConnectedPortImmediate() const throw() {
+    return connected_port_outside_;
+}
+
+Process::Port* Process::Port::IOgetConnectedPortOutsideImmediate() const throw() {
+    return connected_port_outside_;
+}
+
+Process::Port* Process::Port::IOgetConnectedPortInsideImmediate() const throw() {
+    return connected_port_inside_;
+}
+
+pair<Process::Port*,Process::Port*> Process::Port::IOgetConnectedPortsImmediate() const throw() {
+	pair <Process::Port*,Process::Port*> port_pair;
+	port_pair = std::make_pair (IOgetConnectedPortOutsideImmediate(), IOgetConnectedPortInsideImmediate());
+	return port_pair;
 }
 
 bool Process::Port::operator==(const Port& rhs) const throw() {

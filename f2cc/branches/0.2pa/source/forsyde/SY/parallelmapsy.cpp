@@ -31,15 +31,15 @@ using std::string;
 using std::list;
 using std::bad_cast;
 
-ParallelMap::ParallelMap(const Id& id, int num_processes,
+ParallelMap::ParallelMap(const Id& id, const Id& parent, int num_processes,
                              const CFunction& function)
-        throw(OutOfMemoryException) : CoalescedMap(id, function),
+        throw(OutOfMemoryException) : CoalescedMap(id, parent, function),
                                       num_parallel_processes_(num_processes) {}
 
-ParallelMap::ParallelMap(const Id& id, int num_processes,
+ParallelMap::ParallelMap(const Id& id, const Id& parent, int num_processes,
                              const list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException)
-        : CoalescedMap(id, functions),
+        : CoalescedMap(id, parent, functions),
           num_parallel_processes_(num_processes) {}
 
 ParallelMap::~ParallelMap() throw() {}

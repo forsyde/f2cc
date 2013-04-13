@@ -56,13 +56,13 @@ namespace ForSyDe {
  * @brief Performs semantic-preserving modifications on a \c Processnetwork
  *        object.
  *
- * The \c ProcessnetworkModifier is a class which provides a set of processnetwork modification
+ * The \c ModelModifier is a class which provides a set of processnetwork modification
  * methods. The modifications are such that they preserve the semantics of the
  * processnetwork, and are used to simplify the latter synthesis process or affect the
  * structure of the generated code (i.e. whether to generate sequential C code
  * or parallel CUDA C code).
  */
-class ProcessnetworkModifier {
+class ModelModifier {
   private:
     class ContainedSection;
 
@@ -77,13 +77,13 @@ class ProcessnetworkModifier {
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
      */
-    ProcessnetworkModifier(ForSyDe::Processnetwork* processnetwork, Logger& logger)
+    ModelModifier(ForSyDe::Processnetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
      * Destroys this processnetwork modifier. The logger remains open.
      */
-    ~ProcessnetworkModifier() throw();
+    ~ModelModifier() throw();
 
     /**
      * Coalesces data parallel processes across different segments into a

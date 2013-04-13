@@ -57,7 +57,7 @@ class delay : public Process {
      * @throws InvalidArgumentException
      *         When the initial delay value is empty string.
      */
-    delay(const Id& id, const std::string& initial_value)
+    delay(const Id& id, const Id& parent, const std::string& initial_value)
         throw(InvalidArgumentException);
 
     /**

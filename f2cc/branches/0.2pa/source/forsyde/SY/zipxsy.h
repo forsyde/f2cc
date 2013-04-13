@@ -50,7 +50,7 @@ class zipx : public Process {
     /**
      * @copydoc Process(const Id&)
      */
-    zipx(const Id& id) throw();
+    zipx(const Id& id, const Id& parent) throw();
 
     /**
      * @copydoc ~Process()

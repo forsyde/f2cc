@@ -388,29 +388,29 @@ Process* GraphmlParser::generateProcess(Element* xml)
     }
     try {
         if (process_type == "inport") {
-            process = new InPort(Id(process_id));
+            process = new InPort(Id(process_id), Id("Process_Network"));
         }
         else if (process_type == "outport") {
-            process = new OutPort(Id(process_id));
+            process = new OutPort(Id(process_id), Id("Process_Network"));
         }
         else if (process_type == "mapsy") {
-            process = new comb(Id(process_id), generateProcessFunction(xml));
+            process = new comb(Id(process_id), Id("Process_Network"), generateProcessFunction(xml));
         }
         else if (process_type == "parallelmapsy") {
-            process = new ParallelMap(Id(process_id), getNumProcesses(xml),
+            process = new ParallelMap(Id(process_id), Id("Process_Network"), getNumProcesses(xml),
                                         generateProcessFunction(xml));
         }
         else if (process_type == "unzipxsy") {
-            process = new unzipx(Id(process_id));
+            process = new unzipx(Id(process_id), Id("Process_Network"));
         }
         else if (process_type == "zipxsy") {
-            process = new zipx(Id(process_id));
+            process = new zipx(Id(process_id), Id("Process_Network"));
         }
         else if (process_type == "delaysy") {
-            process = new delay(Id(process_id), getInitialdelayValue(xml));
+            process = new delay(Id(process_id), Id("Process_Network"), getInitialdelayValue(xml));
         }
         else if (process_type == "zipwithnsy") {
-            process = new comb(Id(process_id),
+            process = new comb(Id(process_id), Id("Process_Network"),
                                      generateProcessFunction(xml));
         }
         else {
@@ -1008,7 +1008,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
         else {
             // No such fanout process; create a new one
             copy_process = new (std::nothrow)
-                fanout(processnetwork->getUniqueProcessId("_copy_"));
+                fanout(processnetwork->getUniqueProcessId("_copy_"), Id("Process_Network"));
             if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
             copy_processes.insert(pair<Process::Port*, Process*>(source_port,
                                                                  copy_process));

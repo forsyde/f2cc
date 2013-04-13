@@ -44,7 +44,8 @@
 #include "frontend/xmlparser.h"
 #include "forsyde/processnetwork.h"
 #include "forsyde/process.h"
-#include "forsyde/processnetworkmodifier.h"
+#include "forsyde/composite.h"
+#include "forsyde/modelmodifier.h"
 #include "synthesizer/synthesizer.h"
 #include "exceptions/exception.h"
 #include "exceptions/ioexception.h"
@@ -175,7 +176,7 @@ int main(int argc, const char* argv[]) {
             logger.logInfoMessage(target_platform_message);
 
             // Make processnetwork modifications, if necessary
-            ProcessnetworkModifier modifier(processnetwork, logger);
+            ModelModifier modifier(processnetwork, logger);
             logger.logInfoMessage("Removing redundant processes...");
             modifier.removeRedundantProcesses();
             logger.logInfoMessage("Converting comb processes "

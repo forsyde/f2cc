@@ -33,8 +33,8 @@ using std::string;
 using std::bad_cast;
 using std::list;
 
-comb::comb(const Id& id, const CFunction& function) throw()
-        : Process(id), function_(function) {}
+comb::comb(const Id& id, const Id& parent, const CFunction& function) throw()
+        : Process(id, parent), function_(function) {}
 
 comb::~comb() throw() {}
 

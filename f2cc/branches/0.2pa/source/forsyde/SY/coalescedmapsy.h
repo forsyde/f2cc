@@ -67,7 +67,7 @@ class CoalescedMap : public comb {
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    CoalescedMap(const Id& id, const CFunction& function)
+    CoalescedMap(const Id& id, const Id& parent, const CFunction& function)
         throw(OutOfMemoryException);
 
     /**
@@ -83,7 +83,7 @@ class CoalescedMap : public comb {
      * @throws OutOfMemoryException
      *         When the process could not be created due to memory shortage.
      */
-    CoalescedMap(const Id& id, const std::list<CFunction>& functions)
+    CoalescedMap(const Id& id, const Id& parent, const std::list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**

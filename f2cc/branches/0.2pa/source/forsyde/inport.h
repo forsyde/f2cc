@@ -49,7 +49,7 @@ class InPort : public Process {
     /**
      * @copydoc Process(const Id&)
      */
-    InPort(const Id& id) throw();
+    InPort(const Id& id, const Id& parent) throw();
 
     /**
      * @copydoc ~Process()

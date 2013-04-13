@@ -27,45 +27,44 @@
 #include "../tools/tools.h"
 #include <new>
 #include <map>
-#include <vector>
+#include <typeinfo>
 
 using namespace f2cc::ForSyDe;
 using std::string;
-using std::list;
-using std::bad_alloc;
-using std::vector;
+using std::bad_cast;
 
-Composite::Composite(const Id& id) throw() : id_(id) {}
+Composite::Composite(const Id& id, const Id& parent, string name) throw() : Process(id, parent), composite_name_(name){}
 
 Composite::~Composite() throw() {
 	destroyAllProcesses();
 }
 
-const Id* Composite::getId() const throw() {
-    return &id_;
+bool Composite::operator==(const Process& rhs) const throw() {
+    if (!Process::operator==(rhs)) return false;
+
+    try {
+        const Composite& other = dynamic_cast<const Composite&>(rhs);
+        if (composite_name_ != other.composite_name_) return false;
+    }
+    catch (bad_cast&) {
+        return false;
+    }
+    return true;
 }
 
-
-string Composite::toString() const throw() {
-    string str;
-    str += "{\n";
-    str += "  Composite Process: ";
-    str += getId()->getString();
-    str += ",\n";
-    str += " List of Processes : ";
-    str += ProcessesToString(processes_);
-    str += ",\n";
-    str += "}";
-
-    return str;
+string Composite::type() const throw() {
+    return "composite";
 }
 
-string Composite::ProcessesToString(std::map<const Id, Process*> processes) const throw() {
+string Composite::moreToString() const throw() {
     string str;
     str += "\n";
-    std::map<const Id, Process*>::iterator it;
-	for (it = processes.begin(); it != processes.end(); ++it) {
-		str+= "ID = ";
+
+    str += "\n";
+	for (std::map<const Id, Process*>::const_iterator it = processes_.begin(); it != processes_.end(); ++it) {
+		str+= " Contained process of type: \" ";
+		str += it->second->type();
+		str+= "  \"; ID = ";
 		str += it->second->getId()->getString();
 		str += "\n";
 	}
@@ -73,6 +72,20 @@ string Composite::ProcessesToString(std::map<const Id, Process*> processes) cons
 }
 
 
-void Composite::check() throw(InvalidProcessException) {
-	//TODO: implement checks
+void Composite::moreChecks() throw(InvalidProcessException){
+    if (getInPorts().size() == 0) {
+        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+                        + getId()->getString() + "\" of type \""
+                        + type() + "\" must have at least one (1) in port");
+    }
+    if (getOutPorts().size() == 0) {
+        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+                        + getId()->getString() + "\" of type \""
+                        + type() + "\" must have at least one (1) out port");
+    }
+    if (getProcesses().size() == 0) {
+        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+                        + getId()->getString() + "\" of type \""
+                        + type() + "\" must have at least one (1) process");
+    }
 }

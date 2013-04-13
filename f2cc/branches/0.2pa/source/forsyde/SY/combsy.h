@@ -55,7 +55,7 @@ class comb : public Process {
      * @param function
      *        Process function argument.
      */
-    comb(const Id& id, const CFunction& function) throw();
+    comb(const Id& id, const Id& parent, const CFunction& function) throw();
 
     /**
      * @copydoc ~Process()

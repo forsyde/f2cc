@@ -30,8 +30,8 @@ using namespace f2cc::ForSyDe;
 using std::string;
 using std::bad_cast;
 
-OutPort::OutPort(const Id& id) throw()
-        : Process(id) {}
+OutPort::OutPort(const Id& id, const Id& parent) throw()
+        : Process(id, parent) {}
 
 OutPort::~OutPort() throw() {}
 

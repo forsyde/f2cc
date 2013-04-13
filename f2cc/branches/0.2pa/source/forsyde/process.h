@@ -510,12 +510,51 @@ class Process{
         void unconnect() throw();
 
         /**
+         * Breaks the connection that this port may have to another. If there is
+         * no connection, nothing happens.
+         */
+        void IOunconnectOutside() throw();
+
+        /**
+         * Breaks the connection that this port may have to another. If there is
+         * no connection, nothing happens.
+         */
+        void IOunconnectInside() throw();
+
+        /**
+         * Exactly the same as unconnect(), but with another name. Its purpose is
+         * purely for naming coherence purposes.
+         */
+        void IOunconnect() throw();
+
+        /**
          * Searches recursively through composites and gets
          * the port at the other end of the connection, if any.
          *
          * @returns Connected port, if any; otherwise \c NULL.
          */
         Port* getConnectedPort() const throw();
+        /**
+         * Searches recursively through composites and gets
+         * the port at the other end of the connection, if any.
+         *
+         * @returns Connected port, if any; otherwise \c NULL.
+         */
+        Port* IOgetConnectedPortOutside() const throw();
+        /**
+         * Searches recursively through composites and gets
+         * the port at the other end of the connection, if any.
+         *
+         * @returns Connected port, if any; otherwise \c NULL.
+         */
+        Port* IOgetConnectedPortInside() const throw();
+        /**
+         * Searches recursively through composites and gets
+         * the port at the other end of the connection, if any.
+         *
+         * @returns Connected port, if any; otherwise \c NULL.
+         */
+        std::pair<Port*,Port*> IOgetConnectedPorts() const throw();
 
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
@@ -523,6 +562,18 @@ class Process{
          * @returns Connected port, if any; otherwise \c NULL.
          */
         Port* getConnectedPortImmediate() const throw();
+        /**
+         * Gets the immediate adjacent port at the other end of the connection, if any.
+         *
+         * @returns Connected port, if any; otherwise \c NULL.
+         */
+        Port* IOgetConnectedPortOutsideImmediate() const throw();
+        /**
+         * Gets the immediate adjacent port at the other end of the connection, if any.
+         *
+         * @returns Connected port, if any; otherwise \c NULL.
+         */
+        Port* IOgetConnectedPortInsideImmediate() const throw();
 
         /**
 		 * Gets the immediate adjacent ports at the other ends of the connection, if any,

@@ -49,7 +49,7 @@ class OutPort : public Process {
     /**
      * @copydoc Process(const Id&)
      */
-    OutPort(const Id& id) throw();
+    OutPort(const Id& id, const Id& parent) throw();
 
     /**
      * @copydoc ~Process()

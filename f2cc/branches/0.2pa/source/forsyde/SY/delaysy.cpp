@@ -31,9 +31,9 @@ using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-delay::delay(const Id& id, const string& initial_value)
+delay::delay(const Id& id, const Id& parent, const string& initial_value)
         throw(InvalidArgumentException)
-        : Process(id), initial_value_(initial_value) {
+        : Process(id, parent), initial_value_(initial_value) {
     if (initial_value_.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"initial_value\" must not "
                         "be empty string");

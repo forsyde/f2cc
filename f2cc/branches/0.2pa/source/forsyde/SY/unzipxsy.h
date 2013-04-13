@@ -50,7 +50,7 @@ class unzipx : public Process {
     /**
      * @copydoc Process(const Id&)
      */
-    unzipx(const Id& id) throw();
+    unzipx(const Id& id, const Id& parent) throw();
 
     /**
      * @copydoc ~Process()

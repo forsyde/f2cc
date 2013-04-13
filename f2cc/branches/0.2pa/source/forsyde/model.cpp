@@ -41,7 +41,6 @@ Model::Model() throw() {}
 
 Model::~Model() throw() {
     destroyAllProcesses();
-    destroyAllComposites();
 }
 
 bool Model::addProcess(Process* process)
@@ -104,87 +103,6 @@ bool Model::deleteProcess(const Id& id) throw() {
     }
 }
 
-
-bool Model::addComposite(Composite* composite)
-    throw(InvalidArgumentException, OutOfMemoryException) {
-    if (!composite) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"composite process\" must not be "
-                        "NULL");
-    }
-
-    try {
-        pair<map<const Id, Composite*>::iterator, bool>
-            result = composites_.insert(
-                pair<const Id, Composite*>(
-                    *composite->getId(), composite));
-        return result.second;
-    }
-    catch(bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-bool Model::addComposite(Composite* composite, std::map<const Id, Process*> processes)
-    throw(InvalidArgumentException, OutOfMemoryException) {
-    if (!composite) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"composite process\" must not be "
-                        "NULL");
-    }
-
-    try {
-    	composite->addProcesses(processes);
-        pair<map<const Id, Composite*>::iterator, bool>
-            result = composites_.insert(
-                pair<const Id, Composite*>(
-                    *composite->getId(), composite));
-        return result.second;
-    }
-    catch(bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-void Model::addComposites(std::map<const Id, Composite*> composites)
-    throw(OutOfMemoryException) {
-    try {
-    	composites_.insert(composites.begin(), composites.end());
-    }
-    catch(bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-Composite* Model::getComposite(const Id& id) throw() {
-    map<const Id, Composite*>::iterator it = findComposite(id);
-    return it != composites_.end() ? it->second : NULL;
-}
-
-int Model::getNumComposites() const throw() {
-    return composites_.size();
-}
-
-list<Composite*> Model::getComposites() throw() {
-    list<Composite*> composites;
-    map<const Id, Composite*>::iterator it;
-    for (it = composites_.begin(); it != composites_.end(); ++it) {
-    	composites.push_back(it->second);
-    }
-    return composites;
-}
-
-bool Model::deleteComposite(const Id& id) throw() {
-    map<const Id, Composite*>::iterator it = findComposite(id);
-    if (it != composites_.end()) {
-    	Composite* removed_process = it->second;
-        composites_.erase(it);
-        delete removed_process;
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
 Id Model::getUniqueProcessId() const throw() {
     return getUniqueProcessId("");
 }
@@ -205,15 +123,4 @@ void Model::destroyAllProcesses() throw() {
 
 map<const Id, Process*>::iterator Model::findProcess(const Id& id) throw() {
     return processes_.find(id);
-}
-
-void Model::destroyAllComposites() throw() {
-    map<const Id, Composite*>::iterator it;
-    for (it=composites_.begin(); it != composites_.end(); ++it) {
-        delete it->second;
-    }
-}
-
-map<const Id, Composite*>::iterator Model::findComposite(const Id& id) throw() {
-    return composites_.find(id);
 }
