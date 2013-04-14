@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +48,7 @@ Processnetwork* Frontend::parse(const string& file)
 
     Processnetwork* processnetwork = createProcessnetwork(file);
 
-    logger_.logInfoMessage("Checking that the internal processnetwork is sane...");
+    logger_.logInfoMessage("Checking that the internal process network is sane...");
     checkProcessnetwork(processnetwork);
     logger_.logInfoMessage("All checks passed");
 

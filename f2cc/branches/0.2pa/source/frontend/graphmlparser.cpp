@@ -101,7 +101,7 @@ Processnetwork* GraphmlParser::createProcessnetwork(const string& file)
     checkXmlDocument(&xml);
     logger_.logInfoMessage("All checks passed");
 
-    logger_.logInfoMessage("Generating internal processnetwork...");
+    logger_.logInfoMessage("Generating internal process network...");
     Processnetwork* processnetwork = generateProcessnetwork(findXmlGraphElement(&xml));
 
     return processnetwork;

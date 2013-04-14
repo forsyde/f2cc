@@ -69,7 +69,7 @@ class Model {
     virtual ~Model() throw();
 
     /**
-     * Adds a process to this model. Processnetworks are not allowed to have multiple
+     * Adds a process to this model. Models are not allowed to have multiple
      * processes with the same ID.
      *
      * @param process

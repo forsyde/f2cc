@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011-2012 George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +36,8 @@
  */
 
 #include "id.h"
-#include "model.h"
 #include "process.h"
+#include "composite.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -55,12 +56,12 @@ namespace ForSyDe {
  * actually are inports and outports, respectively, to one or more of the
  * processes within the network.
  */
-class Processnetwork: public Model {
+class Processnetwork: public Composite {
   public:
     /**
      * Creates a process network.
      */
-	Processnetwork() throw();
+	Processnetwork(std::string name) throw();
 
     /**
      * Destroys this process network. This also destroys all processes.
@@ -68,6 +69,9 @@ class Processnetwork: public Model {
     virtual ~Processnetwork() throw();
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Adds an input to this process network. The input must such that it is an inport to
      * a process already existing in the process network. If the input is \c NULL, nothing
      * happens and \c false is returned.
@@ -88,6 +92,9 @@ class Processnetwork: public Model {
               OutOfMemoryException);
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Deletes an input port of this process network.
      *
      * @param port
@@ -100,6 +107,9 @@ class Processnetwork: public Model {
     bool deleteInput(Process::Port* port) throw(InvalidArgumentException);
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Gets the number of inputs of this process network.
      *
      * @returns Number of inputs.
@@ -114,6 +124,9 @@ class Processnetwork: public Model {
     std::list<Process::Port*> getInputs() throw();
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Same as addInput(const Process::Port*) but for outputs.
      *
      * @param port
@@ -132,6 +145,9 @@ class Processnetwork: public Model {
               OutOfMemoryException);
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Same as deleteInput(Process::Port*) but for outputs.
      *
      * @param port
@@ -144,6 +160,9 @@ class Processnetwork: public Model {
     bool deleteOutput(Process::Port* port) throw(InvalidArgumentException);
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Same as addInput(const Process::Port*) but for outputs.
      * Gets the number of inputs of this model.
      *
@@ -152,15 +171,76 @@ class Processnetwork: public Model {
     int getNumOutputs() const throw();
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Same as getInputs() but for outputs.
      *
      * @returns List of outputs.
      */
     std::list<Process::Port*> getOutputs() throw();
 
+    /**
+     * The process network is identified as "composite" also. This enables it to access
+     * the methods dedicated to IO ports.
+     */
+    virtual std::string type() const throw();
+
+    /**
+     * Adds a process function to this model. If the function already exists, it will not be added.
+     *
+     * @param process
+     *        Process to add.
+     * @returns \c true if such a process did not already exist and was
+     *          successfully added.
+     * @throws InvalidArgumentException
+     *         When \c process is \c NULL.
+     * @throws OutOfMemoryException
+     *         When a process cannot be added due to memory shortage.
+     */
+    bool addFunction(CFunction* function)
+        throw(InvalidArgumentException, OutOfMemoryException);
+
+
+    /**
+     * Gets a process function by name.
+     *
+     * @param name
+     *        Function name.
+     * @returns Process, if found; otherwise \c NULL.
+     */
+    CFunction* getFunction(std::string name) throw();
+
+    /**
+     * Gets the number of process functions in this model.
+     *
+     * @returns Function count.
+     */
+    int getNumFunctions() const throw();
+
+    /**
+     * Gets a list of all process functions in this model.
+     *
+     * @returns Function list.
+     */
+    std::list<CFunction*> getFunctions() throw();
+
+    /**
+     * Removes and destroys a process function by its name.
+     *
+     * @param name
+     *        Function name.
+     * @returns \c true if such a function was found and successfully deleted.
+     */
+    bool deleteFunction(std::string name) throw();
+
+
   private:
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Attempts to find a port with a given ID from a list of ports. If the list
      * is not empty and such a port is found, an iterator pointing to that port
      * is returned; otherwise the list's \c end() iterator is returned.
@@ -176,6 +256,9 @@ class Processnetwork: public Model {
         const Id& id, std::list<Process::Port*>& ports) const throw();
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Attempts to find a given port from a list of ports. If the list
      * is not empty and such a port is found, an iterator pointing to that port
      * is returned; otherwise the list's \c end() iterator is returned.
@@ -193,6 +276,9 @@ class Processnetwork: public Model {
 
 
     /**
+     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
+     * will eliminate this method.
+     *
      * Takes a list of ports and converts it into a string representation. Each
      * port is converted into
      * @code
@@ -218,6 +304,7 @@ class Processnetwork: public Model {
      *  NumOututs: <num_outports>,
      *  Outputs = { ... },
      *  NumProcesses: <num_processes>
+     *  NumFunctions: <num_functions>
      * }
      * @endcode
      *
@@ -225,17 +312,11 @@ class Processnetwork: public Model {
      */
     std::string toString() const throw();
 
-  private:
-
+  protected:
     /**
-     * List of inputs.
+     * combset of leaf processes.
      */
-    std::list<Process::Port*> inputs_;
-
-    /**
-     * List of outputs.
-     */
-    std::list<Process::Port*> outputs_;
+    std::list<CFunction*> process_functions_;
 };
 
 }

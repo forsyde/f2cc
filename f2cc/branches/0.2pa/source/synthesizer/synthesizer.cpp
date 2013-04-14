@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +83,7 @@ Synthesizer::CodeSet Synthesizer::generateCudaCCode()
 
 Synthesizer::CodeSet Synthesizer::generateCode()
     throw(InvalidProcessnetworkException, IOException, RuntimeException) {
-    logger_.logInfoMessage("Checking that the internal processnetwork is "
+    logger_.logInfoMessage("Checking that the internal process network is "
                            "valid for synthesis...");
     checkProcessnetwork();
     logger_.logInfoMessage("All checks passed");

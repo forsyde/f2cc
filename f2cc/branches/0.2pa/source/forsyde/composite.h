@@ -30,11 +30,11 @@
 
 /**
  * @file
- * @author  Gabriel Hjort Blindell <ghb@kth.se>
- * @version 0.1
+ * @author  George Ungureanu <ugeorge@kth.se>
+ * @version 0.2
  *
  * @brief Defines the base class for a composite process in the internal
- *        representation of ForSyDe processnetworks.
+ *        representation of ForSyDe process networks.
  */
 
 #include "id.h"
@@ -55,11 +55,11 @@ namespace ForSyDe {
 
 /**
  * @brief Base class for composite processes in the internal representation of ForSyDe
- * processnetworks.
+ * process networks.
  *
  * \c Composite is a base class for composite processes in internal representation
- * of ForSyDe processnetworks. It inherits the Processnetwork class, hence it encapsulates a list of processes, but has
- * a unique ID
+ * of ForSyDe process networks. It inherits both the \c Model class and the \Process class.
+ * Hence it behaves like a process that contains other processes.
  */
 class Composite : public Model, public Process {
   public:
@@ -68,6 +68,11 @@ class Composite : public Model, public Process {
      *
      * @param id
      *        Process ID.
+     * @param parent
+     *        its parent ID.
+     * @param name
+     *        the composite process' name. Initially it is the same as its filename, and it is enough
+     *        to identify and compare a composite process' structure.
      */
     Composite(const ForSyDe::Id& id, const ForSyDe::Id& parent, std::string name) throw();
 
@@ -78,10 +83,10 @@ class Composite : public Model, public Process {
 
     /**
      * Same as Process::operator==(const Process&) const but with the additional
-     * check that the processes' function arguments must also be equal.
+     * check that the composite process' names (thus their structure) is the same.
      *
      * @param rhs
-     *        Process to compare with.
+     *        Composite process to compare with.
      * @returns \c true if both processes are equal.
      */
     virtual bool operator==(const Process& rhs) const throw();
@@ -106,8 +111,8 @@ class Composite : public Model, public Process {
     virtual std::string moreToString() const throw();
 
     /**
-     * Checks that this process has at least one in port and only one out
-     * port. It also checks the function (see checkFunction(const CFunction&)).
+     * Checks that this process has at least one in port, one out
+     * port and one contained process.
      *
      * @throws InvalidProcessException
      *         When the check fails.
@@ -115,6 +120,9 @@ class Composite : public Model, public Process {
     virtual void moreChecks() throw(InvalidProcessException);
 
   private:
+    /**
+     * The composite process' name
+     */
     std::string composite_name_;
 };
 

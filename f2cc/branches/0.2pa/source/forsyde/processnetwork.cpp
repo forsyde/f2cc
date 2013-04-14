@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
+ *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +37,7 @@ using std::list;
 using std::pair;
 using std::bad_alloc;
 
-Processnetwork::Processnetwork() throw() {}
+Processnetwork::Processnetwork(string name) throw() : Composite(Id("Process_Network"),NULL,name) {}
 
 Processnetwork::~Processnetwork() throw() {
 }
@@ -49,10 +50,10 @@ bool Processnetwork::addInput(Process::Port* port)
     }
 
     if (!port) return false;
-    if (findPort(port, inputs_) != inputs_.end()) return false;
+    if (findPort(port, in_ports_) != in_ports_.end()) return false;
 
     try {
-        inputs_.push_back(port);
+        in_ports_.push_back(port);
         return true;
     }
     catch (bad_alloc& ex) {
@@ -61,13 +62,13 @@ bool Processnetwork::addInput(Process::Port* port)
 }
 
 bool Processnetwork::deleteInput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, inputs_);
+    list<Process::Port*>::iterator it = findPort(port, in_ports_);
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
     }
 
-    if (it != inputs_.end()) {
-        inputs_.erase(it);
+    if (it != in_ports_.end()) {
+        in_ports_.erase(it);
         return true;
     }
     else {
@@ -76,11 +77,11 @@ bool Processnetwork::deleteInput(Process::Port* port) throw(InvalidArgumentExcep
 }
 
 int Processnetwork::getNumInputs() const throw() {
-    return inputs_.size();
+    return in_ports_.size();
 }
 
 std::list<Process::Port*> Processnetwork::getInputs() throw() {
-    return inputs_;
+    return in_ports_;
 }
 
 bool Processnetwork::addOutput(Process::Port* port)
@@ -91,10 +92,10 @@ bool Processnetwork::addOutput(Process::Port* port)
     }
 
     if (!port) return false;
-    if (findPort(port, outputs_) != outputs_.end()) return false;
+    if (findPort(port, out_ports_) != out_ports_.end()) return false;
 
     try {
-        outputs_.push_back(port);
+        out_ports_.push_back(port);
         return true;
     }
     catch (bad_alloc& ex) {
@@ -103,13 +104,13 @@ bool Processnetwork::addOutput(Process::Port* port)
 }
 
 bool Processnetwork::deleteOutput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, outputs_);
+    list<Process::Port*>::iterator it = findPort(port, out_ports_);
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
     }
 
-    if (it != outputs_.end()) {
-        outputs_.erase(it);
+    if (it != out_ports_.end()) {
+        out_ports_.erase(it);
         return true;
     }
     else {
@@ -118,11 +119,11 @@ bool Processnetwork::deleteOutput(Process::Port* port) throw(InvalidArgumentExce
 }
 
 int Processnetwork::getNumOutputs() const throw() {
-    return outputs_.size();
+    return out_ports_.size();
 }
 
 std::list<Process::Port*> Processnetwork::getOutputs() throw() {
-    return outputs_;
+    return out_ports_;
 }
 
 list<Process::Port*>::iterator Processnetwork::findPort(
@@ -136,6 +137,10 @@ list<Process::Port*>::iterator Processnetwork::findPort(
 
     // No such port was found
     return it;
+}
+
+string Processnetwork::type() const throw() {
+    return "composite";
 }
 
 list<Process::Port*>::iterator Processnetwork::findPort(
@@ -159,15 +164,21 @@ std::string Processnetwork::toString() const throw() {
     str += tools::toString(getNumInputs());
     str += ",\n";
     str += " Inputs = {";
-    str += portsToString(inputs_);
+    str += portsToString(in_ports_);
     str += "}";
     str += ",\n";
     str += " NumOutputs: ";
     str += tools::toString(getNumOutputs());
     str += ",\n";
     str += " Outputs = {";
-    str += portsToString(outputs_);
+    str += portsToString(out_ports_);
     str += "}\n";
+    str += " NumProcesses: ";
+    str += tools::toString(getNumProcesses());
+    str += ",\n";
+    str += " NumFunctions: ";
+    str += tools::toString(getNumFunctions());
+    str += ",\n";
     str += "}";
     return str;
 }
