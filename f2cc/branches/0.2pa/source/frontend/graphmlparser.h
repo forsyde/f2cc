@@ -160,18 +160,18 @@ class GraphmlParser : public Frontend {
     /**
      * Converts an \c graph XML element into an internal ForSyDe processnetwork. The
      * method makes no checks on whether the resultant processnetwork appears sane or
-     * not.  It is the caller's responsibility to destroy the processnetwork when it is
+     * not.  It is the caller's responsibility to destroy the process network when it is
      * no longer used.
      * 
      * @param xml
-     *        \c graph XML element containing the processnetwork.
+     *        \c graph XML element containing the process network.
      * @returns Internal ForSyDe processnetwork object.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
      * @throws InvalidProcessnetworkException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When the process network is invalid (but was successfully parsed).
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -184,7 +184,7 @@ class GraphmlParser : public Frontend {
 
     /**
      * Parses the \c node XML elements in a \c graph XML element and converts
-     * them into corresponding processes, which are then added to the processnetwork.
+     * them into corresponding processes, which are then added to the process network.
      * mapset.
      *
      * @param xml
@@ -207,7 +207,7 @@ class GraphmlParser : public Frontend {
 
     /**
      * Parses the \c edge XML elements in a \c graph XML element and uses them
-     * to connect the ports of the processes in the processnetwork.
+     * to connect the ports of the processes in the process network.
      *
      * @param xml
      *        \c graph XML element containing the \c edge XML elements.
@@ -233,8 +233,8 @@ class GraphmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Verifies that all in and out ports of all processes in the processnetwork are
-     * connected, and only connected to processes within the processnetwork.
+     * Verifies that all in and out ports of all processes in the process network are
+     * connected, and only connected to processes within the process network.
      *
      * @param processnetwork
      *        Processnetwork to verify.
@@ -242,7 +242,7 @@ class GraphmlParser : public Frontend {
      *         When \c processnetwork is \c NULL.
      * @throws ParseException
      *         When a port is not connected or connected to a process which does
-     *         not belong to the processnetwork.
+     *         not belong to the process network.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
@@ -255,7 +255,7 @@ class GraphmlParser : public Frontend {
 
     /**
      * Sets the out and in ports of the InPort and OutPort processes,
-     * respectively, as inputs and outputs of the processnetwork. The InPort and
+     * respectively, as inputs and outputs of the process network. The InPort and
      * Outport processes are then removed.
      *
      * @param processnetwork
@@ -590,7 +590,7 @@ class GraphmlParser : public Frontend {
 
     /**
      * Checks that there is at least one InPort and at least one OutPort process
-     * within the processnetwork.
+     * within the process network.
      * 
      * @param processnetwork
      *        Processnetwork to check.
@@ -610,7 +610,7 @@ class GraphmlParser : public Frontend {
 
     /**
      * Sets the out and in ports of the InPort and OutPort processes,
-     * respectively, as inputs and outputs of the processnetwork. The InPort and
+     * respectively, as inputs and outputs of the process network. The InPort and
      * Outport processes are then removed.
      * 
      * @param processnetwork

@@ -34,7 +34,7 @@ PROJECT_NAME           = f2cc
 PROJECT_NUMBER         =
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
-# for a project that appears at the processnetwork of each page and should give viewer
+# for a project that appears at the process network of each page and should give viewer
 # a quick idea about the purpose of the project. Keep the description short.
 
 PROJECT_BRIEF          = "A CUDA C synthesizer for ForSyDe processnetworks"

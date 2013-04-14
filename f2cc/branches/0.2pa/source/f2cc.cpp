@@ -239,7 +239,7 @@ int main(int argc, const char* argv[]) {
             tools::writeFile(config.getImplementationOutputFile(),
                              code.implementation);
 
-            logger.logInfoMessage("MODEL NTHESIS COMPLETE");
+            logger.logInfoMessage("MODEL SYNTHESIS COMPLETE");
 
             // Clean up
             delete processnetwork;

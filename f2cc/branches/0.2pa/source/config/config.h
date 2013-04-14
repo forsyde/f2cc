@@ -208,7 +208,7 @@ class Config {
     void setLogLevel(Logger::LogLevel level) throw();
 
     /**
-     * Gets whether data parallel processes in the processnetwork should be coalesced.
+     * Gets whether data parallel processes in the process network should be coalesced.
      * Default setting is \c true.
      *
      * @returns \c true if such action should be performed.
@@ -216,7 +216,7 @@ class Config {
     bool doDataParallelProcessCoalesing() const throw();
 
     /**
-     * Sets whether data parallel processes in the processnetwork should be coalesced.
+     * Sets whether data parallel processes in the process network should be coalesced.
      *
      * @param setting
      *        New setting.

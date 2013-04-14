@@ -59,8 +59,8 @@ namespace f2cc {
  * schedule for a given instance of a \c ForSyDe::Processnetwork.
  *
  * The algorithm is a recursive DFS algorithm which traverses over the processes
- * in the processnetwork. It starts by building a \em starting \em point \em queue,
- * containing all processes connected directly to the processnetwork outputs. It then
+ * in the process network. It starts by building a \em starting \em point \em queue,
+ * containing all processes connected directly to the process network outputs. It then
  * pops a process from the head of the queue, and creates a \em partial \em
  * process \em schedule. The partial process schedule is created by recursively
  * traversing upwards along the data flow, moving via the in ports (\c
@@ -73,7 +73,7 @@ namespace f2cc {
  * already-visited process is reached, then an empty schedule is returned and
  * the function stack starts to rewind.
  *
- * This works very well as long as the processnetwork contains no loops. However, if it
+ * This works very well as long as the process network contains no loops. However, if it
  * does, then more needs to be done to get a correct schedule. First, the
  * visited process set is split into a \em global and a \em local set. Whenever
  * a process is popped from the starting point queue, the local set is reset,
@@ -116,7 +116,7 @@ class ScheduleFinder {
     ~ScheduleFinder() throw();
 
     /**
-     * Finds a process schedule for the processnetwork. The schedule is such that if the
+     * Finds a process schedule for the process network. The schedule is such that if the
      * processes are executed one by one the result will be the same as if the
      * perfect synchrony hypothesis still applied.
      *
@@ -133,7 +133,7 @@ class ScheduleFinder {
 
     /**
      * Finds a partial schedule for unvisited processes when traversing from a
-     * given process to an input port of the processnetwork.
+     * given process to an input port of the process network.
      *
      * See detailed class description for information on how the algorithm
      * works.

@@ -287,12 +287,12 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
     }
 
     logger_.logInfoMessage("Running post-check fixes - removing InPort and "
-                            "OutPort processes from the processnetwork...");
+                            "OutPort processes from the process network...");
 
     list<Process*> inport_processes;
     list<Process*> outport_processes;
 
-    // Get InPort and OutPort processes from the processnetwork
+    // Get InPort and OutPort processes from the process network
     logger_.logDebugMessage("Searching for InPort and OutPort processes...");
     list<Process*> processes = processnetwork->getProcesses();
     list<Process*>::iterator process_it;
@@ -913,35 +913,30 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
     if (!processnetwork) {
         THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
-
     // Get source process ID
     string source_process_id = xml->GetAttribute("source");
     if (source_process_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"source\" attribute");
     }
-
     // Get source process port ID
     string source_process_port_id = xml->GetAttribute("sourceport");
     if (source_process_port_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"sourceport\" attribute");
     }
-
     // Get target process ID
     string target_process_id = xml->GetAttribute("target");
     if (target_process_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"target\" attribute");
     }
-
     // Get target process port ID
     string target_process_port_id = xml->GetAttribute("targetport");
     if (target_process_port_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"targetport\" attribute");
     }
-
     // Get source and target processes
     Process* source_process = processnetwork->getProcess(source_process_id);
     if (source_process == NULL) {
@@ -955,7 +950,6 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
                         string("No target process \"")
                         + target_process_id + "\" found");
     }
-
     // Get source and target ports
     Process::Port* source_port =
         source_process->getOutPort(source_process_port_id);
@@ -973,7 +967,6 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
                         + target_process_id + ":"
                         + target_process_port_id + "\" found");
     }
-
     // Check that the target port is not already connected to another port
     if (target_port->isConnected()) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
@@ -982,7 +975,6 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
                         + target_process_port_id
                         + "\" is already connected to another port");
     }
-
     // Make port connections
     if (!source_port->isConnected()) {
         source_port->connect(target_port);
@@ -1025,7 +1017,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
             }
             logger_.logDebugMessage(string("New process \"")
                                     + copy_process->getId()->getString()
-                                    + "\" added to the processnetwork");
+                                    + "\" added to the process network");
 
             // Break the current connection and connect the source and previous
             // target connection through the fanout process
@@ -1077,7 +1069,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
 void GraphmlParser::checkProcessnetworkMore(Processnetwork* processnetwork)
     throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
           RuntimeException) {
-    logger_.logInfoMessage("Checking that the processnetwork contains at least one "
+    logger_.logInfoMessage("Checking that the process network contains at least one "
                             "InPort and OutPort process...");
 
     bool found_in_port_process = false;

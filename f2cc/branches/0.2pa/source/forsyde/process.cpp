@@ -411,12 +411,12 @@ void Process::Port::IOunconnectInside() throw() {
 }
 
 Process::Port* Process::Port::getConnectedPort() const throw() {
-	std::string process_type (connected_port_inside_->getProcess()->type());
+	std::string process_type (connected_port_outside_->getProcess()->type());
 	std::string composite_type ("composite");
-    if (process_type.compare(composite_type) != 0){
-    	return connected_port_inside_->getConnectedPort();
+    if (process_type.compare(composite_type) == 0){
+    	return connected_port_outside_->getConnectedPort();
     }
-    else return connected_port_inside_;
+    else return connected_port_outside_;
 }
 
 Process::Port* Process::Port::IOgetConnectedPortOutside() const throw() {
@@ -426,7 +426,7 @@ Process::Port* Process::Port::IOgetConnectedPortOutside() const throw() {
 Process::Port* Process::Port::IOgetConnectedPortInside() const throw() {
 	std::string process_type (connected_port_inside_->getProcess()->type());
 	std::string composite_type ("composite");
-    if (process_type.compare(composite_type) != 0){
+    if (process_type.compare(composite_type) == 0){
     	return connected_port_inside_->IOgetConnectedPortInside();
     }
     else return connected_port_inside_;

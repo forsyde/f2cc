@@ -12,7 +12,7 @@
  * @brief Contains all classes used in the internal representation of a ForSyDe 
  *        processnetwork.
  *
- * The \c ForSyDe namespace contains all the processnetwork, process, ports classes used 
+ * The \c ForSyDe namespace contains all the process network, process, ports classes used 
  * to construct the internal representation of a ForSyDe processnetwork. 
  */
 

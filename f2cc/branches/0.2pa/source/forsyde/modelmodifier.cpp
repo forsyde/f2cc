@@ -177,7 +177,7 @@ void ModelModifier::fuseUnzipcombZipProcesses()
 
         redirectDataFlow(section.start, section.end, new_process, new_process);
 
-        // Add new process to the processnetwork
+        // Add new process to the process network
         if (processnetwork_->addProcess(new_process)) {
             logger_.logInfoMessage(string("Data parallel section ")
                                    + section.toString() + " replaced by new "
@@ -191,7 +191,7 @@ void ModelModifier::fuseUnzipcombZipProcesses()
                             + "\" already existed");
         }
 
-        // Destroy and delete the section from the processnetwork
+        // Destroy and delete the section from the process network
         logger_.logDebugMessage(string("Destroying section \"")
                                 + section.toString() + "...");
         destroyProcessChain(section.start);
@@ -217,7 +217,7 @@ void ModelModifier::convertZipWith1Tocomb()
 
             redirectDataFlow(process, process, new_process, new_process);
 
-            // Add new process to the processnetwork
+            // Add new process to the process network
             if (processnetwork_->addProcess(new_process)) {
                 logger_.logInfoMessage(string("Process \"")
                                        + process->getId()->getString() + "\" "
@@ -232,7 +232,7 @@ void ModelModifier::convertZipWith1Tocomb()
                                 + "\" already existed");
             }
 
-            // Destroy and delete the old process from the processnetwork
+            // Destroy and delete the old process from the process network
             logger_.logDebugMessage(string("Destroying process \"")
                                     + process->getId()->getString() + "...");
             processnetwork_->deleteProcess(*process->getId());
@@ -712,8 +712,8 @@ list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains(
 
             list<ParallelMap*> chain;
             while (parallelmapsy) {
-                // Since we are searching the processnetwork from outputs to inputs,
-                // the process must be added to the processnetwork of the list to avoid the
+                // Since we are searching the process network from outputs to inputs,
+                // the process must be added to the process network of the list to avoid the
                 // chain from being reversed
                 chain.push_front(parallelmapsy);
                 continuation_point = parallelmapsy;
@@ -764,7 +764,7 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
     
     redirectDataFlow(chain.front(), chain.back(), new_process, new_process);
 
-    // Add new process to the processnetwork
+    // Add new process to the process network
     if (processnetwork_->addProcess(new_process)) {
         logger_.logInfoMessage(string("Process chain ")
                                + processChainToString(chain)
@@ -779,7 +779,7 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
                         + "\" already existed");
     }
 
-    // Destroy and delete the section from the processnetwork
+    // Destroy and delete the section from the process network
     logger_.logDebugMessage(string("Destroying process chain ")
                             + processChainToString(chain) + "...");
     destroyProcessChain(chain.front());
@@ -861,7 +861,7 @@ void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
     
     redirectDataFlow(chain.front(), chain.back(), new_process, new_process);
 
-    // Add new process to the processnetwork
+    // Add new process to the process network
     if (processnetwork_->addProcess(new_process)) {
         logger_.logInfoMessage(string("Process chain ")
                                + processChainToString(chain)
@@ -876,7 +876,7 @@ void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
                         + "\" already existed");
     }
 
-    // Destroy and delete the section from the processnetwork
+    // Destroy and delete the section from the process network
     logger_.logDebugMessage(string("Destroying process chain ")
                             + processChainToString(chain) + "...");
     destroyProcessChain(chain.front());
@@ -994,7 +994,7 @@ void ModelModifier::splitDataParallelSegments(
                 right_map_in_port->connect(unzipx_out_port);
             }
 
-            // Add new processes to the processnetwork
+            // Add new processes to the process network
             if (!processnetwork_->addProcess(new_zipx)) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "new process: Process with ID "
@@ -1012,7 +1012,7 @@ void ModelModifier::splitDataParallelSegments(
                                     + new_zipx->getId()->getString()
                                     + "\" and \""
                                     + new_unzipx->getId()->getString()
-                                    + "\" added to the processnetwork");
+                                    + "\" added to the process network");
         }
     }
     catch (std::out_of_range&) {

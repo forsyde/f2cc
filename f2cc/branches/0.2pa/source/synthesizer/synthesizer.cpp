@@ -637,7 +637,7 @@ string Synthesizer::generateProcessnetworkFunctionDescription()
     throw(InvalidProcessnetworkException, IOException, RuntimeException) {
     string desc;
     desc += string("/**\n")
-        + " * Executes the processnetwork.\n"
+        + " * Executes the process network.\n"
         + " *\n";
 
     // Generate description for the function input parameters
@@ -2427,7 +2427,7 @@ string Synthesizer::getGlobalProcessFunctionName(
 
 bool Synthesizer::dynamicallyAllocateMemoryForSignalVariable(Signal* signal) {
     // If the signal has an in and out port, then the signal is not written to
-    // from any processnetwork input parameter nor read from for the processnetwork output
+    // from any processnetwork input parameter nor read from for the process network output
     // parameters
     return signal->getOutPort() && signal->getInPort()
         && signal->getVariable().getDataType()->isArray();

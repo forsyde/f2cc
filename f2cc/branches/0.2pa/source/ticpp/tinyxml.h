@@ -1459,7 +1459,7 @@ private:
 };
 
 
-/** Always the processnetwork level node. A document binds together all the
+/** Always the process network level node. A document binds together all the
 	XML pieces. It can be saved, loaded, and printed to the screen.
 	The 'value' of a document node is the xml file name.
 */

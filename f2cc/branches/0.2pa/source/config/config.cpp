@@ -64,7 +64,7 @@ string Config::getHelpMenu() const throw() {
         "that a processnetwork which is proven to be correct will also yield correct C "
         "or CUDA C code.\n"
         "\n"
-        "The tool expects the processnetwork to be represented as a GraphML file. "
+        "The tool expects the process network to be represented as a GraphML file. "
         "Currently, the tool supports the following processes:\n";
     tools::breakLongLines(part, maximum_line_length, 0);
     part += ""

@@ -37,7 +37,7 @@ There is an example file - xmltest.cpp - to get you started.
 
 TinyXML is released under the ZLib license, 
 so you can use it in open source or commercial code. The details
-of the license are at the processnetwork of every source file.
+of the license are at the process network of every source file.
 
 TinyXML attempts to be a flexible parser, but with truly correct and
 compliant XML output. TinyXML should compile on any reasonably C++
@@ -366,7 +366,7 @@ hard coded.
 </ul>
 
 <h3>Makefile</h3>
-At the processnetwork of the makefile you can set:
+At the process network of the makefile you can set:
 
 PROFILE, DEBUG, and TINYXML_USE_STL. Details (such that they are) are in
 the makefile.

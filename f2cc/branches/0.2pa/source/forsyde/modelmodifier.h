@@ -99,7 +99,7 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Coalesces \c ParallelMap processes within the processnetwork into a single
+     * Coalesces \c ParallelMap processes within the process network into a single
      * process.
      *
      * @throws IOException
@@ -158,8 +158,8 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Removes redundant processes from the processnetwork. Redundant processes are
-     * instances which does not affect the semantic behaviour of the processnetwork when
+     * Removes redundant processes from the process network. Redundant processes are
+     * instances which does not affect the semantic behaviour of the process network when
      * removed, such as \c unzipxSy and \c zipxSy processes with only one in
      * and out port.
      *
@@ -191,7 +191,7 @@ class ModelModifier {
             throw(IOException, RuntimeException);
 
     /**
-     * Searches for data parallel sections within the processnetwork. A data parallel
+     * Searches for data parallel sections within the process network. A data parallel
      * section is a section which is both contained and passes the check
      * performed in isContainedSectionDataParallel(const ContainedSection&).
      *
@@ -206,8 +206,8 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Searches for contained sections within the processnetwork. A contained section is
-     * a part of the processnetwork which:
+     * Searches for contained sections within the process network. A contained section is
+     * a part of the process network which:
      *   - start with a \c unzipx process, and
      *   - ends with a \c zipx process, where
      *   - all data flow diverging from the starting point converges at the end
@@ -411,7 +411,7 @@ class ModelModifier {
     /**
      * Coalesces a process chain into a single new process. The process chain
      * \em must be ordered such that the output of a process is consumed by the
-     * following process. The old processes will be removed from the processnetwork and
+     * following process. The old processes will be removed from the process network and
      * replaced by the new process.
      * 
      * @param chain
@@ -440,7 +440,7 @@ class ModelModifier {
         std::list<ForSyDe::SY::ParallelMap*> chain) throw(RuntimeException);
 
     /**
-     * Searches for chains for \c ParallelMap processes within the processnetwork.
+     * Searches for chains for \c ParallelMap processes within the process network.
      *
      * @returns List of \c ParallelMap process chains.
      * @throws IOException
@@ -477,7 +477,7 @@ class ModelModifier {
      * Coalesces a chain of \c ParallelMap processes into a single new
      * process. The process chain \em must be ordered such that the output of a
      * process is consumed by the following process. The old processes will be
-     * removed from the processnetwork and replaced by the new process.
+     * removed from the process network and replaced by the new process.
      * 
      * @param chain
      *        Process chain.
@@ -521,7 +521,7 @@ class ModelModifier {
      * processes \e C and \e D. The data flow is redirected by adding the in
      * ports of \e A to \e C, and the out ports of \e B to \e D. This will
      * break all connections to \e A and from \e B, thus unconnecting that
-     * segment from the processnetwork (but it does \em not delete it). Processes \e C
+     * segment from the process network (but it does \em not delete it). Processes \e C
      * and \e D can be the same process.
      *
      * @param old_start
@@ -546,7 +546,7 @@ class ModelModifier {
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Replaces the old port, if set as part of the inputs for the processnetwork, with
+     * Replaces the old port, if set as part of the inputs for the process network, with
      * the new port.
      * 
      * @param old_port

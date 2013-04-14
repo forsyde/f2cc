@@ -100,12 +100,12 @@ class Synthesizer {
     static const std::string kIndents;
 
     /**
-     * Prefix to use for the input parameters in the processnetwork C function.
+     * Prefix to use for the input parameters in the process network C function.
      */
     static const std::string kProcessnetworkInputParameterPrefix;
 
     /**
-     * Prefix to use for the output parameters in the processnetwork C function.
+     * Prefix to use for the output parameters in the process network C function.
      */
     static const std::string kProcessnetworkOutputParameterPrefix;
 
@@ -163,7 +163,7 @@ class Synthesizer {
      *
      * @returns Generated code.
      * @throws InvalidProcessnetworkException
-     *         When the processnetwork is such that it cannot be synthesized.
+     *         When the process network is such that it cannot be synthesized.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -177,7 +177,7 @@ class Synthesizer {
      *
      * @returns Generated code.
      * @throws InvalidProcessnetworkException
-     *         When the processnetwork is such that it cannot be synthesized.
+     *         When the process network is such that it cannot be synthesized.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -188,7 +188,7 @@ class Synthesizer {
     
   private:
     /**
-     * Checks that the processnetwork is valid from the synthesizer's point of view.
+     * Checks that the process network is valid from the synthesizer's point of view.
      * Currently, this does nothing (i.e. all parsed processnetworks are valid processnetworks).
      *
      * @throws InvalidProcessnetworkException
@@ -206,7 +206,7 @@ class Synthesizer {
      *
      * @returns Generated code.
      * @throws InvalidProcessnetworkException
-     *         When the processnetwork is such that it cannot be synthesized.
+     *         When the process network is such that it cannot be synthesized.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -216,7 +216,7 @@ class Synthesizer {
         throw(InvalidProcessnetworkException, IOException, RuntimeException);
 
     /**
-     * Finds a process schedule for the processnetwork. 
+     * Finds a process schedule for the process network. 
      *
      * @throws IOException
      *         When access to the log file fails.
@@ -311,7 +311,7 @@ class Synthesizer {
      * number).
      *
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -325,7 +325,7 @@ class Synthesizer {
      * renaming the duplicates. Functions are compared using the \c == operator.
      *
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -343,7 +343,7 @@ class Synthesizer {
      * such that it is the function returned when calling comb::getFunction().
      *
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -361,7 +361,7 @@ class Synthesizer {
      *        List of functions.
      * @returns Wrapper function.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -379,7 +379,7 @@ class Synthesizer {
      * the process can be handled like any other \c comb process.
      *
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -408,7 +408,7 @@ class Synthesizer {
      *        Number of processes which the kernel function encompasses.
      * @returns Kernel function.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -429,7 +429,7 @@ class Synthesizer {
      *        Number of processes which the kernel function encompasses.
      * @returns Wrapper function.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -447,7 +447,7 @@ class Synthesizer {
      * any other \c comb process.
      *
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -466,7 +466,7 @@ class Synthesizer {
      *        Number of processes which the function encompasses.
      * @returns Wrapper function.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -482,7 +482,7 @@ class Synthesizer {
      *
      * @returns Process function definitions code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -492,7 +492,7 @@ class Synthesizer {
         throw(InvalidProcessnetworkException, IOException, RuntimeException);
 
     /**
-     * Generates code for the processnetwork function definition, which implements the
+     * Generates code for the process network function definition, which implements the
      * schedule.
      *
      * Note that \c delay processes are executed in two steps. The first step
@@ -506,7 +506,7 @@ class Synthesizer {
      *
      * @returns Processnetwork function definition code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -516,12 +516,12 @@ class Synthesizer {
         throw(InvalidProcessnetworkException, IOException, RuntimeException);
 
     /**
-     * Generates code for the processnetwork function prototype. This is used for the
+     * Generates code for the process network function prototype. This is used for the
      * header file.
      *
      * @returns Processnetwork function prototype.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -531,11 +531,11 @@ class Synthesizer {
         throw(InvalidProcessnetworkException, IOException, RuntimeException);
 
     /**
-     * Generates a method description (Java style) for the processnetwork function.
+     * Generates a method description (Java style) for the process network function.
      *
      * @returns Processnetwork function description.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -545,13 +545,13 @@ class Synthesizer {
         throw(InvalidProcessnetworkException, IOException, RuntimeException);
 
     /**
-     * Generates code for copying the input parameter values of the processnetwork
+     * Generates code for copying the input parameter values of the process network
      * function to the appropriate signals. Input array parameters are ignored
      * (see generateArrayInputOutputsToSignalsAliasingCode()).
      *
      * @returns fanouting code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
@@ -560,13 +560,13 @@ class Synthesizer {
 
     /**
      * Generates code for copying the appropriate signal values to the output
-     * parameters of the processnetwork function. Signal array variables associated with
+     * parameters of the process network function. Signal array variables associated with
      * output parameters are ignored (see
      * generateArrayInputOutputsToSignalsAliasingCode()).
      *
      * @returns fanouting code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
@@ -580,7 +580,7 @@ class Synthesizer {
      *
      * @returns fanouting code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
@@ -610,7 +610,7 @@ class Synthesizer {
      * Generates code for declaring the delay variables. A delay variable is
      * always declared as \c static as they need to retain their values between
      * processnetwork invocations. The variables will also be initialized with the
-     * initial values specified in the processnetwork.
+     * initial values specified in the process network.
      *
      * @returns Variable declarations code.
      * @throws InvalidProcessnetworkException
@@ -656,7 +656,7 @@ class Synthesizer {
         throw(IOException, RuntimeException);
 
     /**
-     * Generates code for the processnetwork input parameters. Each parameter will have
+     * Generates code for the process network input parameters. Each parameter will have
      * prefix specified by Synthesizer::kProcessnetworkInputParameterPrefix_ or
      * Synthesizer::kProcessnetworkOutputParameterPrefix_, followed by an integer value.
      * All output parameters will be declared as pointers (except arrays, which
@@ -676,7 +676,7 @@ class Synthesizer {
     /**
      * Creates all signals needed for the processes present in the
      * schedule. This is necessary in order be able to declare all variables at
-     * the processnetwork of the function definition in C. However, the data type of all
+     * the process network of the function definition in C. However, the data type of all
      * signals are \em not detected. The method also clears any previously
      * generated signals.
      *
@@ -693,7 +693,7 @@ class Synthesizer {
     /**
      * Creates all delay variables needed for the delay processes present in the
      * schedule. This is necessary in order be able to declare all variables at
-     * the processnetwork of the function definition in C. The method also clears any
+     * the process network of the function definition in C. The method also clears any
      * previously generated variables.
      *
      * @throws IOException
@@ -836,7 +836,7 @@ class Synthesizer {
      *        Process to execute.
      * @returns Execution code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -1021,7 +1021,7 @@ class Synthesizer {
      *
      * @returns Struct definition code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -1037,7 +1037,7 @@ class Synthesizer {
      *
      * @returns Function definition code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -1067,7 +1067,7 @@ class Synthesizer {
      * @param signal
      *        Signal whose variable to check.
      * @returns \c true if the data type is an array and it is not written to by
-     *          the processnetwork input parameters or read from for the processnetwork output
+     *          the process network input parameters or read from for the process network output
      *          parameters.
      */
     bool dynamicallyAllocateMemoryForSignalVariable(Signal* signal);
@@ -1081,7 +1081,7 @@ class Synthesizer {
      *        Process to execute.
      * @returns Execution code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -1100,7 +1100,7 @@ class Synthesizer {
      *        Process to execute.
      * @returns Execution code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -1119,7 +1119,7 @@ class Synthesizer {
      *        Process to execute.
      * @returns Execution code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -1139,7 +1139,7 @@ class Synthesizer {
      *        Process to execute.
      * @returns Execution code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -1159,7 +1159,7 @@ class Synthesizer {
      *        Process to execute.
      * @returns Execution code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -1176,7 +1176,7 @@ class Synthesizer {
      *        Process to execute.
      * @returns Execution code.
      * @throws InvalidProcessnetworkException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException

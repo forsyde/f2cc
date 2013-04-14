@@ -78,7 +78,7 @@ class Frontend {
      * sane for the later stages of the software synthesis process.
      *
      * The receiver of the returned processnetwork is responsible of freeing the memory
-     * consumed when the processnetwork is no longer needed.
+     * consumed when the process network is no longer needed.
      *
      * @param file
      *        Input file.
@@ -92,7 +92,7 @@ class Frontend {
      * @throws ParseException
      *         When the file fails to be parsed.
      * @throws InvalidProcessnetworkException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When the process network is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
@@ -105,8 +105,8 @@ class Frontend {
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::Processnetwork object. After the processnetwork has been created, it is subjected
-     * to a series of checks and hook invocations to ensure that the processnetwork is
+     * ForSyDe::Processnetwork object. After the process network has been created, it is subjected
+     * to a series of checks and hook invocations to ensure that the process network is
      * sane and valid for the later steps in the synthesis procedure.
      *
      * The order of the hook calls are:
@@ -128,7 +128,7 @@ class Frontend {
      * @throws ParseException
      *         When the file fails to be parsed.
      * @throws InvalidProcessnetworkException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When the process network is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
@@ -157,7 +157,7 @@ class Frontend {
               RuntimeException);
 
     /**
-     * Performs post-check fixes to the processnetwork, if necessary. By default, this
+     * Performs post-check fixes to the process network, if necessary. By default, this
      * does nothing.
      * 
      * @param processnetwork
@@ -175,7 +175,7 @@ class Frontend {
 
   private:
     /**
-     * Runs standard checks on the processnetwork by invoking (in this order):
+     * Runs standard checks on the process network by invoking (in this order):
      *   - checkProcess(ForSyDe::Process*, ForSyDe::Processnetwork*) on each process, and
      *   - checkProcessnetworkMore(ForSyDe::Processnetwork*).
      * 
@@ -198,7 +198,7 @@ class Frontend {
               RuntimeException);
 
     /**
-     * Checks that the processnetwork contains no \c InPort processes at this stage.
+     * Checks that the process network contains no \c InPort processes at this stage.
      * Since it is the responsibility of the frontend to remove such processes,
      * an exception thrown from here indicates a serious error in the frontend.
      *
@@ -216,7 +216,7 @@ class Frontend {
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Checks that the processnetwork contains no \c OutPort processes at this stage.
+     * Checks that the process network contains no \c OutPort processes at this stage.
      * Since it is the responsibility of the frontend to remove such processes,
      * an exception thrown from here indicates a serious error in the frontend.
      *

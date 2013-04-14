@@ -88,7 +88,7 @@ void Frontend::ensureNoInPorts(Processnetwork* processnetwork)
     }
 
     logger_.logDebugMessage("Checking that there are no InPort processes in "
-                            "the processnetwork at this stage...");
+                            "the process network at this stage...");
     list<Process*> processes = processnetwork->getProcesses();
     list<Process*>::iterator process_it;
     for (process_it = processes.begin(); process_it != processes.end();
@@ -107,7 +107,7 @@ void Frontend::ensureNoInPorts(Processnetwork* processnetwork)
             logger_.logDebugMessage("Not an InPort process");
         }
     }
-    logger_.logDebugMessage("No InPort processes in the processnetwork");
+    logger_.logDebugMessage("No InPort processes in the process network");
 }
 
 void Frontend::ensureNoOutPorts(Processnetwork* processnetwork)
@@ -117,7 +117,7 @@ void Frontend::ensureNoOutPorts(Processnetwork* processnetwork)
     }
 
     logger_.logDebugMessage("Checking that there are no OutPort processes in "
-                            "the processnetwork at this stage...");
+                            "the process network at this stage...");
     list<Process*> processes = processnetwork->getProcesses();
     list<Process*>::iterator process_it;
     for (process_it = processes.begin(); process_it != processes.end();
@@ -136,7 +136,7 @@ void Frontend::ensureNoOutPorts(Processnetwork* processnetwork)
             logger_.logDebugMessage("Not an OutPort process");
         }
     }
-    logger_.logDebugMessage("No OutPort processes in the processnetwork");
+    logger_.logDebugMessage("No OutPort processes in the process network");
 }
 
 void Frontend::checkProcess(Process* process, Processnetwork* processnetwork)
@@ -205,7 +205,7 @@ void Frontend::checkPort(Process::Port* port, Processnetwork* processnetwork)
                         + "(combinatorial looping)");
     }
 
-    // Check that the other port belongs to a process in the processnetwork
+    // Check that the other port belongs to a process in the process network
     if (!processnetwork->getProcess(*port->getConnectedPort()->getProcess()->getId())) {
         THROW_EXCEPTION(InvalidProcessnetworkException, string("Port \"")
                         + port->getId()->getString()

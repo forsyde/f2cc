@@ -274,12 +274,12 @@ void XmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwork)
     }
 
     logger_.logInfoMessage("Running post-check fixes - removing InPort and "
-                            "OutPort processes from the processnetwork...");
+                            "OutPort processes from the process network...");
 
     list<Process*> inport_processes;
     list<Process*> outport_processes;
 
-    // Get InPort and OutPort processes from the processnetwork
+    // Get InPort and OutPort processes from the process network
     logger_.logDebugMessage("Searching for InPort and OutPort processes...");
     list<Process*> processes = processnetwork->getProcesses();
     list<Process*>::iterator process_it;
@@ -1012,7 +1012,7 @@ void XmlParser::generateConnection(Element* xml, Processnetwork* processnetwork,
             }
             logger_.logDebugMessage(string("New process \"")
                                     + copy_process->getId()->getString()
-                                    + "\" added to the processnetwork");
+                                    + "\" added to the process network");
 
             // Break the current connection and connect the source and previous
             // target connection through the fanout process
@@ -1064,7 +1064,7 @@ void XmlParser::generateConnection(Element* xml, Processnetwork* processnetwork,
 void XmlParser::checkProcessnetworkMore(Processnetwork* processnetwork)
     throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
           RuntimeException) {
-    logger_.logInfoMessage("Checking that the processnetwork contains at least one "
+    logger_.logInfoMessage("Checking that the process network contains at least one "
                             "InPort and OutPort process...");
 
     bool found_in_port_process = false;

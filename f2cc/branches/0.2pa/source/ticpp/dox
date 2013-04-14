@@ -149,7 +149,7 @@ JAVADOC_AUTOBRIEF      = YES
 MULTILINE_CPP_IS_BRIEF = NO
 
 # If the DETAILS_AT_TOP tag is set to YES then Doxygen 
-# will output the detailed description near the processnetwork, like JavaDoc.
+# will output the detailed description near the process network, like JavaDoc.
 # If set to NO, the detailed description appears after the member 
 # documentation.
 
