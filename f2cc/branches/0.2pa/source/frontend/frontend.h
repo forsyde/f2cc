@@ -264,7 +264,7 @@ class Frontend {
      *   - is connected,
      *   - is connected to a port belonging to process which is part of the
      *     given processnetwork,
-     *   - is not connected a port of its own process (combinatorial loops).
+     *   - is not connected a port of its own process (Mapinatorial loops).
      * 
      * @param port
      *        Port to check.

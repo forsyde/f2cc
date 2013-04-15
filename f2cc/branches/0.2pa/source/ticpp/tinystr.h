@@ -119,19 +119,19 @@ class TiXmlString
 	}
 
 
-	// += operator. combs to append
+	// += operator. Maps to append
 	TiXmlString& operator += (const char * suffix)
 	{
 		return append(suffix, static_cast<size_type>( strlen(suffix) ));
 	}
 
-	// += operator. combs to append
+	// += operator. Maps to append
 	TiXmlString& operator += (char single)
 	{
 		return append(&single, 1);
 	}
 
-	// += operator. combs to append
+	// += operator. Maps to append
 	TiXmlString& operator += (const TiXmlString & suffix)
 	{
 		return append(suffix.data(), suffix.length());

@@ -46,7 +46,7 @@ namespace SY{
 /**
  * @brief Implements the generic ForSyDe \c zipWithN process.
  */
-class comb : public Process {
+class Map : public Process {
   public:
     /**
      * Creates a process.
@@ -56,12 +56,12 @@ class comb : public Process {
      * @param function
      *        Process function argument.
      */
-    comb(const Id& id, const Id& parent, const CFunction& function) throw();
+    Map(const Id& id, const Id& parent, const CFunction& function, const std::string& moc) throw();
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~comb() throw();
+    virtual ~Map() throw();
 
     /**
      * Gets the function argument of this process.
@@ -136,7 +136,7 @@ class comb : public Process {
     /**
      * Pointer to process function argument.
      */
-    CFunction* function_;
+    CFunction function_;
 };
 
 }

@@ -51,7 +51,7 @@ class unzipx : public Process {
     /**
      * @copydoc Process(const Id&)
      */
-    unzipx(const Id& id, const Id& parent) throw();
+    unzipx(const Id& id, const Id& parent, const std::string& moc) throw();
 
     /**
      * @copydoc ~Process()

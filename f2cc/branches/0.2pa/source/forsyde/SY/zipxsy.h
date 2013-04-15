@@ -51,7 +51,7 @@ class zipx : public Process {
     /**
      * @copydoc Process(const Id&)
      */
-    zipx(const Id& id, const Id& parent) throw();
+    zipx(const Id& id, const Id& parent, const std::string& moc) throw();
 
     /**
      * @copydoc ~Process()

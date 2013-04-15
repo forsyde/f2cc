@@ -24,38 +24,39 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_OUTPORT_H_
-#define F2CC_SOURCE_FORSYDE_OUTPORT_H_
+#ifndef F2CC_SOURCE_FORSYDE_INPORT_H_
+#define F2CC_SOURCE_FORSYDE_INPORT_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements a dummy process for network out ports.
+ * @brief Implements a dummy process for network in ports.
  */
 
-#include "process.h"
-#include "../exceptions/notsupportedexception.h"
+#include "../process.h"
+#include "../../exceptions/notsupportedexception.h"
 #include <string>
 
 namespace f2cc {
 namespace ForSyDe {
+namespace SY {
 
 /**
  * @brief Implements a dummy process for network inports.
  */
-class OutPort : public Process {
+class InPort : public Process {
   public:
     /**
      * @copydoc Process(const Id&)
      */
-    OutPort(const Id& id, const Id& parent) throw();
+    InPort(const Id& id, const Id& parent, const std::string& moc) throw();
 
     /**
      * @copydoc ~Process()
      */
-    virtual ~OutPort() throw();
+    virtual ~InPort() throw();
 
     /**
      * @copydoc Process::operator==(const Process&) const
@@ -69,14 +70,16 @@ class OutPort : public Process {
 
   protected:
     /**
-     * Checks that this process has no out ports.
+     * Checks that this process has no in ports.
      *
      * @throws InvalidProcessException
      *         When the check fails.
      */
     virtual void moreChecks() throw(InvalidProcessException);
+
 };
 
+}
 }
 }
 

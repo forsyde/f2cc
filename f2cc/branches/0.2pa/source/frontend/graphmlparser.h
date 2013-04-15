@@ -185,7 +185,7 @@ class GraphmlParser : public Frontend {
     /**
      * Parses the \c node XML elements in a \c graph XML element and converts
      * them into corresponding processes, which are then added to the process network.
-     * mapset.
+     * Mapset.
      *
      * @param xml
      *        \c graph XML element containing the \c node XML elements.
@@ -214,7 +214,7 @@ class GraphmlParser : public Frontend {
      * @param processnetwork
      *        Processnetwork object.
      * @param copy_processes
-     *        combset which contains the \c fanout processes created during the
+     *        Mapset which contains the \c fanout processes created during the
      *        parsing process.
      * @throws InvalidArgumentException
      *         When \c xml or \c processnetwork is \c NULL.
@@ -535,7 +535,7 @@ class GraphmlParser : public Frontend {
      * @param processnetwork
      *        Processnetwork object to add the process to.
      * @param copy_processes
-     *        combset which contains the \c fanout processes created during the
+     *        Mapset which contains the \c fanout processes created during the
      *        parsing process.
      * @throws InvalidArgumentException
      *         When \c xml or \c processnetwork is \c NULL.

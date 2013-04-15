@@ -68,9 +68,9 @@ string Config::getHelpMenu() const throw() {
         "Currently, the tool supports the following processes:\n";
     tools::breakLongLines(part, maximum_line_length, 0);
     part += ""
-        "   * comb\n"
+        "   * Map\n"
         "   * ParallelMap\n"
-        "   * comb\n"
+        "   * Map\n"
         "   * unzipx\n"
         "   * zipx\n"
         "   * delay\n"

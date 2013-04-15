@@ -145,7 +145,7 @@ class XmlParser : public Frontend {
     /**
      * Parses the \c leaf_process XML elements in a \c process_network XML element and converts
      * them into corresponding processes, which are then added both to the process network
-     * mapset and to their parent composite process mapset.
+     * Mapset and to their parent composite process Mapset.
      *
      * @param xml
      *        \c graph XML element containing the \c node XML elements.
@@ -262,12 +262,12 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Checks whether the process constructor passed as string is of type "comb".
+     * Checks whether the process constructor passed as string is of type "Map".
      *
      * @param constructor_name
      *        Process constructor name.
      *
-     * @returns \c true if process constructor is "comb".
+     * @returns \c true if process constructor is "Map".
      */
     bool isComb(std::string constructor_name) throw();
 

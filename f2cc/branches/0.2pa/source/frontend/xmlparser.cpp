@@ -32,10 +32,10 @@
 #include "../forsyde/SY/zipxsy.h"
 #include "../forsyde/SY/unzipxsy.h"
 #include "../forsyde/SY/delaysy.h"
-#include "../forsyde/inport.h"
-#include "../forsyde/outport.h"
+#include "../forsyde/SY/inport.h"
+#include "../forsyde/SY/outport.h"
 #include "../forsyde/SY/fanoutsy.h"
-#include "../forsyde/SY/combsy.h"
+#include "../forsyde/SY/mapsy.h"
 #include "../language/cdatatype.h"
 #include "../exceptions/invalidprocessexception.h"
 #include "../exceptions/invalidformatexception.h"
@@ -102,9 +102,9 @@ Processnetwork* XmlParser::createProcessnetwork(const string& file)
     logger_.logInfoMessage("All checks passed");
 
     logger_.logInfoMessage("Generating internal process network...");
-    Processnetwork* processnetwork = generateProcessnetwork(findRootElement(&xml));
+    //Processnetwork* processnetwork = generateProcessnetwork(findRootElement(&xml));
 
-    return processnetwork;
+    //return processnetwork;
 }
 
 void XmlParser::checkXmlDocument(Document* xml)
@@ -117,7 +117,7 @@ void XmlParser::checkXmlDocument(Document* xml)
     // @todo implement
     logger_.logWarningMessage("XML document check not implemented");
 }
-
+/*
 Processnetwork* XmlParser::generateProcessnetwork(Element* xml)
     throw(InvalidArgumentException, ParseException, InvalidProcessnetworkException,
           IOException, RuntimeException) {
@@ -227,7 +227,7 @@ Process* XmlParser::generateLeafProcess(Element* xml)
             process = new OutPort(Id(process_id), Id("Process_Network"));
         }
         else if (process_type == "mapsy") {
-            process = new comb(Id(process_id), Id("Process_Network"), generateProcessFunction(xml));
+            process = new Map(Id(process_id), Id("Process_Network"), generateProcessFunction(xml));
         }
         else if (process_type == "parallelmapsy") {
             process = new ParallelMap(Id(process_id), Id("Process_Network"), getNumProcesses(xml),
@@ -243,7 +243,7 @@ Process* XmlParser::generateLeafProcess(Element* xml)
             process = new delay(Id(process_id), Id("Process_Network"), getInitialdelayValue(xml));
         }
         else if (process_type == "zipwithnsy") {
-            process = new comb(Id(process_id), Id("Process_Network"),
+            process = new Map(Id(process_id), Id("Process_Network"),
                                      generateProcessFunction(xml));
         }
         else {
@@ -275,7 +275,7 @@ Process* XmlParser::generateLeafProcess(Element* xml)
                             (*it)->Column(), "Invalid port ID format");
         }
 
-        bool port_added;
+        bool poconstantrt_added;
         if (is_in_port) port_added = process->addInPort(*port);
         else            port_added = process->addOutPort(*port);
         if (!port_added) {
@@ -319,7 +319,7 @@ list<Element*> XmlParser::getElementsByName(Node* xml, const string& name)
                     if (!e) THROW_EXCEPTION(CastException);
                     elements.push_back(e);
                 } catch (bad_alloc&) {
-                    THROW_EXCEPTION(OutOfMemoryException);
+              constant      THROW_EXCEPTION(OutOfMemoryException);
                 }
                 break;
             }
@@ -400,11 +400,11 @@ throw(InvalidArgumentException, ParseException, IOException,
         		                               string("Element is missing \"")
         		                               + attribute
         		                               +"\" attribute");
-    }
+    }constant
     return tools::trim(id);
 }
 
 bool XmlParser::isComb(string constructor_name) throw() {
-	return (std::string::npos != constructor_name.find(string("comb")));
+	return (std::string::npos != constructor_name.find(string("Map")));
 }
-
+*/

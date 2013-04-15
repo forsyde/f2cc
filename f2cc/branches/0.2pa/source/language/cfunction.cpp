@@ -129,7 +129,7 @@ list<CVariable*> CFunction::getInputParameters() throw() {
     return input_parameters_;
 }
 
-bool CFunction::addInputParameter(const CVariable& parameter)
+bool CFunction::addInPortParameter(const CVariable& parameter)
     throw(OutOfMemoryException) {
     list<CVariable*>::iterator it;
     for (it = input_parameters_.begin(); it != input_parameters_.end(); ++it) {
@@ -145,7 +145,7 @@ bool CFunction::addInputParameter(const CVariable& parameter)
     }
 }
 
-bool CFunction::deleteInputParameter(const CVariable& parameter) throw() {
+bool CFunction::deleteInPortParameter(const CVariable& parameter) throw() {
     list<CVariable*>::iterator it;
     for (it = input_parameters_.begin(); it != input_parameters_.end(); ++it) {
         if (**it == parameter) {

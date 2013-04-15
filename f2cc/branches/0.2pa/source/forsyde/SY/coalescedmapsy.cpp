@@ -35,8 +35,8 @@ using std::list;
 using std::bad_alloc;
 using std::bad_cast;
 
-CoalescedMap::CoalescedMap(const Id& id, const Id& parent, const CFunction& function)
-        throw(OutOfMemoryException) : comb(id, parent, function) {
+CoalescedMap::CoalescedMap(const Id& id, const Id& parent, const CFunction& function, const string& moc)
+        throw(OutOfMemoryException) : Map(id, parent, function, moc) {
     try {
         CFunction* new_function = new CFunction(function);
         functions_.push_back(new_function);
@@ -47,12 +47,12 @@ CoalescedMap::CoalescedMap(const Id& id, const Id& parent, const CFunction& func
 }
 
 CoalescedMap::CoalescedMap(const Id& id, const Id& parent,
-                               const list<CFunction>& functions)
+                               const list<CFunction>& functions, const string& moc)
         throw(InvalidArgumentException, OutOfMemoryException)
-        // comb requires a function, but can not be certain at this point that
-        // functions is not empty, so we provide comb with a dummy function
+        // Map requires a function, but can not be certain at this point that
+        // functions is not empty, so we provide Map with a dummy function
         // (we will never access it anyway)
-        : comb(id, parent, CFunction()) {
+        : Map(id, parent, CFunction(), moc) {
     if (functions.size() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"functions\" must not be "
                         "an empty list");

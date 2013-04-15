@@ -27,20 +27,20 @@
 #include "parallelmapsy.h"
 #include <typeinfo>
 
-using namespace f2cc::ForSyDe::SY::old;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 using std::bad_cast;
 
 ParallelMap::ParallelMap(const Id& id, const Id& parent, int num_processes,
-                             const CFunction& function)
-        throw(OutOfMemoryException) : CoalescedMap(id, parent, function),
+                             const CFunction& function, const string& moc)
+        throw(OutOfMemoryException) : CoalescedMap(id, parent, function, moc),
                                       num_parallel_processes_(num_processes) {}
 
 ParallelMap::ParallelMap(const Id& id, const Id& parent, int num_processes,
-                             const list<CFunction>& functions)
+                             const list<CFunction>& functions, const string& moc)
         throw(InvalidArgumentException, OutOfMemoryException)
-        : CoalescedMap(id, parent, functions),
+        : CoalescedMap(id, parent, functions, moc),
           num_parallel_processes_(num_processes) {}
 
 ParallelMap::~ParallelMap() throw() {}

@@ -24,38 +24,62 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "inport.h"
-#include <typeinfo>
+#ifndef F2CC_SOURCE_FORSYDE_OUTPORT_H_
+#define F2CC_SOURCE_FORSYDE_OUTPORT_H_
 
-using namespace f2cc::ForSyDe;
-using std::string;
-using std::bad_cast;
+/**
+ * @file
+ * @author  Gabriel Hjort Blindell <ghb@kth.se>
+ * @version 0.1
+ *
+ * @brief Implements a dummy process for network out ports.
+ */
 
-InPort::InPort(const Id& id, const Id& parent) throw()
-        : Process(id, parent) {}
+#include "../process.h"
+#include "../../exceptions/notsupportedexception.h"
+#include <string>
 
-InPort::~InPort() throw() {}
+namespace f2cc {
+namespace ForSyDe {
+namespace SY {
 
-bool InPort::operator==(const Process& rhs) const throw() {
-    if (Process::operator==(rhs)) return false;
+/**
+ * @brief Implements a dummy process for network inports.
+ */
+class OutPort : public Process {
+  public:
+    /**
+     * @copydoc Process(const Id&)
+     */
+    OutPort(const Id& id, const Id& parent, const std::string& moc) throw();
 
-    try {
-        dynamic_cast<const InPort&>(rhs);
-    }
-    catch (bad_cast&) {
-        return false;
-    }
-    return true;
+    /**
+     * @copydoc ~Process()
+     */
+    virtual ~OutPort() throw();
+
+    /**
+     * @copydoc Process::operator==(const Process&) const
+     */
+    virtual bool operator==(const Process& rhs) const throw();
+
+    /**
+     * @copydoc Process::type()
+     */
+    virtual std::string type() const throw();
+
+  protected:
+    /**
+     * Checks that this process has no out ports.
+     *
+     * @throws InvalidProcessException
+     *         When the check fails.
+     */
+    virtual void moreChecks() throw(InvalidProcessException);
+};
+
+}
+}
 }
 
-string InPort::type() const throw() {
-    return "InPort";
-}
-
-void InPort::moreChecks() throw(InvalidProcessException) {
-    if (getInPorts().size() != 0) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
-                        + getId()->getString() + "\" of type \""
-                        + type() + "\" is not allowed to have in ports");
-    }
-}
+#endif

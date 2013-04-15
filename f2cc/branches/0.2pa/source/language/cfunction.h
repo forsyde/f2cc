@@ -161,7 +161,7 @@ class CFunction {
      * @throws OutOfMemoryException
      *         When the parameter fails to be added due to memory shortage.
      */
-    bool addInputParameter(const CVariable& parameter)
+    bool addInPortParameter(const CVariable& parameter)
         throw(OutOfMemoryException);
 
     /**
@@ -171,7 +171,7 @@ class CFunction {
      *        Variable to delete from the input parameters.
      * @returns \c true if such a parameter was found and successfully deleted.
      */
-    bool deleteInputParameter(const CVariable& parameter) throw();
+    bool deleteInPortParameter(const CVariable& parameter) throw();
 
     /**
      * Gets a list of the input parameters to this function. The list will be

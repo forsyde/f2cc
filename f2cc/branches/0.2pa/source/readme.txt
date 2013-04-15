@@ -7,14 +7,14 @@ project. The name stands for "ForSyDe-2-CUDA C" and enables processnetworks to b
 synthesized into either C code or CUDA C code, the latter which can be compiled
 for parallel execution on a CUDA-enabled NVIDIA graphics card. Currently, the
 tool can handle processnetworks which contain the following process types:
-   - \c f2cc::ForSyDe::SY::comb
+   - \c f2cc::ForSyDe::SY::Map
    - \c f2cc::ForSyDe::SY::ParallelMap
    - \c f2cc::ForSyDe::SY::unzipx
    - \c f2cc::ForSyDe::SY::zipx
    - \c f2cc::ForSyDe::SY::delay
 
 The tool recognizes simple data parallel patterns in a processnetwork (an \c unzipx
-process, followed by a series of \c comb processes, which all connect to a \c
+process, followed by a series of \c Map processes, which all connect to a \c
 zipx process) and generate correct CUDA code for such regions. Support for
 additional process types and data parallel processnetwork patterns will be added in the
 future.

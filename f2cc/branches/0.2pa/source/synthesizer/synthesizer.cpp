@@ -32,7 +32,7 @@
 #include "../forsyde/SY/zipxsy.h"
 #include "../forsyde/SY/unzipxsy.h"
 #include "../forsyde/SY/fanoutsy.h"
-#include "../forsyde/SY/combsy.h"
+#include "../forsyde/SY/mapsy.h"
 #include "../language/cfunction.h"
 #include "../language/cdatatype.h"
 #include "../tools/tools.h"
@@ -95,33 +95,33 @@ Synthesizer::CodeSet Synthesizer::generateCode()
 
     logger_.logInfoMessage("Renaming process functions to avoid name "
                            "clashes...");
-    renamecombFunctions();
+    renameMapFunctions();
     logger_.logInfoMessage("Combining function duplicates through "
                            "renaming...");
-    combineFunctionDuplicates();
+    MapineFunctionDuplicates();
 
     logger_.logInfoMessage("Generating wrapper functions for "
                            "coalesced processes...");
     generateCoalescedSyWrapperFunctions();
     logger_.logInfoMessage("Combining function duplicates through "
                            "renaming...");
-    combineFunctionDuplicates();
+    MapineFunctionDuplicates();
 
     if (target_platform_ == Synthesizer::CUDA) {
         logger_.logInfoMessage("Generating CUDA kernel functions for "
-                               "parallel comb processes...");
+                               "parallel Map processes...");
         generateCudaKernelFunctions();
         logger_.logInfoMessage("Combining function duplicates "
                                "through renaming...");
-        combineFunctionDuplicates();
+        MapineFunctionDuplicates();
     }
     else {
         logger_.logInfoMessage("Generating wrapper functions for "
-                               "parallel comb processes...");
+                               "parallel Map processes...");
         generateParallelMapSyWrapperFunctions();
         logger_.logInfoMessage("Combining function duplicates "
                                "through renaming...");
-        combineFunctionDuplicates();
+        MapineFunctionDuplicates();
     }
 
     logger_.logInfoMessage("Creating signal variables...");
@@ -292,7 +292,7 @@ Synthesizer::Signal* Synthesizer::getSignalByInPort(Process::Port* in_port)
     return getSignal(out_port, in_port);
 }
 
-void Synthesizer::renamecombFunctions()
+void Synthesizer::renameMapFunctions()
     throw(InvalidProcessnetworkException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
@@ -305,14 +305,14 @@ void Synthesizer::renamecombFunctions()
                                 + current_process->getId()->getString()
                                 + "\"...");
 
-        comb* mapsy = dynamic_cast<comb*>(current_process);
+        Map* mapsy = dynamic_cast<Map*>(current_process);
         if (mapsy) {
-            logger_.logDebugMessage("Is a map process");
+            logger_.logDebugMessage("Is a Map process");
 
             list<CFunction*> functions;
             CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(mapsy);
             if (cmapsy) {
-                logger_.logDebugMessage("Is a coalescedcomb process");
+                logger_.logDebugMessage("Is a coalescedMap process");
 
                 functions = cmapsy->getFunctions();
             }
@@ -338,9 +338,9 @@ void Synthesizer::renamecombFunctions()
     }
 }
 
-void Synthesizer::combineFunctionDuplicates()
+void Synthesizer::MapineFunctionDuplicates()
     throw(InvalidProcessnetworkException, IOException, RuntimeException) {
-    // The mapset below is used to store the unique functions found across the
+    // The Mapset below is used to store the unique functions found across the
     // processnetwork. The body is used as key, and the name as body
     map<string, string> unique_functions;
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
@@ -354,14 +354,14 @@ void Synthesizer::combineFunctionDuplicates()
                                 + current_process->getId()->getString()
                                 + "\"...");
 
-        comb* mapsy = dynamic_cast<comb*>(current_process);
+        Map* mapsy = dynamic_cast<Map*>(current_process);
         if (mapsy) {
-            logger_.logDebugMessage("Is a map process");
+            logger_.logDebugMessage("Is a Map process");
 
             list<CFunction*> functions;
             CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(mapsy);
             if (cmapsy) {
-                logger_.logDebugMessage("Is a coalescedcomb process");
+                logger_.logDebugMessage("Is a coalescedMap process");
                 functions = cmapsy->getFunctions();
             }
             else {
@@ -412,7 +412,7 @@ void Synthesizer::generateCoalescedSyWrapperFunctions()
 
         CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(current_process);
         if (cmapsy) {
-            logger_.logDebugMessage("Is a coalescedcomb process");
+            logger_.logDebugMessage("Is a coalescedMap process");
 
             list<CFunction*> functions = cmapsy->getFunctions();
             if (functions.size() > 1) {
@@ -514,7 +514,7 @@ string Synthesizer::generateProcessFunctionDefinitionsCode()
                                 + "\"...");
 
         list<CFunction*> functions;
-        if (comb* mapsy = dynamic_cast<comb*>(current_process)) {
+        if (Map* mapsy = dynamic_cast<Map*>(current_process)) {
             CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(mapsy);
             if (cmapsy) {
                 functions = cmapsy->getFunctions();
@@ -522,8 +522,8 @@ string Synthesizer::generateProcessFunctionDefinitionsCode()
             else {
                 functions.push_back(mapsy->getFunction());
             }
-        } else if (comb* zipwithnsy =
-                   dynamic_cast<comb*>(current_process)) {
+        } else if (Map* zipwithnsy =
+                   dynamic_cast<Map*>(current_process)) {
             functions.push_back(zipwithnsy->getFunction());
         }
 
@@ -642,7 +642,7 @@ string Synthesizer::generateProcessnetworkFunctionDescription()
         + " *\n";
 
     // Generate description for the function input parameters
-    list<Process::Port*> inputs = processnetwork_->getInputs();
+    list<Process::Port*> inputs = processnetwork_->getInPorts();
     list<Process::Port*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
@@ -661,7 +661,7 @@ string Synthesizer::generateProcessnetworkFunctionDescription()
     }
 
     // Generate description for the function output parameters
-    list<Process::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Port*> outputs = processnetwork_->getOutPorts();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
         Signal* signal = getSignalByOutPort(*it);
         CDataType data_type = *signal->getDataType();
@@ -687,7 +687,7 @@ string Synthesizer::generateProcessnetworkFunctionParameterListCode()
 
     // Generate input parameters
     bool has_input_parameter = false;
-    list<Process::Port*> inputs = processnetwork_->getInputs();
+    list<Process::Port*> inputs = processnetwork_->getInPorts();
     list<Process::Port*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
@@ -701,7 +701,7 @@ string Synthesizer::generateProcessnetworkFunctionParameterListCode()
     }
 
     // Generate output parameters
-    list<Process::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Port*> outputs = processnetwork_->getOutPorts();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
         if (has_input_parameter || it != outputs.begin()) code += ", ";
         CDataType data_type = *getSignalByOutPort(*it)->getDataType();
@@ -718,7 +718,7 @@ string Synthesizer::generateInputsToSignalsfanoutingCode()
     throw(InvalidProcessnetworkException, RuntimeException) {
     string code;
 
-    list<Process::Port*> inputs = processnetwork_->getInputs();
+    list<Process::Port*> inputs = processnetwork_->getInPorts();
     list<Process::Port*>::iterator it;
     int id;
     bool at_least_one = false;
@@ -747,7 +747,7 @@ string Synthesizer::generateSignalsToOutputsfanoutingCode()
     throw(InvalidProcessnetworkException, RuntimeException) {
     string code;
 
-    list<Process::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Port*> outputs = processnetwork_->getOutPorts();
     list<Process::Port*>::iterator it;
     int id;
     bool at_least_one = false;
@@ -779,7 +779,7 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
     bool at_least_one = false;
 
     // Iterate over the input parameters
-    list<Process::Port*> inputs = processnetwork_->getInputs();
+    list<Process::Port*> inputs = processnetwork_->getInPorts();
     list<Process::Port*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
@@ -797,7 +797,7 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
     }
 
     // Iterate over the output parameters
-    list<Process::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Port*> outputs = processnetwork_->getOutPorts();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
         Signal* signal = getSignalByOutPort(*it);
         logger_.logDebugMessage(string("Analyzing signal ")
@@ -892,7 +892,7 @@ void Synthesizer::createdelayVariables() throw(IOException, RuntimeException) {
 
 void Synthesizer::setInputArraySignalVariableDataTypesAsConst()
     throw(IOException, RuntimeException) {
-    list<Process::Port*> inputs = processnetwork_->getInputs();
+    list<Process::Port*> inputs = processnetwork_->getInPorts();
     for (list<Process::Port*>::iterator it = inputs.begin(); it != inputs.end();
          ++it) {
         Signal* signal = getSignalByInPort(*it);
@@ -947,13 +947,13 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port process is a comb or comb, and if so, get the
+    // Check if the in port process is a Map or Map, and if so, get the
     // data type from the function argument's corresponding input parameter;
     // if not, then the data type of a neighbouring signal is used
     CDataType data_type;
     Process* process = signal->getInPort()->getProcess();
-    if (comb* mapsy = dynamic_cast<comb*>(process)) {
-        logger_.logDebugMessage(string("Found map process \"")
+    if (Map* mapsy = dynamic_cast<Map*>(process)) {
+        logger_.logDebugMessage(string("Found Map process \"")
                                 + mapsy->getId()->getString() + "\"");
         data_type =
             *mapsy->getFunction()->getInputParameters().front()->getDataType();
@@ -965,7 +965,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
                                     + "now \"" + data_type.toString() + "\"");
         }
     }
-    else if (comb* zipwithnsy = dynamic_cast<comb*>(process)) {
+    else if (Map* zipwithnsy = dynamic_cast<Map*>(process)) {
         logger_.logDebugMessage(string("Found zipWithN process \"")
                                 + zipwithnsy->getId()->getString() + "\"");
 
@@ -1067,14 +1067,14 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the out port process is a comb or comb, and if so, get
+    // Check if the out port process is a Map or Map, and if so, get
     // the data type of either its function argument's return value or its
     // function argument's last input parameter; if not, then the data type of
     // a neighbouring signal is used
     CDataType data_type;
     Process* process = signal->getOutPort()->getProcess();
-    if (comb* mapsy = dynamic_cast<comb*>(process)) {
-        logger_.logDebugMessage(string("Found map process \"")
+    if (Map* mapsy = dynamic_cast<Map*>(process)) {
+        logger_.logDebugMessage(string("Found Map process \"")
                                 + mapsy->getId()->getString() + "\"");
         logger_.logDebugMessage(string("Checking number of function ")
                                 + "arguments, expecting 1 or 2");
@@ -1092,12 +1092,12 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
         }
         else {
             THROW_EXCEPTION(IllegalStateException, string("Function argument ")
-                            + "of comb process \""
+                            + "of Map process \""
                             + mapsy->getId()->getString() + "\" has too many "
                             + "input parameters");
         }
     }
-    else if (comb* zipwithnsy = dynamic_cast<comb*>(process)) {
+    else if (Map* zipwithnsy = dynamic_cast<Map*>(process)) {
         logger_.logDebugMessage(string("Found zipWithN process \"")
                                 + zipwithnsy->getId()->getString() + "\"");
         logger_.logDebugMessage(string("Checking number of function ")
@@ -1121,7 +1121,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
         }
         else {
             THROW_EXCEPTION(IllegalStateException, string("Function argument ")
-                            + "of comb process \""
+                            + "of Map process \""
                             + zipwithnsy->getId()->getString() + "\" has an "
                             + "unexpected number of input parameters");
         }
@@ -1484,11 +1484,11 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
         // Do nothing
         return "";
     }
-    else if (comb* cast_process = dynamic_cast<comb*>(process)) {
-        return generateProcessExecutionCodeForcomb(cast_process);
+    else if (Map* cast_process = dynamic_cast<Map*>(process)) {
+        return generateProcessExecutionCodeForMap(cast_process);
     }
-    else if (comb* cast_process = dynamic_cast<comb*>(process)) {
-        return generateProcessExecutionCodeForcomb(cast_process);
+    else if (Map* cast_process = dynamic_cast<Map*>(process)) {
+        return generateProcessExecutionCodeForMap(cast_process);
     }
     else if (zipx* cast_process = dynamic_cast<zipx*>(process)) {
         return generateProcessExecutionCodeForzipx(cast_process);
@@ -2452,8 +2452,8 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
     return generateVariablefanoutingCode(delay_variable, input);
 }
 
-string Synthesizer::generateProcessExecutionCodeForcomb(
-    comb* process)
+string Synthesizer::generateProcessExecutionCodeForMap(
+    Map* process)
 throw(InvalidProcessnetworkException, IOException, RuntimeException) {
     list<CVariable> inputs;
     list<Process::Port*> in_ports = process->getInPorts();

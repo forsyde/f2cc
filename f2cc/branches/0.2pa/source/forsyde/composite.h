@@ -74,7 +74,8 @@ class Composite : public Model, public Process {
      *        the composite process' name. Initially it is the same as its filename, and it is enough
      *        to identify and compare a composite process' structure.
      */
-    Composite(const ForSyDe::Id& id, const ForSyDe::Id& parent, std::string name) throw();
+    Composite(const ForSyDe::Id& id, const ForSyDe::Id& parent,
+    		const std::string& name, const std::string& moc) throw();
 
     /**
      * Destroys this composite process. This also destroys all contained processes

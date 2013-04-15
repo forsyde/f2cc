@@ -30,6 +30,7 @@
 #include <list>
 #include <new>
 
+using namespace f2cc;
 using namespace f2cc::ForSyDe;
 using std::string;
 using std::map;
@@ -37,138 +38,80 @@ using std::list;
 using std::pair;
 using std::bad_alloc;
 
-Processnetwork::Processnetwork(string name) throw() : Composite(Id("Process_Network"),NULL,name) {}
+Processnetwork::Processnetwork(string name) throw() :
+		Composite(Id("R"), Id("No Parent"), name, string("No MoC")) {}
 
 Processnetwork::~Processnetwork() throw() {
+	destroyAllFunctions();
 }
 
-bool Processnetwork::addInput(Process::Port* port)
-    throw(InvalidArgumentException, IllegalStateException,
-          OutOfMemoryException) {
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (!port) return false;
-    if (findPort(port, in_ports_) != in_ports_.end()) return false;
-
-    try {
-        in_ports_.push_back(port);
-        return true;
-    }
-    catch (bad_alloc& ex) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-bool Processnetwork::deleteInput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, in_ports_);
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (it != in_ports_.end()) {
-        in_ports_.erase(it);
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-int Processnetwork::getNumInputs() const throw() {
-    return in_ports_.size();
-}
-
-std::list<Process::Port*> Processnetwork::getInputs() throw() {
-    return in_ports_;
-}
-
-bool Processnetwork::addOutput(Process::Port* port)
-    throw(InvalidArgumentException, IllegalStateException,
-          OutOfMemoryException) {
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (!port) return false;
-    if (findPort(port, out_ports_) != out_ports_.end()) return false;
-
-    try {
-        out_ports_.push_back(port);
-        return true;
-    }
-    catch (bad_alloc& ex) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-bool Processnetwork::deleteOutput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, out_ports_);
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (it != out_ports_.end()) {
-        out_ports_.erase(it);
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-int Processnetwork::getNumOutputs() const throw() {
-    return out_ports_.size();
-}
-
-std::list<Process::Port*> Processnetwork::getOutputs() throw() {
-    return out_ports_;
-}
-
-list<Process::Port*>::iterator Processnetwork::findPort(
-    const Id& id, list<Process::Port*>& ports) const throw() {
-    list<Process::Port*>::iterator it;
-    for (it = ports.begin(); it != ports.end(); ++it) {
-        if (*(*it)->getId() == id) {
-            return it;
-        }
-    }
-
-    // No such port was found
-    return it;
-}
 
 string Processnetwork::type() const throw() {
     return "composite";
 }
 
-list<Process::Port*>::iterator Processnetwork::findPort(
-    Process::Port* port, std::list<Process::Port*>& ports) const throw() {
-    list<Process::Port*>::iterator it;
-    for (it = ports.begin(); it != ports.end(); ++it) {
-        if (*it == port) {
-            return it;
-        }
+bool Processnetwork::addFunction(CFunction* function)
+    throw(InvalidArgumentException, OutOfMemoryException) {
+    if (!function) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"function\" must not be "
+                        "NULL");
     }
+    if (findFunction(function->getName(), process_functions_) !=
+    		process_functions_.end()) return false;
 
-    // No such port was found
-    return it;
+    try {
+    	process_functions_.push_back(function);
+        return true;
+    }
+    catch (bad_alloc&) {
+        THROW_EXCEPTION(OutOfMemoryException);
+    }
+}
+
+CFunction* Processnetwork::getFunction(std::string name) throw() {
+    list<CFunction*>::iterator it = findFunction(name, process_functions_);
+    if (it != process_functions_.end()) {
+        return *it;
+    }
+    else {
+        return NULL;
+    }
+}
+
+size_t Processnetwork::getNumFunctions() const throw() {
+    return process_functions_.size();
+}
+
+list<CFunction*> Processnetwork::getFunctions() throw() {
+    return process_functions_;
+}
+
+bool Processnetwork::deleteFunction(std::string name) throw() {
+    list<CFunction*>::iterator it = findFunction(name, process_functions_);
+    if (it != process_functions_.end()) {
+    	CFunction* removed_function = *it;
+    	process_functions_.erase(it);
+        delete removed_function;
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 std::string Processnetwork::toString() const throw() {
     string str;
     str += "{\n";
-    str += " Processnetwork Module\n";
+    str += " Process Network\n";
     str += " NumInputs: ";
-    str += tools::toString(getNumInputs());
+    str += tools::toString(getNumInPorts());
     str += ",\n";
     str += " Inputs = {";
     str += portsToString(in_ports_);
     str += "}";
     str += ",\n";
     str += " NumOutputs: ";
-    str += tools::toString(getNumOutputs());
+    str += tools::toString(getNumOutPorts());
     str += ",\n";
     str += " Outputs = {";
     str += portsToString(out_ports_);
@@ -183,28 +126,24 @@ std::string Processnetwork::toString() const throw() {
     return str;
 }
 
-string Processnetwork::portsToString(const list<Process::Port*> ports) const throw() {
-    string str;
-    if (ports.size() > 0) {
-        str += "\n";
-        bool first = true;
-        for (list<Process::Port*>::const_iterator it = ports.begin();
-             it != ports.end(); ++it) {
-            if (!first) {
-                str += ",\n";
-            }
-            else {
-                first = false;
-            }
 
-            Process::Port* port = *it;
-            str += "  ID: ";
-            str += port->getId()->getString();
-            str += ", ";
-            str += "belonging to ";
-            str += port->getProcess()->getId()->getString();
+list<CFunction*>::iterator Processnetwork::findFunction(const string name,
+                                        list<CFunction*>& functions) const throw(){
+    list<CFunction*>::iterator it;
+    for (it = functions.begin(); it != functions.end(); ++it) {
+        if ((*it)->getName() == name) {
+            return it;
         }
-        str += "\n ";
     }
-    return str;
+
+    // No such port was found
+    return it;
+}
+
+void Processnetwork::destroyAllFunctions() throw() {
+    while (process_functions_.size() > 0) {
+    	CFunction* function = process_functions_.front();
+        process_functions_.pop_front();
+        delete function;
+    }
 }

@@ -32,7 +32,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements a synthesis-related \c parallelmap process.
+ * @brief Implements a synthesis-related \c parallelMap process.
  */
 
 #include "coalescedmapsy.h"
@@ -47,11 +47,11 @@ namespace ForSyDe {
 namespace SY{
 
 /**
- * @brief Implements a synthesis-related \c parallelmap process.
+ * @brief Implements a synthesis-related \c parallelMap process.
  *
- * This class implements a specialized process \c parallelmap which is not
+ * This class implements a specialized process \c parallelMap which is not
  * part of the ForSyDe standard. Instead, it is used to replace data parallel
- * sections consisting of a \c unzipx process, a set of \c comb or \c
+ * sections consisting of a \c unzipx process, a set of \c Map or \c
  * CoalescedMap processes, followed by a \c zipx process, with a single \c
  * ParallelMap process as it entails the same semantic meaning.
  */
@@ -63,7 +63,7 @@ class ParallelMap : public CoalescedMap {
      * @param id
      *        Process ID.
      * @param num_processes
-     *        Number of data parallel comb processes that this process will
+     *        Number of data parallel Map processes that this process will
      *        represent.
      * @param function
      *        Process function argument.
@@ -71,7 +71,7 @@ class ParallelMap : public CoalescedMap {
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    ParallelMap(const Id& id, const Id& parent, int num_processes, const CFunction& function)
+    ParallelMap(const Id& id, const Id& parent, int num_processes, const CFunction& function, const std::string& moc)
         throw(OutOfMemoryException);
 
     /**
@@ -80,7 +80,7 @@ class ParallelMap : public CoalescedMap {
      * @param id
      *        Process ID.
      * @param num_processes
-     *        Number of data parallel comb processes that this process will
+     *        Number of data parallel Map processes that this process will
      *        represent.
      * @param functions
      *        List of process function arguments.
@@ -91,7 +91,7 @@ class ParallelMap : public CoalescedMap {
      *         shortage.
      */
     ParallelMap(const Id& id, const Id& parent,  int num_processes,
-                  const std::list<CFunction>& functions)
+                  const std::list<CFunction>& functions, const std::string& moc)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
@@ -100,12 +100,12 @@ class ParallelMap : public CoalescedMap {
     virtual ~ParallelMap() throw();
 
     /**
-     * @copydoc comb::operator==(const Process&) const
+     * @copydoc Map::operator==(const Process&) const
      */
     virtual bool operator==(const Process& rhs) const throw();
 
     /**
-     * Gets the number of data parallel comb or CoalescedMap processes that
+     * Gets the number of data parallel Map or CoalescedMap processes that
      * this process represents.
      *
      * @returns Number of processes.

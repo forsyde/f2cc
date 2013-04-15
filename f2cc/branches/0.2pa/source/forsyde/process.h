@@ -37,6 +37,7 @@
  */
 
 #include "id.h"
+#include "../language/cdatatype.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/notsupportedexception.h"
 #include "../exceptions/invalidprocessexception.h"
@@ -94,7 +95,7 @@ class Process{
      *
      * @returns The MoC.
      */
-    const std::string getMoc() const throw()
+    const std::string getMoc() const throw();
 
     /**
      * Checks whether this port is a composite process.
@@ -114,7 +115,7 @@ class Process{
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
+    bool addInPort(const ForSyDe::Id& id, const CDataType datatype) throw(OutOfMemoryException);
 
     /**
      * Creates a new port with the same ID and connections as another port and
@@ -174,7 +175,7 @@ class Process{
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
+    bool addOutPort(const ForSyDe::Id& id, const CDataType datatype) throw(OutOfMemoryException);
 
     /**
      * Same as addInPort(Port&) but for out ports.
@@ -300,6 +301,20 @@ class Process{
      */
     virtual std::string moreToString() const throw();
 
+    /**
+     * Takes a list of ports and converts it into a string representation. Each
+     * port is converted into
+     * @code
+     *  PortID: <port_id>, not connected / connected to <process>:<port>,
+     *  ...
+     * @endcode
+     *
+     * @param ports
+     *        Port list.
+     * @returns String representation.
+     */
+    std::string portsToString(const std::list<Port*> ports) const throw();
+
   private:
 
     /**
@@ -316,20 +331,6 @@ class Process{
      */
     std::list<Port*>::iterator findPort(const ForSyDe::Id& id,
                                         std::list<Port*>& ports) const throw();
-
-    /**
-     * Takes a list of ports and converts it into a string representation. Each
-     * port is converted into
-     * @code
-     *  PortID: <port_id>, not connected / connected to <process>:<port>,
-     *  ...
-     * @endcode
-     *
-     * @param ports
-     *        Port list.
-     * @returns String representation.
-     */
-    std::string portsToString(const std::list<Port*> ports) const throw();
 
     /**
      * Destroys all ports in a given list.
@@ -351,7 +352,7 @@ class Process{
     /**
 	 * Process MoC.
 	 */
-	const string moc_;
+	const std::string moc_;
     /**
      * List of in ports.
      */
@@ -379,7 +380,7 @@ class Process{
          * @param datatype
          *        Data type contained by port.
          */
-        Port(const ForSyDe::Id& id, const CDataType datatype) throw();
+        Port(const ForSyDe::Id& id, CDataType datatype) throw();
 
         /**
          * Creates a port belonging to a process.
@@ -393,7 +394,7 @@ class Process{
          * @throws InvalidArgumentException
          *         When \c process is \c NULL.
          */
-        Port(const ForSyDe::Id& id, Process* process, const CDataType datatype)
+        Port(const ForSyDe::Id& id, Process* process, CDataType datatype)
             throw(InvalidArgumentException);
 
         /**
@@ -445,7 +446,7 @@ class Process{
          *
          * @returns Port data type.
          */
-        CDataType* getDataType() const throw();
+        CDataType* getDataType() throw();
 
         /**
 		 * Sets the data type of this port.
@@ -453,7 +454,7 @@ class Process{
 		 * @param datatype
 		 *        The new data type that has to be set.
 		 */
-		void setDataType(CDataType datatype) const throw();
+		void setDataType(CDataType& datatype) throw();
 
         /**
          * Checks whether this port is an IO port.
@@ -739,11 +740,6 @@ class Process{
         Process* process_;
 
         /**
-         * Port data type.
-         */
-        CDataType* data_type_;
-
-        /**
          * Pointer to the other end of a connection.
          */
         Port* connected_port_outside_;
@@ -753,6 +749,11 @@ class Process{
 		 * composite process as well
 		 */
         Port* connected_port_inside_;
+
+        /**
+         * Port data type.
+         */
+        CDataType data_type_;
     };
 
 };

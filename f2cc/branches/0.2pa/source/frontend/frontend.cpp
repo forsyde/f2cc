@@ -25,12 +25,13 @@
  */
 
 #include "frontend.h"
-#include "../forsyde/inport.h"
-#include "../forsyde/outport.h"
+#include "../forsyde/SY/inport.h"
+#include "../forsyde/SY/outport.h"
 #include <list>
 
 using namespace f2cc;
 using namespace f2cc::ForSyDe;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 
@@ -203,7 +204,7 @@ void Frontend::checkPort(Process::Port* port, Processnetwork* processnetwork)
                         + "\" in process \""
                         + port->getProcess()->getId()->getString()
                         + "\" is connected to its own processnetwork "
-                        + "(combinatorial looping)");
+                        + "(Mapinatorial looping)");
     }
 
     // Check that the other port belongs to a process in the process network

@@ -38,7 +38,7 @@
 #include "id.h"
 #include "processnetwork.h"
 #include "process.h"
-#include "SY/combsy.h"
+#include "SY/mapsy.h"
 #include "SY/parallelmapsy.h"
 #include "SY/unzipxsy.h"
 #include "SY/zipxsy.h"
@@ -125,9 +125,9 @@ class ModelModifier {
     void splitDataParallelSegments() throw(IOException, RuntimeException);
 
     /**
-     * Fuses a segment of \c unzipx, \c map, and \c zipx processes into a
-     * single \c parallelmap process with the same process function argument
-     * as the \c map processes.
+     * Fuses a segment of \c unzipx, \c Map, and \c zipx processes into a
+     * single \c parallelMap process with the same process function argument
+     * as the \c Map processes.
      *
      * All segments of all data parallel sections \em must have been split
      * prior to invoking this method!
@@ -138,16 +138,16 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void fuseUnzipcombZipProcesses()
+    void fuseUnzipMapZipProcesses()
         throw(IOException, RuntimeException);
 
     /**
-     * Converts processes of type \c comb which have only one in port to
-     * \c comb. This is because, in ForSyDe, they are actually the same
-     * process type (map is a special case of zipwithN), but in the internal
+     * Converts processes of type \c Map which have only one in port to
+     * \c Map. This is because, in ForSyDe, they are actually the same
+     * process type (Map is a special case of zipwithN), but in the internal
      * representation they are separated. Converting the processes allows the
      * synthesizer to exploit potential data parallelism with is expressed
-     * using \c comb processes.
+     * using \c Map processes.
      *
      * @throws IOException
      *         When access to the log file failed.
@@ -155,7 +155,7 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void convertZipWith1Tocomb()
+    void convertZipWith1ToMap()
         throw(IOException, RuntimeException);
 
     /**
@@ -176,7 +176,7 @@ class ModelModifier {
   private:
     /**
      * Injects a \c zipx followed by an \c unzipx process between each
-     * segment (column of map processes) in a section. The section is given
+     * segment (column of Map processes) in a section. The section is given
      * as a vector of process chains (which is also given as a vector).
      *
      * @param chains
@@ -322,7 +322,7 @@ class ModelModifier {
      *   - where there is at least one process between the start and the end
      *     point,
      *   - where all its diverging paths are of equal lengths,
-     *   - which consist only of \c map processes, and
+     *   - which consist only of \c Map processes, and
      *   - where all processes at the same distance from the starting point are
      *     pairwise equal (i.e. has the same function argument).
      *
@@ -339,13 +339,13 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Checks whether the chain consists of only \c comb processes.
+     * Checks whether the chain consists of only \c Map processes.
      * 
      * @param chain
      *        Process chain.
-     * @returns \c true if the chain consists of only \c comb processes.
+     * @returns \c true if the chain consists of only \c Map processes.
      */
-    bool hasOnlycombSys(std::list<ForSyDe::Process*> chain) const throw();
+    bool hasOnlyMapSys(std::list<ForSyDe::Process*> chain) const throw();
 
     /**
      * Checks if two process chains are of equal lengths and have the same order

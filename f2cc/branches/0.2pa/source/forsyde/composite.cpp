@@ -34,7 +34,7 @@ using namespace f2cc::ForSyDe;
 using std::string;
 using std::bad_cast;
 
-Composite::Composite(const Id& id, const Id& parent, string name) throw() : Process(id, parent), composite_name_(name){}
+Composite::Composite(const Id& id, const Id& parent, const string& name, const string& moc) throw() : Process(id, parent, moc), composite_name_(name){}
 
 Composite::~Composite() throw() {
 	destroyAllProcesses();

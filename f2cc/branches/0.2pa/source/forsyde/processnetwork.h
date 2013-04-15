@@ -36,8 +36,8 @@
  */
 
 #include "id.h"
-#include "process.h"
 #include "composite.h"
+#include "../language/cfunction.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -67,118 +67,6 @@ class Processnetwork: public Composite {
      * Destroys this process network. This also destroys all processes.
      */
     virtual ~Processnetwork() throw();
-
-    /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
-     *
-     * Adds an input to this process network. The input must such that it is an inport to
-     * a process already existing in the process network. If the input is \c NULL, nothing
-     * happens and \c false is returned.
-     *
-     * @param port
-     *        Inport of a process.
-     * @returns \c true if the port did not already exist as input and was
-     *          successfully added.
-     * @throws InvalidArgumentException
-     *         When \c port is \c NULL.
-     * @throws IllegalStateException
-     *         When the port belongs to a process not residing in the model.
-     * @throws OutOfMemoryException
-     *         When a port cannot be added due to memory shortage.
-     */
-    bool addInput(Process::Port* port)
-        throw(InvalidArgumentException, IllegalStateException,
-              OutOfMemoryException);
-
-    /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
-     *
-     * Deletes an input port of this process network.
-     *
-     * @param port
-     *        Port.
-     * @returns \c true if such an input port was found and successfully
-     *          deleted.
-     * @throws InvalidArgumentException
-     *         When \c port is \c NULL.
-     */
-    bool deleteInput(Process::Port* port) throw(InvalidArgumentException);
-
-    /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
-     *
-     * Gets the number of inputs of this process network.
-     *
-     * @returns Number of inputs.
-     */
-    int getNumInputs() const throw();
-
-    /**
-     * Gets a list of inputs belonging to this process network.
-     *
-     * @returns List of inputs.
-     */
-    std::list<Process::Port*> getInputs() throw();
-
-    /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
-     *
-     * Same as addInput(const Process::Port*) but for outputs.
-     *
-     * @param port
-     *        Outport of a process.
-     * @returns \c true if the port did not already exist as output and was
-     *          successfully added.
-     * @throws InvalidArgumentException
-     *         When \c port is \c NULL.
-     * @throws IllegalStateException
-     *         When the port belongs to a process not residing in the model.
-     * @throws OutOfMemoryException
-     *         When a port cannot be added due to memory shortage.
-     */
-    bool addOutput(Process::Port* port)
-        throw(InvalidArgumentException, IllegalStateException,
-              OutOfMemoryException);
-
-    /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
-     *
-     * Same as deleteInput(Process::Port*) but for outputs.
-     *
-     * @param port
-     *        Port.
-     * @returns \c true if such an output port was found and successfully
-     *          deleted.
-     * @throws InvalidArgumentException
-     *         When \c port is \c NULL.
-     */
-    bool deleteOutput(Process::Port* port) throw(InvalidArgumentException);
-
-    /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
-     *
-     * Same as addInput(const Process::Port*) but for outputs.
-     * Gets the number of inputs of this model.
-     *
-     * @returns Number of inputs.
-     */
-    int getNumOutputs() const throw();
-
-    /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
-     *
-     * Same as getInputs() but for outputs.
-     *
-     * @returns List of outputs.
-     */
-    std::list<Process::Port*> getOutputs() throw();
 
     /**
      * The process network is identified as "composite" also. This enables it to access
@@ -216,7 +104,7 @@ class Processnetwork: public Composite {
      *
      * @returns Function count.
      */
-    int getNumFunctions() const throw();
+    size_t getNumFunctions() const throw();
 
     /**
      * Gets a list of all process functions in this model.
@@ -238,60 +126,27 @@ class Processnetwork: public Composite {
   private:
 
     /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
-     *
-     * Attempts to find a port with a given ID from a list of ports. If the list
-     * is not empty and such a port is found, an iterator pointing to that port
-     * is returned; otherwise the list's \c end() iterator is returned.
+     * Attempts to find a function with a given name from a list of functions.
+     * If the list is not empty and such a function is found, an iterator
+     * pointing to that function is returned; otherwise the list's \c end() iterator is returned.
      *
      * @param id
      *        Port ID.
      * @param ports
      *        List of ports.
-     * @returns Iterator pointing either at the found port, or an iterator equal
+     * @returns Iterator pointing either at the found function, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Process::Port*>::iterator findPort(
-        const Id& id, std::list<Process::Port*>& ports) const throw();
+    std::list<CFunction*>::iterator findFunction(const std::string name,
+                                        std::list<CFunction*>& functions) const throw();
 
     /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
+     * Destroys all functions in a given list.
      *
-     * Attempts to find a given port from a list of ports. If the list
-     * is not empty and such a port is found, an iterator pointing to that port
-     * is returned; otherwise the list's \c end() iterator is returned.
-     *
-     * @param port
-     *        Port
-     * @param ports
-     *        List of ports.
-     * @returns Iterator pointing either at the found port, or an iterator equal
-     *          to the list's \c end() iterator.
+     * @param functions
+     *        List of functions to destroy.
      */
-    std::list<Process::Port*>::iterator findPort(
-        Process::Port* port, std::list<Process::Port*>& ports)  const throw();
-
-
-
-    /**
-     * \c ATTENTION: this method is used for compatibility purpose only. Future releases
-     * will eliminate this method.
-     *
-     * Takes a list of ports and converts it into a string representation. Each
-     * port is converted into
-     * @code
-     *  PortID: <port_id>, belonging to <process>,
-     *  ...
-     * @endcode
-     *
-     * @param ports
-     *        Port list.
-     * @returns String representation.
-     */
-    std::string portsToString(const std::list<Process::Port*> ports) const
-        throw();
+    void destroyAllFunctions() throw();
 
     /**
      * Converts this process network into a string representation. The resultant string
@@ -314,7 +169,7 @@ class Processnetwork: public Composite {
 
   protected:
     /**
-     * combset of leaf processes.
+     * List of process functions.
      */
     std::list<CFunction*> process_functions_;
 };

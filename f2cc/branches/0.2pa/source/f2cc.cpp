@@ -73,10 +73,10 @@ string getProcessnetworkInfo(Processnetwork* processnetwork) {
     info += tools::toString(processnetwork->getNumProcesses());
     info += "\n";
     info += "Number of inputs: ";
-    info += tools::toString(processnetwork->getNumInputs());
+    info += tools::toString(processnetwork->getNumInPorts());
     info += "\n";
     info += "Number of outputs: ";
-    info += tools::toString(processnetwork->getNumOutputs());
+    info += tools::toString(processnetwork->getNumOutPorts());
     return info;
 }
 
@@ -180,9 +180,9 @@ int main(int argc, const char* argv[]) {
             ModelModifier modifier(processnetwork, logger);
             logger.logInfoMessage("Removing redundant processes...");
             modifier.removeRedundantProcesses();
-            logger.logInfoMessage("Converting comb processes "
-                              "with one in port to comb processes...");
-            modifier.convertZipWith1Tocomb();
+            logger.logInfoMessage("Converting Map processes "
+                              "with one in port to Map processes...");
+            modifier.convertZipWith1ToMap();
             if (config.getTargetPlatform() == Config::CUDA) {
                 string process_coalescing_message("DATA PARALLEL PROCESS "
                                                   "COALESCING: ");
@@ -195,7 +195,7 @@ int main(int argc, const char* argv[]) {
                 logger.logInfoMessage(process_coalescing_message);
                 if (config.doDataParallelProcessCoalesing()) {
                     logger.logInfoMessage(""
-                                      "Performing data parallel comb process "
+                                      "Performing data parallel Map process "
                                       "coalescing...");
                     modifier.coalesceDataParallelProcesses();
                 }
@@ -205,9 +205,9 @@ int main(int argc, const char* argv[]) {
                 modifier.splitDataParallelSegments();
 
                 logger.logMessage(Logger::INFO,
-                                  "Fusing chains of unzipx-map-zipx "
+                                  "Fusing chains of unzipx-Map-zipx "
                                   "processes...");
-                modifier.fuseUnzipcombZipProcesses();
+                modifier.fuseUnzipMapZipProcesses();
 
                 if (config.doDataParallelProcessCoalesing()) {
                     logger.logInfoMessage(""

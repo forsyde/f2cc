@@ -41,11 +41,10 @@
 #include "../forsyde/processnetwork.h"
 #include "../forsyde/process.h"
 #include "../forsyde/SY/delaysy.h"
-#include "../forsyde/SY/combsy.h"
+#include "../forsyde/SY/mapsy.h"
 #include "../forsyde/SY/unzipxsy.h"
 #include "../forsyde/SY/zipxsy.h"
 #include "../forsyde/SY/fanoutsy.h"
-#include "../forsyde/SY/combsy.h"
 #include "../language/cfunction.h"
 #include "../language/cvariable.h"
 #include "../language/cdatatype.h"
@@ -306,7 +305,7 @@ class Synthesizer {
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Renames the functions of all comb processes present in the schedule to
+     * Renames the functions of all Map processes present in the schedule to
      * avoid name clashes in the generated code. Also, C is a bit picky about
      * variable and function names (for instance, they must not start with a
      * number).
@@ -318,11 +317,11 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void renamecombFunctions()
+    void renameMapFunctions()
         throw(InvalidProcessnetworkException, IOException, RuntimeException);
 
     /**
-     * Combines functions between comb processes which are identical by
+     * Combines functions between Map processes which are identical by
      * renaming the duplicates. Functions are compared using the \c == operator.
      *
      * @throws InvalidProcessnetworkException
@@ -332,16 +331,16 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void combineFunctionDuplicates()
+    void MapineFunctionDuplicates()
         throw(InvalidProcessnetworkException, IOException, RuntimeException);
 
     /**
      * Processes of type \c CoalescedMap may contain more than one process
      * function argument. In order to be able to generate correct code and still
-     * treating them like any other \c comb process, wrapper functions need to
+     * treating them like any other \c Map process, wrapper functions need to
      * be created which invoke the other function arguments in subsequent order.
      * The wrapper function are then added to the \c CoalescedMap process
-     * such that it is the function returned when calling comb::getFunction().
+     * such that it is the function returned when calling Map::getFunction().
      *
      * @throws InvalidProcessnetworkException
      *         When something is wrong with the process network.
@@ -376,8 +375,8 @@ class Synthesizer {
     /**
      * Generates CUDA kernel functions for \c ParallelMap processes. The
      * kernel function is added to the process as first function, which will
-     * cause it to be retrieved when comb::getFunction() is invoked and thus
-     * the process can be handled like any other \c comb process.
+     * cause it to be retrieved when Map::getFunction() is invoked and thus
+     * the process can be handled like any other \c Map process.
      *
      * @throws InvalidProcessnetworkException
      *         When something is wrong with the process network.
@@ -444,8 +443,8 @@ class Synthesizer {
      * Generates wrapper functions for \c ParallelMap processes. This is only
      * done when synthesizing C code. The wrapper function is added to the
      * process as first function, which will cause it to be retrieved when
-     * comb::getFunction() is invoked and thus the process can be handled like
-     * any other \c comb process.
+     * Map::getFunction() is invoked and thus the process can be handled like
+     * any other \c Map process.
      *
      * @throws InvalidProcessnetworkException
      *         When something is wrong with the process network.
@@ -1112,7 +1111,7 @@ class Synthesizer {
         throw(InvalidProcessnetworkException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute a given \c comb process. The generated code
+     * Generates code which execute a given \c Map process. The generated code
      * uses the process' in signal as input parameter to its function argument,
      * and then writes the result to its out signal.
      *
@@ -1126,8 +1125,8 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessExecutionCodeForcomb(
-        ForSyDe::SY::comb* process)
+    std::string generateProcessExecutionCodeForMap(
+        ForSyDe::SY::Map* process)
         throw(InvalidProcessnetworkException, IOException, RuntimeException);
 
     /**
@@ -1218,7 +1217,7 @@ class Synthesizer {
     TargetPlatform target_platform_;
 
     /**
-     * combset of delay variables. The delay process is used as key, and the
+     * Mapset of delay variables. The delay process is used as key, and the
      * value is a pair of a \c CVariable and its initial value.
      */
     std::map< ForSyDe::SY::delay*, std::pair<CVariable, std::string> >

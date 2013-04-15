@@ -24,7 +24,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "combsy.h"
+#include "mapsy.h"
 #include <typeinfo>
 #include <list>
 
@@ -34,20 +34,20 @@ using std::string;
 using std::bad_cast;
 using std::list;
 
-comb::comb(const Id& id, const Id& parent, const CFunction& function) throw()
-        : Process(id, parent), function_(function) {}
+Map::Map(const Id& id, const Id& parent, const CFunction& function, const string& moc) throw()
+        : Process(id, parent, moc), function_(function) {}
 
-comb::~comb() throw() {}
+Map::~Map() throw() {}
 
-CFunction* comb::getFunction() throw() {
+CFunction* Map::getFunction() throw() {
     return &function_;
 }
 
-bool comb::operator==(const Process& rhs) const throw() {
+bool Map::operator==(const Process& rhs) const throw() {
     if (!Process::operator==(rhs)) return false;
 
     try {
-        const comb& other = dynamic_cast<const comb&>(rhs);
+        const Map& other = dynamic_cast<const Map&>(rhs);
         if (function_ != other.function_) return false;
     }
     catch (bad_cast&) {
@@ -56,11 +56,11 @@ bool comb::operator==(const Process& rhs) const throw() {
     return true;
 }
 
-string comb::type() const throw() {
-    return "comb";
+string Map::type() const throw() {
+    return "Map";
 }
 
-void comb::moreChecks() throw(InvalidProcessException) {
+void Map::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() < 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
@@ -74,11 +74,11 @@ void comb::moreChecks() throw(InvalidProcessException) {
     checkFunction(function_, getNumInPorts());
 }
 
-string comb::moreToString() const throw() {
+string Map::moreToString() const throw() {
     return string("ProcessFunction: ") + function_.toString();
 }
 
-void comb::checkFunction(CFunction& function, size_t num_in_ports) const
+void Map::checkFunction(CFunction& function, size_t num_in_ports) const
     throw(InvalidProcessException) {
     if (function.getInputParameters().size() == num_in_ports) {
         if (function.getReturnDataType()->getFunctionReturnDataTypeString()

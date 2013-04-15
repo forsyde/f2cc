@@ -29,7 +29,7 @@
 #include "SY/unzipxsy.h"
 #include "SY/parallelmapsy.h"
 #include "SY/coalescedmapsy.h"
-#include "SY/combsy.h"
+#include "SY/mapsy.h"
 #include "../language/cfunction.h"
 #include "../language/cdatatype.h"
 #include "../tools/tools.h"
@@ -132,7 +132,7 @@ void ModelModifier::splitDataParallelSegments()
     }
 }
 
-void ModelModifier::fuseUnzipcombZipProcesses()
+void ModelModifier::fuseUnzipMapZipProcesses()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections = findDataParallelSections();
     list<ContainedSection>::iterator it;
@@ -141,7 +141,7 @@ void ModelModifier::fuseUnzipcombZipProcesses()
         logger_.logInfoMessage(string("Fusing data parallel section ")
                                + section.toString() + "...");
 
-        // Get function arguments of map or coalescedmap processes
+        // Get function arguments of Map or coalescedMap processes
         if (getProcessChain(section.start->getOutPorts().front(),
                             section.end).size() != 1) {
             THROW_EXCEPTION(IllegalStateException, "Process chain is not of "
@@ -161,16 +161,16 @@ void ModelModifier::fuseUnzipcombZipProcesses()
             }
         }
         else {
-            comb* mapsy_process = dynamic_cast<comb*>(data_process);
+            Map* mapsy_process = dynamic_cast<Map*>(data_process);
             if (!mapsy_process) THROW_EXCEPTION(CastException);
             functions.push_back(*mapsy_process->getFunction());
         }
 
-        // Create new parallelmap process to replace the data parallel section
+        // Create new parallelMap process to replace the data parallel section
         int num_processes = section.start->getOutPorts().size();
         ParallelMap* new_process = new (std::nothrow) ParallelMap(
-            processnetwork_->getUniqueProcessId("_parallelmap_"), Id("Process_Network"), num_processes,
-            functions);
+            processnetwork_->getUniqueProcessId("_parallelMap_"), Id("Process_Network"), num_processes,
+            functions, string("sy"));
         if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
         logger_.logDebugMessage(string("New ParallelMap process \"")
                                 + new_process->getId()->getString()
@@ -199,7 +199,7 @@ void ModelModifier::fuseUnzipcombZipProcesses()
     }
 }
 
-void ModelModifier::convertZipWith1Tocomb()
+void ModelModifier::convertZipWith1ToMap()
     throw(IOException, RuntimeException) {
     list<Process*> processes = processnetwork_->getProcesses();
     list<Process*>::iterator it;
@@ -207,12 +207,12 @@ void ModelModifier::convertZipWith1Tocomb()
         logger_.logDebugMessage(string("Analyzing process \"")
                                 + (*it)->getId()->getString() + "\"...");
 
-        comb* process = dynamic_cast<comb*>(*it);
+        Map* process = dynamic_cast<Map*>(*it);
         if (process && process->getNumInPorts() == 1) {
-            comb* new_process = new (std::nothrow) comb(
-                processnetwork_->getUniqueProcessId("_map_"), Id("Process_Network"), *process->getFunction());
+            Map* new_process = new (std::nothrow) Map(
+                processnetwork_->getUniqueProcessId("_Map_"), Id("Process_Network"), *process->getFunction(), string("sy"));
             if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
-            logger_.logDebugMessage(string("New comb process \"")
+            logger_.logDebugMessage(string("New Map process \"")
                                     + new_process->getId()->getString()
                                     + "\" created");
 
@@ -354,7 +354,7 @@ list<ModelModifier::ContainedSection>
 ModelModifier::findContainedSections() throw(IOException, RuntimeException) {
     list<ContainedSection> sections;
     set<Id> visited;
-    list<Process::Port*> output_ports = processnetwork_->getOutputs();
+    list<Process::Port*> output_ports = processnetwork_->getOutPorts();
     list<Process::Port*>::iterator it;
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
         logger_.logDebugMessage(string("Entering at output port \"")
@@ -552,11 +552,11 @@ bool ModelModifier::isContainedSectionDataParallel(
                                 + (*port_it)->toString() + "\"");
         logger_.logDebugMessage("Getting process chain...");
         list<Process*> current_chain = getProcessChain(*port_it, section.end);
-        if (!hasOnlycombSys(current_chain)) {
+        if (!hasOnlyMapSys(current_chain)) {
             logger_.logMessage(Logger::DEBUG,
                                string("Contained section ")
                                + section.toString() + " does not consist of "
-                               + "only comb processes");
+                               + "only Map processes");
             return false;
         }
         if (first) {
@@ -583,11 +583,11 @@ bool ModelModifier::isContainedSectionDataParallel(
     return true;
 }
 
-bool ModelModifier::hasOnlycombSys(std::list<ForSyDe::Process*> chain) const
+bool ModelModifier::hasOnlyMapSys(std::list<ForSyDe::Process*> chain) const
     throw() {
     list<Process*>::const_iterator it;
     for (it = chain.begin(); it != chain.end(); ++it) {
-        if (!dynamic_cast<comb*>(*it)) return false;
+        if (!dynamic_cast<Map*>(*it)) return false;
     }
     return true;
 }
@@ -685,7 +685,7 @@ list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains()
     throw(IOException, RuntimeException) {
     list< list<ParallelMap*> > chains;
     set<Id> visited;
-    list<Process::Port*> output_ports = processnetwork_->getOutputs();
+    list<Process::Port*> output_ports = processnetwork_->getOutPorts();
     list<Process::Port*>::iterator it;
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
         logger_.logDebugMessage(string("Entering at output port \"")
@@ -753,14 +753,14 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
     // Build function argument list
     list<CFunction> functions;
     for (list<Process*>::iterator it = chain.begin(); it != chain.end(); ++it) {
-        comb* mapsy = dynamic_cast<comb*>(*it);
+        Map* mapsy = dynamic_cast<Map*>(*it);
         if (!mapsy) THROW_EXCEPTION(CastException);
         functions.push_back(*mapsy->getFunction());
     }
 
-    // Create new coalescedmap process
+    // Create new coalescedMap process
     CoalescedMap* new_process = new (std::nothrow) CoalescedMap(
-        processnetwork_->getUniqueProcessId("_coalescedmap_"), Id("Process_Network"), functions);
+        processnetwork_->getUniqueProcessId("_coalescedMap_"), Id("Process_Network"), functions, string("sy"));
     if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
     
     redirectDataFlow(chain.front(), chain.back(), new_process, new_process);
@@ -856,8 +856,8 @@ void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
     // Create new ParallelMap process
     int num_processes = chain.front()->getNumProcesses();
     ParallelMap* new_process = new (std::nothrow) ParallelMap(
-        processnetwork_->getUniqueProcessId("_parallelmap_"), Id("Process_Network"), num_processes,
-        functions);
+        processnetwork_->getUniqueProcessId("_parallelMap_"), Id("Process_Network"), num_processes,
+        functions, string("sy"));
     if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
     
     redirectDataFlow(chain.front(), chain.back(), new_process, new_process);
@@ -936,23 +936,23 @@ void ModelModifier::splitDataParallelSegments(
 
             // Create new processes zipx and unzipx
             zipx* new_zipx = new (std::nothrow) zipx(
-                processnetwork_->getUniqueProcessId("_zipx_"), Id("Process_Network"));
+                processnetwork_->getUniqueProcessId("_zipx_"), Id("Process_Network"), string("sy"));
             if (!new_zipx) THROW_EXCEPTION(OutOfMemoryException);
             logger_.logDebugMessage(string("New zipx process \"")
                                     + new_zipx->getId()->getString()
                                     + "\" created");
             unzipx* new_unzipx = new (std::nothrow) unzipx(
-                processnetwork_->getUniqueProcessId("_unzipx_"), Id("Process_Network"));
+                processnetwork_->getUniqueProcessId("_unzipx_"), Id("Process_Network"), string("sy"));
             if (!new_unzipx) THROW_EXCEPTION(OutOfMemoryException);
             logger_.logDebugMessage(string("New unzipx process \"")
                                     + new_zipx->getId()->getString()
                                     + "\" created");
 
             // Connect the zipx to the unzipx
-            if (!new_zipx->addOutPort(Id("out"))) {
+            if (!new_zipx->addOutPort(Id("out"), CDataType())) {
                 THROW_EXCEPTION(IllegalStateException, "Failed to add port");
             }
-            if (!new_unzipx->addInPort(Id("in"))) {
+            if (!new_unzipx->addInPort(Id("in"), CDataType())) {
                 THROW_EXCEPTION(IllegalStateException, "Failed to add port");
             }
             new_zipx->getOutPort(Id("out"))->connect(
@@ -964,35 +964,35 @@ void ModelModifier::splitDataParallelSegments(
             for (size_t i = 0; i < chains.size(); ++i) {
                 string num(tools::toString(i + 1));
 
-                // Connect left map with zipx
-                if (!new_zipx->addInPort(Id(string("in") + num))) {
+                // Connect left Map with zipx
+                if (!new_zipx->addInPort(Id(string("in") + num), CDataType())) {
                     THROW_EXCEPTION(IllegalStateException, "Failed to add "
                                     "port");
                 }
-                Process::Port* left_map_out_port = 
+                Process::Port* left_Map_out_port = 
                     chains[i][current_segment - 1]->getOutPorts().front();
                 Process::Port* zipx_in_port = new_zipx->getInPorts().back();
                 logger_.logDebugMessage(string("Connecting \"")
-                                        + left_map_out_port->toString()
+                                        + left_Map_out_port->toString()
                                         + "\" with \""
                                         + zipx_in_port->toString() + "\"...");
-                left_map_out_port->connect(zipx_in_port);
+                left_Map_out_port->connect(zipx_in_port);
 
-                // Connect right map with unzipx
-                if (!new_unzipx->addOutPort(Id(string("out") + num))) {
+                // Connect right Map with unzipx
+                if (!new_unzipx->addOutPort(Id(string("out") + num), CDataType())) {
                     THROW_EXCEPTION(IllegalStateException, "Failed to add "
                                     "port");
                 }
-                Process::Port* right_map_in_port = 
+                Process::Port* right_Map_in_port = 
                     chains[i][current_segment]->getInPorts().front();
                 Process::Port* unzipx_out_port = 
                     new_unzipx->getOutPorts().back();
                 logger_.logDebugMessage(string("Connecting \"")
-                                        + right_map_in_port->toString()
+                                        + right_Map_in_port->toString()
                                         + "\" with \""
                                         + unzipx_out_port->toString()
                                         + "\"...");
-                right_map_in_port->connect(unzipx_out_port);
+                right_Map_in_port->connect(unzipx_out_port);
             }
 
             // Add new processes to the process network
@@ -1110,12 +1110,13 @@ void ModelModifier::redirectDataFlow(Process* old_start, Process* old_end,
 void ModelModifier::replaceProcessnetworkInput(Process::Port* old_port,
                                       Process::Port* new_port)
     throw(RuntimeException) {
-    list<Process::Port*> inputs(processnetwork_->getInputs());
+    list<Process::Port*> inputs(processnetwork_->getInPorts());
     list<Process::Port*>::iterator it;
     for (it = inputs.begin(); it != inputs.end(); ++it) {
         if (*it == old_port) {
-            processnetwork_->deleteInput(*it);
-            processnetwork_->addInput(new_port);
+        	Process::Port* port = *it;
+            processnetwork_->deleteInPort(*port->getId());
+            processnetwork_->addInPort(*new_port->getId(), CDataType());
             break;
         }
     }
@@ -1124,12 +1125,13 @@ void ModelModifier::replaceProcessnetworkInput(Process::Port* old_port,
 void ModelModifier::replaceProcessnetworkOutput(Process::Port* old_port,
                                        Process::Port* new_port)
     throw(RuntimeException) {
-    list<Process::Port*> outputs(processnetwork_->getOutputs());
+    list<Process::Port*> outputs(processnetwork_->getOutPorts());
     list<Process::Port*>::iterator it;
     for (it = outputs.begin(); it != outputs.end(); ++it) {
         if (*it == old_port) {
-            processnetwork_->deleteOutput(*it);
-            processnetwork_->addOutput(new_port);
+        	Process::Port* port = *it;
+            processnetwork_->deleteInPort(*port->getId());
+            processnetwork_->addInPort(*new_port->getId(), CDataType());
             break;
         }
     }

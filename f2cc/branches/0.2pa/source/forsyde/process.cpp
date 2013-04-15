@@ -25,6 +25,8 @@
  */
 
 #include "process.h"
+#include "composite.h"
+#include "processnetwork.h"
 #include "../tools/tools.h"
 #include <new>
 #include <vector>
@@ -52,20 +54,21 @@ const Id* Process::getParent() const throw() {
 }
 
 const string Process::getMoc() const throw() {
-    return &moc_;
+    return moc_;
 }
 
 bool Process::isComposite() const throw() {
-	std::string process_type (type());
-	std::string composite_type ("composite");
-    return (process_type.compare(composite_type) == 0);
+	static const Composite* composite = dynamic_cast<const Composite*>(this);
+	static const Processnetwork* processnetwork = dynamic_cast<const Processnetwork*>(this);
+	if (!(composite) && !(processnetwork)) return false;
+	else return true;
 }
 
-bool Process::addInPort(const Id& id) throw(OutOfMemoryException) {
+bool Process::addInPort(const Id& id, const CDataType datatype) throw(OutOfMemoryException) {
     if (findPort(id, in_ports_) != in_ports_.end()) return false;
 
     try {
-        Port* new_port = new Port(id, this);
+        Port* new_port = new Port(id, this, datatype);
         in_ports_.push_back(new_port);
         return true;
     }
@@ -75,7 +78,9 @@ bool Process::addInPort(const Id& id) throw(OutOfMemoryException) {
 }
 
 bool Process::addInPort(Port& port) throw(OutOfMemoryException) {
-    if (findPort(*port.getId(), in_ports_) != in_ports_.end()) return false;
+    if (findPort(*port.getId(), in_ports_) != in_ports_.end()) {
+    	return false;
+    }
 
     try {
         Port* new_port = new Port(port, this);
@@ -118,11 +123,11 @@ list<Process::Port*> Process::getInPorts() throw() {
     return in_ports_;
 }
 
-bool Process::addOutPort(const Id& id) throw(OutOfMemoryException) {
+bool Process::addOutPort(const Id& id, const CDataType datatype) throw(OutOfMemoryException) {
     if (findPort(id, out_ports_) != out_ports_.end()) return false;
 
     try {
-        Port* new_port = new Port(id, this);
+        Port* new_port = new Port(id, this, datatype);
         out_ports_.push_back(new_port);
         return true;
     }
@@ -132,7 +137,9 @@ bool Process::addOutPort(const Id& id) throw(OutOfMemoryException) {
 }
 
 bool Process::addOutPort(Port& port) throw(OutOfMemoryException) {
-    if (findPort(*port.getId(), out_ports_) != out_ports_.end()) return false;
+    if (findPort(*port.getId(), out_ports_) != out_ports_.end()) {
+    	return false;
+    }
 
     try {
         Port* new_port = new Port(port, this);
@@ -292,47 +299,51 @@ bool Process::operator!=(const Process& rhs) const throw() {
     return !operator==(rhs);
 }
 
-Process::Port::Port(const Id& id) throw()
-        : id_(id), process_(NULL), connected_port_outside_(NULL), connected_port_inside_(NULL) {}
+Process::Port::Port(const Id& id, CDataType datatype) throw()
+        : id_(id), process_(NULL), connected_port_outside_(NULL), connected_port_inside_(NULL), data_type_(datatype) {}
 
-Process::Port::Port(const Id& id, Process* process)
+Process::Port::Port(const Id& id, Process* process, CDataType datatype)
         throw(InvalidArgumentException)
-        : id_(id), process_(process), connected_port_outside_(NULL), connected_port_inside_(NULL) {
+        : id_(id), process_(process), connected_port_outside_(NULL), connected_port_inside_(NULL), data_type_(datatype) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException, "process must not be NULL");
     }
 }
 
 Process::Port::Port(Port& rhs) throw()
-        : id_(rhs.id_), process_(NULL), connected_port_outside_(NULL), connected_port_inside_(NULL) {
+        : id_(rhs.id_), process_(NULL), connected_port_outside_(NULL), connected_port_inside_(NULL), data_type_(rhs.data_type_) {
     if (rhs.isConnected()) {
         Port* port = rhs.connected_port_outside_;
         rhs.unconnect();
         connect(port);
     }
-    if (rhs.IOisConnectedInside()) {
-        Port* port = rhs.connected_port_inside_;
-        rhs.IOunconnectInside();
-        IOconnectInside(port);
+    if (rhs.isIOport()){
+		if (rhs.IOisConnectedInside()) {
+			Port* port = rhs.connected_port_inside_;
+			rhs.IOunconnectInside();
+			IOconnectInside(port);
+		}
     }
 }
 
 Process::Port::Port(Port& rhs, Process* process) throw(InvalidArgumentException)
-        : id_(rhs.id_), process_(process), connected_port_outside_(NULL), connected_port_inside_(NULL) {
+        : id_(rhs.id_), process_(process), connected_port_outside_(NULL),
+          connected_port_inside_(NULL), data_type_(rhs.data_type_) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
                         "NULL");
     }
-
     if (rhs.isConnected()) {
         Port* port = rhs.connected_port_outside_;
         rhs.unconnect();
         connect(port);
     }
-    if (rhs.IOisConnectedInside()) {
-        Port* port = rhs.connected_port_inside_;
-        rhs.IOunconnectInside();
-        IOconnectInside(port);
+    if (rhs.isIOport()){
+		if (rhs.IOisConnectedInside()) {
+			Port* port = rhs.connected_port_inside_;
+			rhs.IOunconnectInside();
+			IOconnectInside(port);
+		}
     }
 }
 
@@ -348,11 +359,13 @@ const Id* Process::Port::getId() const throw() {
     return &id_;
 }
 
-f2cc::CDataType* Process::Port::getDataType() const throw() {
+f2cc::CDataType* Process::Port::getDataType() throw() {
     return &data_type_;
 }
 
-
+void Process::Port::setDataType(CDataType& datatype) throw() {
+    data_type_ = datatype;
+}
 
 bool Process::Port::isIOport() const throw() {
     return (process_->isComposite());
@@ -443,7 +456,7 @@ void Process::Port::IOconnect(Port* inside, Port* outside) throw(IllegalCallExce
 
 void Process::Port::unconnect() throw() {
 	IOunconnectOutside();
-	IOunconnectInside();
+	if(isIOport()) IOunconnectInside();
 }
 
 void Process::Port::IOunconnect() throw(IllegalCallException) {

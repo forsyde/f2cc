@@ -32,10 +32,10 @@
 #include "../forsyde/SY/zipxsy.h"
 #include "../forsyde/SY/unzipxsy.h"
 #include "../forsyde/SY/delaysy.h"
-#include "../forsyde/inport.h"
-#include "../forsyde/outport.h"
+#include "../forsyde/SY/inport.h"
+#include "../forsyde/SY/outport.h"
 #include "../forsyde/SY/fanoutsy.h"
-#include "../forsyde/SY/combsy.h"
+#include "../forsyde/SY/mapsy.h"
 #include "../language/cdatatype.h"
 #include "../exceptions/invalidprocessexception.h"
 #include "../exceptions/invalidformatexception.h"
@@ -217,7 +217,7 @@ Processnetwork* GraphmlParser::generateProcessnetwork(Element* xml)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Processnetwork* processnetwork = new (std::nothrow) Processnetwork();
+    Processnetwork* processnetwork = new (std::nothrow) Processnetwork("Process_Network");
     if (!processnetwork) THROW_EXCEPTION(OutOfMemoryException);
 
     logger_.logDebugMessage("Parsing \"node\" elements...");
@@ -333,7 +333,7 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
         list<Process::Port*> ports = process->getOutPorts();
         list<Process::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            processnetwork->addInput((*port_it)->getConnectedPort());
+            processnetwork->addInPort(*((*port_it)->getConnectedPort()));
         }
 
         Id id = *process->getId();
@@ -356,7 +356,7 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
         list<Process::Port*> ports = process->getInPorts();
         list<Process::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            processnetwork->addOutput((*port_it)->getConnectedPort());
+            processnetwork->addOutPort(*((*port_it)->getConnectedPort()));
         }
 
         Id id = *process->getId();
@@ -388,30 +388,30 @@ Process* GraphmlParser::generateProcess(Element* xml)
     }
     try {
         if (process_type == "inport") {
-            process = new InPort(Id(process_id), Id("Process_Network"));
+            process = new InPort(Id(process_id), Id("R"), string("sy"));
         }
         else if (process_type == "outport") {
-            process = new OutPort(Id(process_id), Id("Process_Network"));
+            process = new OutPort(Id(process_id), Id("R"), string("sy"));
         }
         else if (process_type == "mapsy") {
-            process = new comb(Id(process_id), Id("Process_Network"), generateProcessFunction(xml));
+            process = new Map(Id(process_id), Id("R"), generateProcessFunction(xml), string("sy"));
         }
         else if (process_type == "parallelmapsy") {
-            process = new ParallelMap(Id(process_id), Id("Process_Network"), getNumProcesses(xml),
-                                        generateProcessFunction(xml));
+            process = new ParallelMap(Id(process_id), Id("R"), getNumProcesses(xml),
+                                        generateProcessFunction(xml), string("sy"));
         }
         else if (process_type == "unzipxsy") {
-            process = new unzipx(Id(process_id), Id("Process_Network"));
+            process = new unzipx(Id(process_id), Id("R"), string("sy"));
         }
         else if (process_type == "zipxsy") {
-            process = new zipx(Id(process_id), Id("Process_Network"));
+            process = new zipx(Id(process_id), Id("R"), string("sy"));
         }
         else if (process_type == "delaysy") {
-            process = new delay(Id(process_id), Id("Process_Network"), getInitialdelayValue(xml));
+            process = new delay(Id(process_id), Id("R"), getInitialdelayValue(xml), string("sy"));
         }
         else if (process_type == "zipwithnsy") {
-            process = new comb(Id(process_id), Id("Process_Network"),
-                                     generateProcessFunction(xml));
+            process = new Map(Id(process_id), Id("R"),
+                                     generateProcessFunction(xml), string("sy"));
         }
         else {
             THROW_EXCEPTION(ParseException, file_, xml->Row(),
@@ -441,7 +441,6 @@ Process* GraphmlParser::generateProcess(Element* xml)
             THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
                             (*it)->Column(), "Invalid port ID format");
         }
-
         bool port_added;
         if (is_in_port) port_added = process->addInPort(*port);
         else            port_added = process->addOutPort(*port);
@@ -457,6 +456,7 @@ Process* GraphmlParser::generateProcess(Element* xml)
                                 + " port \"" + port->getId()->getString()
                                 + "\" added to process \""
                                 + process->getId()->getString() + "\"");
+
         delete port;
     }
     
@@ -856,7 +856,7 @@ Process::Port* GraphmlParser::generatePort(Element* xml)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Process::Port* port = new (std::nothrow) Process::Port(getName(xml));
+    Process::Port* port = new (std::nothrow) Process::Port(getName(xml), CDataType());
     if (!port) THROW_EXCEPTION(OutOfMemoryException);
     logger_.logDebugMessage(string("Generated port \"")
                             + port->getId()->getString() + "\"");
@@ -1000,7 +1000,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
         else {
             // No such fanout process; create a new one
             copy_process = new (std::nothrow)
-                fanout(processnetwork->getUniqueProcessId("_copy_"), Id("Process_Network"));
+                fanout(processnetwork->getUniqueProcessId("_copy_"), Id("Process_Network"), string("sy"));
             if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
             copy_processes.insert(pair<Process::Port*, Process*>(source_port,
                                                                  copy_process));
@@ -1021,7 +1021,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
 
             // Break the current connection and connect the source and previous
             // target connection through the fanout process
-            if(!copy_process->addInPort(Id("in"))) {
+            if(!copy_process->addInPort(Id("in"), CDataType())) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "in port to process \""
                                 + copy_process->getId()->getString() + "\"");
@@ -1037,7 +1037,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
                                     + "\" with \""
                                     + copy_process->getInPorts().front()
                                     ->toString() + "\"");
-            if(!copy_process->addOutPort(Id("out1"))) {
+            if(!copy_process->addOutPort(Id("out1"), CDataType())) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "out port to process \""
                                 + copy_process->getId()->getString() + "\"");
@@ -1052,7 +1052,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
 
         string new_out_port_id = string("out")
             + tools::toString(copy_process->getOutPorts().size() + 1);
-        if(!copy_process->addOutPort(new_out_port_id)) {
+        if(!copy_process->addOutPort(new_out_port_id, CDataType())) {
             THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                             + "out port to process \""
                             + copy_process->getId()->getString() + "\"");

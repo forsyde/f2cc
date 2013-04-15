@@ -88,7 +88,7 @@ class Model {
      * Adds multiple processes to this model at the same time.
      *
      * @param processes
-     *        combset of processes to add.
+     *        Mapset of processes to add.
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
@@ -160,14 +160,14 @@ class Model {
 
   protected:
     /**
-     * Attempts to find a process with a given ID. If the mapset of processes is
+     * Attempts to find a process with a given ID. If the Mapset of processes is
      * not empty and such a process is found, an iterator pointing to that port
-     * is returned; otherwise the mapset's \c end() iterator is returned.
+     * is returned; otherwise the Mapset's \c end() iterator is returned.
      *
      * @param id
      *        Process ID.
      * @returns Iterator pointing either at the found process, or an iterator
-     *          equal to mapset's \c end() iterator.
+     *          equal to Mapset's \c end() iterator.
      */
     std::map<const Id, Process*>::iterator findProcess(const Id& id) throw();
 
@@ -181,7 +181,7 @@ class Model {
 
   protected:
     /**
-     * combset of leaf processes.
+     * Mapset of leaf processes.
      */
     std::map<const Id, Process*> processes_;
 };

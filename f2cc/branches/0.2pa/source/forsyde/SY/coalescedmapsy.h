@@ -32,10 +32,10 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements a synthesis-related \c coalescedmap process.
+ * @brief Implements a synthesis-related \c coalescedMap process.
  */
 
-#include "combsy.h"
+#include "mapsy.h"
 #include "../../language/cfunction.h"
 #include "../../exceptions/invalidargumentexception.h"
 #include "../../exceptions/outofmemoryexception.h"
@@ -47,15 +47,15 @@ namespace ForSyDe {
 namespace SY {
 
 /**
- * @brief Implements a synthesis-related \c coalescedmap process.
+ * @brief Implements a synthesis-related \c coalescedMap process.
  *
- * This class implements a specialized process \c coalescedcomb which is not
- * part of the ForSyDe standard. It is used to replace coalesced \c comb
+ * This class implements a specialized process \c coalescedMap which is not
+ * part of the ForSyDe standard. It is used to replace coalesced \c Map
  * processes into a single process which contains all function arguments of the
  * processes which it replaces. Thus, executing a single \c CoalescedMap
- * process produces the same result as executing a series of \c comb processes.
+ * process produces the same result as executing a series of \c Map processes.
  */
-class CoalescedMap : public comb {
+class CoalescedMap : public Map {
   public:
     /**
      * Creates a process with a single function.
@@ -68,7 +68,7 @@ class CoalescedMap : public comb {
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    CoalescedMap(const Id& id, const Id& parent, const CFunction& function)
+    CoalescedMap(const Id& id, const Id& parent, const CFunction& function, const std::string& moc)
         throw(OutOfMemoryException);
 
     /**
@@ -84,7 +84,7 @@ class CoalescedMap : public comb {
      * @throws OutOfMemoryException
      *         When the process could not be created due to memory shortage.
      */
-    CoalescedMap(const Id& id, const Id& parent, const std::list<CFunction>& functions)
+    CoalescedMap(const Id& id, const Id& parent, const std::list<CFunction>& functions, const std::string& moc)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**

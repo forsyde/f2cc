@@ -48,7 +48,7 @@ ScheduleFinder::~ScheduleFinder() throw() {}
 
 list<Id> ScheduleFinder::findSchedule() throw(IOException, RuntimeException) {
     // Add all processes at processnetwork outputs to starting point queue
-    list<Process::Port*> output_ports = processnetwork_->getOutputs();
+    list<Process::Port*> output_ports = processnetwork_->getOutPorts();
     logger_.logMessage(Logger::DEBUG, string("Scanning all processnetwork outputs..."));
     for (list<Process::Port*>::iterator it = output_ports.begin();
          it != output_ports.end(); ++it) {
