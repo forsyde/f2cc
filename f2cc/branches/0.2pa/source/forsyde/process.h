@@ -61,6 +61,48 @@ namespace ForSyDe {
 class Process{
  public:
 	class Port;
+    /**
+     * Denotes the relationship between processes in a hierarchical
+     * process network.
+     */
+    enum Relation {
+        /**
+         * A process which resides lower in the hierarchy chain.
+         */
+        Child,
+
+        /**
+		 * A process which is directly contained by the current composite.
+		 */
+		FirstChild,
+
+        /**
+         * A process which resides higher in the hierarchy chain.
+         */
+        Parent,
+
+        /**
+         * The composite which directly includes this process.
+         */
+        FirstParent,
+
+        /**
+         * A process which has the same FirstParent as the current one.
+         */
+        Sibling,
+
+        /**
+         * A child process for one of the current process' siblings (nephew)
+         */
+        SiblingsChild,
+
+        /**
+         * A process which resides in a different hierarchical branch than the
+         * current one
+         */
+        Other
+    };
+
   public:
     /**
      * Creates a process node.
@@ -69,6 +111,14 @@ class Process{
      *        Process ID.
      */
     Process(const Id& id, const Id& parent, const std::string moc) throw();
+
+    /**
+     * Creates a process node.
+     *
+     * @param id
+     *        Process ID.
+     */
+    Process(const Id& id, std::list<const Id> hierarchy, const std::string moc) throw();
 
     /**
      * Destroys this process. This also destroys all ports and breaks all
@@ -88,14 +138,37 @@ class Process{
      *
      * @returns The parent process.
      */
-    const ForSyDe::Id* getParent() const throw();
+    const ForSyDe::Id* getFirstParent() const throw();
+
+    /**
+     * Gets the parent of this process.
+     *
+     * @returns The parent process.
+     */
+    const ForSyDe::Id* getFirstChild(const ForSyDe::Id& id,
+    		std::list<const ForSyDe::Id> id_list) const throw();
+
+
+    /**
+     * Gets the parent of this process.
+     *
+     * @returns The parent process.
+     */
+    std::list<const ForSyDe::Id>* getHierarchy() const throw();
+
+    /**
+     * Gets the parent of this process.
+     *
+     * @returns The parent process.
+     */
+    Relation findRelation(const Process& rhs) const throw();
 
     /**
      * Gets the MoC of this process.
      *
      * @returns The MoC.
      */
-    const std::string getMoc() const throw();
+    virtual const std::string getMoc() const throw();
 
     /**
      * Checks whether this port is a composite process.
@@ -333,6 +406,20 @@ class Process{
                                         std::list<Port*>& ports) const throw();
 
     /**
+     * Attempts to find a port with a given ID from a list of ports. If the list
+     * is not empty and such a port is found, an iterator pointing to that port
+     * is returned; otherwise the list's \c end() iterator is returned.
+     *
+     * @param id
+     *        Port ID.
+     * @param ports
+     *        List of ports.
+     * @returns Iterator pointing either at the found port, or an iterator equal
+     *          to the list's \c end() iterator.
+     */
+    bool findId(const ForSyDe::Id& id, std::list<const ForSyDe::Id> id_list) const throw();
+
+    /**
      * Destroys all ports in a given list.
      *
      * @param ports
@@ -348,11 +435,7 @@ class Process{
     /**
 	 * Parent ID.
 	 */
-	const ForSyDe::Id parent_;
-    /**
-	 * Process MoC.
-	 */
-	const std::string moc_;
+	std::list <const ForSyDe::Id> hierarchy_;
     /**
      * List of in ports.
      */
@@ -362,6 +445,12 @@ class Process{
      * List of out ports.
      */
     std::list<Port*> out_ports_;
+
+  private:
+    /**
+	 * Process MoC.
+	 */
+	const std::string moc_;
 
   public:
     /**
@@ -446,7 +535,7 @@ class Process{
          *
          * @returns Port data type.
          */
-        CDataType* getDataType() throw();
+        virtual CDataType* getDataType() throw();
 
         /**
 		 * Sets the data type of this port.
@@ -454,76 +543,40 @@ class Process{
 		 * @param datatype
 		 *        The new data type that has to be set.
 		 */
-		void setDataType(CDataType& datatype) throw();
+        virtual void setDataType(CDataType& datatype) throw();
 
         /**
          * Checks whether this port is an IO port.
          *
          * @returns \c true if it is IO.
          */
-        bool isIOport() const throw();
+        bool isIOPort() const throw();
 
         /**
-         * In case of a normal port, it checks if it is connected to another port.
-         * In case of an IO port, it is the same as IOisConnectedOutside().
+         * Checks if there is an immediate connection to a nearby port.
+         *
+         * @param port
+         *        Port to verify.
          *
          * @returns \c true if connected.
          */
-        bool isConnected() const throw();
+        virtual bool isConnected() const throw();
 
         /**
-         * Checks if this IO port is connected to a port outside the composite process.
+         * Recursively checks if there is an available connection between
+         * this and another one belonging to a leaf process.
          *
          * @returns \c true if connected.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
          */
-        bool IOisConnectedOutside() const throw(IllegalCallException);
-
-        /**
-         * Checks if this IO port is connected to a port inside the composite process.
-         *
-         * @returns \c true if connected.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-		 */
-
-        bool IOisConnectedInside() const throw(IllegalCallException);
-
-        /**
-         * Checks if this IO port is fully connected to both an upstream port and a downstream port.
-         *
-         * @returns \c true if connected.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-        bool IOisConnected() const throw(IllegalCallException);
+        virtual bool isConnectedToLeaf() const throw();
 
         /**
          * Connects this port to another. This also sets the other port as
          * connected to this port. If there already is a connection it will
          * automatically be broken. 
          *
-         * If it connects to an IO port, it checks whether the connection
-         * comes from the inside or outside, and acts accordingly.
-         *
-         * Setting the port parameter to \c NULL is equivalent to breaking the
-         * connection. If both ends of a connection is the same port, this
-         * method call is effectively ignored.
-         *
-         * @param port
-         *        Port to connect.
-         */
-        void connect(Port* port) throw();
-
-        /**
-         * Connects this IO port to another, outside the composite process.
-         * This also sets the other port as
-         * connected to this port. If there already is a connection it will
-         * automatically be broken.
+         * Due to legacy reasons, this method was left unchanged from v0.1.
+         * Hence, method's scope is local, and it enables an immediate connection.
          *
          * If it connects to an IO port, it checks whether the connection
          * comes from the inside or outside, and acts accordingly.
@@ -534,83 +587,48 @@ class Process{
          *
          * @param port
          *        Port to connect.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
          */
-        void IOconnectOutside(Port* port) throw(IllegalCallException);
+        virtual void connect(Port* port) throw();
 
         /**
-         * Connects this IO port to another, inside the composite process.
-         * This also sets the other port as
+         * Connects this port to another. This also sets the other port as
          * connected to this port. If there already is a connection it will
          * automatically be broken.
          *
-         * Setting the port parameter to \c NULL is equivalent to breaking the
-         * connection. If both ends of a connection is the same port, this
-         * method call is effectively ignored.
+         * This method's scope is global, and inter-composite connections
+         * are possible.
          *
-         * @param port
-         *        Port to connect.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-        void IOconnectInside(Port* port) throw(IllegalCallException);
-
-        /**
-         * Connects this IO port to another, inside the composite process.
-         * This also sets the other port as
-         * connected to this port. If there already is a connection it will
-         * automatically be broken.
-         *
-         * Setting the port parameter to \c NULL is equivalent to breaking the
-         * connection. If both ends of a connection is the same port, this
-         * method call is effectively ignored.
-         *
-         * @param port
-         *        Port to connect.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-        void IOconnect(Port* inside, Port* outside) throw(IllegalCallException);
-
-        /**
-         * Breaks the connection that this port may have to another. If there is
-         * no connection, nothing happens.
-         */
-        void unconnect() throw();
-
-        /**
-         * Breaks the connection that this port may have to another. If there is
-         * no connection, nothing happens.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-        void IOunconnectOutside() throw(IllegalCallException);
-
-        /**
-         * Breaks the connection that this port may have to another. If there is
-         * no connection, nothing happens.
-         *
-         * If the other end is an IO port, it checks whether the connection
+         * If it connects to an IO port, it checks whether the connection
          * comes from the inside or outside, and acts accordingly.
          *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
+         * Setting the port parameter to \c NULL is equivalent to breaking the
+         * connection. If both ends of a connection is the same port, this
+         * method call is effectively ignored.
+         *
+         * @param port
+         *        Port to connect.
+         *
+         * @todo: implement a globalConnect
          */
-        void IOunconnectInside() throw(IllegalCallException);
+        virtual void connectGlobal(Port* port) throw() = 0;
 
         /**
-         * Exactly the same as unconnect(), but with another name. Its purpose is
-         * purely for naming coherence purposes.
+         * Breaks the connection that this port may have to another. If there is
+         * no connection, nothing happens.
          *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
+         * This method's scope is global, and inter-composite connections
+         * are possible.
          */
-        void IOunconnect() throw(IllegalCallException);
+        virtual void unconnect() throw();
+
+        /**
+         * Breaks the connection that this port may have to another. If there is
+         * no connection, nothing happens.
+         *
+         * This method's scope is local, and only intra-composite connections
+         * are possible.
+         */
+        virtual void unconnectFromLeaf() throw();
 
         /**
          * Searches recursively through composites and gets
@@ -619,75 +637,13 @@ class Process{
          * @returns Connected port, if any; otherwise \c NULL.
          */
         Port* getConnectedPort() const throw();
-        /**
-         * Searches recursively through composites and gets
-         * the port at the other end of the connection, if any.
-         *
-         * @returns Connected port, if any; otherwise \c NULL.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-        Port* IOgetConnectedPortOutside() const throw(IllegalCallException);
-        /**
-         * Searches recursively through composites and gets
-         * the port at the other end of the connection, if any.
-         *
-         * @returns Connected port, if any; otherwise \c NULL.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-        Port* IOgetConnectedPortInside() const throw(IllegalCallException);
-        /**
-         * Searches recursively through composites and gets
-         * the port at the other end of the connection, if any.
-         *
-         * @returns Connected port, if any; otherwise \c NULL.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-        std::pair<Port*,Port*> IOgetConnectedPorts() const throw(IllegalCallException);
 
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
          *
          * @returns Connected port, if any; otherwise \c NULL.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
          */
-        Port* getConnectedPortImmediate() const throw();
-        /**
-         * Gets the immediate adjacent port at the other end of the connection, if any.
-         *
-         * @returns Connected port, if any; otherwise \c NULL.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-        Port* IOgetConnectedPortOutsideImmediate() const throw(IllegalCallException);
-        /**
-         * Gets the immediate adjacent port at the other end of the connection, if any.
-         *
-         * @returns Connected port, if any; otherwise \c NULL.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-        Port* IOgetConnectedPortInsideImmediate() const throw(IllegalCallException);
-
-        /**
-		 * Gets the immediate adjacent ports at the other ends of the connection, if any,
-		 * for an IO port
-		 *
-		 * @returns Connected port, if any; otherwise \c NULL.
-		 *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-		 */
-        std::pair<Port*,Port*> IOgetConnectedPortsImmediate() const throw(IllegalCallException);
+        Port* getConnectedLeafPort() const throw();
 
         /**
          * Checks for equality between this port and another.
@@ -720,6 +676,69 @@ class Process{
          */
         std::string toString() const throw();
 
+        /**
+		 * Recursively checks if there is an available connection between
+		 * this and another one belonging to a leaf process.
+		 *
+		 * @returns \c true if connected.
+		 */
+		virtual bool isConnectedToLeafInside() const throw() = 0;
+
+        /**
+		 * Recursively checks if there is an available connection between
+		 * this and another one belonging to a leaf process.
+		 *
+		 * @returns \c true if connected.
+		 */
+		virtual bool isConnectedToLeafOutside() const throw() = 0;
+
+        /**
+		 * Recursively checks if there is an available connection between
+		 * this and another one belonging to a leaf process.
+		 *
+		 * @returns \c true if connected.
+		 */
+		virtual bool unconnectInside() const throw() = 0;
+
+        /**
+		 * Recursively checks if there is an available connection between
+		 * this and another one belonging to a leaf process.
+		 *
+		 * @returns \c true if connected.
+		 */
+		virtual bool unconnectOutside() const throw() = 0;
+
+        /**
+		 * Recursively checks if there is an available connection between
+		 * this and another one belonging to a leaf process.
+		 *
+		 * @returns \c true if connected.
+		 */
+		virtual bool unconnecttFromLeafInside() const throw() = 0;
+
+        /**
+		 * Recursively checks if there is an available connection between
+		 * this and another one belonging to a leaf process.
+		 *
+		 * @returns \c true if connected.
+		 */
+		virtual bool unconnecttFromLeafOutside() const throw() = 0;
+
+        /**
+         * Gets the immediate adjacent port at the other end of the connection, if any.
+         *
+         * @returns Connected port, if any; otherwise \c NULL.
+         */
+		virtual Port* getConnectedLeafPortInside() const throw() = 0;
+
+        /**
+         * Gets the immediate adjacent port at the other end of the connection, if any.
+         *
+         * @returns Connected port, if any; otherwise \c NULL.
+         */
+		virtual Port* getConnectedLeafPortOutside() const throw() = 0;
+
+
       private:
         /**
          * Due to how port copying works, the assign operator is hidden and thus
@@ -728,7 +747,8 @@ class Process{
          */
         void operator=(const Port&) throw();
 
-      private:
+
+      protected:
         /**
          * Port ID.
          */
@@ -744,12 +764,7 @@ class Process{
          */
         Port* connected_port_outside_;
 
-        /**
-		 * In case it is an IO Port, this will contain a connection inside the
-		 * composite process as well
-		 */
-        Port* connected_port_inside_;
-
+      private:
         /**
          * Port data type.
          */
