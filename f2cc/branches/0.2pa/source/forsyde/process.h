@@ -175,7 +175,7 @@ class Process{
      *
      * @returns \c true if it a composite process.
      */
-    bool isComposite() const throw();
+    virtual bool isComposite() const throw();
 
     /**
      * Adds an in port to this process. Processes are not allowed to have
@@ -435,7 +435,7 @@ class Process{
     /**
 	 * Parent ID.
 	 */
-	std::list <const ForSyDe::Id> hierarchy_;
+	std::list <ForSyDe::Id> hierarchy_;
     /**
      * List of in ports.
      */
@@ -550,7 +550,7 @@ class Process{
          *
          * @returns \c true if it is IO.
          */
-        bool isIOPort() const throw();
+        virtual bool isIOPort() const throw();
 
         /**
          * Checks if there is an immediate connection to a nearby port.

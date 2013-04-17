@@ -360,11 +360,13 @@ Process::Port::Port(const Id& id, Process* process, CDataType datatype)
 
 Process::Port::Port(Port& rhs) throw(InvalidArgumentException)
         : id_(rhs.id_), process_(NULL), connected_port_outside_(NULL),  data_type_(rhs.data_type_) {
-	if (rhs.isIOPort()) {
+
+	static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort**>(*rhs);
+	if (ioport) {
 		THROW_EXCEPTION(InvalidArgumentException, "Cannot equate Port and IOPort");
 	}
 	//manual unconnect, to avoid calling virtual functions
-	if (rhs.isConnected()) {
+	if (rhs.connected_port_outside_) {
         Port* port = rhs.connected_port_outside_;
         rhs.connected_port_outside_ = NULL;
         if (port != this) {
@@ -383,11 +385,12 @@ Process::Port::Port(Port& rhs, Process* process) throw(InvalidArgumentException)
         THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
                         "NULL");
     }
-	if (rhs.isIOPort()) {
+    static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort**>(*rhs);
+    	if (ioport) {
 		THROW_EXCEPTION(InvalidArgumentException, "Cannot equate Port and IOPort");
 	}
 	//manual unconnect, to avoid calling virtual functions
-	if (rhs.isConnected()) {
+	if (rhs.connected_port_outside_) {
         Port* port = rhs.connected_port_outside_;
         rhs.connected_port_outside_ = NULL;
         if (port != this) {
@@ -446,6 +449,9 @@ void Process::Port::connect(Port* port) throw() {
         unconnect();
         return;
     }
+    Process::Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+    if ((relation != FirstParent) && (relation != Sibling))
+    	THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
 
     if (connected_port_outside_) {
         unconnect();

@@ -32,12 +32,25 @@
 
 using namespace f2cc::ForSyDe;
 using std::string;
+using std::list;
 using std::bad_cast;
 
-Composite::Composite(const Id& id, const Id& parent, const string& name, const string& moc) throw() : Process(id, parent, moc), composite_name_(name){}
+Composite::Composite(const Id& id, const Id& parent, const string
+		name) throw() : Process(id, parent, NULL), composite_name_(name){}
+
+Composite::Composite(const Id& id, list<const ForSyDe::Id> hierarchy, const string
+		name) throw() : Process(id, hierarchy, NULL), composite_name_(name){}
 
 Composite::~Composite() throw() {
 	destroyAllProcesses();
+}
+
+bool Composite::isComposite() const throw() {
+	return true;
+}
+
+const string Composite::getName() const throw() {
+    return composite_name_;
 }
 
 bool Composite::operator==(const Process& rhs) const throw() {
@@ -91,222 +104,257 @@ void Composite::moreChecks() throw(InvalidProcessException){
     }
 }
 
-Process::Port::~Port() throw() {
+///////////////
+
+Composite::IOPort::IOPort(const Id& id) throw()
+        : Port(id,CDataType()), connected_port_inside_(NULL)  {}
+
+Composite::IOPort::IOPort(const Id& id, Composite* process) throw(InvalidArgumentException)
+		:  Port(id,process,CDataType()), connected_port_inside_(NULL) {
+}
+
+Composite::IOPort::IOPort(IOPort& rhs) throw()
+        : id_(rhs.id_), process_(NULL), connected_port_outside_(NULL), connected_port_inside_(NULL) {
+
+	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort**>(*rhs);
+	if (!ioport) {
+		if (rhs.connected_port_outside_) {
+			IOPort* portin = rhs.connected_port_outside_;
+			rhs.connected_port_outside_ = NULL;
+			if (portin != this) {
+				connected_port_inside_ = portin;
+				portin->connected_port_inside_ = this;
+			}
+		}
+	}
+	//manual unconnect, to avoid calling virtual functions
+	if (rhs.connected_port_outside_) {
+        IOPort* portout = rhs.connected_port_outside_;
+        rhs.connected_port_outside_ = NULL;
+        if (portout != this) {
+        	connected_port_outside_ = portout;
+        	portout->connected_port_outside_ = this;
+        }
+	}
+	if (rhs.connected_port_inside_) {
+        IOPort* portin = rhs.connected_port_inside_;
+        rhs.connected_port_inside_ = NULL;
+        if (portin != this) {
+        	connected_port_inside_ = portin;
+        	portin->connected_port_inside_ = this;
+        }
+    }
+}
+
+Composite::IOPort::IOPort(IOPort& rhs, Composite* process) throw()
+        : id_(rhs.id_), process_(process), connected_port_outside_(NULL), connected_port_inside_(NULL) {
+    if (!process) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
+                        "NULL");
+    }
+    static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort**>(*rhs);
+	if (!ioport) {
+		if (rhs.connected_port_outside_) {
+			IOPort* portin = rhs.connected_port_outside_;
+			rhs.connected_port_outside_ = NULL;
+			if (portin != this) {
+				connected_port_inside_ = portin;
+				portin->connected_port_inside_ = this;
+			}
+		}
+	}
+	//manual unconnect, to avoid calling virtual functions
+	if (rhs.connected_port_outside_) {
+		IOPort* portout = rhs.connected_port_outside_;
+		rhs.connected_port_outside_ = NULL;
+		if (portout != this) {
+			connected_port_outside_ = portout;
+			portout->connected_port_outside_ = this;
+		}
+	}
+	if (rhs.connected_port_inside_) {
+		IOPort* portin = rhs.connected_port_inside_;
+		rhs.connected_port_inside_ = NULL;
+		if (portin != this) {
+			connected_port_inside_ = portin;
+			portin->connected_port_inside_ = this;
+		}
+	}
+}
+
+Composite::IOPort::~IOPort() throw() {
     unconnect();
 }
 
-Process* Process::Port::getProcess() const throw() {
-    return process_;
+bool Composite::IOPort::isIOPort() const throw() {
+    return true;
 }
 
-const Id* Process::Port::getId() const throw() {
-    return &id_;
+bool Composite::IOPort::isConnected() const throw() {
+    return connected_port_inside_;
 }
 
-f2cc::CDataType* Process::Port::getDataType() throw() {
-    return &data_type_;
-}
-
-void Process::Port::setDataType(CDataType& datatype) throw() {
-	data_type_ = datatype;
-}
-
-bool Process::Port::isIOPort() const throw() {
-    return false;
-}
-
-bool Process::Port::isConnected() const throw() {
-    return connected_port_outside_;
-}
-
-bool Process::Port::IOisConnectedOutside() const throw(IllegalCallException) {
-    if (!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOisConnectedOutside\" was called "
+bool Composite::IOPort::isConnectedOutside() const throw() {
+    if (!isIOPort()) {
+        THROW_EXCEPTION(IllegalCallException, "\"isConnectedOutside\" was called "
                         "from a non-IO port");
     }
     return connected_port_outside_;
 }
 
-bool Process::Port::IOisConnectedInside() const throw(IllegalCallException) {
-	if(!isIOport()) {
+bool Composite::IOPort::isConnectedInside() const throw() {
+	if(!isIOPort()) {
         THROW_EXCEPTION(IllegalCallException, "\"IOisConnectedInside\" was called "
                         "from a non-IO port");
     }
     return connected_port_inside_;
 }
 
-bool Process::Port::IOisConnected() const throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOisConnected\" was called "
+bool Composite::IOPort::isConnectedToLeafOutside() const throw() {
+    if (!isIOPort()) {
+        THROW_EXCEPTION(IllegalCallException, "\"isConnectedOutside\" was called "
                         "from a non-IO port");
     }
-    return (connected_port_inside_ && connected_port_outside_);
+    if (connected_port_outside_){
+    	if(connected_port_outside_->isIOPort())
+    		return connected_port_outside_->isConnectedToLeafOutside();
+    }
+    else return false;
 }
 
-void Process::Port::connect(Port* port) throw() {
+bool Composite::IOPort::isConnectedToLeafInside() const throw() {
+	if(!isIOPort()) {
+        THROW_EXCEPTION(IllegalCallException, "\"IOisConnectedInside\" was called "
+                        "from a non-IO port");
+    }
+    if (connected_port_inside_){
+    	if(connected_port_inside_->isIOPort())
+    		return connected_port_inside_->isConnectedToLeafOutside();
+    }
+    else return false;
+}
+
+
+void Composite::IOPort::connect(Port* port) throw(InvalidArgumentException) {
     if (port == this) return;
     if (!port) {
         unconnect();
         return;
     }
+	Process::Relation relation = getProcess()->findRelation(*port->getProcess());
+	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(port);
+	if (relation == Sibling) {
+		connected_port_outside_ = port;
+		port->connected_port_outside_ = this;
+	}
+	else if (relation == FirstParent) {
+		connected_port_outside_ = port;
+		if (!ioport) THROW_EXCEPTION(InvalidArgumentException, "Something");
+		ioport->connected_port_inside_ = this;
+	}
+	else if (relation == FirstChild) {
+		connected_port_inside_ = port;
+		port->connected_port_outside_ = this;
+	}
+	else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+}
 
+
+void Composite::IOPort::unconnectOutside() throw(IllegalCallException) {
     if (connected_port_outside_) {
-        unconnect();
-    }
-    connected_port_outside_ = port;
-    if (port->isIOport()){
-    	if (port->getProcess()->getId() == process_->getParent()){
-    		port->connected_port_inside_ = this;
+    	Process::Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+    	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+    	if (relation == Sibling) {
+    		connected_port_outside_->connected_port_outside_ = NULL;
+    		connected_port_outside_ = NULL;
     	}
-    	else port->connected_port_outside_ = this;
+    	else if (relation == FirstParent) {
+    		ioport->connected_port_inside_ = NULL;
+    		connected_port_outside_ = NULL;
+    	}
+    	else THROW_EXCEPTION(IllegalCallException, "Connection should not have been possible");
     }
-    else port->connected_port_outside_ = this;
 }
 
-void Process::Port::IOconnectOutside(Port* port) throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOconnectOutside\" was called "
-                        "from a non-IO port");
-    }
-	connect(port);
-}
-
-void Process::Port::IOconnectInside(Port* port) throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOconnectInside\" was called "
-                        "from a non-IO port");
-    }
-    if (port == this) return;
-    if (!port) {
-        unconnect();
-        return;
-    }
-
+void Composite::IOPort::unconnectInside() throw(IllegalCallException) {
     if (connected_port_inside_) {
-    	IOunconnectInside();
+    	Process::Relation relation = getProcess()->findRelation(*connected_port_inside_->getProcess());
+    	if (relation == FirstChild) {
+    		connected_port_inside_->connected_port_outside_ = NULL;
+    		connected_port_inside_ = NULL;
+    	}
+    	else THROW_EXCEPTION(IllegalCallException, "Connection should not have been possible");
     }
-    connected_port_inside_ = port;
-    port->connected_port_outside_ = this;
 }
 
-void Process::Port::IOconnect(Port* inside, Port* outside) throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOconnect\" was called "
-                        "from a non-IO port");
-    }
-	IOconnectInside(inside);
-	IOconnectOutside(outside);
-}
-
-void Process::Port::unconnect() throw() {
-	IOunconnectOutside();
-	if(isIOport()) IOunconnectInside();
-}
-
-void Process::Port::IOunconnect() throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOunconnect\" was called "
-                        "from a non-IO port");
-    }
-	unconnect();
-}
-
-void Process::Port::IOunconnectOutside() throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOunconnectOutside\" was called "
-                        "from a non-IO port");
-    }
+void Composite::IOPort::unconnectFromLeafOutside() throw(IllegalCallException) {
     if (connected_port_outside_) {
-    	if(connected_port_outside_->isIOport()){
-    		if (connected_port_outside_->getProcess()->getId() == process_->getParent()){
-    			connected_port_outside_->connected_port_inside_ = NULL;
-			}
+    	Process::Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+    	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+    	if (relation == Sibling) {
+    		if (ioport) ioport->unconnectFromLeafInside();
     		else connected_port_outside_->connected_port_outside_ = NULL;
+    		connected_port_outside_ = NULL;
     	}
-    	else connected_port_outside_->connected_port_outside_ = NULL;
-        connected_port_outside_ = NULL;
+    	else if (relation == FirstParent) {
+    		if (ioport) ioport->unconnectFromLeafOutside();
+    		else connected_port_outside_->connected_port_outside_ = NULL;
+    		connected_port_outside_ = NULL;
+    	}
+    	else THROW_EXCEPTION(IllegalCallException, "Connection should not have been possible");
     }
 }
 
-void Process::Port::IOunconnectInside() throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOunconnectInside\" was called "
-                        "from a non-IO port");
-    }
+void Composite::IOPort::unconnectFromLeafInside() throw(IllegalCallException) {
     if (connected_port_inside_) {
-    	connected_port_inside_->connected_port_outside_ = NULL;
-    	connected_port_inside_ = NULL;
+    	Process::Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+    	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+    	if (relation == FirstChild) {
+    		if (ioport) ioport->unconnectFromLeafInside();
+    		else connected_port_inside_->connected_port_outside_ = NULL;
+    		connected_port_inside_ = NULL;
+    	}
+    	else THROW_EXCEPTION(IllegalCallException, "Connection should not have been possible");
     }
 }
 
-Process::Port* Process::Port::getConnectedPort() const throw() {
-	std::string process_type (connected_port_outside_->getProcess()->type());
-	std::string composite_type ("composite");
-    if (process_type.compare(composite_type) == 0){
-    	return connected_port_outside_->getConnectedPort();
-    }
-    else return connected_port_outside_;
+Process::Port* Composite::IOPort::getConnectedPort() const throw() {
+	return connected_port_inside_;
 }
 
-Process::Port* Process::Port::IOgetConnectedPortOutside() const throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOgetConnectedPortOutside\" was called "
-                        "from a non-IO port");
-    }
-    return getConnectedPort();
-}
-
-Process::Port* Process::Port::IOgetConnectedPortInside() const throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOgetConnectedPortInside\" was called "
-                        "from a non-IO port");
-    }
-	std::string process_type (connected_port_inside_->getProcess()->type());
-	std::string composite_type ("composite");
-    if (process_type.compare(composite_type) == 0){
-    	return connected_port_inside_->IOgetConnectedPortInside();
-    }
-    else return connected_port_inside_;
-}
-
-pair<Process::Port*,Process::Port*> Process::Port::IOgetConnectedPorts() const throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOgetConnectedPorts\" was called "
-                        "from a non-IO port");
-    }
-	pair <Process::Port*,Process::Port*> port_pair;
-	port_pair = std::make_pair (IOgetConnectedPortOutside(), IOgetConnectedPortInside());
-	return port_pair;
-}
-
-Process::Port* Process::Port::getConnectedPortImmediate() const throw() {
+Process::Port* Composite::IOPort::getConnectedPortOutside() const throw() {
     return connected_port_outside_;
 }
 
-Process::Port* Process::Port::IOgetConnectedPortOutsideImmediate() const throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOgetConnectedPortOutsideImmediate\" was called "
-                        "from a non-IO port");
-    }
-    return connected_port_outside_;
-}
-
-Process::Port* Process::Port::IOgetConnectedPortInsideImmediate() const throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOgetConnectedPortInsideImmediate\" was called "
-                        "from a non-IO port");
-    }
+Process::Port* Composite::IOPort::getConnectedPortInside() const throw() {
     return connected_port_inside_;
 }
 
-pair<Process::Port*,Process::Port*> Process::Port::IOgetConnectedPortsImmediate() const throw(IllegalCallException) {
-	if(!isIOport()) {
-        THROW_EXCEPTION(IllegalCallException, "\"IOgetConnectedPortsImmediate\" was called "
-                        "from a non-IO port");
-    }
-	pair <Process::Port*,Process::Port*> port_pair;
-	port_pair = std::make_pair (IOgetConnectedPortOutsideImmediate(), IOgetConnectedPortInsideImmediate());
-	return port_pair;
+Process::Port* Composite::IOPort::getConnectedLeafPortOutside() const throw(IllegalCallException) {
+	Process::Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+	if (ioport){
+		if (relation == Sibling) return ioport->getConnectedLeafPortInside();
+		else if (relation == FirstParent) ioport->getConnectedLeafPortOutside();
+		else {
+			THROW_EXCEPTION(IllegalCallException, "Connection should not have been possible");
+			return NULL;
+		}
+	}
+	else return connected_port_outside_;
+}
+
+Process::Port* Composite::IOPort::getConnectedLeafPortInside() const throw(IllegalCallException) {
+	Process::Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+	if (ioport){
+		if (relation == FirstChild) return ioport->getConnectedLeafPortInside();
+		else {
+			THROW_EXCEPTION(IllegalCallException, "Connection should not have been possible");
+			return NULL;
+		}
+	}
+	else return connected_port_inside_;
 }
 
 bool Process::Port::operator==(const Port& rhs) const throw() {
