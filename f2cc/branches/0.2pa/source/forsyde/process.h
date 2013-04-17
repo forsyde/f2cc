@@ -37,6 +37,7 @@
  */
 
 #include "id.h"
+#include "hierarchy.h"
 #include "../language/cdatatype.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/notsupportedexception.h"
@@ -61,47 +62,7 @@ namespace ForSyDe {
 class Process{
  public:
 	class Port;
-    /**
-     * Denotes the relationship between processes in a hierarchical
-     * process network.
-     */
-    enum Relation {
-        /**
-         * A process which resides lower in the hierarchy chain.
-         */
-        Child,
 
-        /**
-		 * A process which is directly contained by the current composite.
-		 */
-		FirstChild,
-
-        /**
-         * A process which resides higher in the hierarchy chain.
-         */
-        Parent,
-
-        /**
-         * The composite which directly includes this process.
-         */
-        FirstParent,
-
-        /**
-         * A process which has the same FirstParent as the current one.
-         */
-        Sibling,
-
-        /**
-         * A child process for one of the current process' siblings (nephew)
-         */
-        SiblingsChild,
-
-        /**
-         * A process which resides in a different hierarchical branch than the
-         * current one
-         */
-        Other
-    };
 
   public:
     /**
@@ -110,7 +71,7 @@ class Process{
      * @param id
      *        Process ID.
      */
-    Process(const Id& id, const Id& parent, const std::string moc) throw();
+    Process(const Id& id, const std::string moc) throw();
 
     /**
      * Creates a process node.
@@ -118,7 +79,7 @@ class Process{
      * @param id
      *        Process ID.
      */
-    Process(const Id& id, std::list<const Id> hierarchy, const std::string moc) throw();
+    Process(const Id& id, Hierarchy hierarchy, const std::string moc) throw();
 
     /**
      * Destroys this process. This also destroys all ports and breaks all
@@ -138,30 +99,7 @@ class Process{
      *
      * @returns The parent process.
      */
-    const ForSyDe::Id* getFirstParent() const throw();
-
-    /**
-     * Gets the parent of this process.
-     *
-     * @returns The parent process.
-     */
-    const ForSyDe::Id* getFirstChild(const ForSyDe::Id& id,
-    		std::list<const ForSyDe::Id> id_list) const throw();
-
-
-    /**
-     * Gets the parent of this process.
-     *
-     * @returns The parent process.
-     */
-    std::list<const ForSyDe::Id>* getHierarchy() const throw();
-
-    /**
-     * Gets the parent of this process.
-     *
-     * @returns The parent process.
-     */
-    Relation findRelation(const Process& rhs) const throw();
+    Hierarchy::Relation findRelation(const Process& rhs) const throw();
 
     /**
      * Gets the MoC of this process.
@@ -171,11 +109,13 @@ class Process{
     virtual const std::string getMoc() const throw();
 
     /**
-     * Checks whether this port is a composite process.
+     * Gets the MoC of this process.
      *
-     * @returns \c true if it a composite process.
+     * @returns The MoC.
      */
-    virtual bool isComposite() const throw();
+    virtual int getCost() const throw();
+
+    virtual void setCost(int cost) const throw();
 
     /**
      * Adds an in port to this process. Processes are not allowed to have
@@ -406,20 +346,6 @@ class Process{
                                         std::list<Port*>& ports) const throw();
 
     /**
-     * Attempts to find a port with a given ID from a list of ports. If the list
-     * is not empty and such a port is found, an iterator pointing to that port
-     * is returned; otherwise the list's \c end() iterator is returned.
-     *
-     * @param id
-     *        Port ID.
-     * @param ports
-     *        List of ports.
-     * @returns Iterator pointing either at the found port, or an iterator equal
-     *          to the list's \c end() iterator.
-     */
-    bool findId(const ForSyDe::Id& id, std::list<const ForSyDe::Id> id_list) const throw();
-
-    /**
      * Destroys all ports in a given list.
      *
      * @param ports
@@ -429,13 +355,9 @@ class Process{
 
   protected:
     /**
-	 * Process ID.
+	 * Hierarchy list
 	 */
-	const ForSyDe::Id id_;
-    /**
-	 * Parent ID.
-	 */
-	std::list <ForSyDe::Id> hierarchy_;
+	ForSyDe::Hierarchy hierarchy_;
     /**
      * List of in ports.
      */
@@ -446,11 +368,14 @@ class Process{
      */
     std::list<Port*> out_ports_;
 
+    int cost_;
+
   private:
     /**
 	 * Process MoC.
 	 */
 	const std::string moc_;
+
 
   public:
     /**
@@ -531,11 +456,12 @@ class Process{
         const ForSyDe::Id* getId() const throw();
 
         /**
-         * Gets the data type of this port.
-         *
-         * @returns Port data type.
-         */
-        virtual CDataType* getDataType() throw();
+		 * Sets the data type of this port.
+		 *
+		 * @param datatype
+		 *        The new data type that has to be set.
+		 */
+        virtual CDataType getDataType() throw();
 
         /**
 		 * Sets the data type of this port.
@@ -543,23 +469,14 @@ class Process{
 		 * @param datatype
 		 *        The new data type that has to be set.
 		 */
-        virtual void setDataType(CDataType& datatype) throw();
+        virtual bool setDataType(CDataType& datatype) throw();
 
         /**
          * Checks whether this port is an IO port.
          *
          * @returns \c true if it is IO.
          */
-        virtual bool isIOPort() const throw();
 
-        /**
-         * Checks if there is an immediate connection to a nearby port.
-         *
-         * @param port
-         *        Port to verify.
-         *
-         * @returns \c true if connected.
-         */
         virtual bool isConnected() const throw();
 
         /**
@@ -568,7 +485,7 @@ class Process{
          *
          * @returns \c true if connected.
          */
-        virtual bool isConnectedToLeaf() const throw();
+        bool isConnectedToLeaf() const throw();
 
         /**
          * Connects this port to another. This also sets the other port as
@@ -588,7 +505,7 @@ class Process{
          * @param port
          *        Port to connect.
          */
-        virtual void connect(Port* port) throw();
+        virtual void connect(Port* port) throw(InvalidArgumentException);
 
         /**
          * Connects this port to another. This also sets the other port as
@@ -610,7 +527,7 @@ class Process{
          *
          * @todo: implement a globalConnect
          */
-        virtual void connectGlobal(Port* port) throw() = 0;
+        void connectGlobal(Port* port) throw();
 
         /**
          * Breaks the connection that this port may have to another. If there is
@@ -628,7 +545,7 @@ class Process{
          * This method's scope is local, and only intra-composite connections
          * are possible.
          */
-        virtual void unconnectFromLeaf() throw();
+        void unconnectFromLeaf() throw();
 
         /**
          * Searches recursively through composites and gets
@@ -636,7 +553,7 @@ class Process{
          *
          * @returns Connected port, if any; otherwise \c NULL.
          */
-        Port* getConnectedPort() const throw();
+        virtual Port* getConnectedPort() const throw();
 
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
@@ -676,70 +593,8 @@ class Process{
          */
         std::string toString() const throw();
 
-        /**
-		 * Recursively checks if there is an available connection between
-		 * this and another one belonging to a leaf process.
-		 *
-		 * @returns \c true if connected.
-		 */
-		virtual bool isConnectedToLeafInside() const throw() = 0;
-
-        /**
-		 * Recursively checks if there is an available connection between
-		 * this and another one belonging to a leaf process.
-		 *
-		 * @returns \c true if connected.
-		 */
-		virtual bool isConnectedToLeafOutside() const throw() = 0;
-
-        /**
-		 * Recursively checks if there is an available connection between
-		 * this and another one belonging to a leaf process.
-		 *
-		 * @returns \c true if connected.
-		 */
-		virtual bool unconnectInside() const throw() = 0;
-
-        /**
-		 * Recursively checks if there is an available connection between
-		 * this and another one belonging to a leaf process.
-		 *
-		 * @returns \c true if connected.
-		 */
-		virtual bool unconnectOutside() const throw() = 0;
-
-        /**
-		 * Recursively checks if there is an available connection between
-		 * this and another one belonging to a leaf process.
-		 *
-		 * @returns \c true if connected.
-		 */
-		virtual bool unconnecttFromLeafInside() const throw() = 0;
-
-        /**
-		 * Recursively checks if there is an available connection between
-		 * this and another one belonging to a leaf process.
-		 *
-		 * @returns \c true if connected.
-		 */
-		virtual bool unconnecttFromLeafOutside() const throw() = 0;
-
-        /**
-         * Gets the immediate adjacent port at the other end of the connection, if any.
-         *
-         * @returns Connected port, if any; otherwise \c NULL.
-         */
-		virtual Port* getConnectedLeafPortInside() const throw() = 0;
-
-        /**
-         * Gets the immediate adjacent port at the other end of the connection, if any.
-         *
-         * @returns Connected port, if any; otherwise \c NULL.
-         */
-		virtual Port* getConnectedLeafPortOutside() const throw() = 0;
-
-
       private:
+
         /**
          * Due to how port copying works, the assign operator is hidden and thus
          * not allowed to avoid potential bugs as it is easy to forget this

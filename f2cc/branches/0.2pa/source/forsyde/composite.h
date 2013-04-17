@@ -38,6 +38,7 @@
  */
 
 #include "id.h"
+#include "hierarchy.h"
 #include "model.h"
 #include "process.h"
 #include "../exceptions/outofmemoryexception.h"
@@ -61,7 +62,7 @@ namespace ForSyDe {
  * of ForSyDe process networks. It inherits both the \c Model class and the \Process class.
  * Hence it behaves like a process that contains other processes.
  */
-class Composite : public Model, private Process {
+class Composite : public Model, public Process {
 public:
 	class IOPort;
   public:
@@ -76,8 +77,7 @@ public:
      *        the composite process' name. Initially it is the same as its filename, and it is enough
      *        to identify and compare a composite process' structure.
      */
-    Composite(const ForSyDe::Id& id, const ForSyDe::Id& parent,
-    		const std::string name) throw();
+    Composite(const ForSyDe::Id& id, const std::string name) throw();
 
     /**
       * Creates a process node.
@@ -85,8 +85,7 @@ public:
       * @param id
       *        Process ID.
       */
-    Composite(const ForSyDe::Id& id, std::list<const Id> hierarchy,
-    		const std::string name) throw();
+    Composite(const ForSyDe::Id& id, Hierarchy hierarchy, const std::string name) throw();
 
     /**
      * Destroys this composite process. This also destroys all contained processes
@@ -94,18 +93,17 @@ public:
     virtual ~Composite() throw();
 
     /**
-     * Checks whether this port is a composite process.
-     *
-     * @returns \c true if it a composite process.
-     */
-    virtual bool isComposite() const throw();
-
-    /**
      * Gets the data type of this port.
      *
      * @returns Port data type.
      */
     const std::string getName() const throw();
+
+    virtual const std::string getMoc() const throw();
+
+    virtual int getCost() const throw();
+
+    virtual void setCost(int cost) const throw();
 
     /**
      * Same as Process::operator==(const Process&) const but with the additional
@@ -168,7 +166,7 @@ public:
      * The \c Port class defines a process port. A port is identified by an ID
      * and can be connected to another port.
      */
-    class IOPort : private Port{
+    class IOPort : public Port{
       public:
         /**
          * Creates a port belonging to no process.
@@ -225,12 +223,8 @@ public:
          */
         virtual ~IOPort() throw();
 
-        /**
-         * Checks whether this port is an IO port.
-         *
-         * @returns \c true if it is IO.
-         */
-		virtual bool isIOPort() const throw();
+        virtual CDataType getDataType() throw();
+        virtual bool setDataType(CDataType& datatype) throw();
 
         /**
          * ATTENTION! This method is kept only for backwards compatibility purpose, and is used by
@@ -247,7 +241,7 @@ public:
          *
          * @returns \c true if connected.
          */
-		virtual bool isConnectedOutside() const throw();
+		bool isConnectedOutside() const throw();
 
         /**
          * Checks if this \c IOPort is connected to a port inside the composite process.
@@ -255,14 +249,14 @@ public:
          * @returns \c true if connected.
 		 */
 
-		virtual bool isConnectedInside() const throw();
+		bool isConnectedInside() const throw();
 
         /**
          * Checks if this \c IOPort is connected to a port outside the composite process.
          *
          * @returns \c true if connected.
          */
-		virtual bool isConnectedToLeafOutside() const throw();
+		bool isConnectedToLeafOutside() const throw();
 
         /**
          * Checks if this \c IOPort is connected to a port inside the composite process.
@@ -270,7 +264,7 @@ public:
          * @returns \c true if connected.
 		 */
 
-		virtual bool isConnectedToLeafInside() const throw();
+		bool isConnectedToLeafInside() const throw();
 
         /**
          * Connects this port to another. This also sets the other port as
@@ -294,7 +288,7 @@ public:
          * Breaks the connection that this port may have to another. If there is
          * no connection, nothing happens.
          */
-		//virtual void unconnect() throw();
+		virtual void unconnect() throw();
 
         /**
          * Breaks the connection that this port may have to another. If there is
@@ -303,28 +297,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		virtual void unconnectOutside() throw(IllegalCallException);
-
-        /**
-         * Breaks the connection that this port may have to another. If there is
-         * no connection, nothing happens.
-         *
-         * If the other end is an IO port, it checks whether the connection
-         * comes from the inside or outside, and acts accordingly.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-		virtual void unconnectInside() throw(IllegalCallException);
-
-        /**
-         * Breaks the connection that this port may have to another. If there is
-         * no connection, nothing happens.
-         *
-		 * @throws IllegalCallException
-		 *         When this method was called for a non-IO port
-         */
-		virtual void unconnectFromLeafOutside() throw(IllegalCallException);
+		void unconnectOutside() throw();
 
         /**
          * Breaks the connection that this port may have to another. If there is
@@ -336,7 +309,28 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		virtual void unconnectFromLeafInside() throw(IllegalCallException);
+		void unconnectInside() throw();
+
+        /**
+         * Breaks the connection that this port may have to another. If there is
+         * no connection, nothing happens.
+         *
+		 * @throws IllegalCallException
+		 *         When this method was called for a non-IO port
+         */
+		void unconnectFromLeafOutside() throw();
+
+        /**
+         * Breaks the connection that this port may have to another. If there is
+         * no connection, nothing happens.
+         *
+         * If the other end is an IO port, it checks whether the connection
+         * comes from the inside or outside, and acts accordingly.
+         *
+		 * @throws IllegalCallException
+		 *         When this method was called for a non-IO port
+         */
+		virtual void unconnectFromLeafInside() throw();
 
 		/**
          * Searches recursively through composites and gets
@@ -355,7 +349,7 @@ public:
 		 *         When this method was called for a non-IO port
          */
 
-		virtual Port* getConnectedPortOutside() const throw(IllegalCallException);
+		virtual Port* getConnectedPortOutside() const throw(InvalidArgumentException);
         /**
          * Searches recursively through composites and gets
          * the port at the other end of the connection, if any.
@@ -365,7 +359,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		virtual Port* getConnectedPortInside() const throw(IllegalCallException);
+		virtual Port* getConnectedPortInside() const throw(InvalidArgumentException);
 
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
@@ -375,7 +369,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		virtual Port* getConnectedLeafPortOutside() const throw(IllegalCallException);
+		Port* getConnectedLeafPortOutside() const throw(InvalidArgumentException);
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
          *
@@ -384,7 +378,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		virtual Port* getConnectedLeafPortInside() const throw(IllegalCallException);
+		Port* getConnectedLeafPortInside() const throw(InvalidArgumentException);
 
 
         /**
