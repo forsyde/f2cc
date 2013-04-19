@@ -51,7 +51,7 @@ class InPort : public Process {
     /**
      * @copydoc Process(const Id&)
      */
-    InPort(const Id& id, const Id& parent, const std::string& moc) throw();
+    InPort(const Id& id, const std::string& moc) throw();
 
     /**
      * @copydoc ~Process()

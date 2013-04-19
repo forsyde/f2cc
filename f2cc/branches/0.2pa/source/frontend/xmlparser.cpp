@@ -227,10 +227,10 @@ Process* XmlParser::generateLeafProcess(Element* xml)
             process = new OutPort(Id(process_id), Id("Process_Network"));
         }
         else if (process_type == "mapsy") {
-            process = new Map(Id(process_id), Id("Process_Network"), generateProcessFunction(xml));
+            process = new Map(Id(process_id), generateProcessFunction(xml));
         }
         else if (process_type == "parallelmapsy") {
-            process = new ParallelMap(Id(process_id), Id("Process_Network"), getNumProcesses(xml),
+            process = new ParallelMap(Id(process_id), getNumProcesses(xml),
                                         generateProcessFunction(xml));
         }
         else if (process_type == "unzipxsy") {
@@ -240,7 +240,7 @@ Process* XmlParser::generateLeafProcess(Element* xml)
             process = new zipx(Id(process_id), Id("Process_Network"));
         }
         else if (process_type == "delaysy") {
-            process = new delay(Id(process_id), Id("Process_Network"), getInitialdelayValue(xml));
+            process = new delay(Id(process_id), getInitialdelayValue(xml));
         }
         else if (process_type == "zipwithnsy") {
             process = new Map(Id(process_id), Id("Process_Network"),

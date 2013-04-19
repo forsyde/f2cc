@@ -217,7 +217,7 @@ Processnetwork* GraphmlParser::generateProcessnetwork(Element* xml)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Processnetwork* processnetwork = new (std::nothrow) Processnetwork("Process_Network");
+    Processnetwork* processnetwork = new (std::nothrow) Processnetwork(Id("GraphML_Network"));
     if (!processnetwork) THROW_EXCEPTION(OutOfMemoryException);
 
     logger_.logDebugMessage("Parsing \"node\" elements...");
@@ -248,7 +248,7 @@ void GraphmlParser::parseXmlNodes(Element* xml, Processnetwork* processnetwork)
                                        + "..."));
         Process* process = generateProcess(*it);
         try {
-            if (!processnetwork->addProcess(process)) {
+            if (!processnetwork->addProcess(process, processnetwork->getHierarchy())) {
                 THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
                                 (*it)->Column(),
                                 string("Multiple processes with ID \"")
@@ -388,29 +388,29 @@ Process* GraphmlParser::generateProcess(Element* xml)
     }
     try {
         if (process_type == "inport") {
-            process = new InPort(Id(process_id), Id("R"), string("sy"));
+            process = new InPort(Id(process_id), string("sy"));
         }
         else if (process_type == "outport") {
-            process = new OutPort(Id(process_id), Id("R"), string("sy"));
+            process = new OutPort(Id(process_id), string("sy"));
         }
         else if (process_type == "mapsy") {
-            process = new Map(Id(process_id), Id("R"), generateProcessFunction(xml), string("sy"));
+            process = new Map(Id(process_id), generateProcessFunction(xml), string("sy"));
         }
         else if (process_type == "parallelmapsy") {
-            process = new ParallelMap(Id(process_id), Id("R"), getNumProcesses(xml),
+            process = new ParallelMap(Id(process_id), getNumProcesses(xml),
                                         generateProcessFunction(xml), string("sy"));
         }
         else if (process_type == "unzipxsy") {
-            process = new unzipx(Id(process_id), Id("R"), string("sy"));
+            process = new unzipx(Id(process_id), string("sy"));
         }
         else if (process_type == "zipxsy") {
-            process = new zipx(Id(process_id), Id("R"), string("sy"));
+            process = new zipx(Id(process_id), string("sy"));
         }
         else if (process_type == "delaysy") {
-            process = new delay(Id(process_id), Id("R"), getInitialdelayValue(xml), string("sy"));
+            process = new delay(Id(process_id), getInitialdelayValue(xml), string("sy"));
         }
         else if (process_type == "zipwithnsy") {
-            process = new Map(Id(process_id), Id("R"),
+            process = new Map(Id(process_id),
                                      generateProcessFunction(xml), string("sy"));
         }
         else {
@@ -1000,7 +1000,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
         else {
             // No such fanout process; create a new one
             copy_process = new (std::nothrow)
-                fanout(processnetwork->getUniqueProcessId("_copy_"), Id("Process_Network"), string("sy"));
+                fanout(processnetwork->getUniqueProcessId("_copy_"), string("sy"));
             if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
             copy_processes.insert(pair<Process::Port*, Process*>(source_port,
                                                                  copy_process));
@@ -1009,7 +1009,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
                                     + "\" created");
 
             // Add to processnetwork
-            if (!processnetwork->addProcess(copy_process)) {
+            if (!processnetwork->addProcess(copy_process, processnetwork->getHierarchy())) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to ")
                                 + "add new process: Process with ID \""
                                 + copy_process->getId()->getString()

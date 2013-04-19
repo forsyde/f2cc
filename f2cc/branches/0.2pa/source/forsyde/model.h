@@ -36,7 +36,7 @@
  * which will be inherited by \c Model and \c Composite.
  */
 
-#include "id.h"
+#include "hierarchy.h"
 #include "process.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
@@ -81,7 +81,7 @@ class Model {
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
-    bool addProcess(Process* process)
+    bool addProcess(Process* process, ForSyDe::Hierarchy hierarchy)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
@@ -92,7 +92,7 @@ class Model {
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
-    void addProcesses(std::map<const Id, Process*> processes)
+    void addProcesses(std::map<const Id, Process*> processes, ForSyDe::Hierarchy hierarchy)
         throw(OutOfMemoryException);
 
     /**

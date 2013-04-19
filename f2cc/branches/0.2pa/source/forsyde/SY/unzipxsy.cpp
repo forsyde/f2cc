@@ -31,8 +31,8 @@ using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-unzipx::unzipx(const Id& id, const Id& parent, const string& moc) throw()
-        : Process(id, parent, moc) {}
+unzipx::unzipx(const Id& id, const string& moc) throw()
+        : Process(id, moc) {}
 
 unzipx::~unzipx() throw() {}
 

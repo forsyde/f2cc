@@ -71,7 +71,7 @@ class ParallelMap : public CoalescedMap {
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    ParallelMap(const Id& id, const Id& parent, int num_processes, const CFunction& function, const std::string& moc)
+    ParallelMap(const Id& id, int num_processes, const CFunction& function, const std::string& moc)
         throw(OutOfMemoryException);
 
     /**
@@ -90,7 +90,7 @@ class ParallelMap : public CoalescedMap {
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    ParallelMap(const Id& id, const Id& parent,  int num_processes,
+    ParallelMap(const Id& id,  int num_processes,
                   const std::list<CFunction>& functions, const std::string& moc)
         throw(InvalidArgumentException, OutOfMemoryException);
 

@@ -77,15 +77,7 @@ public:
      *        the composite process' name. Initially it is the same as its filename, and it is enough
      *        to identify and compare a composite process' structure.
      */
-    Composite(const ForSyDe::Id& id, const std::string name) throw();
-
-    /**
-      * Creates a process node.
-      *
-      * @param id
-      *        Process ID.
-      */
-    Composite(const ForSyDe::Id& id, Hierarchy hierarchy, const std::string name) throw();
+    Composite(const ForSyDe::Id& id, const ForSyDe::Id& name) throw();
 
     /**
      * Destroys this composite process. This also destroys all contained processes
@@ -97,7 +89,7 @@ public:
      *
      * @returns Port data type.
      */
-    const std::string getName() const throw();
+    const ForSyDe::Id* getName() const throw();
 
     virtual const std::string getMoc() const throw();
 
@@ -143,11 +135,11 @@ public:
      */
     virtual void moreChecks() throw(InvalidProcessException);
 
-  private:
+  protected:
     /**
      * The composite process' name
      */
-    const std::string composite_name_;
+    const ForSyDe::Id composite_name_;
     /**
      * List of in ports.
      */
@@ -201,7 +193,32 @@ public:
          * @param rhs
          *        Port to copy.
          */
+        explicit IOPort(Port& rhs) throw();
+
+        /**
+         * Creates a port belonging to no process with the same ID, data type and
+         * connections as another port. The connection at the other port is
+         * broken.
+         *
+         * @param rhs
+         *        Port to copy.
+         */
         explicit IOPort(IOPort& rhs) throw();
+
+        /**
+         * Creates a port belonging to process with the same ID, data type and
+         * connections as another port. The connection at the other port is
+         * broken.
+         *
+         * @param rhs
+         *        Port to copy.
+         * @param process
+         *        Pointer to the process to which this port belongs.
+         * @throws InvalidArgumentException
+         *         When \c process is \c NULL.
+         */
+        explicit IOPort(Port& rhs, Composite* composite)
+            throw(InvalidArgumentException);
 
         /**
          * Creates a port belonging to process with the same ID, data type and
@@ -291,13 +308,20 @@ public:
 		virtual void unconnect() throw();
 
         /**
+         * ATTENTION!
+         * Breaks the connection that this port may have to another. If there is
+         * no connection, nothing happens.
+         */
+		void unconnect(Port* port) throw(InvalidArgumentException);
+
+        /**
          * Breaks the connection that this port may have to another. If there is
          * no connection, nothing happens.
          *
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		void unconnectOutside() throw();
+		void unconnectOutside() throw(InvalidArgumentException);
 
         /**
          * Breaks the connection that this port may have to another. If there is
@@ -309,7 +333,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		void unconnectInside() throw();
+		void unconnectInside() throw(InvalidArgumentException);
 
         /**
          * Breaks the connection that this port may have to another. If there is
@@ -318,7 +342,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		void unconnectFromLeafOutside() throw();
+		void unconnectFromLeafOutside() throw(InvalidArgumentException);
 
         /**
          * Breaks the connection that this port may have to another. If there is
@@ -330,7 +354,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		virtual void unconnectFromLeafInside() throw();
+		void unconnectFromLeafInside() throw(InvalidArgumentException);
 
 		/**
          * Searches recursively through composites and gets
@@ -339,6 +363,7 @@ public:
          * @returns Connected port, if any; otherwise \c NULL.
          */
 		virtual Port* getConnectedPort() const throw();
+
         /**
          * Searches recursively through composites and gets
          * the port at the other end of the connection, if any.
@@ -349,7 +374,7 @@ public:
 		 *         When this method was called for a non-IO port
          */
 
-		virtual Port* getConnectedPortOutside() const throw(InvalidArgumentException);
+		Port* getConnectedPortOutside() const throw();
         /**
          * Searches recursively through composites and gets
          * the port at the other end of the connection, if any.
@@ -359,7 +384,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		virtual Port* getConnectedPortInside() const throw(InvalidArgumentException);
+		Port* getConnectedPortInside() const throw();
 
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
@@ -382,26 +407,6 @@ public:
 
 
         /**
-         * Checks for equality between this port and another.
-         *
-         * @param rhs
-         *        Port to compare.
-         * @returns \c true if both belong to the same process and if their IDs
-         *          are identical.
-         */
-        virtual bool operator==(const Port& rhs) const throw();
-
-        /**
-         * Checks for inequality between this port and another.
-         *
-         * @param rhs
-         *        Port to compare.
-         * @returns \c true if the ports belong to different processes or if
-         *          their IDs are not identical.
-         */
-        virtual bool operator!=(const Port& rhs) const throw();
-
-        /**
          * Converts this port into a string representation. The resultant string
          * is as follows:
          * @code
@@ -410,7 +415,7 @@ public:
          *
          * @returns String representation.
          */
-        std::string toString() const throw();
+        virtual std::string toString() const throw();
 
       private:
         /**
@@ -419,6 +424,8 @@ public:
          * fact.
          */
         void operator=(const Port&) throw();
+
+        void connectPrv(Port* port) throw(InvalidArgumentException);
 
       private:
 

@@ -169,7 +169,7 @@ void ModelModifier::fuseUnzipMapZipProcesses()
         // Create new parallelMap process to replace the data parallel section
         int num_processes = section.start->getOutPorts().size();
         ParallelMap* new_process = new (std::nothrow) ParallelMap(
-            processnetwork_->getUniqueProcessId("_parallelMap_"), Id("Process_Network"), num_processes,
+            processnetwork_->getUniqueProcessId("_parallelMap_"), num_processes,
             functions, string("sy"));
         if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
         logger_.logDebugMessage(string("New ParallelMap process \"")
@@ -179,7 +179,7 @@ void ModelModifier::fuseUnzipMapZipProcesses()
         redirectDataFlow(section.start, section.end, new_process, new_process);
 
         // Add new process to the process network
-        if (processnetwork_->addProcess(new_process)) {
+        if (processnetwork_->addProcess(new_process, processnetwork_->getHierarchy())) {
             logger_.logInfoMessage(string("Data parallel section ")
                                    + section.toString() + " replaced by new "
                                    "process \""
@@ -210,7 +210,7 @@ void ModelModifier::convertZipWith1ToMap()
         Map* process = dynamic_cast<Map*>(*it);
         if (process && process->getNumInPorts() == 1) {
             Map* new_process = new (std::nothrow) Map(
-                processnetwork_->getUniqueProcessId("_Map_"), Id("Process_Network"), *process->getFunction(), string("sy"));
+                processnetwork_->getUniqueProcessId("_Map_"), *process->getFunction(), string("sy"));
             if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
             logger_.logDebugMessage(string("New Map process \"")
                                     + new_process->getId()->getString()
@@ -219,7 +219,7 @@ void ModelModifier::convertZipWith1ToMap()
             redirectDataFlow(process, process, new_process, new_process);
 
             // Add new process to the process network
-            if (processnetwork_->addProcess(new_process)) {
+            if (processnetwork_->addProcess(new_process, processnetwork_->getHierarchy())) {
                 logger_.logInfoMessage(string("Process \"")
                                        + process->getId()->getString() + "\" "
                                        + "replaced by new process \""
@@ -760,13 +760,13 @@ void ModelModifier::coalesceProcessChain(list<Process*> chain)
 
     // Create new coalescedMap process
     CoalescedMap* new_process = new (std::nothrow) CoalescedMap(
-        processnetwork_->getUniqueProcessId("_coalescedMap_"), Id("Process_Network"), functions, string("sy"));
+        processnetwork_->getUniqueProcessId("_coalescedMap_"), functions, string("sy"));
     if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
     
     redirectDataFlow(chain.front(), chain.back(), new_process, new_process);
 
     // Add new process to the process network
-    if (processnetwork_->addProcess(new_process)) {
+    if (processnetwork_->addProcess(new_process, processnetwork_->getHierarchy())) {
         logger_.logInfoMessage(string("Process chain ")
                                + processChainToString(chain)
                                + " replaced by new "
@@ -856,14 +856,14 @@ void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
     // Create new ParallelMap process
     int num_processes = chain.front()->getNumProcesses();
     ParallelMap* new_process = new (std::nothrow) ParallelMap(
-        processnetwork_->getUniqueProcessId("_parallelMap_"), Id("Process_Network"), num_processes,
+        processnetwork_->getUniqueProcessId("_parallelMap_"), num_processes,
         functions, string("sy"));
     if (!new_process) THROW_EXCEPTION(OutOfMemoryException);
     
     redirectDataFlow(chain.front(), chain.back(), new_process, new_process);
 
     // Add new process to the process network
-    if (processnetwork_->addProcess(new_process)) {
+    if (processnetwork_->addProcess(new_process, processnetwork_->getHierarchy())) {
         logger_.logInfoMessage(string("Process chain ")
                                + processChainToString(chain)
                                + " replaced by new "
@@ -936,13 +936,13 @@ void ModelModifier::splitDataParallelSegments(
 
             // Create new processes zipx and unzipx
             zipx* new_zipx = new (std::nothrow) zipx(
-                processnetwork_->getUniqueProcessId("_zipx_"), Id("Process_Network"), string("sy"));
+                processnetwork_->getUniqueProcessId("_zipx_"), string("sy"));
             if (!new_zipx) THROW_EXCEPTION(OutOfMemoryException);
             logger_.logDebugMessage(string("New zipx process \"")
                                     + new_zipx->getId()->getString()
                                     + "\" created");
             unzipx* new_unzipx = new (std::nothrow) unzipx(
-                processnetwork_->getUniqueProcessId("_unzipx_"), Id("Process_Network"), string("sy"));
+                processnetwork_->getUniqueProcessId("_unzipx_"), string("sy"));
             if (!new_unzipx) THROW_EXCEPTION(OutOfMemoryException);
             logger_.logDebugMessage(string("New unzipx process \"")
                                     + new_zipx->getId()->getString()
@@ -996,13 +996,13 @@ void ModelModifier::splitDataParallelSegments(
             }
 
             // Add new processes to the process network
-            if (!processnetwork_->addProcess(new_zipx)) {
+            if (!processnetwork_->addProcess(new_zipx, processnetwork_->getHierarchy())) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "new process: Process with ID "
                                 + "\"" + new_zipx->getId()->getString()
                                 + "\" already existed");
             }
-            if (!processnetwork_->addProcess(new_unzipx)) {
+            if (!processnetwork_->addProcess(new_unzipx, processnetwork_->getHierarchy())) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "new process: Process with ID "
                                 + "\"" + new_unzipx->getId()->getString()

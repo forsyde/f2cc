@@ -31,25 +31,29 @@ using namespace f2cc::ForSyDe;
 using std::string;
 using std::list;
 
-Hierarchy::Hierarchy(list<const Id> hierarchy) throw() :
+
+Hierarchy::Hierarchy() throw() {}
+
+Hierarchy::Hierarchy(list<Id*> hierarchy) throw() :
 		hierarchy_(hierarchy){}
 
 Hierarchy::~Hierarchy() throw() {}
 
-list<const Id>  Hierarchy::getHierarchy() throw(){
+list<Id*>  Hierarchy::getHierarchy() throw(){
 	return hierarchy_;
 }
 
-void Hierarchy::setHierarchy(list<const Id> hierarchy) throw(){
+void Hierarchy::setHierarchy(list<Id*> hierarchy) throw(){
 	hierarchy_.assign (hierarchy.begin(),hierarchy.end());
 }
 
 void Hierarchy::lowerLevel(const Id& id) throw(){
-	hierarchy_.push_back(id);
+	Id* id_local = new Id(id);
+	hierarchy_.push_back(id_local);
 }
 
 void Hierarchy::raiseLevel() throw(){
-	hierarchy_.erase(hierarchy_.end());
+	hierarchy_.erase(hierarchy_.end()--);
 }
 
 const Id* Hierarchy::getId() const throw(){
@@ -57,31 +61,57 @@ const Id* Hierarchy::getId() const throw(){
 }
 
 const Id* Hierarchy::getFirstParent() const throw(){
-	list<const Id>::const_iterator it = hierarchy_.end();
-	return *(it-1);
+	list<Id*>::const_iterator it = hierarchy_.end();
+	Id* local_copy = *(--it);
+	return *(--it);
 }
 
 const Id* Hierarchy::getFirstChildAfter(const Id& id) const throw(){
-	list<const Id>::const_iterator it = findId(id);
-	return *(it+1);
+	list<Id*>::const_iterator it = findId(id);
+	return *(++it);
 }
 
 Hierarchy::Relation Hierarchy::findRelation(Hierarchy compare_hierarchy) const throw(){
 	if(compare_hierarchy.getFirstParent() == getFirstParent()) return Sibling;
 	if(compare_hierarchy.getFirstParent() == getId()) return FirstChild;
 	if(compare_hierarchy.getId() == getFirstParent()) return FirstParent;
-	if(compare_hierarchy.findId(*getId())) return Child;
-	if(compare_hierarchy.findId(*getFirstParent())) return SiblingsChild;
-	if(findId(*compare_hierarchy.getId())) return Parent;
+	if(compare_hierarchy.findId(*getId()) != hierarchy_.end()) return Child;
+	if(compare_hierarchy.findId(*getFirstParent()) != hierarchy_.end())  return SiblingsChild;
+	if(findId(*compare_hierarchy.getId()) != hierarchy_.end()) return Parent;
 	return Other;
 }
 
-list<const Id>::const_iterator Hierarchy::findId(const Id& id) const throw(){
-	list<const Id>::const_iterator it;
+string Hierarchy::hierarchyToString() const throw(){
+	return toString(hierarchy_);
+}
+
+list<Id*>::const_iterator Hierarchy::findId(const Id& id) const throw(){
+	list<Id*>::const_iterator it;
 	for (it = hierarchy_.begin(); it != hierarchy_.end(); ++it) {
 		if (*(*it) == id) {
 			return it;
 		}
 	}
 	return it; 	//None was found
+}
+
+string Hierarchy::toString(list<Id*> ids) const throw() {
+    string str;
+    if (ids.size() > 0) {
+        str += "\n";
+        bool first = true;
+        for (list<Id*>::const_iterator it = ids.begin(); it != ids.end(); ++it) {
+            if (!first) {
+                str += " -> ";
+            }
+            else {
+                first = false;
+            }
+
+            Id* id = *it;
+            str += id->getString();
+        }
+        str += "\n ";
+    }
+    return str;
 }

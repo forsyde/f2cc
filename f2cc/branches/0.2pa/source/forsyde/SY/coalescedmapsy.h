@@ -68,7 +68,7 @@ class CoalescedMap : public Map {
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    CoalescedMap(const Id& id, const Id& parent, const CFunction& function, const std::string& moc)
+    CoalescedMap(const Id& id, const CFunction& function, const std::string& moc)
         throw(OutOfMemoryException);
 
     /**
@@ -84,7 +84,7 @@ class CoalescedMap : public Map {
      * @throws OutOfMemoryException
      *         When the process could not be created due to memory shortage.
      */
-    CoalescedMap(const Id& id, const Id& parent, const std::list<CFunction>& functions, const std::string& moc)
+    CoalescedMap(const Id& id, const std::list<CFunction>& functions, const std::string& moc)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**

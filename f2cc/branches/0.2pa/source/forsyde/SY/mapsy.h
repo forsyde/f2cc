@@ -56,7 +56,7 @@ class Map : public Process {
      * @param function
      *        Process function argument.
      */
-    Map(const Id& id, const Id& parent, const CFunction& function, const std::string& moc) throw();
+    Map(const Id& id, const CFunction& function, const std::string& moc) throw();
 
     /**
      * @copydoc ~Process()

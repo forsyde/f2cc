@@ -51,7 +51,7 @@ class OutPort : public Process {
     /**
      * @copydoc Process(const Id&)
      */
-    OutPort(const Id& id, const Id& parent, const std::string& moc) throw();
+    OutPort(const Id& id, const std::string& moc) throw();
 
     /**
      * @copydoc ~Process()

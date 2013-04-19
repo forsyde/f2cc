@@ -65,13 +65,6 @@ class Process{
 
 
   public:
-    /**
-     * Creates a process node.
-     *
-     * @param id
-     *        Process ID.
-     */
-    Process(const Id& id, const std::string moc) throw();
 
     /**
      * Creates a process node.
@@ -79,7 +72,7 @@ class Process{
      * @param id
      *        Process ID.
      */
-    Process(const Id& id, Hierarchy hierarchy, const std::string moc) throw();
+    Process(const Id& id, const std::string moc) throw();
 
     /**
      * Destroys this process. This also destroys all ports and breaks all
@@ -95,11 +88,25 @@ class Process{
     const ForSyDe::Id* getId() const throw();
 
     /**
+     * Gets the ID of this process.
+     *
+     * @returns Process ID.
+     */
+    ForSyDe::Hierarchy getHierarchy() const throw();
+
+    /**
+	 * Gets the ID of this process.
+	 *
+	 * @returns Process ID.
+	 */
+	void setHierarchy(ForSyDe::Hierarchy) throw();
+
+    /**
      * Gets the parent of this process.
      *
      * @returns The parent process.
      */
-    Hierarchy::Relation findRelation(const Process& rhs) const throw();
+    Hierarchy::Relation findRelation(const Process* rhs) const throw();
 
     /**
      * Gets the MoC of this process.
@@ -115,7 +122,7 @@ class Process{
      */
     virtual int getCost() const throw();
 
-    virtual void setCost(int cost) const throw();
+    virtual void setCost(int& cost) throw();
 
     /**
      * Adds an in port to this process. Processes are not allowed to have
@@ -355,6 +362,10 @@ class Process{
 
   protected:
     /**
+	 * Process ID
+	 */
+	const ForSyDe::Id id_;
+    /**
 	 * Hierarchy list
 	 */
 	ForSyDe::Hierarchy hierarchy_;
@@ -368,13 +379,13 @@ class Process{
      */
     std::list<Port*> out_ports_;
 
-    int cost_;
-
   private:
     /**
 	 * Process MoC.
 	 */
 	const std::string moc_;
+
+	int cost_;
 
 
   public:
@@ -419,7 +430,7 @@ class Process{
          * @param rhs
          *        Port to copy.
          */
-        explicit Port(Port& rhs) throw();
+        explicit Port(Port& rhs) throw(InvalidArgumentException);
 
         /**
          * Creates a port belonging to process with the same ID, data type and
@@ -554,6 +565,8 @@ class Process{
          * @returns Connected port, if any; otherwise \c NULL.
          */
         virtual Port* getConnectedPort() const throw();
+        Port* PortGetter() const throw();
+        void PortSetter(Port* port) throw();
 
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
@@ -570,7 +583,7 @@ class Process{
          * @returns \c true if both belong to the same process and if their IDs
          *          are identical.
          */
-        virtual bool operator==(const Port& rhs) const throw();
+        bool operator==(const Port& rhs) const throw();
 
         /**
          * Checks for inequality between this port and another.
@@ -580,7 +593,7 @@ class Process{
          * @returns \c true if the ports belong to different processes or if
          *          their IDs are not identical.
          */
-        virtual bool operator!=(const Port& rhs) const throw();
+        bool operator!=(const Port& rhs) const throw();
 
         /**
          * Converts this port into a string representation. The resultant string
@@ -591,7 +604,7 @@ class Process{
          *
          * @returns String representation.
          */
-        std::string toString() const throw();
+        virtual std::string toString() const throw();
 
       private:
 
@@ -601,7 +614,6 @@ class Process{
          * fact.
          */
         void operator=(const Port&) throw();
-
 
       protected:
         /**

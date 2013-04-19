@@ -34,8 +34,8 @@ using std::string;
 using std::bad_cast;
 using std::list;
 
-Map::Map(const Id& id, const Id& parent, const CFunction& function, const string& moc) throw()
-        : Process(id, parent, moc), function_(function) {}
+Map::Map(const Id& id, const CFunction& function, const string& moc) throw()
+        : Process(id, moc), function_(function) {}
 
 Map::~Map() throw() {}
 

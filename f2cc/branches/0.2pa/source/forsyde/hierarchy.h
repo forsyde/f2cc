@@ -94,19 +94,21 @@ class Hierarchy {
     };
 
   public:
+
+    Hierarchy() throw();
     /**
      * Creates a Hierarchy object.
      *
      * @param id
      *        ID string.
      */
-    Hierarchy(std::list<const ForSyDe::Id> hierarchy) throw();
+    Hierarchy(std::list<ForSyDe::Id*> hierarchy) throw();
 
     ~Hierarchy() throw();
 
-    std::list<const ForSyDe::Id>  getHierarchy() throw();
+    std::list<ForSyDe::Id*>  getHierarchy() throw();
 
-    void setHierarchy(std::list<const ForSyDe::Id> hierarchy) throw();
+    void setHierarchy(std::list<ForSyDe::Id*> hierarchy) throw();
 
     void lowerLevel(const ForSyDe::Id& id) throw();
 
@@ -140,6 +142,9 @@ class Hierarchy {
      */
     Relation findRelation(Hierarchy compare_hierarchy) const throw();
 
+
+    std::string hierarchyToString() const throw();
+
   private:
     /**
      * Attempts to find a port with a given ID from a list of ports. If the list
@@ -153,12 +158,13 @@ class Hierarchy {
      * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<const ForSyDe::Id>::const_iterator findId(
-    		const ForSyDe::Id& id) const throw();
+    std::list<ForSyDe::Id*>::const_iterator findId(const ForSyDe::Id& id) const throw();
+
+    std::string toString(std::list<ForSyDe::Id*> ids) const throw();
 
   private:
 
-    std::list<const ForSyDe::Id> hierarchy_;
+    std::list<ForSyDe::Id*> hierarchy_;
 
 };
 

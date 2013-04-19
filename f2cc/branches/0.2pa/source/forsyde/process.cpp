@@ -32,21 +32,16 @@
 #include <vector>
 
 using namespace f2cc::ForSyDe;
-using Hierarchy::Relation;
 using std::string;
 using std::list;
 using std::bad_alloc;
 using std::vector;
 using std::pair;
 
-Process::Process(const Id& id, const string moc) throw()
-		: moc_(moc) {
-	hierarchy_.lowerLevel(id);
-}
 
-Process::Process(const Id& id, Hierarchy hierarchy, const string moc) throw()
-		: hierarchy_ (hierarchy), moc_(moc) {
-	hierarchy_.lowerLevel(id);
+Process::Process(const Id& id, const string moc) throw()
+		: id_(id), moc_(moc) {
+	hierarchy_.lowerLevel(id_);
 }
 
 Process::~Process() throw() {
@@ -58,8 +53,17 @@ const Id* Process::getId() const throw() {
     return hierarchy_.getId();
 }
 
-Relation Process::findRelation(const Process& rhs) const throw(){
-	return hierarchy_.findRelation(rhs.hierarchy_);
+Hierarchy Process::getHierarchy() const throw() {
+    return hierarchy_;
+}
+
+void Process::setHierarchy(Hierarchy hierarchy) throw() {
+	hierarchy_.setHierarchy(hierarchy.getHierarchy());
+    hierarchy_.lowerLevel(id_);
+}
+
+Hierarchy::Relation Process::findRelation(const Process* rhs) const throw(){
+	return hierarchy_.findRelation(rhs->hierarchy_);
 }
 
 const string Process::getMoc() const throw() {
@@ -70,7 +74,7 @@ int Process::getCost() const throw(){
 	return cost_;
 }
 
-void  Process::setCost(int cost) const throw(){
+void  Process::setCost(int& cost) throw(){
 	cost_ = cost;
 }
 
@@ -205,7 +209,7 @@ string Process::toString() const throw() {
     str += getMoc();
     str += ",\n";
     str += " Parent: ";
-	str += getParent()->getString();
+	str += hierarchy_.getFirstParent()->getString();
 	str += ",\n";
     str += " NumInPorts: ";
     str += tools::toString(getNumInPorts());
@@ -322,7 +326,8 @@ Process::Port::Port(const Id& id, Process* process, CDataType datatype)
 Process::Port::Port(Port& rhs) throw(InvalidArgumentException)
         : id_(rhs.id_), process_(NULL), connected_port_outside_(NULL),  data_type_(rhs.data_type_) {
 
-	static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort**>(*rhs);
+	static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort*>(&rhs);
+
 	if (ioport) {
 		THROW_EXCEPTION(InvalidArgumentException, "Cannot equate Port and IOPort");
 	}
@@ -344,7 +349,7 @@ Process::Port::Port(Port& rhs, Process* process) throw(InvalidArgumentException)
         THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
                         "NULL");
     }
-    static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort**>(*rhs);
+    static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort*>(&rhs);
     	if (ioport) {
 		THROW_EXCEPTION(InvalidArgumentException, "Cannot equate Port and IOPort");
 	}
@@ -372,7 +377,7 @@ const Id* Process::Port::getId() const throw() {
 }
 
 f2cc::CDataType Process::Port::getDataType() throw() {
-    return &data_type_;
+    return data_type_;
 }
 
 bool Process::Port::setDataType(CDataType& datatype) throw() {
@@ -389,7 +394,7 @@ bool Process::Port::isConnectedToLeaf() const throw(){
 	if (connected_port_outside_){
 		static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort*>(connected_port_outside_);
 		if(ioport){
-			Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+			Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
 			if (relation == Hierarchy::Sibling)
 				return (ioport->isConnectedToLeafInside());
 			else
@@ -406,7 +411,7 @@ void Process::Port::connect(Port* port) throw(InvalidArgumentException) {
         unconnect();
         return;
     }
-    Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+    Hierarchy::Relation relation = getProcess()->findRelation(port->getProcess());
     if ((relation != Hierarchy::FirstParent) && (relation != Hierarchy::Sibling))
     	THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
 
@@ -477,7 +482,7 @@ void Process::Port::unconnect() throw() {
     if (connected_port_outside_) {
         Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
     	if (ioport){
-			Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+    		Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
 			if (relation == Hierarchy::Sibling) ioport->unconnectOutside();
 			else ioport->unconnectInside();
 
@@ -506,11 +511,17 @@ void Process::Port::unconnectFromLeaf() throw() {
 Process::Port* Process::Port::getConnectedPort() const throw() {
 	return connected_port_outside_;
 }
+Process::Port* Process::Port::PortGetter() const throw() {
+	return connected_port_outside_;
+}
+void Process::Port::PortSetter(Process::Port* port) throw() {
+	connected_port_outside_ = port;
+}
 
 Process::Port* Process::Port::getConnectedLeafPort() const throw() {
 	Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
 	if (ioport){
-		Relation relation = getProcess()->findRelation(*connected_port_outside_->getProcess());
+		Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
 		if (relation == Hierarchy::Sibling){
 			return ioport->getConnectedLeafPortInside();
 		}
@@ -537,3 +548,4 @@ string Process::Port::toString() const throw() {
     str += data_type_.toString();
     return str;
 }
+

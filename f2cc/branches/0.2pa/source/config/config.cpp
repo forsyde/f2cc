@@ -360,7 +360,6 @@ void Config::setFromCommandLine(int argc, const char** argv)
         		THROW_EXCEPTION(InvalidFormatException,
 							string("Unknown input format \"") + extension
 							+ "\"");
-        	std::cout<<"EXTENSION IS: "<<extension;
         }
         if (!is_output_file_set) {
             output_file_ = tools::getFileName(input_file_);

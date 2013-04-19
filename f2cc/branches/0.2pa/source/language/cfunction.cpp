@@ -37,6 +37,7 @@ using std::bad_alloc;
 
 CFunction::CFunction() throw() : name_(""), body_("") {}
 
+
 CFunction::CFunction(const string& name, CDataType return_type,
                      const list<CVariable> input_parameters,
                      const string& body, const string& prefix)

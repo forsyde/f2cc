@@ -31,8 +31,8 @@ using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-InPort::InPort(const Id& id, const Id& parent, const std::string& moc) throw()
-        : Process(id, parent, moc) {}
+InPort::InPort(const Id& id, const std::string& moc) throw()
+        : Process(id, moc) {}
 
 InPort::~InPort() throw() {}
 

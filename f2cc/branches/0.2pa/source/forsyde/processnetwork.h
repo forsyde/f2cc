@@ -61,7 +61,7 @@ class Processnetwork: public Composite {
     /**
      * Creates a process network.
      */
-	Processnetwork(std::string name) throw();
+	Processnetwork(const ForSyDe::Id& name) throw();
 
     /**
      * Destroys this process network. This also destroys all processes.
@@ -165,7 +165,7 @@ class Processnetwork: public Composite {
      *
      * @returns String representation.
      */
-    std::string toString() const throw();
+    //std::string toString() const throw();
 
   protected:
     /**

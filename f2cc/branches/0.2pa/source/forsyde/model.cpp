@@ -43,7 +43,7 @@ Model::~Model() throw() {
     destroyAllProcesses();
 }
 
-bool Model::addProcess(Process* process)
+bool Model::addProcess(Process* process, Hierarchy hierarchy)
     throw(InvalidArgumentException, OutOfMemoryException) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
@@ -51,6 +51,7 @@ bool Model::addProcess(Process* process)
     }
 
     try {
+    	process->setHierarchy(hierarchy);
         pair<map<const Id, Process*>::iterator, bool>
             result = processes_.insert(
                 pair<const Id, Process*>(
@@ -62,7 +63,7 @@ bool Model::addProcess(Process* process)
     }
 }
 
-void Model::addProcesses(map<const Id, Process*> processes)
+void Model::addProcesses(map<const Id, Process*> processes, Hierarchy hierarchy)
     throw(OutOfMemoryException) {
     try {
         processes_.insert(processes.begin(), processes.end());

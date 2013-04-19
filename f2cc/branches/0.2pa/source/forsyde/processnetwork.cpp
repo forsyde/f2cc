@@ -38,8 +38,8 @@ using std::list;
 using std::pair;
 using std::bad_alloc;
 
-Processnetwork::Processnetwork(string name) throw() :
-		Composite(Id("R"), Id("No Parent"), name, string("No MoC")) {}
+Processnetwork::Processnetwork(const Id& name) throw() :
+		Composite(Id("f2cc0"), name) {}
 
 Processnetwork::~Processnetwork() throw() {
 	destroyAllFunctions();
@@ -99,6 +99,7 @@ bool Processnetwork::deleteFunction(std::string name) throw() {
     }
 }
 
+/*
 std::string Processnetwork::toString() const throw() {
     string str;
     str += "{\n";
@@ -106,16 +107,16 @@ std::string Processnetwork::toString() const throw() {
     str += " NumInputs: ";
     str += tools::toString(getNumInPorts());
     str += ",\n";
-    str += " Inputs = {";
-    str += portsToString(in_ports_);
-    str += "}";
+ //   str += " Inputs = {";
+ //   str += portsToString(in_ports_);
+ //   str += "}";
     str += ",\n";
     str += " NumOutputs: ";
     str += tools::toString(getNumOutPorts());
     str += ",\n";
-    str += " Outputs = {";
-    str += portsToString(out_ports_);
-    str += "}\n";
+ //   str += " Outputs = {";
+ //   str += portsToString(out_ports_);
+ //   str += "}\n";
     str += " NumProcesses: ";
     str += tools::toString(getNumProcesses());
     str += ",\n";
@@ -125,7 +126,7 @@ std::string Processnetwork::toString() const throw() {
     str += "}";
     return str;
 }
-
+*/
 
 list<CFunction*>::iterator Processnetwork::findFunction(const string name,
                                         list<CFunction*>& functions) const throw(){
