@@ -37,6 +37,7 @@
 
 #include "../logger/logger.h"
 #include "../forsyde/id.h"
+#include "../forsyde/composite.h"
 #include "../forsyde/processnetwork.h"
 #include "../forsyde/process.h"
 #include "../exceptions/ioexception.h"

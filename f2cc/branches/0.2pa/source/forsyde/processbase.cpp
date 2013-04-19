@@ -2,7 +2,7 @@
  * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
  *                          George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright notice,
@@ -10,7 +10,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -24,45 +24,58 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_EXCEPTIONS_INVALIDMODELEXCEPTION_H_
-#define F2CC_SOURCE_EXCEPTIONS_INVALIDMODELEXCEPTION_H_
+#include "processbase.h"
+#include "../tools/tools.h"
+#include <new>
+#include <vector>
 
-/**
- * @file
- * @author  Gabriel Hjort Blindell <ghb@kth.se>
- * @version 0.1
- *
- * @brief Defines exception for invalid processnetwork errors.
- */
+using namespace f2cc::ForSyDe;
+using std::string;
+using std::list;
+using std::bad_alloc;
+using std::vector;
+using std::pair;
 
-#include "exception.h"
-#include <string>
 
-namespace f2cc {
-
-/**
- * @brief Used when a method was called with arguments of invalid processnetwork.
- */
-class InvalidModelException : public Exception {
-  public:
-    /**
-     * @copydoc Exception::Exception(const std::string&, int, const std::string&)
-     */
-    InvalidModelException(const std::string& source_file, int source_line,
-                          const std::string& message) throw();
-
-    /**
-     * @copydoc Exception::~Exception()
-     */
-    virtual ~InvalidModelException() throw();
-
-  protected:
-    /**
-     * @copydoc Exception::type()
-     */
-    virtual std::string type() const throw();
-};
-
+ProcessBase::ProcessBase(const Id& id) throw()
+		: id_(id) {
+	hierarchy_.lowerLevel(id_);
 }
 
-#endif
+ProcessBase::~ProcessBase() throw() {
+}
+
+const Id* ProcessBase::getId() const throw() {
+    return hierarchy_.getId();
+}
+
+Hierarchy ProcessBase::getHierarchy() const throw() {
+    return hierarchy_;
+}
+
+void ProcessBase::setHierarchy(Hierarchy hierarchy) throw() {
+	hierarchy_.setHierarchy(hierarchy.getHierarchy());
+    hierarchy_.lowerLevel(id_);
+}
+
+Hierarchy::Relation ProcessBase::findRelation(const ProcessBase* rhs) const throw(){
+	return hierarchy_.findRelation(rhs->hierarchy_);
+}
+
+void ProcessBase::check() throw(InvalidProcessException) {
+    moreChecks();
+}
+
+ProcessBase::PortBase::PortBase(const Id& id) throw()
+        : id_(id), process_(NULL) {}
+
+ProcessBase::PortBase::PortBase(const Id& id, ProcessBase* process) throw()
+        : id_(id), process_(process) {}
+
+ProcessBase::PortBase::~PortBase() throw() {
+}
+
+
+const Id* ProcessBase::PortBase::getId() const throw() {
+    return &id_;
+}

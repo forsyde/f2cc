@@ -65,7 +65,7 @@ XmlParser::~XmlParser() throw() {}
 
 Processnetwork* XmlParser::createProcessnetwork(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidProcessnetworkException, RuntimeException) {
+          ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
@@ -119,7 +119,7 @@ void XmlParser::checkXmlDocument(Document* xml)
 }
 /*
 Processnetwork* XmlParser::generateProcessnetwork(Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidProcessnetworkException,
+    throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");

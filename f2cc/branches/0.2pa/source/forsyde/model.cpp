@@ -43,7 +43,7 @@ Model::~Model() throw() {
     destroyAllProcesses();
 }
 
-bool Model::addProcess(Process* process, Hierarchy hierarchy)
+bool Model::addProcess(ProcessBase* process, Hierarchy hierarchy)
     throw(InvalidArgumentException, OutOfMemoryException) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
@@ -52,9 +52,9 @@ bool Model::addProcess(Process* process, Hierarchy hierarchy)
 
     try {
     	process->setHierarchy(hierarchy);
-        pair<map<const Id, Process*>::iterator, bool>
+        pair<map<const Id, ProcessBase*>::iterator, bool>
             result = processes_.insert(
-                pair<const Id, Process*>(
+                pair<const Id, ProcessBase*>(
                     *process->getId(), process));
         return result.second;
     }
@@ -63,7 +63,7 @@ bool Model::addProcess(Process* process, Hierarchy hierarchy)
     }
 }
 
-void Model::addProcesses(map<const Id, Process*> processes, Hierarchy hierarchy)
+void Model::addProcesses(map<const Id, ProcessBase*> processes, Hierarchy hierarchy)
     throw(OutOfMemoryException) {
     try {
         processes_.insert(processes.begin(), processes.end());
@@ -73,7 +73,7 @@ void Model::addProcesses(map<const Id, Process*> processes, Hierarchy hierarchy)
     }
 }
 
-Process* Model::getProcess(const Id& id) throw() {
+ProcessBase* Model::getProcess(const Id& id) throw() {
     map<const Id, Process*>::iterator it = findProcess(id);
     return it != processes_.end() ? it->second : NULL;
 }
@@ -82,9 +82,9 @@ int Model::getNumProcesses() const throw() {
     return processes_.size();
 }
 
-list<Process*> Model::getProcesses() throw() {
-    list<Process*> processes;
-    map<const Id, Process*>::iterator it;
+list<ProcessBase*> Model::getProcesses() throw() {
+    list<ProcessBase*> processes;
+    map<const Id, ProcessBase*>::iterator it;
     for (it = processes_.begin(); it != processes_.end(); ++it) {
         processes.push_back(it->second);
     }
@@ -92,9 +92,9 @@ list<Process*> Model::getProcesses() throw() {
 }
 
 bool Model::deleteProcess(const Id& id) throw() {
-    map<const Id, Process*>::iterator it = findProcess(id);
+    map<const Id, ProcessBase*>::iterator it = findProcess(id);
     if (it != processes_.end()) {
-        Process* removed_process = it->second;
+    	ProcessBase* removed_process = it->second;
         processes_.erase(it);
         delete removed_process;
         return true;
@@ -116,12 +116,12 @@ Id Model::getUniqueProcessId(const string& prefix) const throw() {
 }
 
 void Model::destroyAllProcesses() throw() {
-    map<const Id, Process*>::iterator it;
+    map<const Id, ProcessBase*>::iterator it;
     for (it=processes_.begin(); it != processes_.end(); ++it) {
         delete it->second;
     }
 }
 
-map<const Id, Process*>::iterator Model::findProcess(const Id& id) throw() {
+map<const Id, ProcessBase*>::iterator Model::findProcess(const Id& id) throw() {
     return processes_.find(id);
 }

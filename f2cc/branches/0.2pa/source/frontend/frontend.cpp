@@ -41,7 +41,7 @@ Frontend::~Frontend() throw() {}
 
 Processnetwork* Frontend::parse(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidProcessnetworkException, RuntimeException) {
+          ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
@@ -64,7 +64,7 @@ Processnetwork* Frontend::parse(const string& file)
 }
 
 void Frontend::checkProcessnetwork(Processnetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
+    throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     if (!processnetwork) {
         THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
@@ -142,7 +142,7 @@ void Frontend::ensureNoOutPorts(Processnetwork* processnetwork)
 }
 
 void Frontend::checkProcess(Process* process, Processnetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
+    throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException,
@@ -159,7 +159,7 @@ void Frontend::checkProcess(Process* process, Processnetwork* processnetwork)
     try {
         process->check();
     } catch (InvalidProcessException& ex) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, ex.getMessage());
+        THROW_EXCEPTION(InvalidModelException, ex.getMessage());
     }
 
     // Port checks
@@ -180,7 +180,7 @@ void Frontend::checkProcess(Process* process, Processnetwork* processnetwork)
 }
 
 void Frontend::checkPort(Process::Port* port, Processnetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
+    throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
@@ -190,7 +190,7 @@ void Frontend::checkPort(Process::Port* port, Processnetwork* processnetwork)
     }
 
     if (!port->isConnected()) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("Port \"")
+        THROW_EXCEPTION(InvalidModelException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in process \""
                         + port->getProcess()->getId()->getString()
@@ -199,7 +199,7 @@ void Frontend::checkPort(Process::Port* port, Processnetwork* processnetwork)
 
     // Check that the port is not connected to its own process
     if (port->getConnectedPort()->getProcess() == port->getProcess()) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("Port \"")
+        THROW_EXCEPTION(InvalidModelException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in process \""
                         + port->getProcess()->getId()->getString()
@@ -209,7 +209,7 @@ void Frontend::checkPort(Process::Port* port, Processnetwork* processnetwork)
 
     // Check that the other port belongs to a process in the process network
     if (!processnetwork->getProcess(*port->getConnectedPort()->getProcess()->getId())) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("Port \"")
+        THROW_EXCEPTION(InvalidModelException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in process \""
                         + port->getProcess()->getId()->getString()
@@ -219,7 +219,7 @@ void Frontend::checkPort(Process::Port* port, Processnetwork* processnetwork)
 }
 
 void Frontend::checkProcessnetworkMore(ForSyDe::Processnetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
+    throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {}
 
 

@@ -70,19 +70,19 @@ Synthesizer::~Synthesizer() throw() {
 }
 
 Synthesizer::CodeSet Synthesizer::generateCCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     target_platform_ = Synthesizer::C;
     return generateCode();
 }
 
 Synthesizer::CodeSet Synthesizer::generateCudaCCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     target_platform_ = Synthesizer::CUDA;
     return generateCode();
 }
 
 Synthesizer::CodeSet Synthesizer::generateCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logInfoMessage("Checking that the internal process network is "
                            "valid for synthesis...");
     checkProcessnetwork();
@@ -198,7 +198,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
 }
 
 void Synthesizer::checkProcessnetwork()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {}
+    throw(InvalidModelException, IOException, RuntimeException) {}
 
 void Synthesizer::findSchedule() throw (IOException, RuntimeException) {
     schedule_.clear();
@@ -270,10 +270,11 @@ Synthesizer::Signal* Synthesizer::getSignalByOutPort(Process::Port* out_port)
 
     Process::Port* in_port = NULL;
     if (out_port->isConnected()) {
-        in_port = out_port->getConnectedPort();
+        in_port = out_port->getConnectedLeafPort();
     }
     return getSignal(out_port, in_port);
 }
+
 
 Synthesizer::Signal* Synthesizer::getSignalByInPort(Process::Port* in_port)
     throw(InvalidArgumentException, IOException, RuntimeException) {
@@ -287,16 +288,16 @@ Synthesizer::Signal* Synthesizer::getSignalByInPort(Process::Port* in_port)
 
     Process::Port* out_port = NULL;
     if (in_port->isConnected()) {
-        out_port = in_port->getConnectedPort();
+        out_port = in_port->getConnectedLeafPort();
     }
     return getSignal(out_port, in_port);
 }
 
 void Synthesizer::renameMapFunctions()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -339,13 +340,13 @@ void Synthesizer::renameMapFunctions()
 }
 
 void Synthesizer::MapineFunctionDuplicates()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     // The Mapset below is used to store the unique functions found across the
     // processnetwork. The body is used as key, and the name as body
     map<string, string> unique_functions;
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+    	static Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -398,10 +399,10 @@ void Synthesizer::MapineFunctionDuplicates()
 }
 
 void Synthesizer::generateCoalescedSyWrapperFunctions()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -448,7 +449,7 @@ void Synthesizer::generateCoalescedSyWrapperFunctions()
 
 CFunction Synthesizer::generateCoalescedSyWrapperFunction(
     list<CFunction*> functions)
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logDebugMessage("Generating function header...");
 
     string new_name = "func_wrapper";
@@ -499,12 +500,12 @@ CFunction Synthesizer::generateCoalescedSyWrapperFunction(
 }
 
 string Synthesizer::generateProcessFunctionDefinitionsCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     set<string> unique_function_names;
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -547,7 +548,7 @@ string Synthesizer::generateProcessFunctionDefinitionsCode()
 }
 
 string Synthesizer::generateProcessnetworkFunctionPrototypeCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     code += "void executeProcessnetwork("
         + generateProcessnetworkFunctionParameterListCode()
@@ -556,7 +557,7 @@ string Synthesizer::generateProcessnetworkFunctionPrototypeCode()
 }
 
 string Synthesizer::generateProcessnetworkFunctionDefinitionCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     code += generateProcessnetworkFunctionPrototypeCode() + " {\n";
     code += kIndents + "int i; // Can safely be removed if the compiler warns\n"
@@ -570,7 +571,7 @@ string Synthesizer::generateProcessnetworkFunctionDefinitionCode()
     // First, execute the first step of all delay processes
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -579,8 +580,8 @@ string Synthesizer::generateProcessnetworkFunctionDefinitionCode()
             try {
                 code += generateProcessExecutionCodeFordelayStep1(delaysy);
             }
-            catch (InvalidProcessnetworkException& ex) {
-                THROW_EXCEPTION(InvalidProcessnetworkException, "Error in process \""
+            catch (InvalidModelException& ex) {
+                THROW_EXCEPTION(InvalidModelException, "Error in process \""
                                 + current_process->getId()->getString() + "\": "
                                 + ex.getMessage());
             }
@@ -590,7 +591,7 @@ string Synthesizer::generateProcessnetworkFunctionDefinitionCode()
     // Then, execute all processes in order, but ignore all delay processes
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -598,8 +599,8 @@ string Synthesizer::generateProcessnetworkFunctionDefinitionCode()
         try {
             code += generateProcessExecutionCode(current_process);
         }
-        catch (InvalidProcessnetworkException& ex) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, "Error in process \""
+        catch (InvalidModelException& ex) {
+            THROW_EXCEPTION(InvalidModelException, "Error in process \""
                             + current_process->getId()->getString() + "\": "
                             + ex.getMessage());
         }
@@ -609,7 +610,7 @@ string Synthesizer::generateProcessnetworkFunctionDefinitionCode()
     // of all delay processes
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -618,8 +619,8 @@ string Synthesizer::generateProcessnetworkFunctionDefinitionCode()
             try {
                 code += generateProcessExecutionCodeFordelayStep2(delaysy);
             }
-            catch (InvalidProcessnetworkException& ex) {
-                THROW_EXCEPTION(InvalidProcessnetworkException, "Error in process \""
+            catch (InvalidModelException& ex) {
+                THROW_EXCEPTION(InvalidModelException, "Error in process \""
                                 + current_process->getId()->getString() + "\": "
                                 + ex.getMessage());
             }
@@ -635,15 +636,15 @@ string Synthesizer::generateProcessnetworkFunctionDefinitionCode()
 }
 
 string Synthesizer::generateProcessnetworkFunctionDescription() 
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string desc;
     desc += string("/**\n")
         + " * Executes the process network.\n"
         + " *\n";
 
     // Generate description for the function input parameters
-    list<Process::Port*> inputs = processnetwork_->getInPorts();
-    list<Process::Port*>::iterator it;
+    list<Composite::IOPort*> inputs = processnetwork_->getInPorts();
+    list<Composite::IOPort*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
         Signal* signal = getSignalByInPort(*it);
@@ -661,9 +662,10 @@ string Synthesizer::generateProcessnetworkFunctionDescription()
     }
 
     // Generate description for the function output parameters
-    list<Process::Port*> outputs = processnetwork_->getOutPorts();
+    list<Composite::IOPort*> outputs = processnetwork_->getOutPorts();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
+    	Process::Port* castedPort = new Process::Port*(*it);
+        Signal* signal = getSignalByOutPort(castedPort);
         CDataType data_type = *signal->getDataType();
         string param_name = kProcessnetworkOutputParameterPrefix + tools::toString(id);
         string process_name =
@@ -682,7 +684,7 @@ string Synthesizer::generateProcessnetworkFunctionDescription()
 }
 
 string Synthesizer::generateProcessnetworkFunctionParameterListCode()
-    throw(InvalidProcessnetworkException, RuntimeException) {
+    throw(InvalidModelException, RuntimeException) {
     string code;
 
     // Generate input parameters
@@ -715,11 +717,11 @@ string Synthesizer::generateProcessnetworkFunctionParameterListCode()
 }
 
 string Synthesizer::generateInputsToSignalsfanoutingCode()
-    throw(InvalidProcessnetworkException, RuntimeException) {
+    throw(InvalidModelException, RuntimeException) {
     string code;
 
-    list<Process::Port*> inputs = processnetwork_->getInPorts();
-    list<Process::Port*>::iterator it;
+    list<Composite::IOPort*> inputs = processnetwork_->getInPorts();
+    list<Composite::IOPort*>::iterator it;
     int id;
     bool at_least_one = false;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
@@ -744,7 +746,7 @@ string Synthesizer::generateInputsToSignalsfanoutingCode()
 }
 
 string Synthesizer::generateSignalsToOutputsfanoutingCode()
-    throw(InvalidProcessnetworkException, RuntimeException) {
+    throw(InvalidModelException, RuntimeException) {
     string code;
 
     list<Process::Port*> outputs = processnetwork_->getOutPorts();
@@ -774,7 +776,7 @@ string Synthesizer::generateSignalsToOutputsfanoutingCode()
 }
 
 string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
-    throw(InvalidProcessnetworkException, RuntimeException) {
+    throw(InvalidModelException, RuntimeException) {
     string code;
     bool at_least_one = false;
 
@@ -821,11 +823,11 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
 }
 
 void Synthesizer::createSignals()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     signals_.clear();
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -855,7 +857,7 @@ void Synthesizer::createdelayVariables() throw(IOException, RuntimeException) {
     list<Id>::iterator it;
     int counter;
     for (it = schedule_.begin(), counter = 1; it != schedule_.end(); ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -906,7 +908,7 @@ void Synthesizer::setInputArraySignalVariableDataTypesAsConst()
 }
 
 void Synthesizer::discoverSignalDataTypes()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (set<Signal*>::iterator it = signals_.begin(); it != signals_.end();
          ++it) {
         Signal* signal = *it;
@@ -918,7 +920,7 @@ void Synthesizer::discoverSignalDataTypes()
                                     "direction...");
             discoverSignalDataTypeBackwardSearch(signal);
         }
-        catch (InvalidProcessnetworkException&) {
+        catch (InvalidModelException&) {
             // Data type was not found; do second attempt with forward search
             logger_.logDebugMessage(string("Backward direction failed for ")
                                     + "signal " + signal->toString());
@@ -930,7 +932,7 @@ void Synthesizer::discoverSignalDataTypes()
 }
 
 CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logDebugMessage(string("Searching data type for signal ")
                             + signal->toString() + "...");
 
@@ -943,7 +945,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 
     if (!signal->getInPort()) {
         logger_.logDebugMessage("Reached end of network");
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("No data type for ")
+        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
@@ -1016,13 +1018,13 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
                 data_type = discoverSignalDataTypeForwardSearch(next_signal);
                 data_type_found = true;
             }
-            catch (InvalidProcessnetworkException&) {
+            catch (InvalidModelException&) {
                 // Ignore exception as it only indicates that no data type was
                 // found for next signal
             }
         }
         if (!data_type_found) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("No data type for ")
+            THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                             + "signal " + signal->toString()
                             + " could be found");
         }
@@ -1050,7 +1052,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 }
 
 CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logDebugMessage(string("Searching data type for signal ")
                             + signal->toString() + "...");
 
@@ -1063,7 +1065,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 
     if (!signal->getOutPort()) {
         logger_.logDebugMessage("Reached end of network");
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("No data type for ")
+        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
@@ -1136,13 +1138,13 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
                 data_type = discoverSignalDataTypeBackwardSearch(prev_signal);
                 data_type_found = true;
             }
-            catch (InvalidProcessnetworkException&) {
+            catch (InvalidModelException&) {
                 // Ignore exception as it only indicates that no data type was
                 // found for previous signal
             }
         }
         if (!data_type_found) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("No data type for ")
+            THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                             + "signal " + signal->toString()
                             + " could be found");
         }
@@ -1170,10 +1172,10 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 }
 
 void Synthesizer::propagateArraySizesBetweenSignals()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -1193,7 +1195,7 @@ void Synthesizer::propagateArraySizesBetweenSignals()
                                         "direction...");
                 discoverSignalArraySizeBackwardSearch(signal);
             }
-            catch (InvalidProcessnetworkException&) {
+            catch (InvalidModelException&) {
                 // Do second attempt with forward search
                 logger_.logDebugMessage(string("Backward direction failed for ")
                                         + "signal " + signal->toString());
@@ -1213,7 +1215,7 @@ void Synthesizer::propagateArraySizesBetweenSignals()
                                         "direction...");
                 discoverSignalArraySizeForwardSearch(signal);
             }
-            catch (InvalidProcessnetworkException&) {
+            catch (InvalidModelException&) {
                 // Do second attempt with backward search
                 logger_.logDebugMessage(string("Forward direction failed for ")
                                         + "signal " + signal->toString());
@@ -1226,7 +1228,7 @@ void Synthesizer::propagateArraySizesBetweenSignals()
 }
 
 size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logDebugMessage(string("Searching array size for signal ")
                             + signal->toString() + "...");
 
@@ -1239,7 +1241,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 
     if (!signal->getInPort()) {
         logger_.logDebugMessage("Reached end of network");        
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("No array size for ")
+        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
@@ -1277,9 +1279,9 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
             array_size = discoverSignalArraySizeForwardSearch(next_signal);
         }
     }
-    catch (InvalidProcessnetworkException&) {
+    catch (InvalidModelException&) {
         // Throw new exception but for this signal
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("No array size for ")
+        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString()
                         + " could be found");
     }
@@ -1292,7 +1294,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 }
 
 size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logDebugMessage(string("Searching array size for signal ")
                             + signal->toString() + "...");
 
@@ -1305,7 +1307,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 
     if (!signal->getOutPort()) {
         logger_.logDebugMessage("Reached end of network");        
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("No array size for ")
+        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
@@ -1343,9 +1345,9 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
             array_size = discoverSignalArraySizeBackwardSearch(next_signal);
         }
     }
-    catch (InvalidProcessnetworkException&) {
+    catch (InvalidModelException&) {
         // Throw new exception but for this signal
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("No array size for ")
+        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString()
                         + " could be found");
     }
@@ -1365,7 +1367,7 @@ void Synthesizer::propagateSignalArraySizesToProcessFunctions()
 }
 
 string Synthesizer::generateSignalVariableDeclarationsCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     try {
         string code;
         code += kIndents + "// Declare signal variables\n";
@@ -1396,12 +1398,12 @@ string Synthesizer::generateSignalVariableDeclarationsCode()
         return code;
     }
     catch (UnknownArraySizeException& ex) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, ex.getMessage());
+        THROW_EXCEPTION(InvalidModelException, ex.getMessage());
     }
 }
 
 string Synthesizer::generatedelayVariableDeclarationsCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     try {
         string code;
         if (delay_variables_.size() > 0) {
@@ -1421,7 +1423,7 @@ string Synthesizer::generatedelayVariableDeclarationsCode()
         return code;
     }
     catch (UnknownArraySizeException& ex) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, ex.getMessage());
+        THROW_EXCEPTION(InvalidModelException, ex.getMessage());
     }
 }
 
@@ -1474,7 +1476,7 @@ string Synthesizer::scheduleToString() const throw() {
 }
         
 string Synthesizer::generateProcessExecutionCode(Process* process)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logDebugMessage(string("Generating execution code for ")
                             + "process \"" + process->getId()->getString()
                             + "\"...");
@@ -1509,10 +1511,10 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 }
 
 void Synthesizer::generateCudaKernelFunctions()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -1546,8 +1548,8 @@ void Synthesizer::generateCudaKernelFunctions()
                                                  wrapper_function.getName()));
                 parmapsy->insertFunctionFirst(wrapper_function);
             }
-            catch (InvalidProcessnetworkException& ex) {
-                THROW_EXCEPTION(InvalidProcessnetworkException, string("Error in ")
+            catch (InvalidModelException& ex) {
+                THROW_EXCEPTION(InvalidModelException, string("Error in ")
                                 + "process \"" + parmapsy->getId()->getString() 
                                 + "\": " + ex.getMessage());
             }
@@ -1557,7 +1559,7 @@ void Synthesizer::generateCudaKernelFunctions()
 
 CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
                                                   size_t num_processes)
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string new_name("kernel");
     string input_param_name("input");
     string output_param_name("output");
@@ -1576,7 +1578,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (old_input_param_data_type.isArray()) {
             if (!old_input_param_data_type.hasArraySize()) {
-                THROW_EXCEPTION(InvalidProcessnetworkException, string("Data type of ")
+                THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                                 + "first input parameter has no array size");
             }
             input_data_size = num_processes * old_input_param_data_type
@@ -1603,7 +1605,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         // Create input parameter
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (!old_input_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Data type of ")
+            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                             + "first input parameter has no array size");
         }
         input_data_size = num_processes * old_input_param_data_type
@@ -1616,7 +1618,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         CVariable new_output_param(output_param_name,
                                    old_output_param_data_type);
         if (!old_output_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Data type of ")
+            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                             + "second input parameter has no array size");
         }
         output_data_size = num_processes * old_output_param_data_type
@@ -1720,7 +1722,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
 
 CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
                                                          size_t num_processes)
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string new_name("kernel_wrapper");
     string input_param_name("input");
     string output_param_name("output");
@@ -1898,10 +1900,10 @@ CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
 }
 
 void Synthesizer::generateParallelMapSyWrapperFunctions()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
+        Process* current_process = dynamic_cast<Process*>(processnetwork_->getProcess(*it));
         if (!current_process) {
             THROW_EXCEPTION(IllegalStateException, string("Process \"") +
                             it->getString() + "\" not found");
@@ -1922,8 +1924,8 @@ void Synthesizer::generateParallelMapSyWrapperFunctions()
                                              wrapper_function.getName()));
                 parmapsy->insertFunctionFirst(wrapper_function);
             }
-            catch (InvalidProcessnetworkException& ex) {
-                THROW_EXCEPTION(InvalidProcessnetworkException, string("Error in ")
+            catch (InvalidModelException& ex) {
+                THROW_EXCEPTION(InvalidModelException, string("Error in ")
                                 + "process \"" + parmapsy->getId()->getString() 
                                 + "\": " + ex.getMessage());
             }
@@ -1933,7 +1935,7 @@ void Synthesizer::generateParallelMapSyWrapperFunctions()
 
 CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
                                                             size_t num_processes)
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string new_name("parallel_wrapper");
     string input_param_name("input");
     string output_param_name("output");
@@ -1949,7 +1951,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (old_input_param_data_type.isArray()) {
             if (!old_input_param_data_type.hasArraySize()) {
-                THROW_EXCEPTION(InvalidProcessnetworkException, string("Data type of ")
+                THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                                 + "first input parameter has no array size");
             }
             int input_data_size = num_processes * old_input_param_data_type
@@ -1975,7 +1977,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         // Create input parameter
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (!old_input_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Data type of ")
+            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                             + "first input parameter has no array size");
         }
         int input_data_size = num_processes * old_input_param_data_type
@@ -1988,7 +1990,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         CVariable new_output_param(output_param_name,
                                    old_output_param_data_type);
         if (!old_output_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Data type of ")
+            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                             + "second input parameter has no array size");
         }
         int output_data_size = num_processes * old_output_param_data_type
@@ -2045,7 +2047,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
 
 string Synthesizer::generateVariablefanoutingCode(CVariable to, CVariable from,
                                                 bool do_deep_copy) 
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     ensureVariableDataTypeCompatibilities(from, to);
     ensureVariableArrayCompatibilities(from, to);
 
@@ -2080,7 +2082,7 @@ string Synthesizer::generateVariablefanoutingCode(CVariable to, CVariable from,
 
 string Synthesizer::generateVariablefanoutingCode(CVariable to,
                                                 list<CVariable>& from) 
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     ensureVariableIsNotConst(to);
     ensureVariableIsArray(to);
     size_t num_from_elements = 0;
@@ -2091,8 +2093,8 @@ string Synthesizer::generateVariablefanoutingCode(CVariable to,
     try {
         ensureArraySizes(to.getDataType()->getArraySize(), num_from_elements);
     }
-    catch (InvalidProcessnetworkException& ex) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("Error between ")
+    catch (InvalidModelException& ex) {
+        THROW_EXCEPTION(InvalidModelException, string("Error between ")
                         + "list of variables and variable \""
                         + to.getReferenceString() + "\": " + ex.getMessage());
     }
@@ -2124,7 +2126,7 @@ string Synthesizer::generateVariablefanoutingCode(CVariable to,
 
 string Synthesizer::generateVariablefanoutingCode(list<CVariable>& to,
                                                 CVariable from)
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     size_t num_to_elements = 0;
     for (list<CVariable>::iterator it = to.begin(); it != to.end(); ++it) {
         ensureVariableIsNotConst(*it);
@@ -2135,8 +2137,8 @@ string Synthesizer::generateVariablefanoutingCode(list<CVariable>& to,
     try {
         ensureArraySizes(num_to_elements, from.getDataType()->getArraySize());
     }
-    catch (InvalidProcessnetworkException& ex) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("Error between ")
+    catch (InvalidModelException& ex) {
+        THROW_EXCEPTION(InvalidModelException, string("Error between ")
                         + "variable \"" + from.getReferenceString() + "\" and "
                         + "list of variables: " + ex.getMessage());
     }
@@ -2168,7 +2170,7 @@ string Synthesizer::generateVariablefanoutingCode(list<CVariable>& to,
 
 string Synthesizer::generateProcessFunctionExecutionCode(
     CFunction* function, list<CVariable> inputs, CVariable output)
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     ensureVariableIsNotConst(output);
 
     string code;
@@ -2180,8 +2182,8 @@ string Synthesizer::generateProcessFunctionExecutionCode(
             ensureVariableDataTypeCompatibilities(output, function_return);
             ensureVariableArrayCompatibilities(output, function_return);
         }
-        catch (InvalidProcessnetworkException& ex) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Error in function, ")
+        catch (InvalidModelException& ex) {
+            THROW_EXCEPTION(InvalidModelException, string("Error in function, ")
                             + "return value: " + ex.getMessage());
         }
 
@@ -2194,8 +2196,8 @@ string Synthesizer::generateProcessFunctionExecutionCode(
             ensureVariableDataTypeCompatibilities(function_output, output);
             ensureVariableArrayCompatibilities(function_output, output);
         }
-        catch (InvalidProcessnetworkException& ex) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Error in function, ")
+        catch (InvalidModelException& ex) {
+            THROW_EXCEPTION(InvalidModelException, string("Error in function, ")
                             + "last parameter: " + ex.getMessage());
         }
 
@@ -2229,20 +2231,20 @@ string Synthesizer::generateProcessFunctionExecutionCode(
 }
 
 void Synthesizer::ensureVariableIsNotConst(CVariable variable)
-    throw(InvalidProcessnetworkException) {
+    throw(InvalidModelException) {
     if (variable.getDataType()->isConst()) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("Variable \"") +
+        THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
                         variable.getReferenceString() + "\" is a const");
     }
 }
 
 void Synthesizer::ensureVariableDataTypeCompatibilities(CVariable lhs,
                                                         CVariable rhs)
-    throw(InvalidProcessnetworkException) {
+    throw(InvalidModelException) {
     CDataType lhs_data_type = *lhs.getDataType();
     CDataType rhs_data_type = *rhs.getDataType();
     if (lhs_data_type.getType() != rhs_data_type.getType()) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("Error between ")
+        THROW_EXCEPTION(InvalidModelException, string("Error between ")
                         + "variables " + rhs.getReferenceString()
                         + " and " + lhs.getReferenceString() + ": "
                         + "mismatched data types (from \""
@@ -2254,17 +2256,17 @@ void Synthesizer::ensureVariableDataTypeCompatibilities(CVariable lhs,
 }
 
 void Synthesizer::ensureVariableIsArray(CVariable variable)
-    throw(InvalidProcessnetworkException) {
+    throw(InvalidModelException) {
     if (!variable.getDataType()->isArray()) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("Variable \"") +
+        THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
                         variable.getReferenceString() + "\" is not an array");
     }    
 }
 
 void Synthesizer::ensureArraySizes(size_t lhs, size_t rhs)
-    throw(InvalidProcessnetworkException) {
+    throw(InvalidModelException) {
     if (lhs != rhs) {
-        THROW_EXCEPTION(InvalidProcessnetworkException, string("Mismatched array ")
+        THROW_EXCEPTION(InvalidModelException, string("Mismatched array ")
                         + "sizes (from size " + tools::toString(rhs)
                         + " to size " + tools::toString(lhs) + ")");
     }
@@ -2272,23 +2274,23 @@ void Synthesizer::ensureArraySizes(size_t lhs, size_t rhs)
 
 void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
                                                      CVariable rhs)
-    throw(InvalidProcessnetworkException) {
+    throw(InvalidModelException) {
     CDataType lhs_data_type = *lhs.getDataType();
     CDataType rhs_data_type = *rhs.getDataType();
     if (lhs_data_type.isArray()) {
         if (!rhs_data_type.isArray()) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Error between ")
+            THROW_EXCEPTION(InvalidModelException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + "mismatched data types (from scalar to array)");
         }
         if (!lhs_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Variable \"") +
+            THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
                             lhs.getReferenceString() + "\" has no array "
                             + "size");
         }
         if (!rhs_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Variable \"") +
+            THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
                             rhs.getReferenceString() + "\" has no array "
                             + "size");
         }
@@ -2296,8 +2298,8 @@ void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
             ensureArraySizes(lhs_data_type.getArraySize(),
                              rhs_data_type.getArraySize());
         }
-        catch (InvalidProcessnetworkException& ex) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Error between ")
+        catch (InvalidModelException& ex) {
+            THROW_EXCEPTION(InvalidModelException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + ex.getMessage());
@@ -2305,7 +2307,7 @@ void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
     }
     else {
         if (rhs_data_type.isArray()) {
-            THROW_EXCEPTION(InvalidProcessnetworkException, string("Error between ")
+            THROW_EXCEPTION(InvalidModelException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + "mismatched data types (from array to scalar)");
@@ -2314,7 +2316,7 @@ void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
 }
 
 string Synthesizer::generateKernelConfigStructDefinitionCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     code += string("/**\n")
         + " * C struct for returning the calculated kernel configuration for \n"
@@ -2329,7 +2331,7 @@ string Synthesizer::generateKernelConfigStructDefinitionCode()
 }
 
 string Synthesizer::generateKernelConfigFunctionDefinitionCode()
-    throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     code += string("/**\n")
         + " * Calculate the best kernel configuration of grid and thread\n"
@@ -2436,7 +2438,7 @@ bool Synthesizer::dynamicallyAllocateMemoryForSignalVariable(Signal* signal) {
 
 string Synthesizer::generateProcessExecutionCodeFordelayStep1(
     delay* process)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable output =
         getSignalByOutPort(process->getOutPorts().front())->getVariable();
     CVariable delay_variable = getdelayVariable(process).first;
@@ -2445,7 +2447,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 
 string Synthesizer::generateProcessExecutionCodeFordelayStep2(
     delay* process)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input = 
         getSignalByInPort(process->getInPorts().front())->getVariable();
     CVariable delay_variable = getdelayVariable(process).first;
@@ -2454,7 +2456,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 
 string Synthesizer::generateProcessExecutionCodeForMap(
     Map* process)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     list<CVariable> inputs;
     list<Process::Port*> in_ports = process->getInPorts();
     list<Process::Port*>::iterator it;
@@ -2468,7 +2470,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 }
 
 string Synthesizer::generateProcessExecutionCodeForunzipx(unzipx* process)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(process->getInPorts().front())->getVariable();
     list<CVariable> outputs;
@@ -2481,7 +2483,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 }
 
 string Synthesizer::generateProcessExecutionCodeForzipx(zipx* process)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable output =
         getSignalByOutPort(process->getOutPorts().front())->getVariable();
     list<CVariable> inputs;
@@ -2497,7 +2499,7 @@ throw(InvalidProcessnetworkException, IOException, RuntimeException) {
 }
 
 string Synthesizer::generateProcessExecutionCodeForfanout(fanout* process)
-throw(InvalidProcessnetworkException, IOException, RuntimeException) {
+throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(process->getInPorts().front())->getVariable();
     list<Process::Port*> out_ports = process->getOutPorts();

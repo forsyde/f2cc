@@ -25,8 +25,6 @@
  */
 
 #include "process.h"
-#include "composite.h"
-#include "processnetwork.h"
 #include "../tools/tools.h"
 #include <new>
 #include <vector>
@@ -49,22 +47,6 @@ Process::~Process() throw() {
     destroyAllPorts(out_ports_);
 }
 
-const Id* Process::getId() const throw() {
-    return hierarchy_.getId();
-}
-
-Hierarchy Process::getHierarchy() const throw() {
-    return hierarchy_;
-}
-
-void Process::setHierarchy(Hierarchy hierarchy) throw() {
-	hierarchy_.setHierarchy(hierarchy.getHierarchy());
-    hierarchy_.lowerLevel(id_);
-}
-
-Hierarchy::Relation Process::findRelation(const Process* rhs) const throw(){
-	return hierarchy_.findRelation(rhs->hierarchy_);
-}
 
 const string Process::getMoc() const throw() {
     return moc_;
@@ -298,10 +280,6 @@ void Process::destroyAllPorts(list<Port*>& ports) throw() {
     }
 }
 
-void Process::check() throw(InvalidProcessException) {
-    moreChecks();
-}
-
 bool Process::operator==(const Process& rhs) const throw() {
     if (getNumInPorts() != rhs.getNumInPorts()) return false;
     if (getNumOutPorts() != rhs.getNumOutPorts()) return false;
@@ -313,74 +291,86 @@ bool Process::operator!=(const Process& rhs) const throw() {
 }
 
 Process::Port::Port(const Id& id, CDataType datatype) throw()
-        : id_(id), process_(NULL), connected_port_outside_(NULL), data_type_(datatype) {}
+        : PortBase(id), connected_port_outside_(NULL), data_type_(datatype) {}
 
 Process::Port::Port(const Id& id, Process* process, CDataType datatype)
         throw(InvalidArgumentException)
-        : id_(id), process_(process), connected_port_outside_(NULL), data_type_(datatype) {
+        : PortBase(id, process), connected_port_outside_(NULL), data_type_(datatype) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException, "process must not be NULL");
     }
 }
 
-Process::Port::Port(Port& rhs) throw(InvalidArgumentException)
-        : id_(rhs.id_), process_(NULL), connected_port_outside_(NULL),  data_type_(rhs.data_type_) {
+Process::Port::Port(ProcessBase::PortBase& rhs) throw(InvalidArgumentException)
+        : PortBase(rhs.id_), connected_port_outside_(NULL)  {
 
-	static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort*>(&rhs);
-
-	if (ioport) {
-		THROW_EXCEPTION(InvalidArgumentException, "Cannot equate Port and IOPort");
-	}
-	//manual unconnect, to avoid calling virtual functions
-	if (rhs.connected_port_outside_) {
-        Port* port = rhs.connected_port_outside_;
-        rhs.connected_port_outside_ = NULL;
-        if (port != this) {
-        	connected_port_outside_ = port;
-        	port->connected_port_outside_ = this;
+	Process::Port* port_to_copy = dynamic_cast<Process::Port*>(*rhs);
+	Composite::IOPort* ioport_to_copy = dynamic_cast<Composite::IOPort*>(*rhs);
+    if(port_to_copy){
+    	if (port_to_copy->isConnected()) {
+        	connect(port_to_copy->connected_port_outside_);
+        	port_to_copy->unconnect();
+        	setDataType(port_to_copy->getDataType());
         }
     }
+    else if (ioport_to_copy){
+    	if (ioport_to_copy->isConnected()) {
+        	connect(ioport_to_copy->connected_port_inside_);
+        	ioport_to_copy->unconnect();
+        	setDataType(CDataType());
+        }
+    }
+	else{
+		THROW_EXCEPTION(InvalidModelException, "Conflict between Port and IOPort");
+	}
+
 }
 
-Process::Port::Port(Port& rhs, Process* process) throw(InvalidArgumentException)
-        : id_(rhs.id_), process_(process), connected_port_outside_(NULL),
+Process::Port::Port(ProcessBase::PortBase& rhs, Process* process) throw(InvalidArgumentException)
+        : PortBase(rhs.id_, process), connected_port_outside_(NULL),
          data_type_(rhs.data_type_) {
     if (!process) {
         THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
                         "NULL");
     }
-    static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort*>(&rhs);
-    	if (ioport) {
-		THROW_EXCEPTION(InvalidArgumentException, "Cannot equate Port and IOPort");
-	}
-	//manual unconnect, to avoid calling virtual functions
-	if (rhs.connected_port_outside_) {
-        Port* port = rhs.connected_port_outside_;
-        rhs.connected_port_outside_ = NULL;
-        if (port != this) {
-        	connected_port_outside_ = port;
-        	port->connected_port_outside_ = this;
+	Process::Port* port_to_copy = dynamic_cast<Process::Port*>(*rhs);
+	Composite::IOPort* ioport_to_copy = dynamic_cast<Composite::IOPort*>(*rhs);
+    if(port_to_copy){
+    	if (port_to_copy->isConnected()) {
+        	connect(port_to_copy->connected_port_outside_);
+        	port_to_copy->unconnect();
+        	setDataType(port_to_copy->getDataType());
         }
     }
+    else if (ioport_to_copy){
+    	if (ioport_to_copy->isConnected()) {
+        	connect(ioport_to_copy->connected_port_inside_);
+        	ioport_to_copy->unconnect();
+        	setDataType(CDataType());
+        }
+    }
+	else{
+		THROW_EXCEPTION(InvalidModelException, "Conflict between Port and IOPort");
+	}
 }
 
 Process::Port::~Port() throw() {
     unconnect();
 }
         
-Process* Process::Port::getProcess() const throw() {
-    return process_;
-}
-
-const Id* Process::Port::getId() const throw() {
-    return &id_;
+Process* Process::Port::getProcess() const throw(InvalidModelException) {
+	Process* process = dynamic_cast<Process*>(process_);
+	if (!process){
+		THROW_EXCEPTION(InvalidModelException, "Port must be associated with Process");
+	}
+    return process;
 }
 
 f2cc::CDataType Process::Port::getDataType() throw() {
     return data_type_;
 }
 
-bool Process::Port::setDataType(CDataType& datatype) throw() {
+bool Process::Port::setDataType(CDataType datatype) throw() {
 	data_type_ = datatype;
 	return true;
 }
@@ -392,20 +382,21 @@ bool Process::Port::isConnected() const throw() {
 
 bool Process::Port::isConnectedToLeaf() const throw(){
 	if (connected_port_outside_){
-		static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort*>(connected_port_outside_);
-		if(ioport){
-			Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
+		static const Composite::IOPort* connected_ioport = dynamic_cast<const Composite::IOPort*>(connected_port_outside_);
+
+		if(connected_ioport){
+			Hierarchy::Relation relation = getProcess()->findRelation(connected_ioport->getProcess());
 			if (relation == Hierarchy::Sibling)
-				return (ioport->isConnectedToLeafInside());
+				return (connected_ioport->isConnectedToLeafInside());
 			else
-				return (ioport->isConnectedToLeafOutside());
+				return (connected_ioport->isConnectedToLeafOutside());
 		}
 		else return true;
 	}
 	else return false;
 }
 
-void Process::Port::connect(Port* port) throw(InvalidArgumentException) {
+void Process::Port::connect(PortBase* port) throw(InvalidArgumentException) {
     if (port == this) return;
     if (!port) {
         unconnect();
@@ -420,10 +411,11 @@ void Process::Port::connect(Port* port) throw(InvalidArgumentException) {
     }
     connected_port_outside_ = port;
 
-    Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+    Composite::IOPort* ioport_to_connect = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+    Process::Port* port_to_connect = dynamic_cast<Process::Port*>(connected_port_outside_);
 
-    if(ioport) ioport->connect(this);
-    else port->connected_port_outside_ = this;
+    if(ioport_to_connect) ioport_to_connect->connect(this);
+    else port_to_connect->connected_port_outside_ = this;
 }
 
 void Process::Port::connectGlobal(Port* port) throw() {
@@ -446,7 +438,7 @@ void Process::Port::connectGlobal(Port* port) throw() {
     else if (relation == SiblingsChild){ //Treat connections to a sibling's child processes
     	const Id* siblings_id = getFirstChild(getProcess()->id_, port->getProcess()->hierarchy_);
     	if (!siblings_id) {
-    		THROW_EXCEPTION(InvalidProcessnetworkException, "A sibling with children must be a composie process");
+    		THROW_EXCEPTION(InvalidModelException, "A sibling with children must be a composie process");
     	}
 		Composite::IOPort* new_port = new (std::nothrow) Composite::IOPort(
 						ForSyDe::Id("port_"),
@@ -458,7 +450,7 @@ void Process::Port::connectGlobal(Port* port) throw() {
     else if (relation == Child){
     	const Id* child_id = getFirstChild(id_, port->getProcess()->hierarchy_);
     	if (!child_id) {
-    	    THROW_EXCEPTION(InvalidProcessnetworkException, "A sibling with children must be a composie process");
+    	    THROW_EXCEPTION(InvalidModelException, "A sibling with children must be a composie process");
     	}
 		Composite::IOPort* new_port = new (std::nothrow) Composite::IOPort(
 						ForSyDe::Id("port_"),
@@ -478,56 +470,70 @@ void Process::Port::connectGlobal(Port* port) throw() {
 }
 
 
-void Process::Port::unconnect() throw() {
+void Process::Port::unconnect() throw(InvalidModelException) {
     if (connected_port_outside_) {
-        Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
-    	if (ioport){
-    		Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
-			if (relation == Hierarchy::Sibling) ioport->unconnectOutside();
-			else ioport->unconnectInside();
+        Process::Port* port_to_unconnect = dynamic_cast<Process::Port*>(connected_port_outside_);
+    	Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+    	if (ioport_to_unconnect){
+    		Hierarchy::Relation relation = getProcess()->findRelation(ioport_to_unconnect->getProcess());
+			if (relation == Hierarchy::Sibling) ioport_to_unconnect->unconnectOutside();
+			else ioport_to_unconnect->unconnectInside();
 
     	}
-    	else {
-			connected_port_outside_->connected_port_outside_ = NULL;
-			connected_port_outside_ = NULL;
+    	else if(port_to_unconnect) {
+    		port_to_unconnect->connected_port_outside_ = NULL;
+    		port_to_unconnect = NULL;
+    	}
+    	else{
+    		THROW_EXCEPTION(InvalidModelException, "Conflict between Port and IOPort");
     	}
     }
 }
 
-void Process::Port::unconnectFromLeaf() throw() {
+void Process::Port::unconnectFromLeaf() throw(InvalidModelException) {
     if (connected_port_outside_) {
-        Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
-    	if (ioport){
-    		ioport->unconnectFromLeafInside();
-    		ioport->unconnectFromLeafOutside();
+        Process::Port* port_to_unconnect = dynamic_cast<Process::Port*>(connected_port_outside_);
+    	Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+     	if (ioport_to_unconnect){
+     		ioport_to_unconnect->unconnectFromLeafInside();
+     		ioport_to_unconnect->unconnectFromLeafOutside();
     	}
-    	else {
-			connected_port_outside_->connected_port_outside_ = NULL;
-			connected_port_outside_ = NULL;
+    	else if(port_to_unconnect) {
+    		port_to_unconnect->connected_port_outside_ = NULL;
+    		port_to_unconnect = NULL;
     	}
+		else{
+			THROW_EXCEPTION(InvalidModelException, "Conflict between Port and IOPort");
+		}
     }
 }
 
-Process::Port* Process::Port::getConnectedPort() const throw() {
+ProcessBase::PortBase* Process::Port::getConnectedPort() const throw() {
 	return connected_port_outside_;
 }
+/*
 Process::Port* Process::Port::PortGetter() const throw() {
 	return connected_port_outside_;
 }
-void Process::Port::PortSetter(Process::Port* port) throw() {
+void Process::Port::PortSetter(Process::PortBase* port) throw() {
 	connected_port_outside_ = port;
 }
+*/
 
-Process::Port* Process::Port::getConnectedLeafPort() const throw() {
+Process::Port* Process::Port::getConnectedLeafPort() const throw(InvalidModelException) {
+	Process::Port* port = dynamic_cast<Process::Port*>(connected_port_outside_);
 	Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
 	if (ioport){
-		Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
+		Hierarchy::Relation relation = getProcess()->findRelation(ioport->getProcess());
 		if (relation == Hierarchy::Sibling){
 			return ioport->getConnectedLeafPortInside();
 		}
 		else return ioport->getConnectedLeafPortOutside();
 	}
-    else return connected_port_outside_;
+    else if (ioport) return ioport;
+    else {
+		THROW_EXCEPTION(InvalidModelException, "Conflict between Port and IOPort");
+    }
 }
 
 bool Process::Port::operator==(const Port& rhs) const throw() {

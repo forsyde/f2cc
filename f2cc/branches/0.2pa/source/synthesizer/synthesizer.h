@@ -162,7 +162,7 @@ class Synthesizer {
      * Generates sequential C code.
      *
      * @returns Generated code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the process network is such that it cannot be synthesized.
      * @throws IOException
      *         When access to the log file fails.
@@ -170,13 +170,13 @@ class Synthesizer {
      *         When something goes wrong during the synthesis process.
      */
     CodeSet generateCCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates CUDA C code.
      *
      * @returns Generated code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the process network is such that it cannot be synthesized.
      * @throws IOException
      *         When access to the log file fails.
@@ -184,14 +184,14 @@ class Synthesizer {
      *         When something goes wrong during the synthesis process.
      */
     CodeSet generateCudaCCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
     
   private:
     /**
      * Checks that the process network is valid from the synthesizer's point of view.
      * Currently, this does nothing (i.e. all parsed processnetworks are valid processnetworks).
      *
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the checks fail.
      * @throws IOException
      *         When access to the log file fails.
@@ -199,13 +199,13 @@ class Synthesizer {
      *         When something goes wrong during the synthesis process.
      */
     void checkProcessnetwork()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for the currently set target platform.
      *
      * @returns Generated code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the process network is such that it cannot be synthesized.
      * @throws IOException
      *         When access to the log file fails.
@@ -213,7 +213,7 @@ class Synthesizer {
      *         When something goes wrong during the synthesis process.
      */
     CodeSet generateCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Finds a process schedule for the process network. 
@@ -303,6 +303,8 @@ class Synthesizer {
      */
     Signal* getSignalByInPort(ForSyDe::Process::Port* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
+    Signal* getSignalByInPort(ForSyDe::Composite::IOPort* in_port)
+        throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
      * Renames the functions of all Map processes present in the schedule to
@@ -310,7 +312,7 @@ class Synthesizer {
      * variable and function names (for instance, they must not start with a
      * number).
      *
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -318,13 +320,13 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     void renameMapFunctions()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Combines functions between Map processes which are identical by
      * renaming the duplicates. Functions are compared using the \c == operator.
      *
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -332,7 +334,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     void MapineFunctionDuplicates()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Processes of type \c CoalescedMap may contain more than one process
@@ -342,7 +344,7 @@ class Synthesizer {
      * The wrapper function are then added to the \c CoalescedMap process
      * such that it is the function returned when calling Map::getFunction().
      *
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -350,7 +352,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     void generateCoalescedSyWrapperFunctions()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates a wrapping function which invokes each function in a list,
@@ -360,7 +362,7 @@ class Synthesizer {
      * @param functions
      *        List of functions.
      * @returns Wrapper function.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -370,7 +372,7 @@ class Synthesizer {
      */
     CFunction generateCoalescedSyWrapperFunction(
         std::list<CFunction*> functions)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates CUDA kernel functions for \c ParallelMap processes. The
@@ -378,7 +380,7 @@ class Synthesizer {
      * cause it to be retrieved when Map::getFunction() is invoked and thus
      * the process can be handled like any other \c Map process.
      *
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -386,7 +388,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     void generateCudaKernelFunctions()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates a CUDA kernel function which in turn invokes a given function.
@@ -407,7 +409,7 @@ class Synthesizer {
      * @param num_processes
      *        Number of processes which the kernel function encompasses.
      * @returns Kernel function.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -416,7 +418,7 @@ class Synthesizer {
      */
     CFunction generateCudaKernelFunction(CFunction* function,
                                          size_t num_processes)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates a wrapper function which invokes a CUDA kernel function with
@@ -428,7 +430,7 @@ class Synthesizer {
      * @param num_processes
      *        Number of processes which the kernel function encompasses.
      * @returns Wrapper function.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -437,7 +439,7 @@ class Synthesizer {
      */
     CFunction generateCudaKernelWrapperFunction(CFunction* function,
                                                 size_t num_processes)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates wrapper functions for \c ParallelMap processes. This is only
@@ -446,7 +448,7 @@ class Synthesizer {
      * Map::getFunction() is invoked and thus the process can be handled like
      * any other \c Map process.
      *
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -454,7 +456,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     void generateParallelMapSyWrapperFunctions()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates a wrapper function which executes a given function for the
@@ -465,7 +467,7 @@ class Synthesizer {
      * @param num_processes
      *        Number of processes which the function encompasses.
      * @returns Wrapper function.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -474,14 +476,14 @@ class Synthesizer {
      */
     CFunction generateParallelMapSyWrapperFunction(CFunction* function,
                                                    size_t num_processes)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for the function definitions for the processes present
      * in the schedule.
      *
      * @returns Process function definitions code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -489,7 +491,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateProcessFunctionDefinitionsCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for the process network function definition, which implements the
@@ -505,7 +507,7 @@ class Synthesizer {
      * next processnetwork invocation.
      *
      * @returns Processnetwork function definition code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -513,14 +515,14 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateProcessnetworkFunctionDefinitionCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for the process network function prototype. This is used for the
      * header file.
      *
      * @returns Processnetwork function prototype.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -528,13 +530,13 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateProcessnetworkFunctionPrototypeCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates a method description (Java style) for the process network function.
      *
      * @returns Processnetwork function description.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -542,7 +544,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateProcessnetworkFunctionDescription() 
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for copying the input parameter values of the process network
@@ -550,13 +552,13 @@ class Synthesizer {
      * (see generateArrayInputOutputsToSignalsAliasingCode()).
      *
      * @returns fanouting code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateInputsToSignalsfanoutingCode()
-        throw(InvalidProcessnetworkException, RuntimeException);
+        throw(InvalidModelException, RuntimeException);
 
     /**
      * Generates code for copying the appropriate signal values to the output
@@ -565,13 +567,13 @@ class Synthesizer {
      * generateArrayInputOutputsToSignalsAliasingCode()).
      *
      * @returns fanouting code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateSignalsToOutputsfanoutingCode()
-        throw(InvalidProcessnetworkException, RuntimeException);
+        throw(InvalidModelException, RuntimeException);
 
     /**
      * Generates code which aliases the input and output array parameters with
@@ -579,13 +581,13 @@ class Synthesizer {
      * memory copying needed.
      *
      * @returns fanouting code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateArrayInputOutputsToSignalsAliasingCode()
-        throw(InvalidProcessnetworkException, RuntimeException);
+        throw(InvalidModelException, RuntimeException);
 
     /**
      * Generates code for declaring the signal variables. Non-array data types
@@ -596,7 +598,7 @@ class Synthesizer {
      * will be set to the address of the input array.
      *
      * @returns Variable declarations code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When a variable cannot be declared due to lacking information.
      * @throws IOException
      *         When access to the log file fails.
@@ -604,7 +606,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateSignalVariableDeclarationsCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for declaring the delay variables. A delay variable is
@@ -613,7 +615,7 @@ class Synthesizer {
      * initial values specified in the process network.
      *
      * @returns Variable declarations code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When a variable cannot be declared due to lacking information.
      * @throws IOException
      *         When access to the log file fails.
@@ -621,7 +623,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generatedelayVariableDeclarationsCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Gets the corresponding delay variable and initial value for a process.
@@ -663,7 +665,7 @@ class Synthesizer {
      * are already pointers).
      *
      * @returns Function parameter list code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When a variable cannot be declared due to lacking information.
      * @throws IOException
      *         When access to the log file fails.
@@ -671,7 +673,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateProcessnetworkFunctionParameterListCode()
-        throw(InvalidProcessnetworkException, RuntimeException);
+        throw(InvalidModelException, RuntimeException);
 
     /**
      * Creates all signals needed for the processes present in the
@@ -680,7 +682,7 @@ class Synthesizer {
      * signals are \em not detected. The method also clears any previously
      * generated signals.
      *
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When a signal cannot be created due to lacking information.
      * @throws IOException
      *         When access to the log file fails.
@@ -688,7 +690,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     void createSignals()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Creates all delay variables needed for the delay processes present in the
@@ -723,7 +725,7 @@ class Synthesizer {
      * Attempts to discover and set the data types of all signals. If the data
      * type is an array, its size may still be unknown.
      *
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When a data type cannot be found for all signals.
      * @throws IOException
      *         When access to the log file fails.
@@ -731,7 +733,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     void discoverSignalDataTypes()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Attempts to discover and set the data type for a signal by doing
@@ -742,7 +744,7 @@ class Synthesizer {
      * @param signal
      *        Signal for which to discover data type.
      * @returns Discovered data type.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When a data type cannot be found for this signal.
      * @throws IOException
      *         When access to the log file fails.
@@ -750,7 +752,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     CDataType discoverSignalDataTypeForwardSearch(Signal* signal)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Same as discoverSignalDataTypeForwardSearch(Signal&) but does backward
@@ -760,7 +762,7 @@ class Synthesizer {
      * @param signal
      *        Signal for which to discover data type.
      * @returns Discovered data type.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When a data type cannot be found for this signal.
      * @throws IOException
      *         When access to the log file fails.
@@ -768,12 +770,12 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     CDataType discoverSignalDataTypeBackwardSearch(Signal* signal)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Propagates known array sizes between the signals.
      *
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When an array size cannot be propagated to all signals.
      * @throws IOException
      *         When access to the log file fails.
@@ -782,7 +784,7 @@ class Synthesizer {
      * @todo Implement this method (currently it does nothing).
      */
     void propagateArraySizesBetweenSignals()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Searches for the array size of a signal in the forward data flow search.
@@ -790,7 +792,7 @@ class Synthesizer {
      * @param signal
      *        Signal for which to discover array size.
      * @returns Discovered array size.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When an array size cannot be found for this signal.
      * @throws IOException
      *         When access to the log file fails.
@@ -798,7 +800,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     size_t discoverSignalArraySizeForwardSearch(Signal* signal)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Same as discoverSignalArraySizeForwardSearch(Signal&) but does backward
@@ -807,7 +809,7 @@ class Synthesizer {
      * @param signal
      *        Signal for which to discover array size.
      * @returns Discovered array size.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When an array size cannot be found for this signal.
      * @throws IOException
      *         When access to the log file fails.
@@ -815,7 +817,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     size_t discoverSignalArraySizeBackwardSearch(Signal* signal)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Propagates the array sizes discovered for the signals to the process
@@ -835,7 +837,7 @@ class Synthesizer {
      * @param process
      *        Process to execute.
      * @returns Execution code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -843,7 +845,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateProcessExecutionCode(ForSyDe::Process* process)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for copying the content of one variable to another. Both
@@ -863,7 +865,7 @@ class Synthesizer {
      *        variables copying is deep. Scalar variables are not affected by
      *        this parameter.
      * @returns fanouting code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When there is a data type or array size mismatch, or when the
      *         array size of either is unknown.
      * @throws IOException
@@ -873,7 +875,7 @@ class Synthesizer {
      */
     std::string generateVariablefanoutingCode(CVariable to, CVariable from, bool
         do_deep_copy = true) 
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for copying the contents of a list of non-array variables
@@ -884,7 +886,7 @@ class Synthesizer {
      * @param from
      *        Source variables.
      * @returns fanouting code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the \c to variable is not an array, or when its array size
      *         is unknown, or when there is a data type or array size mismatch.
      * @throws IOException
@@ -894,7 +896,7 @@ class Synthesizer {
      */
     std::string generateVariablefanoutingCode(CVariable to, 
                                             std::list<CVariable>& from)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for copying the content of a variable of array type to a
@@ -905,7 +907,7 @@ class Synthesizer {
      * @param from
      *        Source variable
      * @returns fanouting code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the \c from variable is not an array, or when its array size
      *         is unknown, or when there is a data type or array size mismatch.
      * @throws IOException
@@ -915,7 +917,7 @@ class Synthesizer {
      */
     std::string generateVariablefanoutingCode(std::list<CVariable>& to,
                                             CVariable from)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for executing a process function.
@@ -927,7 +929,7 @@ class Synthesizer {
      * @param output
      *        Destination variable.
      * @returns Execution code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the function has unexpected number of input parameters, or
      *         when there is a data type or array size mismatch.
      * @throws IOException
@@ -939,7 +941,7 @@ class Synthesizer {
                                                      std::list<CVariable>
                                                      inputs,
                                                      CVariable output)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Checks that a variable is not set as \c const. If it is, an exception is
@@ -947,11 +949,11 @@ class Synthesizer {
      *
      * @param variable
      *        Variable to check.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the check fails.
      */
     void ensureVariableIsNotConst(CVariable variable)
-        throw(InvalidProcessnetworkException);
+        throw(InvalidModelException);
 
     /**
      * Checks that two variables are of the same types. If they are not, an
@@ -961,22 +963,22 @@ class Synthesizer {
      *        First variable (used on the left-hand side in an expression).
      * @param rhs
      *        Second variable  (used on the right-hand side in an expression).
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the check fails.
      */
     void ensureVariableDataTypeCompatibilities(CVariable lhs, CVariable rhs)
-        throw(InvalidProcessnetworkException);
+        throw(InvalidModelException);
 
     /**
      * Checks that a variable is an array. If it is not, an exception is thrown.
      *
      * @param variable
      *        Variable to check.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the check fails.
      */
     void ensureVariableIsArray(CVariable variable)
-        throw(InvalidProcessnetworkException);
+        throw(InvalidModelException);
 
     /**
      * Checks that two array sizes are equal. If they are not, an exception is
@@ -986,11 +988,11 @@ class Synthesizer {
      *        First size (used on the left-hand side in an expression).
      * @param rhs
      *        Second size  (used on the right-hand side in an expression).
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When the check fails.
      */
     void ensureArraySizes(size_t lhs, size_t rhs)
-        throw(InvalidProcessnetworkException);
+        throw(InvalidModelException);
 
     /**
      * Checks that two variables are either both arrays or not arrays. If both
@@ -1001,11 +1003,11 @@ class Synthesizer {
      *        First variable (used on the left-hand side in an expression).
      * @param rhs
      *        Second variable  (used on the right-hand side in an expression).
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When a check fails.
      */
     void ensureVariableArrayCompatibilities(CVariable lhs, CVariable rhs)
-        throw(InvalidProcessnetworkException);
+        throw(InvalidModelException);
 
     /**
      * Converts schedule into a string representation.
@@ -1020,7 +1022,7 @@ class Synthesizer {
      * blocks at runtime for optimal performance.
      *
      * @returns Struct definition code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -1028,7 +1030,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateKernelConfigStructDefinitionCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for the kernel config function definition. The kernel
@@ -1036,7 +1038,7 @@ class Synthesizer {
      * blocks at runtime for optimal performance.
      *
      * @returns Function definition code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -1044,7 +1046,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateKernelConfigFunctionDefinitionCode()
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Gets a function name which can be used globally in the synthesized code
@@ -1080,7 +1082,7 @@ class Synthesizer {
      * @param process
      *        Process to execute.
      * @returns Execution code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -1089,7 +1091,7 @@ class Synthesizer {
      */
     std::string generateProcessExecutionCodeFordelayStep1(
         ForSyDe::SY::delay* process)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code which execute the second step of given \c delay
@@ -1099,7 +1101,7 @@ class Synthesizer {
      * @param process
      *        Process to execute.
      * @returns Execution code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -1108,7 +1110,7 @@ class Synthesizer {
      */
     std::string generateProcessExecutionCodeFordelayStep2(
         ForSyDe::SY::delay* process)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code which execute a given \c Map process. The generated code
@@ -1118,7 +1120,7 @@ class Synthesizer {
      * @param process
      *        Process to execute.
      * @returns Execution code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -1127,7 +1129,7 @@ class Synthesizer {
      */
     std::string generateProcessExecutionCodeForMap(
         ForSyDe::SY::Map* process)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code which execute a given \c unzipx process. The generated
@@ -1138,7 +1140,7 @@ class Synthesizer {
      * @param process
      *        Process to execute.
      * @returns Execution code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -1147,7 +1149,7 @@ class Synthesizer {
      */
     std::string generateProcessExecutionCodeForunzipx(
         ForSyDe::SY::unzipx* process)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code which execute a given \c zipx process. The generated
@@ -1158,7 +1160,7 @@ class Synthesizer {
      * @param process
      *        Process to execute.
      * @returns Execution code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -1166,7 +1168,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateProcessExecutionCodeForzipx(ForSyDe::SY::zipx* process)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code which execute a given \c fanout process. The generated
@@ -1175,7 +1177,7 @@ class Synthesizer {
      * @param process
      *        Process to execute.
      * @returns Execution code.
-     * @throws InvalidProcessnetworkException
+     * @throws InvalidModelException
      *         When something is wrong with the process network.
      * @throws IOException
      *         When access to the log file fails.
@@ -1183,7 +1185,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateProcessExecutionCodeForfanout(ForSyDe::SY::fanout* process)
-        throw(InvalidProcessnetworkException, IOException, RuntimeException);
+        throw(InvalidModelException, IOException, RuntimeException);
 
   private:
     /**

@@ -37,7 +37,7 @@
  */
 
 #include "hierarchy.h"
-#include "process.h"
+#include "processbase.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -48,7 +48,7 @@
 namespace f2cc {
 namespace ForSyDe {
 
-
+class Process;
 /**
  * @brief Contains the internal representation of a ForSyDe model.
  *
@@ -81,7 +81,7 @@ class Model {
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
-    bool addProcess(Process* process, ForSyDe::Hierarchy hierarchy)
+    bool addProcess(ProcessBase* process, ForSyDe::Hierarchy hierarchy)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
@@ -92,7 +92,7 @@ class Model {
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
-    void addProcesses(std::map<const Id, Process*> processes, ForSyDe::Hierarchy hierarchy)
+    void addProcesses(std::map<const Id, ProcessBase*> processes, ForSyDe::Hierarchy hierarchy)
         throw(OutOfMemoryException);
 
     /**
@@ -102,7 +102,7 @@ class Model {
      *        Process ID.
      * @returns Process, if found; otherwise \c NULL.
      */
-    Process* getProcess(const Id& id) throw();
+    ProcessBase* getProcess(const Id& id) throw();
 
     /**
      * Gets the number of processes in this model.
@@ -116,7 +116,9 @@ class Model {
      *
      * @returns Process list.
      */
-    std::list<Process*> getProcesses() throw();
+    std::list<ProcessBase*> getProcesses() throw();
+
+
 
     /**
      * Removes and destroys a process by ID.
@@ -169,7 +171,7 @@ class Model {
      * @returns Iterator pointing either at the found process, or an iterator
      *          equal to Mapset's \c end() iterator.
      */
-    std::map<const Id, Process*>::iterator findProcess(const Id& id) throw();
+    std::map<const Id, ProcessBase*>::iterator findProcess(const Id& id) throw();
 
     /**
      * Destroys all processes in this model.
@@ -183,7 +185,7 @@ class Model {
     /**
      * Mapset of leaf processes.
      */
-    std::map<const Id, Process*> processes_;
+    std::map<const Id, ProcessBase*> processes_;
 };
 
 
