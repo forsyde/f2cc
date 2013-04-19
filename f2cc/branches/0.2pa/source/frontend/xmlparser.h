@@ -85,7 +85,7 @@ class XmlParser : public Frontend {
      */
     virtual ForSyDe::Processnetwork* createProcessnetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidModelException, RuntimeException);
+              ParseException, InvalidProcessnetworkException, RuntimeException);
 
     /**
      * Scans the entire XML structure and checks that all needed elements and
@@ -129,7 +129,7 @@ class XmlParser : public Frontend {
      *         When \c xml is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
-     * @throws InvalidModelException
+     * @throws InvalidProcessnetworkException
      *         When the process network is invalid (but was successfully parsed).
      * @throws IOException
      *         When access to the log file fails.
@@ -138,7 +138,7 @@ class XmlParser : public Frontend {
      *         bug.
      */
     ForSyDe::Processnetwork* generateProcessnetwork(ticpp::Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidModelException,
+    throw(InvalidArgumentException, ParseException, InvalidProcessnetworkException,
           IOException, RuntimeException);
 
 

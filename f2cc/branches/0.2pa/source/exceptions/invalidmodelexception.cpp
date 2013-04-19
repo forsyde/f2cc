@@ -29,12 +29,12 @@
 using namespace f2cc;
 using std::string;
 
-InvalidModelException::InvalidModelException(
+InvalidProcessnetworkException::InvalidProcessnetworkException(
     const string& source_file, int source_line, const string& message)
         throw() : Exception(source_file, source_line, message) {}
 
-InvalidModelException::~InvalidModelException() throw() {}
+InvalidProcessnetworkException::~InvalidProcessnetworkException() throw() {}
 
-string InvalidModelException::type() const throw() {
-    return "InvalidModelException";
+string InvalidProcessnetworkException::type() const throw() {
+    return "InvalidProcessnetworkException";
 }

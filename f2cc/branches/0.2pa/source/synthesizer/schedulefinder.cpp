@@ -48,19 +48,14 @@ ScheduleFinder::~ScheduleFinder() throw() {}
 
 list<Id> ScheduleFinder::findSchedule() throw(IOException, RuntimeException) {
     // Add all processes at processnetwork outputs to starting point queue
-    list<Composite::IOPort*> output_ports = processnetwork_->getOutPorts();
+    list<Process::Port*> output_ports = processnetwork_->getOutPorts();
     logger_.logMessage(Logger::DEBUG, string("Scanning all processnetwork outputs..."));
-    for (list<Composite::IOPort*>::iterator it = output_ports.begin();
+    for (list<Process::Port*>::iterator it = output_ports.begin();
          it != output_ports.end(); ++it) {
-    	Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(*it);
-    	if(!ioport) {
-			THROW_EXCEPTION(IllegalStateException, string("The process network")
-							+ "has to have IOPorts");
-    	}
         logger_.logMessage(Logger::DEBUG, string("Adding \"")
-                           + ioport->getConnectedLeafPortInside()->getProcess()->getId()->getString()
+                           + (*it)->getProcess()->getId()->getString()
                            + "\" to starting point queue...");
-        starting_points_.push(ioport->getConnectedLeafPortInside()->getProcess());
+        starting_points_.push((*it)->getProcess());
     }
     
     // Iterate over all starting points
@@ -125,7 +120,7 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
         Process::Port* inport = start->getInPorts().front();
         if (inport->isConnected()) {
             Process* preceding_process =
-                inport->getConnectedLeafPort()->getProcess();
+                inport->getConnectedPort()->getProcess();
             starting_points_.push(preceding_process);
         }
         partial_schedule.schedule.push_back(*start->getId());
@@ -143,7 +138,7 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
     list<Process::Port*>::iterator it;
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
         if ((*it)->isConnected()) {
-            Process* next_process = (*it)->getConnectedLeafPort()->getProcess();
+            Process* next_process = (*it)->getConnectedPort()->getProcess();
             PartialSchedule pp_schedule(findPartialSchedule(next_process,
                                                             locally_visited));
             tools::append<Id>(partial_schedule.schedule, pp_schedule.schedule);

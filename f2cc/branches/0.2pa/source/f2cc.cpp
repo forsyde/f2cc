@@ -250,7 +250,7 @@ int main(int argc, const char* argv[]) {
             logger.logErrorMessage(ex.getMessage());
         } catch (ParseException& ex) {
             logger.logErrorMessage(parse_error_str + ex.getMessage());
-        } catch (InvalidModelException& ex) {
+        } catch (InvalidProcessnetworkException& ex) {
             logger.logErrorMessage(processnetwork_error_str + ex.getMessage());
         } catch (IOException& ex) {
             logger.logErrorMessage(io_error_str + ex.getMessage());

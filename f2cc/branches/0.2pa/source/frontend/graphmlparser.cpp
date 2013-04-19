@@ -65,7 +65,7 @@ GraphmlParser::~GraphmlParser() throw() {}
 
 Processnetwork* GraphmlParser::createProcessnetwork(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidModelException, RuntimeException) {
+          ParseException, InvalidProcessnetworkException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
@@ -211,7 +211,7 @@ Element* GraphmlParser::findXmlGraphElement(Document* xml)
 }
 
 Processnetwork* GraphmlParser::generateProcessnetwork(Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidModelException,
+    throw(InvalidArgumentException, ParseException, InvalidProcessnetworkException,
           IOException, RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
@@ -1067,7 +1067,7 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* processnetw
 }
 
 void GraphmlParser::checkProcessnetworkMore(Processnetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidModelException, IOException,
+    throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
           RuntimeException) {
     logger_.logInfoMessage("Checking that the process network contains at least one "
                             "InPort and OutPort process...");
@@ -1093,10 +1093,10 @@ void GraphmlParser::checkProcessnetworkMore(Processnetwork* processnetwork)
         }
     }
     if (!found_in_port_process) {
-        THROW_EXCEPTION(InvalidModelException, "No InPort process found");
+        THROW_EXCEPTION(InvalidProcessnetworkException, "No InPort process found");
     }
     if (!found_out_port_process) {
-        THROW_EXCEPTION(InvalidModelException, "No OutPort process found");
+        THROW_EXCEPTION(InvalidProcessnetworkException, "No OutPort process found");
     }
 }
 

@@ -92,7 +92,7 @@ class Frontend {
      *         When the file cannot be read or the log file cannot be written.
      * @throws ParseException
      *         When the file fails to be parsed.
-     * @throws InvalidModelException
+     * @throws InvalidProcessnetworkException
      *         When the process network is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
@@ -100,7 +100,7 @@ class Frontend {
      */
     ForSyDe::Processnetwork* parse(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidModelException, RuntimeException);
+              ParseException, InvalidProcessnetworkException, RuntimeException);
 
   protected:
     /**
@@ -128,7 +128,7 @@ class Frontend {
      *         When the file cannot be read or the log file cannot be written.
      * @throws ParseException
      *         When the file fails to be parsed.
-     * @throws InvalidModelException
+     * @throws InvalidProcessnetworkException
      *         When the process network is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
@@ -136,7 +136,7 @@ class Frontend {
      */
     virtual ForSyDe::Processnetwork* createProcessnetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidModelException, RuntimeException) = 0;
+              ParseException, InvalidProcessnetworkException, RuntimeException) = 0;
 
     /**
      * Performs more processnetwork checks. By default, this does nothing.
@@ -145,7 +145,7 @@ class Frontend {
      *        Processnetwork to check.
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
-     * @throws InvalidModelException
+     * @throws InvalidProcessnetworkException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -154,7 +154,7 @@ class Frontend {
      *         bug.
      */
     virtual void checkProcessnetworkMore(ForSyDe::Processnetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidModelException, IOException,
+        throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
               RuntimeException);
 
     /**
@@ -184,7 +184,7 @@ class Frontend {
      *        Processnetwork to check.
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
-     * @throws InvalidModelException
+     * @throws InvalidProcessnetworkException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -195,7 +195,7 @@ class Frontend {
      * @see checkProcessnetworkMore(ForSyDe::Processnetwork*)
      */
     void checkProcessnetwork(ForSyDe::Processnetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidModelException, IOException,
+        throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
               RuntimeException);
 
     /**
@@ -246,7 +246,7 @@ class Frontend {
      *        Processnetwork that the process using the port should belong to.
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
-     * @throws InvalidModelException
+     * @throws InvalidProcessnetworkException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -256,7 +256,7 @@ class Frontend {
      * @see checkPort(ForSyDe::Process::Port*, ForSyDe::Processnetwork*)
      */
     void checkProcess(ForSyDe::Process* process, ForSyDe::Processnetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidModelException, IOException,
+        throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
               RuntimeException);
 
     /**
@@ -272,7 +272,7 @@ class Frontend {
      *        Processnetwork that the process using the port should belong to.
      * @throws InvalidArgumentException
      *         When either \c port or \c processnetwork is \c NULL.     
-     * @throws InvalidModelException
+     * @throws InvalidProcessnetworkException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -281,7 +281,7 @@ class Frontend {
      *         bug.
      */
     void checkPort(ForSyDe::Process::Port* port, ForSyDe::Processnetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidModelException, IOException,
+        throw(InvalidArgumentException, InvalidProcessnetworkException, IOException,
               RuntimeException);
 
   protected:

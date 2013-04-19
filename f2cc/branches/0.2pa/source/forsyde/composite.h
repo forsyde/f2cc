@@ -40,7 +40,6 @@
 #include "id.h"
 #include "hierarchy.h"
 #include "model.h"
-#include "processbase.h"
 #include "process.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/notsupportedexception.h"
@@ -63,7 +62,7 @@ namespace ForSyDe {
  * of ForSyDe process networks. It inherits both the \c Model class and the \Process class.
  * Hence it behaves like a process that contains other processes.
  */
-class Composite : public Model, public ProcessBase {
+class Composite : public Model, public Process {
 public:
 	class IOPort;
   public:
@@ -92,122 +91,11 @@ public:
      */
     const ForSyDe::Id* getName() const throw();
 
-    /**
-     * Adds an in port to this process. Processes are not allowed to have
-     * multiple in ports with the same ID.
-     *
-     * @param id
-     *        Port ID.
-     * @returns \c true if such an in port did not already exist and was
-     *          successfully added.
-     * @throws OutOfMemoryException
-     *         When a port cannot be added due to memory shortage.
-     */
-    bool addInPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
+    virtual const std::string getMoc() const throw();
 
-    /**
-     * Creates a new port with the same ID and connections as another port and
-     * adds it as in port to this process. The connections at the other port are
-     * broken. Processes are not allowed to have multiple in ports with the same
-     * ID.
-     *
-     *
-     * @param port
-     *        Port.
-     * @returns \c true if such an in port did not already exist and was
-     *          successfully copied and added.
-     * @throws OutOfMemoryException
-     *         When a port cannot be added due to memory shortage.
-     */
-    bool addInPort(IOPort& port) throw(OutOfMemoryException);
+    virtual int getCost() const throw();
 
-    /**
-     * Deletes and destroys an in port to this process.
-     *
-     * @param id
-     *        Port ID.
-     * @returns \c true if such a port was found and successfully deleted.
-     */
-    bool deleteInPort(const ForSyDe::Id& id) throw();
-
-    /**
-     * Gets the number of in ports of this process.
-     *
-     * @returns Number of in ports.
-     */
-    size_t getNumInPorts() const throw();
-
-    /**
-     * Gets an in port by ID belonging to this this process.
-     *
-     * @param id
-     *        Port id.
-     * @returns Port, if found; otherwise \c NULL.
-     */
-    IOPort* getInPort(const ForSyDe::Id& id) throw();
-
-    /**
-     * Gets a list of in ports belonging to this this process.
-     *
-     * @returns List of in ports.
-     */
-    std::list<IOPort*> getInPorts() throw();
-
-    /**
-     * Same as addIn Port(const ForSyDe::Id&) but for out ports.
-     *
-     * @param id
-     *        Port ID.
-     * @returns \c true if such a port did not already exist and was
-     *          successfully added.
-     * @throws OutOfMemoryException
-     *         When a port cannot be added due to memory shortage.
-     */
-    bool addOutPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
-
-    /**
-     * Same as addInPort(Port&) but for out ports.
-     *
-     * @param port
-     *        Port.
-     * @returns \c true if such an out port did not already exist and was
-     *          successfully copied and added.
-     * @throws OutOfMemoryException
-     *         When a port cannot be added due to memory shortage.
-     */
-    bool addOutPort(IOPort& port) throw(OutOfMemoryException);
-
-    /**
-     * Same as deleteOutPort(const ForSyDe::Id&) but for out ports.
-     *
-     * @param id
-     *        Port ID.
-     * @returns \c true if such a port was found and successfully deleted.
-     */
-    bool deleteOutPort(const ForSyDe::Id& id) throw();
-
-    /**
-     * Same as getNumInPorts() but for out ports.
-     *
-     * @returns Number of out ports.
-     */
-    size_t getNumOutPorts() const throw();
-
-    /**
-     * Same as getOutPort(const ForSyDe::Id&) but for out ports.
-     *
-     * @param id
-     *        Port ID.
-     * @returns Port, if found; otherwise \c NULL.
-     */
-    IOPort* getOutPort(const ForSyDe::Id& id) throw();
-
-    /**
-     * Same as getInPorts() but for out ports.
-     *
-     * @returns List of out ports.
-     */
-    std::list<IOPort*> getOutPorts() throw();
+    virtual void setCost(int cost) const throw();
 
     /**
      * Same as Process::operator==(const Process&) const but with the additional
@@ -217,36 +105,12 @@ public:
      *        Composite process to compare with.
      * @returns \c true if both processes are equal.
      */
-    bool operator==(const Process& rhs) const throw();
+    virtual bool operator==(const Process& rhs) const throw();
 
     /**
      * @copydoc Process::type()
      */
     virtual std::string type() const throw();
-
-    /**
-     * Converts this process into a string representation. The resultant string
-     * is as follows:
-     * @code
-     * {
-     *  ProcessID: <process_id>,
-     *  ProcessType: <process_type>
-     *  MoC: <moc>
-     *  Parent: <parent_process>
-     *  NumInPorts : <num_in_ports>
-     *  InPorts = {...}
-     *  NumOutPorts : <num_out_ports>
-     *  OutPorts = {...}
-     *  [aditional data]
-     * }
-     * @endcode
-     * Derived classes may include additional data by overriding the
-     * virtual moreToString() method.
-     *
-     * @returns String representation.
-     * @see moreToString()
-     */
-    std::string toString() const throw();
 
   protected:
     /**
@@ -262,45 +126,14 @@ public:
      */
     virtual std::string moreToString() const throw();
 
-
     /**
-     * Takes a list of ports and converts it into a string representation. Each
-     * port is converted into
-     * @code
-     *  PortID: <port_id>, not connected / connected to <process>:<port>,
-     *  ...
-     * @endcode
+     * Checks that this process has at least one in port, one out
+     * port and one contained process.
      *
-     * @param ports
-     *        Port list.
-     * @returns String representation.
+     * @throws InvalidProcessException
+     *         When the check fails.
      */
-    std::string portsToString(const std::list<IOPort*> ports) const throw();
-
-  private:
-
-     /**
-      * Attempts to find a port with a given ID from a list of ports. If the list
-      * is not empty and such a port is found, an iterator pointing to that port
-      * is returned; otherwise the list's \c end() iterator is returned.
-      *
-      * @param id
-      *        Port ID.
-      * @param ports
-      *        List of ports.
-      * @returns Iterator pointing either at the found port, or an iterator equal
-      *          to the list's \c end() iterator.
-      */
-     std::list<IOPort*>::iterator findPort(const ForSyDe::Id& id,
-                                         std::list<IOPort*>& ports) const throw();
-
-     /**
-      * Destroys all ports in a given list.
-      *
-      * @param ports
-      *        List of ports to destroy.
-      */
-     void destroyAllPorts(std::list<IOPort*>& ports) throw();
+    virtual void moreChecks() throw(InvalidProcessException);
 
   protected:
     /**
@@ -325,7 +158,7 @@ public:
      * The \c Port class defines a process port. A port is identified by an ID
      * and can be connected to another port.
      */
-    class IOPort : public PortBase{
+    class IOPort : public Port{
       public:
         /**
          * Creates a port belonging to no process.
@@ -360,8 +193,17 @@ public:
          * @param rhs
          *        Port to copy.
          */
-        explicit IOPort(ProcessBase::PortBase& rhs) throw();
+        explicit IOPort(Port& rhs) throw();
 
+        /**
+         * Creates a port belonging to no process with the same ID, data type and
+         * connections as another port. The connection at the other port is
+         * broken.
+         *
+         * @param rhs
+         *        Port to copy.
+         */
+        explicit IOPort(IOPort& rhs) throw();
 
         /**
          * Creates a port belonging to process with the same ID, data type and
@@ -375,13 +217,31 @@ public:
          * @throws InvalidArgumentException
          *         When \c process is \c NULL.
          */
-        explicit IOPort(ProcessBase::PortBase&, Composite* composite)
+        explicit IOPort(Port& rhs, Composite* composite)
+            throw(InvalidArgumentException);
+
+        /**
+         * Creates a port belonging to process with the same ID, data type and
+         * connections as another port. The connection at the other port is
+         * broken.
+         *
+         * @param rhs
+         *        Port to copy.
+         * @param process
+         *        Pointer to the process to which this port belongs.
+         * @throws InvalidArgumentException
+         *         When \c process is \c NULL.
+         */
+        explicit IOPort(IOPort& rhs, Composite* composite)
             throw(InvalidArgumentException);
 
         /**
          * Destroys this port. This also breaks the connection, if any.
          */
         virtual ~IOPort() throw();
+
+        virtual CDataType getDataType() throw();
+        virtual bool setDataType(CDataType& datatype) throw();
 
         /**
          * ATTENTION! This method is kept only for backwards compatibility purpose, and is used by
@@ -391,7 +251,7 @@ public:
          *
          * @returns \c true if connected \c inside.
          */
-		bool isConnected() const throw();
+		virtual bool isConnected() const throw();
 
         /**
          * Checks if this \c IOPort is connected to a port outside the composite process.
@@ -438,21 +298,21 @@ public:
          * @param port
          *        Port to connect.
          */
-		void connect(PortBase* port) throw(InvalidArgumentException);
+		virtual void connect(Port* port) throw(InvalidArgumentException);
 
         /**
          * ATTENTION!
          * Breaks the connection that this port may have to another. If there is
          * no connection, nothing happens.
          */
-		void unconnect() throw();
+		virtual void unconnect() throw();
 
         /**
          * ATTENTION!
          * Breaks the connection that this port may have to another. If there is
          * no connection, nothing happens.
          */
-		void unconnect(PortBase* port) throw(InvalidArgumentException);
+		void unconnect(Port* port) throw(InvalidArgumentException);
 
         /**
          * Breaks the connection that this port may have to another. If there is
@@ -502,7 +362,7 @@ public:
          *
          * @returns Connected port, if any; otherwise \c NULL.
          */
-		PortBase* getConnectedPort() const throw();
+		virtual Port* getConnectedPort() const throw();
 
         /**
          * Searches recursively through composites and gets
@@ -514,7 +374,7 @@ public:
 		 *         When this method was called for a non-IO port
          */
 
-		PortBase* getConnectedPortOutside() const throw();
+		Port* getConnectedPortOutside() const throw();
         /**
          * Searches recursively through composites and gets
          * the port at the other end of the connection, if any.
@@ -524,7 +384,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		PortBase* getConnectedPortInside() const throw();
+		Port* getConnectedPortInside() const throw();
 
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
@@ -534,7 +394,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		Process::Port* getConnectedLeafPortOutside() const throw(InvalidArgumentException);
+		Port* getConnectedLeafPortOutside() const throw(InvalidArgumentException);
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
          *
@@ -543,8 +403,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		Process::Port* getConnectedLeafPortInside() const throw(InvalidArgumentException);
-
+		Port* getConnectedLeafPortInside() const throw(InvalidArgumentException);
 
 
         /**
@@ -564,17 +423,22 @@ public:
          * not allowed to avoid potential bugs as it is easy to forget this
          * fact.
          */
-        void operator=(const IOPort&) throw();
+        void operator=(const Port&) throw();
 
+        void connectPrv(Port* port) throw(InvalidArgumentException);
 
       private:
+
+        /**
+         * Parent process.
+         */
+        //Composite* process_;
 
         /**
 		 * In case it is an IO Port, this will contain a connection inside the
 		 * composite process as well
 		 */
-        PortBase* connected_port_inside_;
-        PortBase* connected_port_outside_;
+        Port* connected_port_inside_;
 
     };
 };
