@@ -122,6 +122,38 @@ class Processnetwork: public Composite {
      */
     bool deleteFunction(std::string name) throw();
 
+    /**
+     * Gets an in port by ID belonging to this this process.
+     *
+     * @param id
+     *        Port id.
+     * @returns Port, if found; otherwise \c NULL.
+     */
+    //virtual Port* getInPort(const ForSyDe::Id& id) throw();
+
+    /**
+     * Gets a list of in ports belonging to this this process.
+     *
+     * @returns List of in ports.
+     */
+    //virtual std::list<Port*> getInPorts() throw();
+
+    /**
+     * Same as getOutPort(const ForSyDe::Id&) but for out ports.
+     *
+     * @param id
+     *        Port ID.
+     * @returns Port, if found; otherwise \c NULL.
+     */
+    //virtual Port* getOutPort(const ForSyDe::Id& id) throw();
+
+    /**
+     * Same as getInPorts() but for out ports.
+     *
+     * @returns List of out ports.
+     */
+    //virtual std::list<Port*> getOutPorts() throw();
+
 
   private:
 
@@ -139,6 +171,21 @@ class Processnetwork: public Composite {
      */
     std::list<CFunction*>::iterator findFunction(const std::string name,
                                         std::list<CFunction*>& functions) const throw();
+
+    /**
+     * Attempts to find a port with a given ID from a list of ports. If the list
+     * is not empty and such a port is found, an iterator pointing to that port
+     * is returned; otherwise the list's \c end() iterator is returned.
+     *
+     * @param id
+     *        Port ID.
+     * @param ports
+     *        List of ports.
+     * @returns Iterator pointing either at the found port, or an iterator equal
+     *          to the list's \c end() iterator.
+     */
+    //std::list<IOPort*>::iterator findPort(const ForSyDe::Id& id,
+    //                                    std::list<IOPort*>& ports) const throw();
 
     /**
      * Destroys all functions in a given list.

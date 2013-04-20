@@ -359,8 +359,19 @@ ModelModifier::findContainedSections() throw(IOException, RuntimeException) {
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
         logger_.logDebugMessage(string("Entering at output port \"")
                                 + (*it)->toString() + "\"");
+        Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(*it);
+        if (!ioport) {
+            THROW_EXCEPTION(RuntimeException, string("Port ")
+                            + "\"" + (*it)->toString()
+                            + "\" is not an IO Port");
+        }
+        logger_.logDebugMessage(string("which is connected to \"")
+                                        + ioport->getConnectedPort()->toString() + "\"");
+        logger_.logDebugMessage(string("\" and the reverse connection is \"")
+                                + ioport->getConnectedPort()->getConnectedPort()->toString()
+                                + "\"");
         tools::append<ContainedSection>(sections, findContainedSections(
-                                            (*it)->getProcess(), visited));
+                                            (ioport)->getConnectedPort()->getProcess(), visited));
     }
     return sections;
 }
@@ -690,8 +701,21 @@ list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains()
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
         logger_.logDebugMessage(string("Entering at output port \"")
                                 + (*it)->toString() + "\"");
+        Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(*it);
+        if (!ioport) {
+            THROW_EXCEPTION(RuntimeException, string("Port ")
+                            + "\"" + (*it)->toString()
+                            + "\" is not an IO Port");
+        }
+        logger_.logDebugMessage(string("which is connected to \"")
+                                + ioport->getConnectedPort()->toString()
+                                + "\"");
+
+        logger_.logDebugMessage(string("\" and the reverse connection is \"")
+                                + ioport->getConnectedPort()->getConnectedPort()->toString()
+                                + "\"");
         tools::append< list<ParallelMap*> >(
-            chains, findParallelMapSyChains((*it)->getProcess(), visited));
+            chains, findParallelMapSyChains(ioport->getConnectedPort()->getProcess(), visited));
     }
     return chains;
 }
@@ -1082,7 +1106,7 @@ void ModelModifier::redirectDataFlow(Process* old_start, Process* old_end,
     list<Process::Port*> in_ports = old_start->getInPorts();
     list<Process::Port*>::iterator it;
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
-        if (!new_start->addInPort(**it)) {
+        if (!new_start->addInPort(*(*it))) {
             THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                             + "in port \"" + (*it)->toString() + "\" to "
                             + "process \"" + new_start->getId()->getString()
@@ -1097,7 +1121,7 @@ void ModelModifier::redirectDataFlow(Process* old_start, Process* old_end,
                             + new_end->getId()->getString() + "\"");
     list<Process::Port*> out_ports = old_end->getOutPorts();
     for (it = out_ports.begin(); it != out_ports.end(); ++it) {
-        if (!new_end->addOutPort(**it)) {
+        if (!new_end->addOutPort(*(*it))) {
             THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                             + "out port \"" + (*it)->toString() + "\" to "
                             + "process \"" + new_start->getId()->getString()

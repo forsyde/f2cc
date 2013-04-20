@@ -333,7 +333,11 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
         list<Process::Port*> ports = process->getOutPorts();
         list<Process::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            processnetwork->addInPort(*((*port_it)->getConnectedPort()));
+        	Composite::IOPort new_port(*(*port_it));
+        	logger_.logDebugMessage(string("Adding ")
+									+ "connection to \"" + new_port.getConnectedPort()->toString()
+									+ " to processnetwork inputs...");
+            processnetwork->addInPort(new_port);
         }
 
         Id id = *process->getId();
@@ -356,7 +360,11 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
         list<Process::Port*> ports = process->getInPorts();
         list<Process::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            processnetwork->addOutPort(*((*port_it)->getConnectedPort()));
+        	Composite::IOPort new_port(*(*port_it));
+        	logger_.logDebugMessage(string("Adding ")
+        	                                + "connection to \"" + new_port.getConnectedPort()->toString()
+        	                                + " to processnetwork outputs...");
+        	processnetwork->addOutPort(new_port);
         }
 
         Id id = *process->getId();

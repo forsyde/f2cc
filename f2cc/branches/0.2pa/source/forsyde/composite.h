@@ -425,7 +425,8 @@ public:
          */
         void operator=(const Port&) throw();
 
-        void connectPrv(Port* port) throw(InvalidArgumentException);
+        void connectPrvIn(Port* port) throw(InvalidArgumentException);
+        void connectPrvOut(Port* port) throw(InvalidArgumentException);
 
       private:
 

@@ -63,7 +63,8 @@ void Process::setHierarchy(Hierarchy hierarchy) throw() {
 }
 
 Hierarchy::Relation Process::findRelation(const Process* rhs) const throw(){
-	return hierarchy_.findRelation(rhs->hierarchy_);
+	if (rhs) return hierarchy_.findRelation(rhs->hierarchy_);
+	else return Hierarchy::Sibling;
 }
 
 const string Process::getMoc() const throw() {
@@ -97,9 +98,17 @@ bool Process::addInPort(Port& port) throw(OutOfMemoryException) {
     }
 
     try {
-        Port* new_port = new Port(port, this);
-        in_ports_.push_back(new_port);
-        return true;
+    	Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(&port);
+    	if (ioport){
+    		Composite::IOPort* new_port = new Composite::IOPort(*ioport, dynamic_cast<Composite*>(this));
+    		in_ports_.push_back(new_port);
+			return true;
+    	}
+    	else{
+    		Port* new_port = new Port(port, this);
+    		in_ports_.push_back(new_port);
+			return true;
+    	}
     }
     catch (bad_alloc&) {
         THROW_EXCEPTION(OutOfMemoryException);
@@ -156,9 +165,17 @@ bool Process::addOutPort(Port& port) throw(OutOfMemoryException) {
     }
 
     try {
-        Port* new_port = new Port(port, this);
-        out_ports_.push_back(new_port);
-        return true;
+    	Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(&port);
+    	if (ioport){
+    		Composite::IOPort* new_port = new Composite::IOPort(*ioport, dynamic_cast<Composite*>(this));
+    		out_ports_.push_back(new_port);
+			return true;
+    	}
+    	else{
+    		Port* new_port = new Port(port, this);
+    		out_ports_.push_back(new_port);
+			return true;
+    	}
     }
     catch (bad_alloc&) {
         THROW_EXCEPTION(OutOfMemoryException);
@@ -365,7 +382,7 @@ Process::Port::Port(Port& rhs, Process* process) throw(InvalidArgumentException)
 }
 
 Process::Port::~Port() throw() {
-    unconnect();
+    //unconnect();
 }
         
 Process* Process::Port::getProcess() const throw() {
@@ -380,7 +397,7 @@ f2cc::CDataType Process::Port::getDataType() throw() {
     return data_type_;
 }
 
-bool Process::Port::setDataType(CDataType& datatype) throw() {
+bool Process::Port::setDataType(CDataType datatype) throw() {
 	data_type_ = datatype;
 	return true;
 }
@@ -480,17 +497,8 @@ void Process::Port::connectGlobal(Port* port) throw() {
 
 void Process::Port::unconnect() throw() {
     if (connected_port_outside_) {
-        Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
-    	if (ioport){
-    		Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
-			if (relation == Hierarchy::Sibling) ioport->unconnectOutside();
-			else ioport->unconnectInside();
-
-    	}
-    	else {
-			connected_port_outside_->connected_port_outside_ = NULL;
-			connected_port_outside_ = NULL;
-    	}
+		connected_port_outside_->connected_port_outside_ = NULL;
+		connected_port_outside_ = NULL;
     }
 }
 
@@ -544,7 +552,7 @@ string Process::Port::toString() const throw() {
     else          str += "NULL";
     str += ":";
     str += id_.getString();
-    str += " encapsulating: ";
+    str += " = ";
     str += data_type_.toString();
     return str;
 }

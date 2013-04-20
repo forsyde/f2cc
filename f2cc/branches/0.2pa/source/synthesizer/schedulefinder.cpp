@@ -52,10 +52,12 @@ list<Id> ScheduleFinder::findSchedule() throw(IOException, RuntimeException) {
     logger_.logMessage(Logger::DEBUG, string("Scanning all processnetwork outputs..."));
     for (list<Process::Port*>::iterator it = output_ports.begin();
          it != output_ports.end(); ++it) {
+    	//static Composite::IOPort* casted_output  = dynamic_cast<Composite::IOPort*>(*it);
+    	//if (!casted_output) THROW_EXCEPTION(RuntimeException, "Process Network Output is not IOPort");
         logger_.logMessage(Logger::DEBUG, string("Adding \"")
-                           + (*it)->getProcess()->getId()->getString()
+                           + (*it)->getConnectedPort()->getProcess()->getId()->getString()
                            + "\" to starting point queue...");
-        starting_points_.push((*it)->getProcess());
+        starting_points_.push((*it)->getConnectedPort()->getProcess());
     }
     
     // Iterate over all starting points

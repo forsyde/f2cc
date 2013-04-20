@@ -269,10 +269,19 @@ Synthesizer::Signal* Synthesizer::getSignalByOutPort(Process::Port* out_port)
                             + out_port->toString() + "\"");
 
     Process::Port* in_port = NULL;
-    if (out_port->isConnected()) {
-        in_port = out_port->getConnectedPort();
+    Composite::IOPort* io_out_port = dynamic_cast<Composite::IOPort*>(out_port);
+    if (io_out_port){
+        if (io_out_port->isConnected()) {
+            in_port = io_out_port->getConnectedPort();
+        }
+        return getSignal(io_out_port, in_port);
     }
-    return getSignal(out_port, in_port);
+    else {
+        if (out_port->isConnected()) {
+            in_port = out_port->getConnectedPort();
+        }
+        return getSignal(out_port, in_port);
+    }
 }
 
 Synthesizer::Signal* Synthesizer::getSignalByInPort(Process::Port* in_port)
@@ -285,11 +294,21 @@ Synthesizer::Signal* Synthesizer::getSignalByInPort(Process::Port* in_port)
     logger_.logDebugMessage(string("Getting signal for in port \"")
                             + in_port->toString() + "\"");
 
+
     Process::Port* out_port = NULL;
-    if (in_port->isConnected()) {
-        out_port = in_port->getConnectedPort();
+    Composite::IOPort* io_in_port = dynamic_cast<Composite::IOPort*>(in_port->getConnectedPort());
+    if (io_in_port){
+		THROW_EXCEPTION(IllegalStateException, string("Port \"") +
+					in_port->toString() + "\" is IO Port");
+
     }
-    return getSignal(out_port, in_port);
+    else {
+        if (in_port->isConnected()) {
+        	std::cout<<"Hololooooooooooooooooo!!!!\n";
+            out_port = in_port->getConnectedPort();
+        }
+        return getSignal(out_port, in_port);
+    }
 }
 
 void Synthesizer::renameMapFunctions()

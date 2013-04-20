@@ -176,14 +176,14 @@ class Process{
      *        Port id.
      * @returns Port, if found; otherwise \c NULL.
      */
-    Port* getInPort(const ForSyDe::Id& id) throw();
+     Port* getInPort(const ForSyDe::Id& id) throw();
 
     /**
      * Gets a list of in ports belonging to this this process.
      *
      * @returns List of in ports.
      */
-    std::list<Port*> getInPorts() throw();
+     std::list<Port*> getInPorts() throw();
 
     /**
      * Same as addIn Port(const ForSyDe::Id&) but for out ports.
@@ -232,14 +232,14 @@ class Process{
      *        Port ID.
      * @returns Port, if found; otherwise \c NULL.
      */
-    Port* getOutPort(const ForSyDe::Id& id) throw();
+     Port* getOutPort(const ForSyDe::Id& id) throw();
 
     /**
      * Same as getInPorts() but for out ports.
      *
      * @returns List of out ports.
      */
-    std::list<Port*> getOutPorts() throw();
+     std::list<Port*> getOutPorts() throw();
 
     /**
      * Checks that this process is valid. This does nothing except invoke the
@@ -480,7 +480,7 @@ class Process{
 		 * @param datatype
 		 *        The new data type that has to be set.
 		 */
-        virtual bool setDataType(CDataType& datatype) throw();
+        virtual bool setDataType(CDataType datatype) throw();
 
         /**
          * Checks whether this port is an IO port.

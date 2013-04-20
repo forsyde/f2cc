@@ -32,7 +32,10 @@ using std::string;
 using std::list;
 
 
-Hierarchy::Hierarchy() throw() {}
+Hierarchy::Hierarchy() throw() {
+	Id* id = new Id("");
+	hierarchy_.push_back(id);
+}
 
 Hierarchy::Hierarchy(list<Id*> hierarchy) throw() :
 		hierarchy_(hierarchy){}
@@ -53,7 +56,7 @@ void Hierarchy::lowerLevel(const Id& id) throw(){
 }
 
 void Hierarchy::raiseLevel() throw(){
-	hierarchy_.erase(hierarchy_.end()--);
+	hierarchy_.erase(--(hierarchy_.end()));
 }
 
 const Id* Hierarchy::getId() const throw(){
@@ -61,9 +64,8 @@ const Id* Hierarchy::getId() const throw(){
 }
 
 const Id* Hierarchy::getFirstParent() const throw(){
-	list<Id*>::const_iterator it = hierarchy_.end();
-	Id* local_copy = *(--it);
-	return *(--it);
+	list<Id*>::const_reverse_iterator it = hierarchy_.rbegin();
+	return *(++it);
 }
 
 const Id* Hierarchy::getFirstChildAfter(const Id& id) const throw(){
@@ -98,7 +100,6 @@ list<Id*>::const_iterator Hierarchy::findId(const Id& id) const throw(){
 string Hierarchy::toString(list<Id*> ids) const throw() {
     string str;
     if (ids.size() > 0) {
-        str += "\n";
         bool first = true;
         for (list<Id*>::const_iterator it = ids.begin(); it != ids.end(); ++it) {
             if (!first) {

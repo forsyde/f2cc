@@ -128,6 +128,61 @@ std::string Processnetwork::toString() const throw() {
 }
 */
 
+/*
+
+Process::Port* Processnetwork::getInPort(const Id& id) throw() {
+    list<Composite::IOPort*>::iterator it = findPort(id, in_ports_);
+    if (it != in_ports_.end()) {
+        return (*it)->getConnectedPortInside();
+    }
+    else {
+        return NULL;
+    }
+}
+
+list<Process::Port*> Processnetwork::getInPorts() throw() {
+	list<Process::Port*> connection_list;
+	list<Composite::IOPort*>::iterator it;
+	for (it = in_ports_.begin(); it != in_ports_.end(); ++it) {
+		connection_list.push_back((*it)->getConnectedPort());
+	}
+    return connection_list;
+}
+
+Process::Port* Processnetwork::getOutPort(const Id& id) throw() {
+    list<Composite::IOPort*>::iterator it = findPort(id, out_ports_);
+    if (it != out_ports_.end()) {
+        return (*it)->getConnectedPortInside();
+    }
+    else {
+        return NULL;
+    }
+}
+
+list<Process::Port*> Processnetwork::getOutPorts() throw() {
+	list<Process::Port*> connection_list;
+	list<Composite::IOPort*>::iterator it;
+	for (it = out_ports_.begin(); it != out_ports_.end(); ++it) {
+		connection_list.push_back((*it)->getConnectedPort());
+	}
+    return connection_list;
+}
+
+list<Composite::IOPort*>::iterator Processnetwork::findPort(
+    const Id& id, list<Composite::IOPort*>& ports) const throw() {
+    list<Composite::IOPort*>::iterator it;
+    for (it = ports.begin(); it != ports.end(); ++it) {
+        if (*(*it)->getId() == id) {
+            return it;
+        }
+    }
+
+    // No such port was found
+    return it;
+}
+
+*/
+
 list<CFunction*>::iterator Processnetwork::findFunction(const string name,
                                         list<CFunction*>& functions) const throw(){
     list<CFunction*>::iterator it;
@@ -141,6 +196,7 @@ list<CFunction*>::iterator Processnetwork::findFunction(const string name,
     return it;
 }
 
+
 void Processnetwork::destroyAllFunctions() throw() {
     while (process_functions_.size() > 0) {
     	CFunction* function = process_functions_.front();
@@ -148,3 +204,5 @@ void Processnetwork::destroyAllFunctions() throw() {
         delete function;
     }
 }
+
+
