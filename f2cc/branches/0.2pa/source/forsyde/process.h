@@ -451,7 +451,7 @@ class Process{
          * Destroys this port. This also breaks the connection, if any.
          */
         virtual ~Port() throw();
-        
+
         /**
          * Gets the process to which this port belongs.
          *
@@ -565,6 +565,8 @@ class Process{
          * @returns Connected port, if any; otherwise \c NULL.
          */
         virtual Port* getConnectedPort() const throw();
+
+
         Port* PortGetter() const throw();
         void PortSetter(Port* port) throw();
 

@@ -139,7 +139,7 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
     list<Process::Port*> in_ports = start->getInPorts();
     list<Process::Port*>::iterator it;
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
-        if ((*it)->isConnected()) {
+        if ((*it)->isConnectedToLeaf()) {
             Process* next_process = (*it)->getConnectedPort()->getProcess();
             PartialSchedule pp_schedule(findPartialSchedule(next_process,
                                                             locally_visited));

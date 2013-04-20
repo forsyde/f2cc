@@ -384,7 +384,7 @@ Process::Port::Port(Port& rhs, Process* process) throw(InvalidArgumentException)
 Process::Port::~Port() throw() {
     //unconnect();
 }
-        
+
 Process* Process::Port::getProcess() const throw() {
     return process_;
 }

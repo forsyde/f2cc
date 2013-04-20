@@ -296,19 +296,17 @@ Synthesizer::Signal* Synthesizer::getSignalByInPort(Process::Port* in_port)
 
 
     Process::Port* out_port = NULL;
-    Composite::IOPort* io_in_port = dynamic_cast<Composite::IOPort*>(in_port->getConnectedPort());
+    if (in_port->isConnected()) {
+        out_port = in_port->getConnectedPort();
+    }
+    return getSignal(out_port, in_port);
+   /* Composite::IOPort* io_in_port = dynamic_cast<Composite::IOPort*>(in_port->getConnectedPort());
     if (io_in_port){
 		THROW_EXCEPTION(IllegalStateException, string("Port \"") +
 					in_port->toString() + "\" is IO Port");
-
     }
     else {
-        if (in_port->isConnected()) {
-        	std::cout<<"Hololooooooooooooooooo!!!!\n";
-            out_port = in_port->getConnectedPort();
-        }
-        return getSignal(out_port, in_port);
-    }
+    }*/
 }
 
 void Synthesizer::renameMapFunctions()
@@ -665,7 +663,7 @@ string Synthesizer::generateProcessnetworkFunctionDescription()
     list<Process::Port*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort((*it)->getConnectedPort());
         CDataType data_type = *signal->getDataType();
         string param_name = kProcessnetworkInputParameterPrefix + tools::toString(id);
         string process_name =
@@ -682,7 +680,7 @@ string Synthesizer::generateProcessnetworkFunctionDescription()
     // Generate description for the function output parameters
     list<Process::Port*> outputs = processnetwork_->getOutPorts();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
+        Signal* signal = getSignalByOutPort((*it)->getConnectedPort());
         CDataType data_type = *signal->getDataType();
         string param_name = kProcessnetworkOutputParameterPrefix + tools::toString(id);
         string process_name =
@@ -711,7 +709,7 @@ string Synthesizer::generateProcessnetworkFunctionParameterListCode()
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
         if (it != inputs.begin()) code += ", ";
-        CDataType data_type = *getSignalByInPort(*it)->getDataType();
+        CDataType data_type = *getSignalByInPort((*it)->getConnectedPort())->getDataType();
         data_type.setIsConst(true);
         CVariable parameter(kProcessnetworkInputParameterPrefix + tools::toString(id),
                             data_type);
@@ -723,7 +721,7 @@ string Synthesizer::generateProcessnetworkFunctionParameterListCode()
     list<Process::Port*> outputs = processnetwork_->getOutPorts();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
         if (has_input_parameter || it != outputs.begin()) code += ", ";
-        CDataType data_type = *getSignalByOutPort(*it)->getDataType();
+        CDataType data_type = *getSignalByOutPort((*it)->getConnectedPort())->getDataType();
         if (!data_type.isArray()) data_type.setIsPointer(true);
         CVariable parameter(kProcessnetworkOutputParameterPrefix + tools::toString(id),
                             data_type);
@@ -742,7 +740,7 @@ string Synthesizer::generateInputsToSignalsfanoutingCode()
     int id;
     bool at_least_one = false;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort((*it)->getConnectedPort());
         logger_.logDebugMessage(string("Analyzing signal ")
                                 + signal->toString() + "...");
 
@@ -771,7 +769,7 @@ string Synthesizer::generateSignalsToOutputsfanoutingCode()
     int id;
     bool at_least_one = false;
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
+        Signal* signal = getSignalByOutPort((*it)->getConnectedPort());
         logger_.logDebugMessage(string("Analyzing signal ")
                                 + signal->toString() + "...");
 
@@ -802,7 +800,7 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
     list<Process::Port*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort((*it)->getConnectedPort());
         logger_.logDebugMessage(string("Analyzing signal ")
                                 + signal->toString() + "...");
 
@@ -818,7 +816,7 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
     // Iterate over the output parameters
     list<Process::Port*> outputs = processnetwork_->getOutPorts();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
+        Signal* signal = getSignalByOutPort((*it)->getConnectedPort());
         logger_.logDebugMessage(string("Analyzing signal ")
                                 + signal->toString() + "...");
 
@@ -914,7 +912,7 @@ void Synthesizer::setInputArraySignalVariableDataTypesAsConst()
     list<Process::Port*> inputs = processnetwork_->getInPorts();
     for (list<Process::Port*>::iterator it = inputs.begin(); it != inputs.end();
          ++it) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort((*it)->getConnectedPort());
         CDataType data_type = *signal->getDataType();
         if (!data_type.isArray()) continue;
         logger_.logDebugMessage(string("Modifying data type for ")

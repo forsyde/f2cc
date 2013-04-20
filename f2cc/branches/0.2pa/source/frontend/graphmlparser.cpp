@@ -329,14 +329,14 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
 
         logger_.logDebugMessage(string("Redirecting out ports of InPort ")
                                 + "process \"" + process->getId()->getString()
-                                + " to processnetwork inputs...");
+                                + "\" to processnetwork inputs...");
         list<Process::Port*> ports = process->getOutPorts();
         list<Process::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
         	Composite::IOPort new_port(*(*port_it));
         	logger_.logDebugMessage(string("Adding ")
 									+ "connection to \"" + new_port.getConnectedPort()->toString()
-									+ " to processnetwork inputs...");
+									+ "\" in the process network input list...");
             processnetwork->addInPort(new_port);
         }
 
@@ -345,6 +345,13 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
             THROW_EXCEPTION(IllegalStateException,
                             string("Failed to delete InPort process \"")
                             + id.getString() + "\"");
+        }
+        list<Process::Port*> InPorts = process->getInPorts();
+        for (list<Process::Port*>::const_iterator port_it = ports.begin(); port_it != ports.end(); ++port_it) {
+        	logger_.logDebugMessage(string("Checking out port: ")
+									+ "connection to \"" + (*port_it)->getConnectedPort()->toString()
+									+ "\" - connection back \"" + (*port_it)->getConnectedPort()->getConnectedPort()->toString()
+									+ "\" OK...");
         }
     }
 
@@ -356,14 +363,14 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
 
         logger_.logDebugMessage(string("Redirecting in ports of OutPort ")
                                 + "process \"" + process->getId()->getString()
-                                + " to processnetwork outputs...");
+                                + "\" to processnetwork outputs...");
         list<Process::Port*> ports = process->getInPorts();
         list<Process::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
         	Composite::IOPort new_port(*(*port_it));
         	logger_.logDebugMessage(string("Adding ")
-        	                                + "connection to \"" + new_port.getConnectedPort()->toString()
-        	                                + " to processnetwork outputs...");
+									+ "connection to \"" + new_port.getConnectedPort()->toString()
+									+ "\" in the process network output list...");
         	processnetwork->addOutPort(new_port);
         }
 
@@ -372,6 +379,15 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
             THROW_EXCEPTION(IllegalStateException,
                             string("Failed to delete OutPort process \"")
                             + id.getString() + "\"");
+        }
+
+        //Double checking the new in and out ports
+        list<Process::Port*> OutPorts = process->getOutPorts();
+        for (list<Process::Port*>::const_iterator port_it = ports.begin(); port_it != ports.end(); ++port_it) {
+        	logger_.logDebugMessage(string("Checking out port: ")
+									+ "connection to \"" + (*port_it)->getConnectedPort()->toString()
+									+ "\" - connection back \"" + (*port_it)->getConnectedPort()->getConnectedPort()->toString()
+									+ "\" OK...");
         }
     }
 

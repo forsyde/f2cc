@@ -357,16 +357,20 @@ ModelModifier::findContainedSections() throw(IOException, RuntimeException) {
     list<Process::Port*> output_ports = processnetwork_->getOutPorts();
     list<Process::Port*>::iterator it;
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
-        logger_.logDebugMessage(string("Entering at output port \"")
-                                + (*it)->toString() + "\"");
+    	std::cout<<"Wololoooooooooo!";
         Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(*it);
+        std::cout<<"Wololoooooooooo!";
         if (!ioport) {
             THROW_EXCEPTION(RuntimeException, string("Port ")
                             + "\"" + (*it)->toString()
                             + "\" is not an IO Port");
         }
+        logger_.logDebugMessage(string("Entering at output port \"")
+                                + ioport->toString() + "\"");
+        std::cout<<"Wololoooooooooo!";
         logger_.logDebugMessage(string("which is connected to \"")
-                                        + ioport->getConnectedPort()->toString() + "\"");
+								+ ioport->getConnectedPort()->toString() + "\"");
+        std::cout<<"Wololoooooooooo!";
         logger_.logDebugMessage(string("\" and the reverse connection is \"")
                                 + ioport->getConnectedPort()->getConnectedPort()->toString()
                                 + "\"");
