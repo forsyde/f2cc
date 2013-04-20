@@ -565,8 +565,6 @@ class Process{
          * @returns Connected port, if any; otherwise \c NULL.
          */
         virtual Port* getConnectedPort() const throw();
-
-
         Port* PortGetter() const throw();
         void PortSetter(Port* port) throw();
 

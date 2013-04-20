@@ -219,7 +219,6 @@ Processnetwork* GraphmlParser::generateProcessnetwork(Element* xml)
 
     Processnetwork* processnetwork = new (std::nothrow) Processnetwork(Id("GraphML_Network"));
     if (!processnetwork) THROW_EXCEPTION(OutOfMemoryException);
-
     logger_.logDebugMessage("Parsing \"node\" elements...");
     parseXmlNodes(xml, processnetwork);
 
@@ -337,7 +336,12 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
         	logger_.logDebugMessage(string("Adding ")
 									+ "connection to \"" + new_port.getConnectedPort()->toString()
 									+ "\" in the process network input list...");
-            processnetwork->addInPort(new_port);
+
+            if (!processnetwork->addInPort(new_port)) {
+				THROW_EXCEPTION(IllegalStateException,
+								string("Failed to add input port process \"")
+								+ new_port.getConnectedPort()->toString() + "\"");
+            }
         }
 
         Id id = *process->getId();
@@ -346,7 +350,7 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
                             string("Failed to delete InPort process \"")
                             + id.getString() + "\"");
         }
-        list<Process::Port*> InPorts = process->getInPorts();
+        list<Process::Port*> InPorts = processnetwork->getInPorts();
         for (list<Process::Port*>::const_iterator port_it = ports.begin(); port_it != ports.end(); ++port_it) {
         	logger_.logDebugMessage(string("Checking out port: ")
 									+ "connection to \"" + (*port_it)->getConnectedPort()->toString()
@@ -382,7 +386,7 @@ void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* processnetwor
         }
 
         //Double checking the new in and out ports
-        list<Process::Port*> OutPorts = process->getOutPorts();
+        list<Process::Port*> OutPorts = processnetwork->getOutPorts();
         for (list<Process::Port*>::const_iterator port_it = ports.begin(); port_it != ports.end(); ++port_it) {
         	logger_.logDebugMessage(string("Checking out port: ")
 									+ "connection to \"" + (*port_it)->getConnectedPort()->toString()
