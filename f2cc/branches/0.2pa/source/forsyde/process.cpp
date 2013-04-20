@@ -63,8 +63,8 @@ void Process::setHierarchy(Hierarchy hierarchy) throw() {
 }
 
 Hierarchy::Relation Process::findRelation(const Process* rhs) const throw(){
-	if (!rhs)  THROW_EXCEPTION(InvalidArgumentException, "process must not be NULL");
-	return hierarchy_.findRelation(rhs->hierarchy_);
+	if (rhs) return hierarchy_.findRelation(rhs->hierarchy_);
+	else return Hierarchy::Sibling;
 }
 
 const string Process::getMoc() const throw() {
@@ -167,10 +167,7 @@ bool Process::addOutPort(Port& port) throw(OutOfMemoryException) {
     try {
     	Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(&port);
     	if (ioport){
-            std::cout<<"MUIEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"<<port.getConnectedPort()->getConnectedPort()->toString();
-
     		Composite::IOPort* new_port = new Composite::IOPort(*ioport, dynamic_cast<Composite*>(this));
-
     		out_ports_.push_back(new_port);
 			return true;
     	}
@@ -351,22 +348,14 @@ Process::Port::Port(Port& rhs) throw(InvalidArgumentException)
 	if (ioport) {
 		THROW_EXCEPTION(InvalidArgumentException, "Cannot equate Port and IOPort");
 	}
-
+	//manual unconnect, to avoid calling virtual functions
 	if (rhs.connected_port_outside_) {
-		Composite::IOPort* connected_ioport = dynamic_cast<Composite::IOPort*>(rhs.connected_port_outside_);
-		if (connected_ioport) {
-			Port* port = new Port(rhs);
-			connected_ioport->unconnect(port);
-			connected_ioport->connectNonVirtual(this);
-		}
-		else {
-			Port* port = rhs.connected_port_outside_;
-			rhs.connected_port_outside_ = NULL;
-			if (port != this) {
-				connected_port_outside_ = port;
-				port->connected_port_outside_ = this;
-			}
-		}
+        Port* port = rhs.connected_port_outside_;
+        rhs.connected_port_outside_ = NULL;
+        if (port != this) {
+        	connected_port_outside_ = port;
+        	port->connected_port_outside_ = this;
+        }
     }
 }
 
@@ -381,33 +370,19 @@ Process::Port::Port(Port& rhs, Process* process) throw(InvalidArgumentException)
     	if (ioport) {
 		THROW_EXCEPTION(InvalidArgumentException, "Cannot equate Port and IOPort");
 	}
-    //manual unconnect, to avoid calling virtual functions
+	//manual unconnect, to avoid calling virtual functions
 	if (rhs.connected_port_outside_) {
-		Composite::IOPort* connected_ioport = dynamic_cast<Composite::IOPort*>(rhs.connected_port_outside_);
-		if (connected_ioport) {
-			connected_ioport->unconnect(&rhs);
-			connected_ioport->connectNonVirtual(this);
-		}
-		else {
-			Port* port = rhs.connected_port_outside_;
-			rhs.connected_port_outside_ = NULL;
-			if (port != this) {
-				connected_port_outside_ = port;
-				port->connected_port_outside_ = this;
-			}
-		}
-	}
+        Port* port = rhs.connected_port_outside_;
+        rhs.connected_port_outside_ = NULL;
+        if (port != this) {
+        	connected_port_outside_ = port;
+        	port->connected_port_outside_ = this;
+        }
+    }
 }
 
 Process::Port::~Port() throw() {
-	if (connected_port_outside_){
-		Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
-		if (ioport) ioport->unconnect(this);
-		else {
-			connected_port_outside_->connected_port_outside_ = NULL;
-			connected_port_outside_ = NULL;
-		}
-	}
+    //unconnect();
 }
 
 Process* Process::Port::getProcess() const throw() {
@@ -463,6 +438,7 @@ void Process::Port::connect(Port* port) throw(InvalidArgumentException) {
     connected_port_outside_ = port;
 
     Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+
     if(ioport) ioport->connect(this);
     else port->connected_port_outside_ = this;
 }
@@ -521,12 +497,8 @@ void Process::Port::connectGlobal(Port* port) throw() {
 
 void Process::Port::unconnect() throw() {
     if (connected_port_outside_) {
-        Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
-        if (ioport) ioport->unconnect(this);
-        else {
-        	connected_port_outside_->connected_port_outside_ = NULL;
-        	connected_port_outside_ = NULL;
-        }
+		connected_port_outside_->connected_port_outside_ = NULL;
+		connected_port_outside_ = NULL;
     }
 }
 
@@ -580,9 +552,8 @@ string Process::Port::toString() const throw() {
     else          str += "NULL";
     str += ":";
     str += id_.getString();
-    str += "(";
+    str += " = ";
     str += data_type_.toString();
-    str += ")";
     return str;
 }
 

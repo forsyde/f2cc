@@ -71,7 +71,6 @@ void Model::addProcesses(map<const Id, Process*> processes, Hierarchy hierarchy)
     catch(bad_alloc&) {
         THROW_EXCEPTION(OutOfMemoryException);
     }
-    //TODO: implement hierarchy lowering
 }
 
 Process* Model::getProcess(const Id& id) throw() {

@@ -168,7 +168,7 @@ public:
          * @param datatype
          *        Data type contained by port.
          */
-    	//IOPort(const ForSyDe::Id& id) throw();
+    	IOPort(const ForSyDe::Id& id) throw();
 
         /**
          * Creates a port belonging to a process.
@@ -203,7 +203,7 @@ public:
          * @param rhs
          *        Port to copy.
          */
-        //explicit IOPort(IOPort& rhs) throw();
+        explicit IOPort(IOPort& rhs) throw();
 
         /**
          * Creates a port belonging to process with the same ID, data type and
@@ -217,8 +217,8 @@ public:
          * @throws InvalidArgumentException
          *         When \c process is \c NULL.
          */
-        //explicit IOPort(Port& rhs, Composite* composite)
-         //   throw(InvalidArgumentException);
+        explicit IOPort(Port& rhs, Composite* composite)
+            throw(InvalidArgumentException);
 
         /**
          * Creates a port belonging to process with the same ID, data type and
@@ -299,8 +299,6 @@ public:
          *        Port to connect.
          */
 		virtual void connect(Port* port) throw(InvalidArgumentException);
-
-		void connectNonVirtual(Port* port) throw(InvalidArgumentException);
 
         /**
          * ATTENTION!
