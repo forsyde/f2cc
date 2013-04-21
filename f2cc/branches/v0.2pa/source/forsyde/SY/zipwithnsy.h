@@ -35,7 +35,7 @@
  */
 
 #include "../leaf.h"
-#include "../language/cfunction.h"
+#include "../../language/cfunction.h"
 #include <string>
 
 namespace f2cc {

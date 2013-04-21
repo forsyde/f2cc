@@ -29,6 +29,7 @@
 
 using namespace f2cc;
 using namespace f2cc::ForSyDe;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -47,14 +48,14 @@ ScheduleFinder::~ScheduleFinder() throw() {}
 
 list<Id> ScheduleFinder::findSchedule() throw(IOException, RuntimeException) {
     // Add all leafs at processnetwork outputs to starting point queue
-    list<Leaf::Port*> output_ports = processnetwork_->getOutputs();
+    list<Process::Interface*> output_ports = processnetwork_->getOutputs();
     logger_.logMessage(Logger::DEBUG, string("Scanning all processnetwork outputs..."));
-    for (list<Leaf::Port*>::iterator it = output_ports.begin();
+    for (list<Process::Interface*>::iterator it = output_ports.begin();
          it != output_ports.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string("Adding \"")
                            + (*it)->getProcess()->getId()->getString()
                            + "\" to starting point queue...");
-        starting_points_.push((*it)->getProcess());
+        starting_points_.push(dynamic_cast<Leaf*>((*it)->getProcess()));
     }
     
     // Iterate over all starting points
@@ -119,7 +120,7 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
         Leaf::Port* inport = start->getInPorts().front();
         if (inport->isConnected()) {
             Leaf* preceding_leaf =
-                inport->getConnectedPort()->getProcess();
+            		dynamic_cast<Leaf*>(inport->getConnectedPort()->getProcess());
             starting_points_.push(preceding_leaf);
         }
         partial_schedule.schedule.push_back(*start->getId());
@@ -137,7 +138,7 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
     list<Leaf::Port*>::iterator it;
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
         if ((*it)->isConnected()) {
-            Leaf* next_leaf = (*it)->getConnectedPort()->getProcess();
+            Leaf* next_leaf = dynamic_cast<Leaf*>((*it)->getConnectedPort()->getProcess());
             PartialSchedule pp_schedule(findPartialSchedule(next_leaf,
                                                             locally_visited));
             tools::append<Id>(partial_schedule.schedule, pp_schedule.schedule);

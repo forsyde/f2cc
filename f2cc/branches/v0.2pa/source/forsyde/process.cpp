@@ -39,7 +39,7 @@ Process::Process(const Id& id) throw()
 	hierarchy_.lowerLevel(id_);
 }
 
-Process::Process(const Id& id, Hierarchy hierarchy) :
+Process::Process(const Id& id, Hierarchy hierarchy) throw() :
 		id_(id), hierarchy_(hierarchy){
 	hierarchy_.lowerLevel(id_);
 }

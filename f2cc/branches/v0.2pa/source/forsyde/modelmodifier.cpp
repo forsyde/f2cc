@@ -23,12 +23,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "processnetworkmodifier.h"
-#include "zipxsy.h"
-#include "unzipxsy.h"
-#include "parallelmapsy.h"
-#include "coalescedmapsy.h"
-#include "zipwithnsy.h"
+#include "modelmodifier.h"
+#include "SY/zipxsy.h"
+#include "SY/unzipxsy.h"
+#include "SY/parallelmapsy.h"
+#include "SY/coalescedmapsy.h"
+#include "SY/zipwithnsy.h"
 #include "../language/cfunction.h"
 #include "../language/cdatatype.h"
 #include "../tools/tools.h"
@@ -41,6 +41,7 @@
 
 using namespace f2cc;
 using namespace f2cc::ForSyDe;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -48,16 +49,16 @@ using std::vector;
 using std::bad_alloc;
 using std::pair;
 
-ProcessNetworkModifier::ProcessNetworkModifier(ProcessNetwork* processnetwork, Logger& logger)
+ModelModifier::ModelModifier(ProcessNetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException) : processnetwork_(processnetwork), logger_(logger) {
     if (!processnetwork) {
         THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 }
 
-ProcessNetworkModifier::~ProcessNetworkModifier() throw() {}
+ModelModifier::~ModelModifier() throw() {}
 
-void ProcessNetworkModifier::coalesceDataParallelLeafs()
+void ModelModifier::coalesceDataParallelLeafs()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections = findDataParallelSections();
     list<ContainedSection>::iterator it;
@@ -83,7 +84,7 @@ void ProcessNetworkModifier::coalesceDataParallelLeafs()
     }
 }
 
-void ProcessNetworkModifier::coalesceParallelMapSyLeafs()
+void ModelModifier::coalesceParallelMapSyLeafs()
     throw(IOException, RuntimeException) {
     list< list<ParallelMap*> > chains = findParallelMapSyChains();
     if (chains.size() == 0) {
@@ -100,7 +101,7 @@ void ProcessNetworkModifier::coalesceParallelMapSyLeafs()
     }
 }
 
-void ProcessNetworkModifier::splitDataParallelSegments()
+void ModelModifier::splitDataParallelSegments()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections = findDataParallelSections();
     list<ContainedSection>::iterator it;
@@ -130,7 +131,7 @@ void ProcessNetworkModifier::splitDataParallelSegments()
     }
 }
 
-void ProcessNetworkModifier::fuseUnzipMapZipLeafs()
+void ModelModifier::fuseUnzipMapZipLeafs()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections = findDataParallelSections();
     list<ContainedSection>::iterator it;
@@ -145,8 +146,8 @@ void ProcessNetworkModifier::fuseUnzipMapZipLeafs()
             THROW_EXCEPTION(IllegalStateException, "Leaf chain is not of "
                             "length 1");
         }
-        Leaf* data_leaf = section.start->getOutPorts().front()
-            ->getConnectedPort()->getProcess();
+        Leaf* data_leaf = dynamic_cast<Leaf*>(section.start->getOutPorts().front()
+            ->getConnectedPort()->getProcess());
         list<CFunction> functions;
         CoalescedMap* cmapsy_leaf =
             dynamic_cast<CoalescedMap*>(data_leaf);
@@ -196,7 +197,7 @@ void ProcessNetworkModifier::fuseUnzipMapZipLeafs()
     }
 }
 
-void ProcessNetworkModifier::convertZipWith1ToMap()
+void ModelModifier::convertZipWith1ToMap()
     throw(IOException, RuntimeException) {
     list<Leaf*> leafs = processnetwork_->getProcesses();
     list<Leaf*>::iterator it;
@@ -237,7 +238,7 @@ void ProcessNetworkModifier::convertZipWith1ToMap()
     }
 }
 
-void ProcessNetworkModifier::removeRedundantLeafs()
+void ModelModifier::removeRedundantLeafs()
     throw(IOException, RuntimeException) {
     list<Leaf*> leafs = processnetwork_->getProcesses();
     list<Leaf*>::iterator it;
@@ -262,9 +263,9 @@ void ProcessNetworkModifier::removeRedundantLeafs()
                 Leaf::Port* out_port = 
                     leaf->getOutPorts().front();
                 Leaf::Port* other_end_at_in_port =
-                    in_port->getConnectedPort();
+                	dynamic_cast<Leaf::Port*>(in_port->getConnectedPort());
                 Leaf::Port* other_end_at_out_port =
-                    out_port->getConnectedPort();
+                		dynamic_cast<Leaf::Port*>(out_port->getConnectedPort());
                 if (other_end_at_in_port && other_end_at_out_port) {
                     other_end_at_in_port->connect(other_end_at_out_port);
                 }
@@ -305,7 +306,7 @@ void ProcessNetworkModifier::removeRedundantLeafs()
     }
 }
 
-list<ProcessNetworkModifier::ContainedSection> ProcessNetworkModifier::findDataParallelSections()
+list<ModelModifier::ContainedSection> ModelModifier::findDataParallelSections()
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections;
 
@@ -345,23 +346,23 @@ list<ProcessNetworkModifier::ContainedSection> ProcessNetworkModifier::findDataP
     return sections;
 }
 
-list<ProcessNetworkModifier::ContainedSection>
-ProcessNetworkModifier::findContainedSections() throw(IOException, RuntimeException) {
+list<ModelModifier::ContainedSection>
+ModelModifier::findContainedSections() throw(IOException, RuntimeException) {
     list<ContainedSection> sections;
     set<Id> visited;
-    list<Leaf::Port*> output_ports = processnetwork_->getOutputs();
-    list<Leaf::Port*>::iterator it;
+    list<Process::Interface*> output_ports = processnetwork_->getOutputs();
+    list<Process::Interface*>::iterator it;
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string("Entering at output port \"")
                            + (*it)->toString() + "\"");
         tools::append<ContainedSection>(sections, findContainedSections(
-                                            (*it)->getProcess(), visited));
+        		dynamic_cast<Leaf*>((*it)->getProcess()), visited));
     }
     return sections;
 }
 
-list<ProcessNetworkModifier::ContainedSection>
-ProcessNetworkModifier::findContainedSections(Leaf* begin, set<Id> visited)
+list<ModelModifier::ContainedSection>
+ModelModifier::findContainedSections(Leaf* begin, set<Id> visited)
     throw(IOException, RuntimeException) {
     list<ContainedSection> sections;
     bool not_already_visited = visited.insert(*begin->getId()).second;
@@ -424,7 +425,7 @@ ProcessNetworkModifier::findContainedSections(Leaf* begin, set<Id> visited)
         list<Leaf::Port*>::iterator it;
         for (it = in_ports.begin(); it != in_ports.end(); ++it) {
             if ((*it)->isConnected()) {
-                Leaf* next_leaf = (*it)->getConnectedPort()->getProcess();
+                Leaf* next_leaf = dynamic_cast<Leaf*>((*it)->getConnectedPort()->getProcess());
                 tools::append<ContainedSection>(
                     sections, findContainedSections(next_leaf, visited));
             }
@@ -433,7 +434,7 @@ ProcessNetworkModifier::findContainedSections(Leaf* begin, set<Id> visited)
     return sections;
 }
 
-bool ProcessNetworkModifier::isAContainedSection(Leaf* start, Leaf* end)
+bool ModelModifier::isAContainedSection(Leaf* start, Leaf* end)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!start) {
         THROW_EXCEPTION(InvalidArgumentException, "\"start\" must not be NULL");
@@ -459,7 +460,7 @@ bool ProcessNetworkModifier::isAContainedSection(Leaf* start, Leaf* end)
     return true;
 }
 
-bool ProcessNetworkModifier::checkDataFlowConvergence(Leaf* start, Leaf* end,
+bool ModelModifier::checkDataFlowConvergence(Leaf* start, Leaf* end,
                                              bool forward)
     throw(IOException, RuntimeException) {
     if (start == end) return true;
@@ -473,8 +474,8 @@ bool ProcessNetworkModifier::checkDataFlowConvergence(Leaf* start, Leaf* end,
         list<Leaf::Port*>::iterator it;
         for (it = out_ports.begin(); it != out_ports.end(); ++it) {
             if (!(*it)->isConnected()) return false;
-            if (!checkDataFlowConvergence((*it)->getConnectedPort()
-                                          ->getProcess(), end, true)) {
+            if (!checkDataFlowConvergence(dynamic_cast<Leaf*>((*it)->getConnectedPort()
+                                          ->getProcess()), end, true)) {
                 return false;
             }
         }
@@ -488,8 +489,8 @@ bool ProcessNetworkModifier::checkDataFlowConvergence(Leaf* start, Leaf* end,
         list<Leaf::Port*>::iterator it;
         for (it = in_ports.begin(); it != in_ports.end(); ++it) {
             if (!(*it)->isConnected()) return false;
-            if (!checkDataFlowConvergence(start, (*it)->getConnectedPort()
-                                          ->getProcess(), false)) {
+            if (!checkDataFlowConvergence(start, dynamic_cast<Leaf*>((*it)->getConnectedPort()
+                                          ->getProcess()), false)) {
                 return false;
             }
         }
@@ -498,7 +499,7 @@ bool ProcessNetworkModifier::checkDataFlowConvergence(Leaf* start, Leaf* end,
     return true;
 }
 
-unzipx* ProcessNetworkModifier::findNearestunzipxLeaf(ForSyDe::Leaf* begin)
+unzipx* ModelModifier::findNearestunzipxLeaf(ForSyDe::Leaf* begin)
     throw(IOException, RuntimeException) {
     if (!begin) return NULL;
 
@@ -511,7 +512,7 @@ unzipx* ProcessNetworkModifier::findNearestunzipxLeaf(ForSyDe::Leaf* begin)
     list<Leaf::Port*>::iterator it;
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
         if ((*it)->isConnected()) {
-            Leaf* next_leaf = (*it)->getConnectedPort()->getProcess(); 
+            Leaf* next_leaf = dynamic_cast<Leaf*>((*it)->getConnectedPort()->getProcess());
             sought_leaf = findNearestunzipxLeaf(next_leaf);
             if (sought_leaf) return sought_leaf;
         }
@@ -520,7 +521,7 @@ unzipx* ProcessNetworkModifier::findNearestunzipxLeaf(ForSyDe::Leaf* begin)
     return NULL;
 }
 
-bool ProcessNetworkModifier::isContainedSectionDataParallel(
+bool ModelModifier::isContainedSectionDataParallel(
     const ContainedSection& section) throw(IOException, RuntimeException) {
     list<Leaf::Port*> ports = section.start->getOutPorts();
     list<Leaf::Port*>::iterator port_it;
@@ -559,7 +560,7 @@ bool ProcessNetworkModifier::isContainedSectionDataParallel(
     return true;
 }
 
-bool ProcessNetworkModifier::hasOnlyMapSys(std::list<ForSyDe::Leaf*> chain) const
+bool ModelModifier::hasOnlyMapSys(std::list<ForSyDe::Leaf*> chain) const
     throw() {
     list<Leaf*>::const_iterator it;
     for (it = chain.begin(); it != chain.end(); ++it) {
@@ -568,7 +569,7 @@ bool ProcessNetworkModifier::hasOnlyMapSys(std::list<ForSyDe::Leaf*> chain) cons
     return true;
 }
 
-bool ProcessNetworkModifier::areLeafChainsEqual(list<Leaf*> first,
+bool ModelModifier::areLeafChainsEqual(list<Leaf*> first,
                                           list<Leaf*> second)
     throw(IOException, RuntimeException) {
     if (first.size() != second.size()) {
@@ -599,7 +600,7 @@ bool ProcessNetworkModifier::areLeafChainsEqual(list<Leaf*> first,
     return true;
 }
 
-list<Leaf*> ProcessNetworkModifier::getProcessChain(Leaf::Port* start,
+list<Leaf*> ModelModifier::getProcessChain(Leaf::Port* start,
                                               Leaf* end)
     throw(OutOfMemoryException) {
     try {
@@ -607,7 +608,7 @@ list<Leaf*> ProcessNetworkModifier::getProcessChain(Leaf::Port* start,
         Leaf::Port* port = start;
         while (true) {
             if (!port->isConnected()) break;
-            Leaf* next_leaf = port->getConnectedPort()->getProcess();
+            Leaf* next_leaf = dynamic_cast<Leaf*>(port->getConnectedPort()->getProcess());
             if (next_leaf == end) break;
             chain.push_back(next_leaf);
             port = next_leaf->getOutPorts().front();
@@ -620,22 +621,22 @@ list<Leaf*> ProcessNetworkModifier::getProcessChain(Leaf::Port* start,
     }
 }
 
-list< list<ParallelMap*> > ProcessNetworkModifier::findParallelMapSyChains()
+list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains()
     throw(IOException, RuntimeException) {
     list< list<ParallelMap*> > chains;
     set<Id> visited;
-    list<Leaf::Port*> output_ports = processnetwork_->getOutputs();
-    list<Leaf::Port*>::iterator it;
+    list<Process::Interface*> output_ports = processnetwork_->getOutputs();
+    list<Process::Interface*>::iterator it;
     for (it = output_ports.begin(); it != output_ports.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string("Entering at output port \"")
                            + (*it)->toString() + "\"");
         tools::append< list<ParallelMap*> >(
-            chains, findParallelMapSyChains((*it)->getProcess(), visited));
+            chains, findParallelMapSyChains(dynamic_cast<Leaf*>((*it)->getProcess()), visited));
     }
     return chains;
 }
 
-list< list<ParallelMap*> > ProcessNetworkModifier::findParallelMapSyChains(
+list< list<ParallelMap*> > ModelModifier::findParallelMapSyChains(
     Leaf* begin, set<Id> visited) throw(IOException, RuntimeException) {
     list< list<ParallelMap*> > chains;
     bool not_already_visited = visited.insert(*begin->getId()).second;
@@ -660,8 +661,8 @@ list< list<ParallelMap*> > ProcessNetworkModifier::findParallelMapSyChains(
                 continuation_point = parallelmapsy;
                 Leaf::Port* out_port = parallelmapsy->getInPorts().front();
                 if (!out_port->isConnected()) break;
-                Leaf* next_leaf = out_port->getConnectedPort()
-                    ->getProcess();
+                Leaf* next_leaf = dynamic_cast<Leaf*>(out_port->getConnectedPort()
+                    ->getProcess());
                 parallelmapsy = dynamic_cast<ParallelMap*>(next_leaf);
             }
             logger_.logMessage(Logger::DEBUG, string("Chain ended at leaf ")
@@ -678,7 +679,7 @@ list< list<ParallelMap*> > ProcessNetworkModifier::findParallelMapSyChains(
         list<Leaf::Port*>::iterator it;
         for (it = in_ports.begin(); it != in_ports.end(); ++it) {
             if ((*it)->isConnected()) {
-                Leaf* next_leaf = (*it)->getConnectedPort()->getProcess();
+                Leaf* next_leaf = dynamic_cast<Leaf*>((*it)->getConnectedPort()->getProcess());
                 tools::append< list<ParallelMap*> >(
                     chains, findParallelMapSyChains(next_leaf, visited));
             }
@@ -687,7 +688,7 @@ list< list<ParallelMap*> > ProcessNetworkModifier::findParallelMapSyChains(
     return chains;
 }
 
-void ProcessNetworkModifier::coalesceLeafChain(list<Leaf*> chain)
+void ModelModifier::coalesceLeafChain(list<Leaf*> chain)
     throw(RuntimeException) {
     // Build function argument list
     list<CFunction> functions;
@@ -725,7 +726,7 @@ void ProcessNetworkModifier::coalesceLeafChain(list<Leaf*> chain)
     destroyLeafChain(chain.front());
 }
 
-bool ProcessNetworkModifier::isParallelMapSyChainCoalescable(list<ParallelMap*> chain)
+bool ModelModifier::isParallelMapSyChainCoalescable(list<ParallelMap*> chain)
     throw(RuntimeException) {
     if (chain.size() <= 1) {
         logger_.logMessage(Logger::INFO, string("ParallelMap chain ")
@@ -784,7 +785,7 @@ bool ProcessNetworkModifier::isParallelMapSyChainCoalescable(list<ParallelMap*> 
     return true;
 }
 
-void ProcessNetworkModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
+void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
     throw(RuntimeException) {
     // Build function argument list
     list<CFunction> functions;
@@ -823,7 +824,7 @@ void ProcessNetworkModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain
     destroyLeafChain(chain.front());
 }
 
-string ProcessNetworkModifier::leafChainToString(list<Leaf*> chain) const throw() {
+string ModelModifier::leafChainToString(list<Leaf*> chain) const throw() {
     string str;
     list<Leaf*>::iterator it;
     bool first = true;
@@ -835,7 +836,7 @@ string ProcessNetworkModifier::leafChainToString(list<Leaf*> chain) const throw(
     return str;
 }
 
-string ProcessNetworkModifier::leafChainToString(list<ParallelMap*> chain)
+string ModelModifier::leafChainToString(list<ParallelMap*> chain)
     const throw() {
     list<Leaf*> new_list;
     list<ParallelMap*>::iterator it;
@@ -845,7 +846,7 @@ string ProcessNetworkModifier::leafChainToString(list<ParallelMap*> chain)
     return leafChainToString(new_list);
 }
 
-void ProcessNetworkModifier::destroyLeafChain(ForSyDe::Leaf* start)
+void ModelModifier::destroyLeafChain(ForSyDe::Leaf* start)
     throw(InvalidArgumentException) {
     if (!start) {
         THROW_EXCEPTION(InvalidArgumentException, "\"start\" must not be NULL");
@@ -855,13 +856,13 @@ void ProcessNetworkModifier::destroyLeafChain(ForSyDe::Leaf* start)
     list<Leaf::Port*>::iterator it;
     for (it = ports.begin(); it != ports.end(); ++it) {
         if ((*it)->isConnected()) {
-            destroyLeafChain((*it)->getConnectedPort()->getProcess());
+            destroyLeafChain(dynamic_cast<Leaf*>((*it)->getConnectedPort()->getProcess()));
         }
     }
     processnetwork_->deleteProcess(*start->getId());
 }
 
-void ProcessNetworkModifier::splitDataParallelSegments(
+void ModelModifier::splitDataParallelSegments(
     vector< vector<ForSyDe::Leaf*> > chains)
     throw(IOException, RuntimeException) {
     try {
@@ -959,7 +960,7 @@ void ProcessNetworkModifier::splitDataParallelSegments(
     }
 }
 
-ProcessNetworkModifier::ContainedSection::ContainedSection(Leaf* start, Leaf* end)
+ModelModifier::ContainedSection::ContainedSection(Leaf* start, Leaf* end)
         throw(InvalidArgumentException) : start(start), end(end) {
     if (!start) {
         THROW_EXCEPTION(InvalidArgumentException, "\"start\" must not be NULL");
@@ -969,12 +970,12 @@ ProcessNetworkModifier::ContainedSection::ContainedSection(Leaf* start, Leaf* en
     }
 }
 
-string ProcessNetworkModifier::ContainedSection::toString() const throw() {
+string ModelModifier::ContainedSection::toString() const throw() {
     return string("\"") + start->getId()->getString() + "--" + 
         end->getId()->getString() + "\"";
 }
 
-void ProcessNetworkModifier::redirectDataFlow(Leaf* old_start, Leaf* old_end,
+void ModelModifier::redirectDataFlow(Leaf* old_start, Leaf* old_end,
                                      Leaf* new_start, Leaf* new_end)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!old_start) {
@@ -1044,11 +1045,11 @@ void ProcessNetworkModifier::redirectDataFlow(Leaf* old_start, Leaf* old_end,
     }
 }
 
-void ProcessNetworkModifier::replaceProcessNetworkInput(Leaf::Port* old_port,
+void ModelModifier::replaceProcessNetworkInput(Leaf::Port* old_port,
                                       Leaf::Port* new_port)
     throw(RuntimeException) {
-    list<Leaf::Port*> inputs(processnetwork_->getInputs());
-    list<Leaf::Port*>::iterator it;
+    list<Process::Interface*> inputs(processnetwork_->getInputs());
+    list<Process::Interface*>::iterator it;
     for (it = inputs.begin(); it != inputs.end(); ++it) {
         if (*it == old_port) {
             processnetwork_->deleteInput(*it);
@@ -1058,11 +1059,11 @@ void ProcessNetworkModifier::replaceProcessNetworkInput(Leaf::Port* old_port,
     }
 }
 
-void ProcessNetworkModifier::replaceProcessNetworkOutput(Leaf::Port* old_port,
+void ModelModifier::replaceProcessNetworkOutput(Leaf::Port* old_port,
                                        Leaf::Port* new_port)
     throw(RuntimeException) {
-    list<Leaf::Port*> outputs(processnetwork_->getOutputs());
-    list<Leaf::Port*>::iterator it;
+    list<Process::Interface*> outputs(processnetwork_->getOutputs());
+    list<Process::Interface*>::iterator it;
     for (it = outputs.begin(); it != outputs.end(); ++it) {
         if (*it == old_port) {
             processnetwork_->deleteOutput(*it);

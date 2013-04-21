@@ -35,7 +35,7 @@ using std::bad_alloc;
 using std::bad_cast;
 
 CoalescedMap::CoalescedMap(const Id& id, const CFunction& function) 
-        throw(OutOfMemoryException) : comb(id, function) {
+        throw(OutOfMemoryException) : Map(id, function) {
     try {
         CFunction* new_function = new CFunction(function);
         functions_.push_back(new_function);
@@ -51,7 +51,7 @@ CoalescedMap::CoalescedMap(const Id& id,
         // comb requires a function, but can not be certain at this point that
         // functions is not empty, so we provide comb with a dummy function
         // (we will never access it anyway)
-        : comb(id, CFunction()) {
+        : Map(id, CFunction()) {
     if (functions.size() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"functions\" must not be "
                         "an empty list");
@@ -141,7 +141,7 @@ void CoalescedMap::moreChecks() throw(InvalidProcessException) {
     }
     list<CFunction*>::const_iterator it;
     for (it = functions_.begin(); it != functions_.end(); ++it) {
-        checkFunction(**it,1);
+        checkFunction(**it);
     }
 }
 

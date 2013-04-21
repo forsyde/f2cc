@@ -24,6 +24,7 @@
  */
 
 #include "leaf.h"
+#include "composite.h"
 #include "../tools/tools.h"
 #include <new>
 #include <vector>
@@ -37,7 +38,7 @@ using std::vector;
 Leaf::Leaf(const Id& id) throw() : Process(id) {}
 
 Leaf::Leaf(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
- 		const std::string moc, int cost) :
+ 		const std::string moc, int cost) throw() :
 		Process(id, hierarchy), moc_(moc), cost_(cost){}
 
 Leaf::~Leaf() throw() {
@@ -49,9 +50,6 @@ const string Leaf::getMoc() const throw() {
     return moc_;
 }
 
-Leaf* Process::Interface::getProcess() const throw() {
-    return process_;
-}
 
 int Leaf::getCost() const throw(){
 	return cost_;
@@ -361,7 +359,7 @@ void Leaf::Port::connect(Process::Interface* port) throw(InvalidArgumentExceptio
 		return;
 	}
 	 // Checking if other end is Port
-	Leaf::Port* port_to_connect = dynamic_cast<Composite::IOPort*>(port);
+	Leaf::Port* port_to_connect = dynamic_cast<Leaf::Port*>(port);
 	if (port_to_connect) {
 		if (port_to_connect == this) return;
 		if (connected_port_) {
@@ -383,12 +381,14 @@ void Leaf::Port::unconnect() throw() {
 		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_);
 		if (ioport_to_unconnect) {
 			ioport_to_unconnect->unconnect(this);
+			return;
 		}
 		 // Checking if other end is Port
-		Leaf::Port* port_to_unconnect = dynamic_cast<Composite::IOPort*>(port);
+		Leaf::Port* port_to_unconnect = dynamic_cast<Leaf::Port*>(connected_port_);
 		if (port_to_unconnect) {
 			port_to_unconnect->connected_port_ = NULL;
 			connected_port_ = NULL;
+			return;
 		}
 		// It should never be here
 		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
@@ -406,7 +406,7 @@ void Leaf::Port::unconnectFromLeaf() throw() {
 			ioport_to_unconnect->unconnectFromLeafInside();
 		}
 		 // Checking if other end is Port
-		Leaf::Port* port_to_unconnect = dynamic_cast<Composite::IOPort*>(port);
+		Leaf::Port* port_to_unconnect = dynamic_cast<Leaf::Port*>(connected_port_);
 		if (port_to_unconnect) {
 			port_to_unconnect->connected_port_ = NULL;
 			connected_port_ = NULL;
@@ -422,10 +422,11 @@ Process::Interface* Leaf::Port::getConnectedPort() const throw() {
     return connected_port_;
 }
 
-void Leaf::Port::setConnection(Process::Interface* port) const throw() {
+void Leaf::Port::setConnection(Process::Interface* port) throw() {
     connected_port_ = port;
 }
 
+/*
 Leaf::Port* Leaf::Port::getConnectedLeafPort() const throw() {
 	if (!getProcess()) {
 		THROW_EXCEPTION(IllegalStateException, string("Error in: ")
@@ -454,6 +455,7 @@ Leaf::Port* Leaf::Port::getConnectedLeafPort() const throw() {
     }
     else return NULL;
 }
+*/
 
 bool Leaf::Port::operator==(const Port& rhs) const throw() {
     return (process_ == rhs.process_) && (id_ == rhs.id_) && (data_type_ == rhs.data_type_);
@@ -463,7 +465,7 @@ bool Leaf::Port::operator!=(const Port& rhs) const throw() {
     return !operator==(rhs);
 }
 
-string Leaf::Port::moreToString() const throw() {
+string Leaf::Port::moretoString() const throw() {
     string str;
     str += "(";
     str += data_type_.toString();

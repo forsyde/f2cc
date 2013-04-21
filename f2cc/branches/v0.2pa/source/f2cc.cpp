@@ -43,7 +43,7 @@
 #include "frontend/graphmlparser.h"
 #include "forsyde/processnetwork.h"
 #include "forsyde/leaf.h"
-#include "forsyde/processnetworkmodifier.h"
+#include "forsyde/modelmodifier.h"
 #include "synthesizer/synthesizer.h"
 #include "exceptions/exception.h"
 #include "exceptions/ioexception.h"
@@ -156,12 +156,12 @@ int main(int argc, const char* argv[]) {
             logger.logInfoMessage(target_platform_message);
 
             // Make processnetwork modifications, if necessary
-            ProcessNetworkModifier modifier(processnetwork, logger);
+            ModelModifier modifier(processnetwork, logger);
             logger.logInfoMessage("Removing redundant leafs...");
             modifier.removeRedundantLeafs();
             logger.logInfoMessage("Converting comb leafs "
                               "with one in port to comb leafs...");
-            modifier.convertZipWith1Tocomb();
+            modifier.convertZipWith1ToMap();
             if (config.getTargetPlatform() == Config::CUDA) {
                 string leaf_coalescing_message("DATA PARALLEL PROCESS "
                                                   "COALESCING: ");
@@ -186,7 +186,7 @@ int main(int argc, const char* argv[]) {
                 logger.logMessage(Logger::INFO,
                                   "Fusing chains of unzipx-map-zipx "
                                   "leafs...");
-                modifier.fuseUnzipcombZipLeafs();
+                modifier.fuseUnzipMapZipLeafs();
 
                 if (config.doDataParallelLeafCoalesing()) {
                     logger.logInfoMessage(""
@@ -219,7 +219,7 @@ int main(int argc, const char* argv[]) {
             tools::writeFile(config.getImplementationOutputFile(),
                              code.implementation);
 
-            logger.logInfoMessage("MODEL NTHESIS COMPLETE");
+            logger.logInfoMessage("MODEL SYNTHESIS COMPLETE");
 
             // Clean up
             delete processnetwork;
