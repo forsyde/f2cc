@@ -470,6 +470,8 @@ class Leaf : public Process{
          */
         Process::Interface* getConnectedPort() const throw();
 
+        void setConnection(Process::Interface* port) const throw();
+
         Leaf::Port* getConnectedLeafPort() const throw();
 
         /**

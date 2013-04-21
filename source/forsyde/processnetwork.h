@@ -35,7 +35,8 @@
  */
 
 #include "id.h"
-#include "processnetwork.h"
+#include "model.h"
+#include "leaf.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -49,12 +50,12 @@ namespace ForSyDe {
 /**
  * @brief Contains the internal representation of a ForSyDe processnetwork.
  *
- * The \c ProcessNetwork embodies a complete ForSyDe network of connected \c Process
+ * The \c ProcessNetwork embodies a complete ForSyDe network of connected \c Leaf
  * objects. The class also provides inputs and outputs to the network, which
  * actually are inports and outports, respectively, to one or more of the
  * leafs within the network.
  */
-class ProcessNetwork: public ProcessNetwork {
+class ProcessNetwork: public Model {
   public:
     /**
      * Creates a leaf network.
@@ -82,7 +83,7 @@ class ProcessNetwork: public ProcessNetwork {
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInput(Process::Port* port)
+    bool addInput(Leaf::Port* port)
         throw(InvalidArgumentException, IllegalStateException,
               OutOfMemoryException);
 
@@ -96,7 +97,7 @@ class ProcessNetwork: public ProcessNetwork {
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      */
-    bool deleteInput(Process::Port* port) throw(InvalidArgumentException);
+    bool deleteInput(Leaf::Port* port) throw(InvalidArgumentException);
 
     /**
      * Gets the number of inputs of this leaf network.
@@ -110,10 +111,10 @@ class ProcessNetwork: public ProcessNetwork {
      *
      * @returns List of inputs.
      */
-    std::list<Process::Port*> getInputs() throw();
+    std::list<Leaf::Port*> getInputs() throw();
 
     /**
-     * Same as addInput(const Process::Port*) but for outputs.
+     * Same as addInput(const Leaf::Port*) but for outputs.
      *
      * @param port
      *        Outport of a leaf.
@@ -126,12 +127,12 @@ class ProcessNetwork: public ProcessNetwork {
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutput(Process::Port* port)
+    bool addOutput(Leaf::Port* port)
         throw(InvalidArgumentException, IllegalStateException,
               OutOfMemoryException);
 
     /**
-     * Same as deleteInput(Process::Port*) but for outputs.
+     * Same as deleteInput(Leaf::Port*) but for outputs.
      *
      * @param port
      *        Port.
@@ -140,10 +141,10 @@ class ProcessNetwork: public ProcessNetwork {
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      */
-    bool deleteOutput(Process::Port* port) throw(InvalidArgumentException);
+    bool deleteOutput(Leaf::Port* port) throw(InvalidArgumentException);
 
     /**
-     * Same as addInput(const Process::Port*) but for outputs.
+     * Same as addInput(const Leaf::Port*) but for outputs.
      * Gets the number of inputs of this processnetwork.
      *
      * @returns Number of inputs.
@@ -155,7 +156,7 @@ class ProcessNetwork: public ProcessNetwork {
      *
      * @returns List of outputs.
      */
-    std::list<Process::Port*> getOutputs() throw();
+    std::list<Leaf::Port*> getOutputs() throw();
 
   private:
 
@@ -171,8 +172,8 @@ class ProcessNetwork: public ProcessNetwork {
      * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Process::Port*>::iterator findPort(
-        const Id& id, std::list<Process::Port*>& ports) const throw();
+    std::list<Leaf::Port*>::iterator findPort(
+        const Id& id, std::list<Leaf::Port*>& ports) const throw();
 
     /**
      * Attempts to find a given port from a list of ports. If the list
@@ -186,8 +187,8 @@ class ProcessNetwork: public ProcessNetwork {
      * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Process::Port*>::iterator findPort(
-        Process::Port* port, std::list<Process::Port*>& ports)  const throw();
+    std::list<Leaf::Port*>::iterator findPort(
+        Leaf::Port* port, std::list<Leaf::Port*>& ports)  const throw();
 
 
 
@@ -203,7 +204,7 @@ class ProcessNetwork: public ProcessNetwork {
      *        Port list.
      * @returns String representation.
      */
-    std::string portsToString(const std::list<Process::Port*> ports) const
+    std::string portsToString(const std::list<Leaf::Port*> ports) const
         throw();
 
     /**
@@ -216,7 +217,7 @@ class ProcessNetwork: public ProcessNetwork {
      *  Inputs = { ... },
      *  NumOututs: <num_outports>,
      *  Outputs = { ... },
-     *  NumProcesss: <num_leafs>
+     *  NumLeafs: <num_leafs>
      * }
      * @endcode
      *
@@ -229,12 +230,12 @@ class ProcessNetwork: public ProcessNetwork {
     /**
      * List of inputs.
      */
-    std::list<Process::Port*> inputs_;
+    std::list<Leaf::Port*> inputs_;
 
     /**
      * List of outputs.
      */
-    std::list<Process::Port*> outputs_;
+    std::list<Leaf::Port*> outputs_;
 };
 
 }
