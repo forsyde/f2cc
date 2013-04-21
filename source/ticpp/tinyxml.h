@@ -429,7 +429,7 @@ private:
 };
 
 
-/** The parent class for everything in the Document Object Processnetwork.
+/** The parent class for everything in the Document Object ProcessNetwork.
 	(Except for attributes).
 	Nodes have siblings, a parent, and children. A node can be
 	in a document, or stand on its own. The type of a TiXmlNode
@@ -471,8 +471,8 @@ public:
 
 	#endif
 
-	/** The types of XML nodes supported by TinyXml. (All the
-			unsupported types are picked up by UNKNOWN.)
+	/** The types of XML nodes supinterfaceed by TinyXml. (All the
+			unsupinterfaceed types are picked up by UNKNOWN.)
 	*/
 	enum NodeType
 	{
@@ -891,14 +891,14 @@ public:
 	void Print( FILE* cfile, int depth, TIXML_STRING* str ) const;
 
 	// [internal use]
-	// Set the document pointer so the attribute can report errors.
+	// Set the document pointer so the attribute can reinterface errors.
 	void SetDocument( TiXmlDocument* doc )	{ document = doc; }
 
 private:
 	TiXmlAttribute( const TiXmlAttribute& );				// not implemented.
 	void operator=( const TiXmlAttribute& base );	// not allowed.
 
-	TiXmlDocument*	document;	// A pointer back to a document, for error reporting.
+	TiXmlDocument*	document;	// A pointer back to a document, for error reinterfaceing.
 	TIXML_STRING name;
 	TIXML_STRING value;
 	TiXmlAttribute*	prev;
@@ -1547,15 +1547,15 @@ public:
 	/** Returns the location (if known) of the error. The first column is column 1,
 		and the first row is row 1. A value of 0 means the row and column wasn't applicable
 		(memory errors, for example, have no row/column) or the parser lost the error. (An
-		error in the error reporting, in that case.)
+		error in the error reinterfaceing, in that case.)
 
 		@sa SetTabSize, Row, Column
 	*/
 	int ErrorRow() const	{ return errorLocation.row+1; }
 	int ErrorCol() const	{ return errorLocation.col+1; }	///< The column where the error occured. See ErrorRow()
 
-	/** SetTabSize() allows the error reporting functions (ErrorRow() and ErrorCol())
-		to report the correct values for row and column. It does not change the output
+	/** SetTabSize() allows the error reinterfaceing functions (ErrorRow() and ErrorCol())
+		to reinterface the correct values for row and column. It does not change the output
 		or input in any way.
 
 		By calling this method, with a tab size
@@ -1567,7 +1567,7 @@ public:
 		set, the default of 4 is used. The tabsize is set per document. Setting
 		the tabsize to 0 disables row/column tracking.
 
-		Note that row and column tracking is not supported when using operator>>.
+		Note that row and column tracking is not supinterfaceed when using operator>>.
 
 		The tab size needs to be enabled before the parse or load. Correct usage:
 		@verbatim

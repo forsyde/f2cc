@@ -31,10 +31,10 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c zipx process.
+ * @brief Implements the ForSyDe \c zipx leaf.
  */
 
-#include "../process.h"
+#include "../leaf.h"
 #include "../../exceptions/notsupportedexception.h"
 #include <string>
 
@@ -43,38 +43,38 @@ namespace ForSyDe {
 namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c zipx process.
+ * @brief Implements the ForSyDe \c zipx leaf.
  */
-class zipx : public Process {
+class zipx : public Leaf {
   public:
     /**
-     * @copydoc Process(const Id&)
+     * @copydoc Leaf(const Id&)
      */
     zipx(const Id& id) throw();
 
     /**
-     * @copydoc ~Process()
+     * @copydoc ~Leaf()
      */
     virtual ~zipx() throw();
 
     /**
-     * @copydoc Process::operator==(const Process&) const
+     * @copydoc Leaf::operator==(const Leaf&) const
      */
-    virtual bool operator==(const Process& rhs) const throw();
+    virtual bool operator==(const Leaf& rhs) const throw();
 
     /**
-     * @copydoc Process::type()
+     * @copydoc Leaf::type()
      */
     virtual std::string type() const throw();
 
   protected:
     /**
-     * Checks that this process has only one out port.
+     * Checks that this leaf has only one out interface.
      *
-     * @throws InvalidProcessException
+     * @throws InvalidLeafException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidProcessException);
+    virtual void moreChecks() throw(InvalidLeafException);
 };
 
 }

@@ -73,7 +73,7 @@ Changes in version 2.0.0 BETA
 - Greater standardization and code re-use in the parser.
 - Added a stream out operator.
 - Added a stream in operator.
-- Entity support, of predefined entites. &#x entities are untouched by input or output.
+- Entity supinterface, of predefined entites. &#x entities are untouched by input or output.
 - Improved text out formatting.
 - Fixed ReplaceChild bug, thanks to Tao Chen.
 
@@ -121,7 +121,7 @@ Changes in version 2.1.5
   (Patch request ID 697642)
 - A patch from ohommes that allows to parse correctly dots in element names and attribute names
   (Patch request 602600 and kylotan 701728)
-- A patch from  hermitgeek ( James ) and wasteland for improper error reporting
+- A patch from  hermitgeek ( James ) and wasteland for improper error reinterfaceing
 - Reviewed by Lee, with the following changes:
 	- Got sick of fighting the STL/non-STL thing in the windows build. Broke
 	  them out as seperate projects.
@@ -160,7 +160,7 @@ Changes in version 2.1.5
 - Make UTF-8 parser tolerant of bad text encoding.
 - Added encoding detection. 
 - Many fixes and input from John-Philip Leonard Johansson (JP) and Ellers, 
-  including UTF-8 feedback, bug reports, and patches. Thanks!
+  including UTF-8 feedback, bug reinterfaces, and patches. Thanks!
 - Added version # constants - a suggestion from JP and Ellers.
 - [ 979180 ] Missing ; in entity reference, fix from Rob Laveaux.
 - fanout constructors and assignment have been a long time coming. Thanks to
@@ -239,7 +239,7 @@ Changes in version 2.1.5
 - Removed existing streaming code and use TiXmlPrinter instead.
 - [ tinyxml-Bugs-1527079 ] Compile error in tinystr.cpp fixed, thanks to Paul Suggs
 - [ tinyxml-Bugs-1522890 ] SaveFile has no error checks fixed, thanks to Ivan Dobrokotov
-- Ivan Dobrokotov also reported redundant memory allocation in the Attribute() method, which
+- Ivan Dobrokotov also reinterfaceed redundant memory allocation in the Attribute() method, which
   upon investigation was a mess. The attribute should now be fixed for both const char* and 
   std::string, and the return types match the input parameters.
 - Feature [ 1511105 ] Make TiXmlComment constructor accept a string / char*, implemented.
@@ -256,7 +256,7 @@ Changes in version 2.1.5
 2.5.3
 - zloe_zlo identified a missing string specialization for QueryValueAttribute() [ 1695429 ]. Worked
   on this bug, but not sure how to fix it in a safe, cross-compiler way.
-- increased warning level to 4 and turned on detect 64 bit portability issues for VC2005.
+- increased warning level to 4 and turned on detect 64 bit interfaceability issues for VC2005.
   May address [ 1677737 ] VS2005: /Wp64 warnings
 - grosheck identified several problems with the Document copy. Many thanks for [ 1660367 ]
 - Nice catch, and suggested fix, be Gilad Novik on the Printer dropping entities.

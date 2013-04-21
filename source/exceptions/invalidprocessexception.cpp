@@ -28,12 +28,12 @@
 using namespace f2cc;
 using std::string;
 
-InvalidProcessException::InvalidProcessException(
+InvalidLeafException::InvalidLeafException(
     const string& source_file, int source_line, const string& message)
         throw() : Exception(source_file, source_line, message) {}
 
-InvalidProcessException::~InvalidProcessException() throw() {}
+InvalidLeafException::~InvalidLeafException() throw() {}
 
-string InvalidProcessException::type() const throw() {
-    return "InvalidProcessException";
+string InvalidLeafException::type() const throw() {
+    return "InvalidLeafException";
 }

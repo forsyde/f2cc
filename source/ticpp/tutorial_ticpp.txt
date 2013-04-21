@@ -83,7 +83,7 @@ try
 catch( ticpp::Exception& ex )
 {
 	// If any function has an error, execution will enter here.
-	// Report the error
+	// Reinterface the error
 	std::cout << ex.what();
 }
 @endcode
@@ -173,7 +173,7 @@ try
 catch( ticpp::Exception& ex )
 {
 	// If any function has an error, execution will enter here.
-	// Report the error
+	// Reinterface the error
 	std::cout << ex.what();
 }
 @endcode

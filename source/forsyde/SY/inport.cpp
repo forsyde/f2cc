@@ -23,23 +23,23 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "outport.h"
+#include "inport.h"
 #include <typeinfo>
 
 using namespace f2cc::ForSyDe;
 using std::string;
 using std::bad_cast;
 
-OutPort::OutPort(const Id& id) throw()
-        : Process(id) {}
+InPort::InPort(const Id& id) throw()
+        : Leaf(id) {}
 
-OutPort::~OutPort() throw() {}
+InPort::~InPort() throw() {}
 
-bool OutPort::operator==(const Process& rhs) const throw() {
-    if (Process::operator==(rhs)) return false;
+bool InPort::operator==(const Leaf& rhs) const throw() {
+    if (Leaf::operator==(rhs)) return false;
 
     try {
-        dynamic_cast<const OutPort&>(rhs);
+        dynamic_cast<const InPort&>(rhs);
     }
     catch (bad_cast&) {
         return false;
@@ -47,14 +47,14 @@ bool OutPort::operator==(const Process& rhs) const throw() {
     return true;
 }
 
-string OutPort::type() const throw() {
-    return "OutPort";
+string InPort::type() const throw() {
+    return "InPort";
 }
 
-void OutPort::moreChecks() throw(InvalidProcessException) {
-    if (getOutPorts().size() != 0) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+void InPort::moreChecks() throw(InvalidLeafException) {
+    if (getInPorts().size() != 0) {
+        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" is not allowed to have any out ports");
+                        + type() + "\" is not allowed to have in interfaces");
     }
 }

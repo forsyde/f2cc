@@ -28,16 +28,16 @@
 using namespace f2cc;
 using std::string;
 
-NotSupportedException::NotSupportedException(
+NotSupinterfaceedException::NotSupinterfaceedException(
     const string& source_file, int source_line)
         throw() : RuntimeException(source_file, source_line) {}
 
-NotSupportedException::NotSupportedException(
+NotSupinterfaceedException::NotSupinterfaceedException(
     const string& source_file, int source_line, const string& message)
         throw() : RuntimeException(source_file, source_line, message) {}
 
-NotSupportedException::~NotSupportedException() throw() {}
+NotSupinterfaceedException::~NotSupinterfaceedException() throw() {}
 
-string NotSupportedException::type() const throw() {
-    return "NotSupportedException";
+string NotSupinterfaceedException::type() const throw() {
+    return "NotSupinterfaceedException";
 }

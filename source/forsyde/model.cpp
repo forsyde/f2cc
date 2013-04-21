@@ -39,21 +39,21 @@ using std::bad_alloc;
 Model::Model() throw() {}
 
 Model::~Model() throw() {
-    destroyAllProcesses();
+    destroyAllLeafs();
 }
 
-bool Model::addProcess(Process* process)
+bool Model::addLeaf(Leaf* leaf)
     throw(InvalidArgumentException, OutOfMemoryException) {
-    if (!process) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
+    if (!leaf) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"leaf\" must not be "
                         "NULL");
     }
 
     try {
-        pair<map<const Id, Process*>::iterator, bool>
-            result = processes_.insert(
-                pair<const Id, Process*>(
-                    *process->getId(), process));
+        pair<map<const Id, Leaf*>::iterator, bool>
+            result = leafs_.insert(
+                pair<const Id, Leaf*>(
+                    *leaf->getId(), leaf));
         return result.second;
     }
     catch(bad_alloc&) {
@@ -61,40 +61,40 @@ bool Model::addProcess(Process* process)
     }
 }
 
-void Model::addProcesses(map<const Id, Process*> processes)
+void Model::addLeafs(map<const Id, Leaf*> leafs)
     throw(OutOfMemoryException) {
     try {
-        processes_.insert(processes.begin(), processes.end());
+        leafs_.insert(leafs.begin(), leafs.end());
     }
     catch(bad_alloc&) {
         THROW_EXCEPTION(OutOfMemoryException);
     }
 }
 
-Process* Model::getProcess(const Id& id) throw() {
-    map<const Id, Process*>::iterator it = findProcess(id);
-    return it != processes_.end() ? it->second : NULL;
+Leaf* Model::getLeaf(const Id& id) throw() {
+    map<const Id, Leaf*>::iterator it = findLeaf(id);
+    return it != leafs_.end() ? it->second : NULL;
 }
 
-int Model::getNumProcesses() const throw() {
-    return processes_.size();
+int Model::getNumLeafs() const throw() {
+    return leafs_.size();
 }
 
-list<Process*> Model::getProcesses() throw() {
-    list<Process*> processes;
-    map<const Id, Process*>::iterator it;
-    for (it = processes_.begin(); it != processes_.end(); ++it) {
-        processes.push_back(it->second);
+list<Leaf*> Model::getLeafs() throw() {
+    list<Leaf*> leafs;
+    map<const Id, Leaf*>::iterator it;
+    for (it = leafs_.begin(); it != leafs_.end(); ++it) {
+        leafs.push_back(it->second);
     }
-    return processes;
+    return leafs;
 }
 
-bool Model::deleteProcess(const Id& id) throw() {
-    map<const Id, Process*>::iterator it = findProcess(id);
-    if (it != processes_.end()) {
-        Process* removed_process = it->second;
-        processes_.erase(it);
-        delete removed_process;
+bool Model::deleteLeaf(const Id& id) throw() {
+    map<const Id, Leaf*>::iterator it = findLeaf(id);
+    if (it != leafs_.end()) {
+        Leaf* removed_leaf = it->second;
+        leafs_.erase(it);
+        delete removed_leaf;
         return true;
     }
     else {
@@ -103,26 +103,26 @@ bool Model::deleteProcess(const Id& id) throw() {
 }
 
 
-Id Model::getUniqueProcessId() const throw() {
-    return getUniqueProcessId("");
+Id Model::getUniqueLeafId() const throw() {
+    return getUniqueLeafId("");
 }
 
-Id Model::getUniqueProcessId(const string& prefix) const throw() {
+Id Model::getUniqueLeafId(const string& prefix) const throw() {
     for (int i = 1; ; ++i) {
         Id new_id = Id(prefix + tools::toString(i));
-        if (processes_.find(new_id) == processes_.end()) return new_id;
+        if (leafs_.find(new_id) == leafs_.end()) return new_id;
     }
 }
 
-void Model::destroyAllProcesses() throw() {
-    map<const Id, Process*>::iterator it;
-    for (it=processes_.begin(); it != processes_.end(); ++it) {
+void Model::destroyAllLeafs() throw() {
+    map<const Id, Leaf*>::iterator it;
+    for (it=leafs_.begin(); it != leafs_.end(); ++it) {
         delete it->second;
     }
 }
 
-map<const Id, Process*>::iterator Model::findProcess(const Id& id) throw() {
-    return processes_.find(id);
+map<const Id, Leaf*>::iterator Model::findLeaf(const Id& id) throw() {
+    return leafs_.find(id);
 }
 
 

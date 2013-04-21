@@ -36,8 +36,8 @@ using std::pair;
 using std::bad_alloc;
 using std::queue;
 
-ScheduleFinder::ScheduleFinder(ForSyDe::Processnetwork* model, Logger& logger)
-        throw(InvalidArgumentException) : processnetwork_(model), logger_(logger) {
+ScheduleFinder::ScheduleFinder(ForSyDe::Model* model, Logger& logger)
+        throw(InvalidArgumentException) : model_(model), logger_(logger) {
     if (!model) {
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
     }
@@ -46,22 +46,22 @@ ScheduleFinder::ScheduleFinder(ForSyDe::Processnetwork* model, Logger& logger)
 ScheduleFinder::~ScheduleFinder() throw() {}
 
 list<Id> ScheduleFinder::findSchedule() throw(IOException, RuntimeException) {
-    // Add all processes at model outputs to starting point queue
-    list<Process::Port*> output_ports = processnetwork_->getOutputs();
+    // Add all leafs at model outputs to starting point queue
+    list<Leaf::Interface*> output_interfaces = model_->getOutputs();
     logger_.logMessage(Logger::DEBUG, string("Scanning all model outputs..."));
-    for (list<Process::Port*>::iterator it = output_ports.begin();
-         it != output_ports.end(); ++it) {
+    for (list<Leaf::Interface*>::iterator it = output_interfaces.begin();
+         it != output_interfaces.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string("Adding \"")
-                           + (*it)->getProcess()->getId()->getString()
+                           + (*it)->getLeaf()->getId()->getString()
                            + "\" to starting point queue...");
-        starting_points_.push((*it)->getProcess());
+        starting_points_.push((*it)->getLeaf());
     }
     
     // Iterate over all starting points
     list<Id> schedule;
     globally_visited_.clear();
     while (!starting_points_.empty()) {
-        Process* next_starting_point = starting_points_.front();
+        Leaf* next_starting_point = starting_points_.front();
         starting_points_.pop();
         if (!next_starting_point) {
             THROW_EXCEPTION(RuntimeException, "Next starting point is NULL");
@@ -103,7 +103,7 @@ list<Id> ScheduleFinder::findSchedule() throw(IOException, RuntimeException) {
 }
 
 ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
-    Process* start, set<Id>& locally_visited)
+    Leaf* start, set<Id>& locally_visited)
     throw(IOException, RuntimeException) {
     PartialSchedule partial_schedule;
 
@@ -114,13 +114,13 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
     }
 
     // If this is a delay, add the delay element to the schedule and add its
-    // preceding process to starting point queue
-    if (dynamic_cast<SY::delay*>(start)) {
-        Process::Port* inport = start->getInPorts().front();
+    // preceding leaf to starting point queue
+    if (dynamic_cast<delay*>(start)) {
+        Leaf::Interface* inport = start->getInPorts().front();
         if (inport->isConnected()) {
-            Process* preceding_process =
-                inport->getConnectedPort()->getProcess();
-            starting_points_.push(preceding_process);
+            Leaf* preceding_leaf =
+                inport->getConnectedInterface()->getLeaf();
+            starting_points_.push(preceding_leaf);
         }
         partial_schedule.schedule.push_back(*start->getId());
         return partial_schedule;
@@ -131,14 +131,14 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
     }
 
     // Find partial schedule
-    logger_.logMessage(Logger::DEBUG, string("Analyzing process \"")
+    logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
                        + start->getId()->getString() + "\"...");
-    list<Process::Port*> in_ports = start->getInPorts();
-    list<Process::Port*>::iterator it;
-    for (it = in_ports.begin(); it != in_ports.end(); ++it) {
+    list<Leaf::Interface*> in_interfaces = start->getInPorts();
+    list<Leaf::Interface*>::iterator it;
+    for (it = in_interfaces.begin(); it != in_interfaces.end(); ++it) {
         if ((*it)->isConnected()) {
-            Process* next_process = (*it)->getConnectedPort()->getProcess();
-            PartialSchedule pp_schedule(findPartialSchedule(next_process,
+            Leaf* next_leaf = (*it)->getConnectedInterface()->getLeaf();
+            PartialSchedule pp_schedule(findPartialSchedule(next_leaf,
                                                             locally_visited));
             tools::append<Id>(partial_schedule.schedule, pp_schedule.schedule);
             if (!pp_schedule.at_beginning) {
@@ -152,13 +152,13 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
     return partial_schedule;
 }
 
-bool ScheduleFinder::isGloballyVisited(ForSyDe::Process* process) {
-    return globally_visited_.find(*process->getId()) != globally_visited_.end();
+bool ScheduleFinder::isGloballyVisited(ForSyDe::Leaf* leaf) {
+    return globally_visited_.find(*leaf->getId()) != globally_visited_.end();
 }
 
-bool ScheduleFinder::visitLocally(ForSyDe::Process* process,
+bool ScheduleFinder::visitLocally(ForSyDe::Leaf* leaf,
                                   set<ForSyDe::Id>& visited) {
-    return visited.insert(*process->getId()).second;
+    return visited.insert(*leaf->getId()).second;
 }
 
 

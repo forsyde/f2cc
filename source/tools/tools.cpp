@@ -249,7 +249,7 @@ void f2cc::tools::breakLongLines(string& str, size_t maximum_length,
         }
         next_cut_pos = offset;
 
-        // fanout words until either line break, length limit or end of string is 
+        // Copy words until either line break, length limit or end of string is 
         // hit
         for (size_t i = offset; ; ++i) {
             ++current_length;
