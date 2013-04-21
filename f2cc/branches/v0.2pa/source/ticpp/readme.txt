@@ -42,7 +42,7 @@ of the license are at the processnetwork of every source file.
 TinyXML attempts to be a flexible parser, but with truly correct and
 compliant XML output. TinyXML should compile on any reasonably C++
 compliant system. It does not rely on exceptions or RTTI. It can be 
-compiled with or without STL supinterface. TinyXML fully supinterfaces
+compiled with or without STL support. TinyXML fully supports
 the UTF-8 encoding, and the first 64k character entities.
 
 
@@ -78,7 +78,7 @@ but it is worth your time to read this (very short) manual completely.
 <h2> Code Status.  </h2>
 
 TinyXML is mature, tested code. It is very stable. If you find
-bugs, please file a bug reinterface on the sourceforge web site
+bugs, please file a bug report on the sourceforge web site
 (www.sourceforge.net/projects/tinyxml). We'll get them straightened 
 out as soon as possible.
 
@@ -93,7 +93,7 @@ TinyXML projects you may find useful! (Descriptions provided by the projects.)
 <li> <b>TinyXPath</b> (http://tinyxpath.sourceforge.net). TinyXPath is a small footprint 
      XPath syntax decoder, written in C++.</li>
 <li> <b>@subpage ticpp</b> (http://code.google.com/p/ticpp/). TinyXML++ is a completely new 
-     interface to TinyXML that uses MANY of the C++ strengths. Templates, 
+     port to TinyXML that uses MANY of the C++ strengths. Templates, 
 	 exceptions, and much better error handling.</li>
 </ul>
 
@@ -102,11 +102,11 @@ TinyXML projects you may find useful! (Descriptions provided by the projects.)
 <h3> Using STL </h3>
 
 TinyXML can be compiled to use or not use STL. When using STL, TinyXML
-uses the std::string class, and fully supinterfaces std::istream, std::ostream,
+uses the std::string class, and fully supports std::istream, std::ostream,
 operator<<, and operator>>. Many API methods have both 'const char*' and
 'const std::string&' forms.
 
-When STL supinterface is compiled out, no STL files are included whatsoever. All
+When STL support is compiled out, no STL files are included whatsoever. All
 the string classes are implemented by TinyXML itself. API methods
 all use the 'const char*' form for input.
 
@@ -125,8 +125,8 @@ line of tinyxml.h.
 
 <h3> UTF-8 </h3>
 
-TinyXML supinterfaces UTF-8 allowing to manipulate XML files in any language. TinyXML
-also supinterfaces "legacy mode" - the encoding used before UTF-8 supinterface and
+TinyXML supports UTF-8 allowing to manipulate XML files in any language. TinyXML
+also supports "legacy mode" - the encoding used before UTF-8 support and
 probably best described as "extended ascii".
 
 Normally, TinyXML will try to detect the correct encoding and use it. However,
@@ -161,7 +161,7 @@ don't need to be aware of UTF-8 or change your code in any way. You can think
 of UTF-8 as a "superset" of ASCII.
 
 UTF-8 is not a double byte format - but it is a standard encoding of Unicode!
-TinyXML does not use or directly supinterface wchar, TCHAR, or Microsoft's _UNICODE at this time. 
+TinyXML does not use or directly support wchar, TCHAR, or Microsoft's _UNICODE at this time. 
 It is common to see the term "Unicode" improperly refer to UTF-16, a wide byte encoding
 of unicode. This is a source of confusion.
 
@@ -174,7 +174,7 @@ still output text in the default code page.
 
 For example, Japanese systems traditionally use SHIFT-JIS encoding. 
 Text encoded as SHIFT-JIS can not be read by TinyXML. 
-A good text editor can iminterface SHIFT-JIS and then save as UTF-8.
+A good text editor can import SHIFT-JIS and then save as UTF-8.
 
 The <a href="http://skew.org/xml/tutorial/">Skew.org link</a> does a great
 job covering the encoding issue.
@@ -237,7 +237,7 @@ TinyXML can print output in several different ways that all have strengths and l
 	- Printing may change slightly in future versions as it is refined and expanded.
 
 <h3> Streams </h3>
-With TIXML_USE_STL on TinyXML supinterfaces C++ streams (operator <<,>>) streams as well
+With TIXML_USE_STL on TinyXML supports C++ streams (operator <<,>>) streams as well
 as C (FILE*) streams. There are some differences that you may need to be aware of.
 
 C style output:
@@ -285,7 +285,7 @@ space. Some XML parsers do not, and will leave it as "Hello____world". (Remember
 to keep pretending the _ is a space.) Others suggest that __Hello___world__ should become
 Hello___world.
 
-It's an issue that hasn't been resolved to my satisfaction. TinyXML supinterfaces the
+It's an issue that hasn't been resolved to my satisfaction. TinyXML supports the
 first 2 approaches. Call TiXmlBase::SetCondenseWhiteSpace( bool ) to set the desired behavior.
 The default is to condense white space.
 
@@ -296,7 +296,7 @@ it has been set.
 
 <h3> Handles </h3>
 
-Where browsing an XML document in a robust way, it is iminterfaceant to check
+Where browsing an XML document in a robust way, it is important to check
 for null returns from method calls. An error safe implementation can
 generate a lot of code like:
 
@@ -332,7 +332,7 @@ Which is much easier to deal with. See TiXmlHandle for more information.
 
 <h3> Row and Column tracking </h3>
 Being able to track nodes and attributes back to their origin location
-in source files can be very iminterfaceant for some applications. Additionally,
+in source files can be very important for some applications. Additionally,
 knowing where parsing errors occured in the original source can be very
 time saving.
 

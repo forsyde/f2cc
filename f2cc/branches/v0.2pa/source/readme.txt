@@ -13,15 +13,15 @@ tool can handle models which contain the following leaf types:
    - \c f2cc::ForSyDe::SY::zipx
    - \c f2cc::ForSyDe::SY::delay
 
-The tool recognizes simple data parallel patterns in a model (an \c unzipx
+The tool recognizes simple data parallel patterns in a processnetwork (an \c unzipx
 leaf, followed by a series of \c comb leafs, which all connect to a \c
-zipx leaf) and generate correct CUDA code for such regions. Supinterface for
-additional leaf types and data parallel model patterns will be added in the
+zipx leaf) and generate correct CUDA code for such regions. Support for
+additional leaf types and data parallel processnetwork patterns will be added in the
 future.
 
 \b f2cc was originally developed by Gabriel Hjort Blindell as part of his Master
 thesis at KTH (Royal Institute of Technology), Sweden. For more information
-about f2cc, the reader is advised to consult the thesis reinterface.
+about f2cc, the reader is advised to consult the thesis report.
 
 For licensing and copyright information, see the \ref license "License" page.
 

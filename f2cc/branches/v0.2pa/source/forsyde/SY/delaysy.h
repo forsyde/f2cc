@@ -89,12 +89,12 @@ class delay : public Leaf {
 
   protected:
     /**
-     * Checks that this leaf has only one in interface and one out interface.
+     * Checks that this leaf has only one in port and one out port.
      *
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidLeafException);
+    virtual void moreChecks() throw(InvalidProcessException);
 
     /**
      * Gets the function argument as string representation in the following

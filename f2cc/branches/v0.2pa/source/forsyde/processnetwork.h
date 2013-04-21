@@ -35,7 +35,7 @@
  */
 
 #include "id.h"
-#include "model.h"
+#include "processnetwork.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -47,14 +47,14 @@ namespace f2cc {
 namespace ForSyDe {
 
 /**
- * @brief Contains the internal representation of a ForSyDe model.
+ * @brief Contains the internal representation of a ForSyDe processnetwork.
  *
  * The \c ProcessNetwork embodies a complete ForSyDe network of connected \c Process
  * objects. The class also provides inputs and outputs to the network, which
  * actually are inports and outports, respectively, to one or more of the
  * leafs within the network.
  */
-class ProcessNetwork: public Model {
+class ProcessNetwork: public ProcessNetwork {
   public:
     /**
      * Creates a leaf network.
@@ -71,32 +71,32 @@ class ProcessNetwork: public Model {
      * a leaf already existing in the leaf network. If the input is \c NULL, nothing
      * happens and \c false is returned.
      *
-     * @param interface
-     *        Ininterface of a leaf.
-     * @returns \c true if the interface did not already exist as input and was
+     * @param port
+     *        Inport of a leaf.
+     * @returns \c true if the port did not already exist as input and was
      *          successfully added.
      * @throws InvalidArgumentException
-     *         When \c interface is \c NULL.
+     *         When \c port is \c NULL.
      * @throws IllegalStateException
-     *         When the interface belongs to a leaf not residing in the model.
+     *         When the port belongs to a leaf not residing in the processnetwork.
      * @throws OutOfMemoryException
-     *         When a interface cannot be added due to memory shortage.
+     *         When a port cannot be added due to memory shortage.
      */
-    bool addInput(Process::Port* interface)
+    bool addInput(Process::Port* port)
         throw(InvalidArgumentException, IllegalStateException,
               OutOfMemoryException);
 
     /**
-     * Deletes an input interface of this leaf network.
+     * Deletes an input port of this leaf network.
      *
-     * @param interface
+     * @param port
      *        Port.
-     * @returns \c true if such an input interface was found and successfully
+     * @returns \c true if such an input port was found and successfully
      *          deleted.
      * @throws InvalidArgumentException
-     *         When \c interface is \c NULL.
+     *         When \c port is \c NULL.
      */
-    bool deleteInput(Process::Port* interface) throw(InvalidArgumentException);
+    bool deleteInput(Process::Port* port) throw(InvalidArgumentException);
 
     /**
      * Gets the number of inputs of this leaf network.
@@ -115,36 +115,36 @@ class ProcessNetwork: public Model {
     /**
      * Same as addInput(const Process::Port*) but for outputs.
      *
-     * @param interface
-     *        Outinterface of a leaf.
-     * @returns \c true if the interface did not already exist as output and was
+     * @param port
+     *        Outport of a leaf.
+     * @returns \c true if the port did not already exist as output and was
      *          successfully added.
      * @throws InvalidArgumentException
-     *         When \c interface is \c NULL.
+     *         When \c port is \c NULL.
      * @throws IllegalStateException
-     *         When the interface belongs to a leaf not residing in the model.
+     *         When the port belongs to a leaf not residing in the processnetwork.
      * @throws OutOfMemoryException
-     *         When a interface cannot be added due to memory shortage.
+     *         When a port cannot be added due to memory shortage.
      */
-    bool addOutput(Process::Port* interface)
+    bool addOutput(Process::Port* port)
         throw(InvalidArgumentException, IllegalStateException,
               OutOfMemoryException);
 
     /**
      * Same as deleteInput(Process::Port*) but for outputs.
      *
-     * @param interface
+     * @param port
      *        Port.
-     * @returns \c true if such an output interface was found and successfully
+     * @returns \c true if such an output port was found and successfully
      *          deleted.
      * @throws InvalidArgumentException
-     *         When \c interface is \c NULL.
+     *         When \c port is \c NULL.
      */
-    bool deleteOutput(Process::Port* interface) throw(InvalidArgumentException);
+    bool deleteOutput(Process::Port* port) throw(InvalidArgumentException);
 
     /**
      * Same as addInput(const Process::Port*) but for outputs.
-     * Gets the number of inputs of this model.
+     * Gets the number of inputs of this processnetwork.
      *
      * @returns Number of inputs.
      */
@@ -160,50 +160,50 @@ class ProcessNetwork: public Model {
   private:
 
     /**
-     * Attempts to find a interface with a given ID from a list of interfaces. If the list
-     * is not empty and such a interface is found, an iterator pointing to that interface
+     * Attempts to find a port with a given ID from a list of ports. If the list
+     * is not empty and such a port is found, an iterator pointing to that port
      * is returned; otherwise the list's \c end() iterator is returned.
      *
      * @param id
      *        Port ID.
-     * @param interfaces
-     *        List of interfaces.
-     * @returns Iterator pointing either at the found interface, or an iterator equal
+     * @param ports
+     *        List of ports.
+     * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
     std::list<Process::Port*>::iterator findPort(
-        const Id& id, std::list<Process::Port*>& interfaces) const throw();
+        const Id& id, std::list<Process::Port*>& ports) const throw();
 
     /**
-     * Attempts to find a given interface from a list of interfaces. If the list
-     * is not empty and such a interface is found, an iterator pointing to that interface
+     * Attempts to find a given port from a list of ports. If the list
+     * is not empty and such a port is found, an iterator pointing to that port
      * is returned; otherwise the list's \c end() iterator is returned.
      *
-     * @param interface
+     * @param port
      *        Port
-     * @param interfaces
-     *        List of interfaces.
-     * @returns Iterator pointing either at the found interface, or an iterator equal
+     * @param ports
+     *        List of ports.
+     * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
     std::list<Process::Port*>::iterator findPort(
-        Process::Port* interface, std::list<Process::Port*>& interfaces)  const throw();
+        Process::Port* port, std::list<Process::Port*>& ports)  const throw();
 
 
 
     /**
-     * Takes a list of interfaces and converts it into a string representation. Each
-     * interface is converted into
+     * Takes a list of ports and converts it into a string representation. Each
+     * port is converted into
      * @code
-     *  PortID: <interface_id>, belonging to <leaf>,
+     *  PortID: <port_id>, belonging to <leaf>,
      *  ...
      * @endcode
      *
-     * @param interfaces
+     * @param ports
      *        Port list.
      * @returns String representation.
      */
-    std::string interfacesToString(const std::list<Process::Port*> interfaces) const
+    std::string portsToString(const std::list<Process::Port*> ports) const
         throw();
 
     /**

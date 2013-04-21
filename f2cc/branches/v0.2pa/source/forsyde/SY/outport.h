@@ -31,7 +31,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements a dummy leaf for network out interfaces.
+ * @brief Implements a dummy leaf for network out ports.
  */
 
 #include "leaf.h"
@@ -68,12 +68,12 @@ class OutPort : public Leaf {
 
   protected:
     /**
-     * Checks that this leaf has no out interfaces.
+     * Checks that this leaf has no out ports.
      *
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidLeafException);
+    virtual void moreChecks() throw(InvalidProcessException);
 };
 
 }

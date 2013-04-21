@@ -162,7 +162,7 @@ class Logger {
      * Logs a message with the current time stamp of the system. Whether the
      * message is written to the log file depends on its log level and the
      * current log level of the logger. The entry will be immediately flushed
-     * to file as the iminterfaceance of an accurate trace is higher than its impact
+     * to file as the importance of an accurate trace is higher than its impact
      * on performance.
      *
      * The log entry will be formatted such that each line in the log file is no

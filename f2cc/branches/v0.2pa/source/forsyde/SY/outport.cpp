@@ -51,10 +51,10 @@ string OutPort::type() const throw() {
     return "OutPort";
 }
 
-void OutPort::moreChecks() throw(InvalidLeafException) {
+void OutPort::moreChecks() throw(InvalidProcessException) {
     if (getOutPorts().size() != 0) {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" is not allowed to have any out interfaces");
+                        + type() + "\" is not allowed to have any out ports");
     }
 }

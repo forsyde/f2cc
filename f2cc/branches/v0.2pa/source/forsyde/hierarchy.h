@@ -43,7 +43,7 @@ namespace f2cc {
 namespace ForSyDe {
 
 /**
- * @brief A class used for storing and manipulating a leaf' hierarchy in the model.
+ * @brief A class used for storing and manipulating a leaf' hierarchy in the processnetwork.
  *
  * The \c Hierarchy class is used to represent and manipulate the hierarchy of a leaf
  * in the internal representation of ForSyDe leaf networks. It is basically a list of
@@ -147,15 +147,15 @@ class Hierarchy {
 
   private:
     /**
-     * Attempts to find a interface with a given ID from a list of interfaces. If the list
-     * is not empty and such a interface is found, an iterator pointing to that interface
+     * Attempts to find a port with a given ID from a list of ports. If the list
+     * is not empty and such a port is found, an iterator pointing to that port
      * is returned; otherwise the list's \c end() iterator is returned.
      *
      * @param id
-     *        Interface ID.
-     * @param interfaces
-     *        List of interfaces.
-     * @returns Iterator pointing either at the found interface, or an iterator equal
+     *        Port ID.
+     * @param ports
+     *        List of ports.
+     * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
     std::list<ForSyDe::Id*>::const_iterator findId(const ForSyDe::Id& id) const throw();

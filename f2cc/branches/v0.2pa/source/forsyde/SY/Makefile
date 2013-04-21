@@ -23,9 +23,9 @@
 
 MODULE      = forsyde
 MOC			= SY
-SRCFILES    = zipxsy.cpp unzipxsy.cpp mapsy.cpp inport.cpp outport.cpp\
+SRCFILES    = zipxsy.cpp unzipxsy.cpp inport.cpp outport.cpp\
               coalescedmapsy.cpp parallelmapsy.cpp delaysy.cpp fanoutsy.cpp \
-              combsy.cpp zipwithnsy.cpp
+              mapsy.cpp combsy.cpp zipwithnsy.cpp
 MOCOBJPATH	= $(OBJPATH)/$(MODULE)/$(MOC)
 OBJECTS     = $(addprefix $(MOCOBJPATH)/, \
                 $(addsuffix .o, $(basename $(SRCFILES))) \

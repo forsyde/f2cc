@@ -31,7 +31,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines exception for when invoking a method not supinterfaceed by a class.
+ * @brief Defines exception for when invoking a method not supported by a class.
  */
 
 #include "runtimeexception.h"
@@ -40,27 +40,27 @@
 namespace f2cc {
 
 /**
- * @brief Used when a method was called on an object which does not supinterface it
+ * @brief Used when a method was called on an object which does not support it
  *        it, for whatever reason.
  */
-class NotSupinterfaceedException : public RuntimeException {
+class NotSupportedException : public RuntimeException {
   public:
     /**
      * @copydoc Exception::Exception(const std::string&, int)
      */
-    NotSupinterfaceedException(const std::string& source_file, int source_line)
+    NotSupportedException(const std::string& source_file, int source_line)
         throw();
 
     /**
      * @copydoc Exception::Exception(const std::string&, int, const std::string&)
      */
-    NotSupinterfaceedException(const std::string& source_file, int source_line,
+    NotSupportedException(const std::string& source_file, int source_line,
                           const std::string& message) throw();
 
     /**
      * @copydoc Exception::~Exception()
      */
-    virtual ~NotSupinterfaceedException() throw();
+    virtual ~NotSupportedException() throw();
 
   protected:
     /**

@@ -69,12 +69,12 @@ class unzipx : public Leaf {
 
   protected:
     /**
-     * Checks that this leaf has only one in interface.
+     * Checks that this leaf has only one in port.
      *
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidLeafException);
+    virtual void moreChecks() throw(InvalidProcessException);
 };
 
 }

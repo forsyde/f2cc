@@ -31,11 +31,11 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines a class for performing \c Model modifications.
+ * @brief Defines a class for performing \c ProcessNetwork modifications.
  */
 
 #include "id.h"
-#include "model.h"
+#include "processnetwork.h"
 #include "leaf.h"
 #include "mapsy.h"
 #include "parallelmapsy.h"
@@ -53,37 +53,37 @@ namespace f2cc {
 namespace ForSyDe {
 
 /**
- * @brief Performs semantic-preserving modifications on a \c Model
+ * @brief Performs semantic-preserving modifications on a \c ProcessNetwork
  *        object.
  *
- * The \c ModelModifier is a class which provides a set of model modification
+ * The \c ProcessNetworkModifier is a class which provides a set of processnetwork modification
  * methods. The modifications are such that they preserve the semantics of the
- * model, and are used to simplify the latter synthesis leaf or affect the
+ * processnetwork, and are used to simplify the latter synthesis leaf or affect the
  * structure of the generated code (i.e. whether to generate sequential C code
  * or parallel CUDA C code).
  */
-class ModelModifier {
+class ProcessNetworkModifier {
   private:
     class ContainedSection;
 
   public:
     /**
-     * Creates a model modifier.
+     * Creates a processnetwork modifier.
      *
-     * @param model
-     *        ForSyDe model.
+     * @param processnetwork
+     *        ForSyDe processnetwork.
      * @param logger
      *        Reference to the logger.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
+     *         When \c processnetwork is \c NULL.
      */
-    ModelModifier(ForSyDe::Model* model, Logger& logger)
+    ProcessNetworkModifier(ForSyDe::ProcessNetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
-     * Destroys this model modifier. The logger remains open.
+     * Destroys this processnetwork modifier. The logger remains open.
      */
-    ~ModelModifier() throw();
+    ~ProcessNetworkModifier() throw();
 
     /**
      * Coalesces data parallel leafs across different segments into a
@@ -99,7 +99,7 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Coalesces \c ParallelMap leafs within the model into a single
+     * Coalesces \c ParallelMap leafs within the processnetwork into a single
      * leaf.
      *
      * @throws IOException
@@ -141,7 +141,7 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Converts leafs of type \c ZipWithN which have only one in interface to
+     * Converts leafs of type \c ZipWithN which have only one in port to
      * \c Map. This is because, in ForSyDe, they are actually the same
      * leaf type (mapSY is a special case of zipwithN), but in the internal
      * representation they are separated. Converting the leafs allows the
@@ -158,10 +158,10 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Removes redundant leafs from the model. Redundant leafs are
-     * instances which does not affect the semantic behaviour of the model when
+     * Removes redundant leafs from the processnetwork. Redundant leafs are
+     * instances which does not affect the semantic behaviour of the processnetwork when
      * removed, such as \c UnzipxSy and \c ZipxSy leafs with only one in
-     * and out interface.
+     * and out port.
      *
      * @throws IOException
      *         When access to the log file failed.
@@ -191,7 +191,7 @@ class ModelModifier {
             throw(IOException, RuntimeException);
 
     /**
-     * Searches for data parallel sections within the model. A data parallel
+     * Searches for data parallel sections within the processnetwork. A data parallel
      * section is a section which is both contained and passes the check
      * performed in isContainedSectionDataParallel(const ContainedSection&).
      *
@@ -206,8 +206,8 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Searches for contained sections within the model. A contained section is
-     * a part of the model which:
+     * Searches for contained sections within the processnetwork. A contained section is
+     * a part of the processnetwork which:
      *   - start with a \c unzipxSY leaf, and
      *   - ends with a \c zipxSY leaf, where
      *   - all data flow diverging from the starting point converges at the end
@@ -358,9 +358,9 @@ class ModelModifier {
 
     /**
      * Gets the leaf chaining starting from the leaf connected at the
-     * other end of a given interface and ends at an end point. The end point will
+     * other end of a given port and ends at an end point. The end point will
      * not be included in the chain. If there are multiple chains, it will
-     * select the first out interface of the leaf where the flow diverges.
+     * select the first out port of the leaf where the flow diverges.
      *
      * @param start
      *        Starting point.
@@ -370,14 +370,14 @@ class ModelModifier {
      * @throws OutOfMemoryException
      *         When the chain cannot be created due to memory shortage.
      */
-    std::list<ForSyDe::Leaf*> getLeafChain(
-        ForSyDe::Leaf::Interface* start, ForSyDe::Leaf* end)
+    std::list<ForSyDe::Leaf*> getProcessChain(
+        ForSyDe::Leaf::Port* start, ForSyDe::Leaf* end)
         throw(OutOfMemoryException);
 
     /**
      * Coalesces a leaf chain into a single new leaf. The leaf chain
      * \em must be ordered such that the output of a leaf is consumed by the
-     * following leaf. The old leafs will be removed from the model and
+     * following leaf. The old leafs will be removed from the processnetwork and
      * replaced by the new leaf.
      * 
      * @param chain
@@ -406,7 +406,7 @@ class ModelModifier {
         std::list<ForSyDe::ParallelMap*> chain) throw(RuntimeException);
 
     /**
-     * Searches for chains for \c ParallelMap leafs within the model.
+     * Searches for chains for \c ParallelMap leafs within the processnetwork.
      *
      * @returns List of \c ParallelMap leaf chains.
      * @throws IOException
@@ -443,7 +443,7 @@ class ModelModifier {
      * Coalesces a chain of \c ParallelMap leafs into a single new
      * leaf. The leaf chain \em must be ordered such that the output of a
      * leaf is consumed by the following leaf. The old leafs will be
-     * removed from the model and replaced by the new leaf.
+     * removed from the processnetwork and replaced by the new leaf.
      * 
      * @param chain
      *        Leaf chain.
@@ -472,7 +472,7 @@ class ModelModifier {
 
     /**
      * Removes and destroys a leaf and all its succeeding leafs from the
-     * model.
+     * processnetwork.
      *
      * @param start
      *        Start of leaf chain to destroy.
@@ -485,9 +485,9 @@ class ModelModifier {
     /**
      * Redirects data flow between two leafs \e A and \e B to another two
      * leafs \e C and \e D. The data flow is redirected by adding the in
-     * interfaces of \e A to \e C, and the out interfaces of \e B to \e D. This will
+     * ports of \e A to \e C, and the out ports of \e B to \e D. This will
      * break all connections to \e A and from \e B, thus unconnecting that
-     * segment from the model (but it does \em not delete it). Leafs \e C
+     * segment from the processnetwork (but it does \em not delete it). Leafs \e C
      * and \e D can be the same leaf.
      *
      * @param old_start
@@ -512,33 +512,33 @@ class ModelModifier {
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Replaces the old interface, if set as part of the inputs for the model, with
-     * the new interface.
+     * Replaces the old port, if set as part of the inputs for the processnetwork, with
+     * the new port.
      * 
-     * @param old_interface
-     *        Interface to replace.
-     * @param new_interface
-     *        Replacement interface.
+     * @param old_port
+     *        Port to replace.
+     * @param new_port
+     *        Replacement port.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void replaceModelInput(Leaf::Interface* old_interface, Leaf::Interface* new_interface)
+    void replaceProcessNetworkInput(Leaf::Port* old_port, Leaf::Port* new_port)
         throw(RuntimeException);
 
     /**
-     * Same as replaceModelInput(Leaf::Interface*, Leaf::Interface*) but for
+     * Same as replaceProcessNetworkInput(Leaf::Port*, Leaf::Port*) but for
      * outputs.
      * 
-     * @param old_interface
-     *        Interface to replace.
-     * @param new_interface
-     *        Replacement interface.
+     * @param old_port
+     *        Port to replace.
+     * @param new_port
+     *        Replacement port.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void replaceModelOutput(Leaf::Interface* old_interface, Leaf::Interface* new_interface)
+    void replaceProcessNetworkOutput(Leaf::Port* old_port, Leaf::Port* new_port)
         throw(RuntimeException);
 
   private:
@@ -583,9 +583,9 @@ class ModelModifier {
 
   private:
     /**
-     * ForSyDe model.
+     * ForSyDe processnetwork.
      */
-    ForSyDe::Model* const model_;
+    ForSyDe::ProcessNetwork* const processnetwork_;
 
     /**
      * Logger.

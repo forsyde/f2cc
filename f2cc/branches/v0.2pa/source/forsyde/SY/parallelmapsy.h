@@ -109,7 +109,7 @@ class ParallelMap : public CoalescedMap {
      *
      * @returns Number of leafs.
      */
-    int getNumLeafs() const throw();
+    int getNumProcesses() const throw();
 
     /**
      * @copydoc Leaf::type()

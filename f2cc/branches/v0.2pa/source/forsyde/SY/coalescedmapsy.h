@@ -144,13 +144,13 @@ class CoalescedMap : public Map {
 
   protected:
     /**
-     * Checks that this leaf has only one in interface and one out interface. It also
+     * Checks that this leaf has only one in port and one out port. It also
      * checks that all function arguments have one input parameter.
      *
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidLeafException);
+    virtual void moreChecks() throw(InvalidProcessException);
 
     /**
      * Gets the function argument as string representation in the following

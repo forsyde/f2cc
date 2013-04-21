@@ -31,11 +31,11 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines the frontend interface.
+ * @brief Defines the frontend port.
  */
 
 #include "../logger/logger.h"
-#include "../forsyde/model.h"
+#include "../forsyde/processnetwork.h"
 #include "../exceptions/filenotfoundexception.h"
 #include "../exceptions/parseexception.h"
 #include "../exceptions/invalidmodelexception.h"
@@ -45,17 +45,17 @@
 namespace f2cc {
 
 /**
- * @brief An interface for defining a frontend. The frontend parses a file of
- *        expected input and converts it into an internal ForSyDe model
+ * @brief An port for defining a frontend. The frontend parses a file of
+ *        expected input and converts it into an internal ForSyDe processnetwork
  *        representation.
  *
- * The \c Frontend interface specifies the methods required by all frontend
+ * The \c Frontend port specifies the methods required by all frontend
  * implementations. A frontend takes a file as input, and parses the content
- * into an internal ForSyDe model representation, which can be handled by the
+ * into an internal ForSyDe processnetwork representation, which can be handled by the
  * later stages of the software synthesis leaf.
  *
- * The interface is actually an abstract base class as it provides some method
- * implementations, but it should really be viewed as an interface.
+ * The port is actually an abstract base class as it provides some method
+ * implementations, but it should really be viewed as an port.
  */
 class Frontend {
   public:
@@ -74,15 +74,15 @@ class Frontend {
 
     /**
      * Parses a file converts it into a corresponding internal representation of
-     * the ForSyDe model. The model will also be checked so that it appears
+     * the ForSyDe processnetwork. The processnetwork will also be checked so that it appears
      * sane for the later stages of the software synthesis leaf.
      *
-     * The receiver of the returned model is responsible of freeing the memory
-     * consumed when the model is no longer needed.
+     * The receiver of the returned processnetwork is responsible of freeing the memory
+     * consumed when the processnetwork is no longer needed.
      *
      * @param file
      *        Input file.
-     * @returns Parsed model.
+     * @returns Parsed processnetwork.
      * @throws InvalidArgumentException
      *         When \c file is an empty string.
      * @throws FileNotFoundException
@@ -91,25 +91,25 @@ class Frontend {
      *         When the file cannot be read or the log file cannot be written.
      * @throws ParseException
      *         When the file fails to be parsed.
-     * @throws InvalidModelException
-     *         When the model is invalid (but was successfully parsed).
+     * @throws InvalidProcessNetworkException
+     *         When the processnetwork is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::Model* parse(const std::string& file)
+    ForSyDe::ProcessNetwork* parse(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidModelException, RuntimeException);
+              ParseException, InvalidProcessNetworkException, RuntimeException);
 
   protected:
     /**
-     * Creates a new ForSyDe model by parsing a given input file. This method is
+     * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::Model object.
+     * ForSyDe::ProcessNetwork object.
      *
      * @param file
      *        Input file.
-     * @returns Parsed model.
+     * @returns Parsed processnetwork.
      * @throws InvalidArgumentException
      *         When \c file is an empty string.
      * @throws FileNotFoundException
@@ -118,24 +118,24 @@ class Frontend {
      *         When the file cannot be read or the log file cannot be written.
      * @throws ParseException
      *         When the file fails to be parsed.
-     * @throws InvalidModelException
-     *         When the model is invalid (but was successfully parsed).
+     * @throws InvalidProcessNetworkException
+     *         When the processnetwork is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual ForSyDe::Model* createModel(const std::string& file)
+    virtual ForSyDe::ProcessNetwork* createProcessNetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidModelException, RuntimeException) = 0;
+              ParseException, InvalidProcessNetworkException, RuntimeException) = 0;
 
     /**
-     * Performs more model checks. By default, this does nothing.
+     * Performs more processnetwork checks. By default, this does nothing.
      * 
-     * @param model
-     *        Model to check.
+     * @param processnetwork
+     *        ProcessNetwork to check.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
-     * @throws InvalidModelException
+     *         When \c processnetwork is \c NULL.
+     * @throws InvalidProcessNetworkException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -143,42 +143,42 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual void checkModelMore(ForSyDe::Model* model)
-        throw(InvalidArgumentException, InvalidModelException, IOException,
+    virtual void checkProcessNetworkMore(ForSyDe::ProcessNetwork* processnetwork)
+        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
               RuntimeException);
 
     /**
-     * Performs post-check fixes to the model, if necessary. By default, this
+     * Performs post-check fixes to the processnetwork, if necessary. By default, this
      * does nothing.
      * 
-     * @param model
-     *        Model to fix.
+     * @param processnetwork
+     *        ProcessNetwork to fix.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
+     *         When \c processnetwork is \c NULL.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual void postCheckFixes(ForSyDe::Model* model)
+    virtual void postCheckFixes(ForSyDe::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
   private:
     /**
-     * Checks that a given model is a valid ForSyde model by ensuring that:
-     *   - all in and out interfaces of all leafs in the model are
+     * Checks that a given processnetwork is a valid ForSyde processnetwork by ensuring that:
+     *   - all in and out ports of all leafs in the processnetwork are
      *     connected,
-     *   - all interfaces are connected to leafs that reside within the model,
+     *   - all ports are connected to leafs that reside within the processnetwork,
      *   - no output of any leaf is connected to the input of the
      *     same leaf (i.e. avoiding combinatorial loops),
      *   - all leaf type-related checks are passed.
      * 
-     * @param model
-     *        Model to check.
+     * @param processnetwork
+     *        ProcessNetwork to check.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
-     * @throws InvalidModelException
+     *         When \c processnetwork is \c NULL.
+     * @throws InvalidProcessNetworkException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -186,24 +186,24 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkModel(ForSyDe::Model* model)
-        throw(InvalidArgumentException, InvalidModelException, IOException,
+    void checkProcessNetwork(ForSyDe::ProcessNetwork* processnetwork)
+        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
               RuntimeException);
 
     /**
-     * Checks that a interface is:
+     * Checks that a port is:
      *   - is connected,
-     *   - is connected to a interface belonging to leaf which is part of the
-     *     given model,
-     *   - is not connected a interface of its own leaf (combinatorial loops).
+     *   - is connected to a port belonging to leaf which is part of the
+     *     given processnetwork,
+     *   - is not connected a port of its own leaf (combinatorial loops).
      * 
-     * @param interface
-     *        Interface to check.
-     * @param model
-     *        Model that the leaf using the interface should belong to.
+     * @param port
+     *        Port to check.
+     * @param processnetwork
+     *        ProcessNetwork that the leaf using the port should belong to.
      * @throws InvalidArgumentException
-     *         When either \c interface or \c model is \c NULL.     
-     * @throws InvalidModelException
+     *         When either \c port or \c processnetwork is \c NULL.     
+     * @throws InvalidProcessNetworkException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -211,8 +211,8 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkInterface(ForSyDe::Leaf::Interface* interface, ForSyDe::Model* model)
-        throw(InvalidArgumentException, InvalidModelException, IOException,
+    void checkPort(ForSyDe::Leaf::Port* port, ForSyDe::ProcessNetwork* processnetwork)
+        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
               RuntimeException);
 
   protected:

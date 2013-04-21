@@ -22,8 +22,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 MODULE      = forsyde
-SRCFILES    = id.cpp hiearchy.cpp model.cpp processnetwork.cpp composite.cpp \
-              leaf.cpp modelmodifier.cpp
+SRCFILES    = processnetwork.cpp id.cpp hierarchy.cpp process.cpp leaf.cpp composite.cpp \
+              processnetwork.cpp processnetworkmodifier.cpp
 THISOBJPATH = $(OBJPATH)/$(MODULE)
 OBJECTS     = $(addprefix $(THISOBJPATH)/, \
                 $(addsuffix .o, $(basename $(SRCFILES))) \

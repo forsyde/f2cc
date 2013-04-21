@@ -42,6 +42,7 @@
 #include "../exceptions/invalidprocessexception.h"
 #include "../exceptions/invalidformatexception.h"
 #include "../exceptions/invalidargumentexception.h"
+#include "../exceptions/illegalstateexception.h"
 #include <list>
 
 namespace f2cc {
@@ -53,7 +54,7 @@ namespace ForSyDe {
  *
  * The \c Process is a base class for process nodes in internal representation
  * of ForSyDe models. It provides functionality common for all processs such as
- * in and out port definition and signal management.
+ * in and out interface definition and signal management.
  */
 class Process{
   public:
@@ -68,11 +69,11 @@ class Process{
      */
     Process(const ForSyDe::Id& id) throw();
 
-    Process(ForSyDe::Hierarchy hierarchy) throw();
+    Process(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy) throw();
 
     /**
-     * Destroys this process. This also destroys all ports and breaks all
-     * port connections.
+     * Destroys this process. This also destroys all interfaces and breaks all
+     * interface connections.
      */
     virtual ~Process() throw();
 
@@ -115,48 +116,6 @@ class Process{
 
 
     /**
-     * Converts this process into a string representation. The resultant string
-     * is as follows:
-     * @code
-     * {
-     *  ProcessID: <process_id>,
-     *  ProcessType: <process_type>
-     *  NumInPorts : <num_in_ports>
-     *  InPorts = {...}
-     *  NumOutPorts : <num_out_ports>
-     *  OutPorts = {...}
-     *  [aditional data]
-     * }
-     * @endcode
-     * Derived classes may include additional data by overriding the
-     * virtual moreToString() method.
-     *
-     * @returns String representation.
-     * @see moreToString()
-     */
-    virtual std::string toString() const throw();
-
-    /**
-     * Checks whether this process is equal to another. Two processs are equal
-     * if they are of the same process type and have the same number of in and
-     * out ports.
-     *
-     * @param rhs
-     *        Process to compare with.
-     * @returns \c true if both processs are equal.
-     */
-    virtual bool operator==(const Process& rhs) const throw();
-
-    /**
-     * Same as operator==(Process&) but for inequality.
-     *
-     * @param rhs
-     *        Process to compare with.
-     * @returns \c true if both processs are not equal.
-     */
-    virtual bool operator!=(const Process& rhs) const throw();
-
-    /**
      * Gets the type of this process as a string.
      *
      * @returns Process type.
@@ -173,156 +132,92 @@ class Process{
      */
     virtual void moreChecks() throw(InvalidProcessException) = 0;
 
-    /**
-     * Additional string output to be included when this process is converted to
-     * a string representation. By default this returns an empty string.
-     *
-     * @returns Additional string representation data.
-     * @see toString()
-     */
-    virtual std::string moreToString() const throw();
-
-  private:
-
-    /**
-     * Attempts to find a port with a given ID from a list of ports. If the list
-     * is not empty and such a port is found, an iterator pointing to that port
-     * is returned; otherwise the list's \c end() iterator is returned.
-     *
-     * @param id
-     *        Port ID.
-     * @param ports
-     *        List of ports.
-     * @returns Iterator pointing either at the found port, or an iterator equal
-     *          to the list's \c end() iterator.
-     */
-    std::list<Port*>::iterator findPort(const ForSyDe::Id& id,
-                                        std::list<Port*>& ports) const throw();
-
-    /**
-     * Takes a list of ports and converts it into a string representation. Each
-     * port is converted into
-     * @code
-     *  PortID: <port_id>, not connected / connected to <process>:<port>,
-     *  ...
-     * @endcode
-     *
-     * @param ports
-     *        Port list.
-     * @returns String representation.
-     */
-    std::string portsToString(const std::list<Port*> ports) const throw();
-
-    /**
-     * Destroys all ports in a given list.
-     *
-     * @param ports
-     *        List of ports to destroy.
-     */
-    void destroyAllPorts(std::list<Port*>& ports) throw();
-
   protected:
+    ForSyDe::Id id_;
     /**
 	 * Hierarchy list
 	 */
 	ForSyDe::Hierarchy hierarchy_;
-    /**
-     * List of in ports.
-     */
-    std::list<Port*> in_ports_;
 
-    /**
-     * List of out ports.
-     */
-    std::list<Port*> out_ports_;
 
   public:
     /**
-     * @brief Class used for in- and out ports by the \c Process class.
+     * @brief Class used for in- and out interfaces by the \c Process class.
      *
-     * The \c Port class defines a process port. A port is identified by an ID
-     * and can be connected to another port.
+     * The \c Port class defines a process interface. A interface is identified by an ID
+     * and can be connected to another interface.
      */
-    class Port {
+    class Interface {
       public:
         /**
-         * Creates a port belonging to no process.
+         * Creates a interface belonging to no process.
          *
          * @param id
          *        Port ID.
          */
-        Port(const ForSyDe::Id& id) throw();
+    	Interface(const ForSyDe::Id& id) throw();
 
         /**
-         * Creates a port belonging to a process.
+         * Creates a interface belonging to a process.
          *
          * @param id
          *        Port ID.
          * @param process
-         *        Pointer to the process to which this port belongs.
+         *        Pointer to the process to which this interface belongs.
          * @throws InvalidArgumentException
          *         When \c process is \c NULL.
          */
-        Port(const ForSyDe::Id& id, Process* process)
+    	Interface(const ForSyDe::Id& id, Process* process)
             throw(InvalidArgumentException);
 
 
-        virtual ~Port() throw();
+        virtual ~Interface() throw();
         
         /**
-         * Gets the process to which this port belongs.
+         * Gets the process to which this interface belongs.
          *
          * @returns Process, if available; otherwise \c NULL.
          */
         Process* getProcess() const throw();
 
         /**
-         * Gets the ID of this port.
+         * Gets the ID of this interface.
          *
          * @returns Port ID.
          */
         const ForSyDe::Id* getId() const throw();
 
-        /**
-         * Checks for equality between this port and another.
-         *
-         * @param rhs
-         *        Port to compare.
-         * @returns \c true if both belong to the same process and if their IDs
-         *          are identical.
-         */
-        virtual bool operator==(const Port& rhs) const throw() = 0;
 
         /**
-         * Checks for inequality between this port and another.
-         *
-         * @param rhs
-         *        Port to compare.
-         * @returns \c true if the ports belong to different processs or if
-         *          their IDs are not identical.
-         */
-        bool operator!=(const Port& rhs) const throw();
-
-        /**
-         * Converts this port into a string representation. The resultant string
+         * Converts this interface into a string representation. The resultant string
          * is as follows:
          * @code
-         *  <process_id>:<port_id>
+         *  <process_id>:<interface_id>
          * @endcode
          *
          * @returns String representation.
          */
-        virtual std::string toString() const throw() = 0;
+        std::string toString() const throw();
+
+      protected:
+        /**
+         * Additional string output to be included when this process is converted to
+         * a string representation. By default this returns an empty string.
+         *
+         * @returns Additional string representation data.
+         * @see toString()
+         */
+        virtual std::string moreToString() const throw();
 
       private:
         /**
-         * Due to how port copying works, the assign operator is hidden and thus
+         * Due to how interface copying works, the assign operator is hidden and thus
          * not allowed to avoid potential bugs as it is easy to forget this
          * fact.
          */
         void operator=(const Port&) throw();
 
-      private:
+      protected:
         /**
          * Port ID.
          */

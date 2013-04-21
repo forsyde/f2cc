@@ -51,10 +51,10 @@ string InPort::type() const throw() {
     return "InPort";
 }
 
-void InPort::moreChecks() throw(InvalidLeafException) {
+void InPort::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 0) {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" is not allowed to have in interfaces");
+                        + type() + "\" is not allowed to have in ports");
     }
 }

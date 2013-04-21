@@ -471,8 +471,8 @@ public:
 
 	#endif
 
-	/** The types of XML nodes supinterfaceed by TinyXml. (All the
-			unsupinterfaceed types are picked up by UNKNOWN.)
+	/** The types of XML nodes supported by TinyXml. (All the
+			unsupported types are picked up by UNKNOWN.)
 	*/
 	enum NodeType
 	{
@@ -602,7 +602,7 @@ public:
 		NOTE: the node to be added is passed by pointer, and will be
 		henceforth owned (and deleted) by tinyXml. This method is efficient
 		and avoids an extra copy, but should be used with care as it
-		uses a different memory model than the other insert functions.
+		uses a different memory processnetwork than the other insert functions.
 
 		@sa InsertEndChild
 	*/
@@ -733,13 +733,13 @@ public:
 
 	/** Accept a hierchical visit the nodes in the TinyXML DOM. Every node in the
 		XML tree will be conditionally visited and the host will be called back
-		via the TiXmlVisitor interface.
+		via the TiXmlVisitor port.
 
-		This is essentially a SAX interface for TinyXML. (Note however it doesn't re-parse
+		This is essentially a SAX port for TinyXML. (Note however it doesn't re-parse
 		the XML for the callbacks, so the performance of TinyXML is unchanged by using this
-		interface versus any other.)
+		port versus any other.)
 
-		The interface has been based on ideas from:
+		The port has been based on ideas from:
 
 		- http://www.saxproject.org/
 		- http://c2.com/cgi/wiki?HierarchicalVisitorPattern
@@ -791,7 +791,7 @@ private:
 	number of attributes, each with a unique name.
 
 	@note The attributes are not TiXmlNodes, since they are not
-		  part of the tinyXML document object model. There are other
+		  part of the tinyXML document object processnetwork. There are other
 		  suggested ways to look at this problem.
 */
 class TiXmlAttribute : public TiXmlBase
@@ -891,14 +891,14 @@ public:
 	void Print( FILE* cfile, int depth, TIXML_STRING* str ) const;
 
 	// [internal use]
-	// Set the document pointer so the attribute can reinterface errors.
+	// Set the document pointer so the attribute can report errors.
 	void SetDocument( TiXmlDocument* doc )	{ document = doc; }
 
 private:
 	TiXmlAttribute( const TiXmlAttribute& );				// not implemented.
 	void operator=( const TiXmlAttribute& base );	// not allowed.
 
-	TiXmlDocument*	document;	// A pointer back to a document, for error reinterfaceing.
+	TiXmlDocument*	document;	// A pointer back to a document, for error reporting.
 	TIXML_STRING name;
 	TIXML_STRING value;
 	TiXmlAttribute*	prev;
@@ -1547,15 +1547,15 @@ public:
 	/** Returns the location (if known) of the error. The first column is column 1,
 		and the first row is row 1. A value of 0 means the row and column wasn't applicable
 		(memory errors, for example, have no row/column) or the parser lost the error. (An
-		error in the error reinterfaceing, in that case.)
+		error in the error reporting, in that case.)
 
 		@sa SetTabSize, Row, Column
 	*/
 	int ErrorRow() const	{ return errorLocation.row+1; }
 	int ErrorCol() const	{ return errorLocation.col+1; }	///< The column where the error occured. See ErrorRow()
 
-	/** SetTabSize() allows the error reinterfaceing functions (ErrorRow() and ErrorCol())
-		to reinterface the correct values for row and column. It does not change the output
+	/** SetTabSize() allows the error reporting functions (ErrorRow() and ErrorCol())
+		to report the correct values for row and column. It does not change the output
 		or input in any way.
 
 		By calling this method, with a tab size
@@ -1567,7 +1567,7 @@ public:
 		set, the default of 4 is used. The tabsize is set per document. Setting
 		the tabsize to 0 disables row/column tracking.
 
-		Note that row and column tracking is not supinterfaceed when using operator>>.
+		Note that row and column tracking is not supported when using operator>>.
 
 		The tab size needs to be enabled before the parse or load. Correct usage:
 		@verbatim

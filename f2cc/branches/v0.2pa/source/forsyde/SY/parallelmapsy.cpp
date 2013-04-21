@@ -59,7 +59,7 @@ bool ParallelMap::operator==(const Leaf& rhs) const throw() {
     return true;
 }
 
-int ParallelMap::getNumLeafs() const throw() {
+int ParallelMap::getNumProcesses() const throw() {
     return num_parallel_leafs_;
 }
 

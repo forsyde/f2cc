@@ -42,18 +42,18 @@ namespace f2cc {
 /**
  * @brief Used when a method was called with arguments of invalid leaf.
  */
-class InvalidLeafException : public Exception {
+class InvalidProcessException : public Exception {
   public:
     /**
      * @copydoc Exception::Exception(const std::string&, int, const std::string&)
      */
-    InvalidLeafException(const std::string& source_file, int source_line,
+    InvalidProcessException(const std::string& source_file, int source_line,
                           const std::string& message) throw();
 
     /**
      * @copydoc Exception::~Exception()
      */
-    virtual ~InvalidLeafException() throw();
+    virtual ~InvalidProcessException() throw();
 
   protected:
     /**

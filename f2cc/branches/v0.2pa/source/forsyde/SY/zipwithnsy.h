@@ -85,24 +85,24 @@ class ZipWithNSY : public Leaf {
 
   protected:
     /**
-     * Checks that this leaf has at least one in interface and only one out
-     * interface. It also checks the function (see checkFunction(const CFunction&)).
+     * Checks that this leaf has at least one in port and only one out
+     * port. It also checks the function (see checkFunction(const CFunction&)).
      *
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidLeafException);
+    virtual void moreChecks() throw(InvalidProcessException);
 
     /**
      * Performs a series of checks:
      *    - The function must have either equal number of input parameters as
-     *      the leaf has in interfaces, or equal number of input parameters as
-     *      the leaf has in interfaces + 1 (for the out interface).
+     *      the leaf has in ports, or equal number of input parameters as
+     *      the leaf has in ports + 1 (for the out port).
      *    - If the function has the same number of input parameters as the
-     *      leaf has in interfaces, then the function must return data (i.e. have
+     *      leaf has in ports, then the function must return data (i.e. have
      *      return data type other than \c void) which also is not an array.
      *    - If the function has the same number of input parameters as the
-     *      leaf has in interfaces + 1 (for the out interface), then the function must
+     *      leaf has in ports + 1 (for the out port), then the function must
      *      not return data (i.e. have return data type \c void).
      *    - If any input parameter is an array or pointer, it must also be
      *      declared \c const. If the function returns \c void, then the last
@@ -110,13 +110,13 @@ class ZipWithNSY : public Leaf {
      *
      * @param function
      *        Function to check.
-     * @param num_in_interfaces
-     *        Number of in interfaces to the leaf.
-     * @throws InvalidLeafException
+     * @param num_in_ports
+     *        Number of in ports to the leaf.
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void checkFunction(CFunction& function, size_t num_in_interfaces) const
-        throw(InvalidLeafException);
+    virtual void checkFunction(CFunction& function, size_t num_in_ports) const
+        throw(InvalidProcessException);
 
     /**
      * Gets the function argument as string representation in the following

@@ -51,10 +51,10 @@ string fanout::type() const throw() {
     return "copy";
 }
 
-void fanout::moreChecks() throw(InvalidLeafException) {
+void fanout::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have exactly one (1) in interface");
+                        + type() + "\" must have exactly one (1) in port");
     }
 }
