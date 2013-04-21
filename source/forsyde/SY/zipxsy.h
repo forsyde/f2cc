@@ -69,12 +69,12 @@ class zipx : public Leaf {
 
   protected:
     /**
-     * Checks that this leaf has only one out interface.
+     * Checks that this leaf has only one out port.
      *
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidLeafException);
+    virtual void moreChecks() throw(InvalidProcessException);
 };
 
 }

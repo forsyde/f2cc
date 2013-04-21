@@ -58,13 +58,13 @@ string Config::getHelpMenu() const throw() {
         + "\n";
 
     part = "This tool is part of the ForSyDe framework for synthesizing "
-        "programs modeled at a high level of abstraction into compilable C or "
+        "programs processnetworked at a high level of abstraction into compilable C or "
         "CUDA C code. The synthesis leaf is semantic-preserving which means "
-        "that a model which is proven to be correct will also yield correct C "
+        "that a processnetwork which is proven to be correct will also yield correct C "
         "or CUDA C code.\n"
         "\n"
-        "The tool expects the model to be represented as a GraphML file. "
-        "Currently, the tool supinterfaces the following leafs:\n";
+        "The tool expects the processnetwork to be represented as a GraphML file. "
+        "Currently, the tool supports the following leafs:\n";
     tools::breakLongLines(part, maximum_line_length, 0);
     part += ""
         "   * Map\n"
@@ -98,7 +98,7 @@ string Config::getHelpMenu() const throw() {
     part = "   -no-pc, --no-leaf-coalescing\n"
         "      CUDA ONLY. Specifies that the tool should not coalesce "
         "leafs, even "
-        "when it is possible to do so for the given input model."
+        "when it is possible to do so for the given input processnetwork."
         "\n\n";
     tools::breakLongLines(part, maximum_line_length, indents);
     str += part;
@@ -137,7 +137,7 @@ string Config::getHelpMenu() const throw() {
     tools::breakLongLines(part, maximum_line_length, indents);
     str += part;
 
-    part = "Reinterface bugs to: <ghb@kth.se>\n";
+    part = "Report bugs to: <ghb@kth.se>\n";
     str += part;
 
     return str;
@@ -333,7 +333,7 @@ void Config::setFromCommandLine(int argc, const char** argv)
                     use_shared_memory_for_input_ = true;
                 }
                 /*
-                 // Usage of shared memory for output data is not yet supinterfaceed
+                 // Usage of shared memory for output data is not yet supported
                 else if (option == "-use-sm-o" 
                          || option == "--use-shared-memory-for-output") {
                     use_shared_memory_for_output_ = true;

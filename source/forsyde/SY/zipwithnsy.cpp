@@ -59,16 +59,16 @@ string ZipWithNSY::type() const throw() {
     return "ZipWithNSY";
 }
 
-void ZipWithNSY::moreChecks() throw(InvalidLeafException) {
+void ZipWithNSY::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() < 1) {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have at least one (1) in interface");
+                        + type() + "\" must have at least one (1) in port");
     }
     if (getOutPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have exactly one (1) out interface");
+                        + type() + "\" must have exactly one (1) out port");
     }
     checkFunction(function_, getNumInPorts());
 }
@@ -77,28 +77,28 @@ string ZipWithNSY::moreToString() const throw() {
     return string("LeafFunction: ") + function_.toString();
 }
 
-void ZipWithNSY::checkFunction(CFunction& function, size_t num_in_interfaces) const
-    throw(InvalidLeafException) {
-    if (function.getInputParameters().size() == num_in_interfaces) {
+void ZipWithNSY::checkFunction(CFunction& function, size_t num_in_ports) const
+    throw(InvalidProcessException) {
+    if (function.getInputParameters().size() == num_in_ports) {
         if (function.getReturnDataType()->getFunctionReturnDataTypeString()
             == "void") {
-            THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
                             + type() + "\": function arguments with one input "
                             "parameter must return data (i.e. have return "
                             "data type other than \"void\")");
         }
         if (function.getReturnDataType()->isArray()) {
-            THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
                             + type() + "\": return type of function arguments "
                             "with one input parameter must not be an array");
         }
     }
-    else if (function.getInputParameters().size() == num_in_interfaces + 1) {
+    else if (function.getInputParameters().size() == num_in_ports + 1) {
         if (function.getReturnDataType()->getFunctionReturnDataTypeString()
             != "void") {
-            THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
                             + type() + "\": function arguments with two input "
                             "parameters must not return data (i.e. have return "
@@ -106,7 +106,7 @@ void ZipWithNSY::checkFunction(CFunction& function, size_t num_in_interfaces) co
         }
     }
     else {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have a function argument with "
                         "one or two input parameters");
@@ -115,11 +115,11 @@ void ZipWithNSY::checkFunction(CFunction& function, size_t num_in_interfaces) co
     size_t i;
     list<CVariable*> input_parameters = function.getInputParameters();
     list<CVariable*>::iterator it;
-    for (i = 0, it = input_parameters.begin(); i < num_in_interfaces; ++i, ++it) {
+    for (i = 0, it = input_parameters.begin(); i < num_in_ports; ++i, ++it) {
         CVariable variable = **it;
         CDataType input_data_type = *variable.getDataType();
         if (input_data_type.isArray() && !input_data_type.isConst()) {
-            THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
                             + type() + "\": input parameter \""
                             + variable.getReferenceString() + "\"is a "

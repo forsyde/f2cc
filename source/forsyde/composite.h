@@ -59,7 +59,7 @@ namespace ForSyDe {
  * process networks.
  *
  * \c Composite is a base class for composite processes in internal representation
- * of ForSyDe process networks. It inherits both the \c Model class and the \Process class.
+ * of ForSyDe process networks. It inherits both the \c ProcessNetwork class and the \Process class.
  * Hence it behaves like a process that contains other processes.
  */
 class Composite : public Model, public Process {
@@ -95,51 +95,51 @@ public:
     void changeName(ForSyDe::Id* name) throw();
 
     /**
-      * Adds an in interface to this leaf. Leafs are not allowed to have
-      * multiple in interfaces with the same ID.
+      * Adds an in port to this leaf. Leafs are not allowed to have
+      * multiple in ports with the same ID.
       *
       * @param id
       *        IOPort ID.
-      * @returns \c true if such an in interface did not already exist and was
+      * @returns \c true if such an in port did not already exist and was
       *          successfully added.
       * @throws OutOfMemoryException
-      *         When a interface cannot be added due to memory shortage.
+      *         When a port cannot be added due to memory shortage.
       */
      bool addInIOPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
 
      /**
-      * Creates a new interface with the same ID and connections as another interface and
-      * adds it as in interface to this leaf. The connections at the other interface are
-      * broken. Leafs are not allowed to have multiple in interfaces with the same
+      * Creates a new port with the same ID and connections as another port and
+      * adds it as in port to this leaf. The connections at the other port are
+      * broken. Leafs are not allowed to have multiple in ports with the same
       * ID.
       *
-      * @param interface
+      * @param port
       *        IOPort.
-      * @returns \c true if such an in interface did not already exist and was
+      * @returns \c true if such an in port did not already exist and was
       *          successfully copied and added.
       * @throws OutOfMemoryException
-      *         When a interface cannot be added due to memory shortage.
+      *         When a port cannot be added due to memory shortage.
       */
-     bool addInIOPort(IOPort& interface) throw(OutOfMemoryException);
+     bool addInIOPort(IOPort& port) throw(OutOfMemoryException);
 
      /**
-      * Deletes and destroys an in interface to this leaf.
+      * Deletes and destroys an in port to this leaf.
       *
       * @param id
       *        IOPort ID.
-      * @returns \c true if such a interface was found and successfully deleted.
+      * @returns \c true if such a port was found and successfully deleted.
       */
      bool deleteInIOPort(const ForSyDe::Id& id) throw();
 
      /**
-      * Gets the number of in interfaces of this leaf.
+      * Gets the number of in ports of this leaf.
       *
-      * @returns Number of in interfaces.
+      * @returns Number of in ports.
       */
      size_t getNumInIOPorts() const throw();
 
      /**
-      * Gets an in interface by ID belonging to this this leaf.
+      * Gets an in port by ID belonging to this this leaf.
       *
       * @param id
       *        IOPort id.
@@ -148,54 +148,54 @@ public:
      IOPort* getInIOPort(const ForSyDe::Id& id) throw();
 
      /**
-      * Gets a list of in interfaces belonging to this this leaf.
+      * Gets a list of in ports belonging to this this leaf.
       *
-      * @returns List of in interfaces.
+      * @returns List of in ports.
       */
      std::list<IOPort*> getInIOPorts() throw();
 
      /**
-      * Same as addIn IOPort(const ForSyDe::Id&) but for out interfaces.
+      * Same as addIn IOPort(const ForSyDe::Id&) but for out ports.
       *
       * @param id
       *        IOPort ID.
-      * @returns \c true if such a interface did not already exist and was
+      * @returns \c true if such a port did not already exist and was
       *          successfully added.
       * @throws OutOfMemoryException
-      *         When a interface cannot be added due to memory shortage.
+      *         When a port cannot be added due to memory shortage.
       */
      bool addOutIOPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
 
      /**
-      * Same as addInIOPort(IOPort&) but for out interfaces.
+      * Same as addInIOPort(IOPort&) but for out ports.
       *
-      * @param interface
+      * @param port
       *        IOPort.
-      * @returns \c true if such an out interface did not already exist and was
+      * @returns \c true if such an out port did not already exist and was
       *          successfully copied and added.
       * @throws OutOfMemoryException
-      *         When a interface cannot be added due to memory shortage.
+      *         When a port cannot be added due to memory shortage.
       */
-     bool addOutIOPort(IOPort& interface) throw(OutOfMemoryException);
+     bool addOutIOPort(IOPort& port) throw(OutOfMemoryException);
 
      /**
-      * Same as deleteOutIOPort(const ForSyDe::Id&) but for out interfaces.
+      * Same as deleteOutIOPort(const ForSyDe::Id&) but for out ports.
       *
       * @param id
       *        IOPort ID.
-      * @returns \c true if such a interface was found and successfully deleted.
+      * @returns \c true if such a port was found and successfully deleted.
       */
      bool deleteOutIOPort(const ForSyDe::Id& id) throw();
 
      /**
-      * Same as getNumInIOPorts() but for out interfaces.
+      * Same as getNumInIOPorts() but for out ports.
       *
-      * @returns Number of out interfaces.
+      * @returns Number of out ports.
       */
      size_t getNumOutIOPorts() const throw();
 
      /**
-      * Same as getOutIOPort(const ForSyDe::Id&) but for out interfaces.
+      * Same as getOutIOPort(const ForSyDe::Id&) but for out ports.
       *
       * @param id
       *        IOPort ID.
@@ -204,9 +204,9 @@ public:
      IOPort* getOutIOPort(const ForSyDe::Id& id) throw();
 
      /**
-      * Same as getInIOPorts() but for out interfaces.
+      * Same as getInIOPorts() but for out ports.
       *
-      * @returns List of out interfaces.
+      * @returns List of out ports.
       */
      std::list<IOPort*> getOutIOPorts() throw();
 
@@ -217,9 +217,9 @@ public:
       * {
       *  LeafID: <leaf_id>,
       *  LeafType: <leaf_type>
-      *  NumInPorts : <num_in_interfaces>
+      *  NumInPorts : <num_in_ports>
       *  InPorts = {...}
-      *  NumOutPorts : <num_out_interfaces>
+      *  NumOutPorts : <num_out_ports>
       *  OutPorts = {...}
       *  [aditional data]
       * }
@@ -232,31 +232,82 @@ public:
       */
      virtual std::string toString() const throw();
 
-    /**
-     * Same as Process::operator==(const Process&) const but with the additional
-     * check that the composite process' names (thus their structure) is the same.
-     *
-     * @param rhs
-     *        Composite process to compare with.
-     * @returns \c true if both processes are equal.
-     */
-    virtual bool operator==(const Process& rhs) const throw();
+     /**
+      * Checks whether this leaf is equal to another. Two leafs are equal
+      * if they are of the same leaf type and have the same number of in and
+      * out ports.
+      *
+      * @param rhs
+      *        Leaf to compare with.
+      * @returns \c true if both leafs are equal.
+      */
+     bool operator==(const Leaf& rhs) const throw();
 
-    /**
-     * @copydoc Process::type()
-     */
-    virtual std::string type() const throw();
+     /**
+      * Same as operator==(Leaf&) but for inequality.
+      *
+      * @param rhs
+      *        Leaf to compare with.
+      * @returns \c true if both leafs are not equal.
+      */
+     bool operator!=(const Leaf& rhs) const throw();
 
-  protected:
+     /**
+      * Gets the type of this leaf as a string.
+      *
+      * @returns Leaf type.
+      */
+     virtual std::string type() const throw();
 
-    /**
-     * Checks that this process has at least one in port, one out
-     * port and one contained process.
-     *
-     * @throws InvalidProcessException
-     *         When the check fails.
-     */
-    virtual void moreChecks() throw(InvalidProcessException);
+   protected:
+     /**
+      * Performs leaf type-related checks on this leaf. This needs to be
+      * derived by all subclasses.
+      *
+      * @throws InvalidProcessException
+      *         When the check fails.
+      */
+     virtual void moreChecks() throw(InvalidProcessException);
+
+   private:
+
+     /**
+      * Attempts to find a port with a given ID from a list of ports. If the list
+      * is not empty and such a port is found, an iterator pointing to that port
+      * is returned; otherwise the list's \c end() iterator is returned.
+      *
+      * @param id
+      *        Port ID.
+      * @param ports
+      *        List of ports.
+      * @returns Iterator pointing either at the found port, or an iterator equal
+      *          to the list's \c end() iterator.
+      */
+     std::list<Port*>::iterator findPort(const ForSyDe::Id& id,
+                                         std::list<Port*>& ports) const throw();
+
+     /**
+      * Takes a list of ports and converts it into a string representation. Each
+      * port is converted into
+      * @code
+      *  PortID: <port_id>, not connected / connected to <leaf>:<port>,
+      *  ...
+      * @endcode
+      *
+      * @param ports
+      *        Port list.
+      * @returns String representation.
+      */
+     std::string portsToString(const std::list<Port*> ports) const throw();
+
+     /**
+      * Destroys all ports in a given list.
+      *
+      * @param ports
+      *        List of ports to destroy.
+      */
+     void destroyAllIOPorts(std::list<IOPort*>& ports) throw();
+
 
   protected:
     /**
@@ -299,20 +350,6 @@ public:
     	IOPort(const ForSyDe::Id& id, Composite* process)
             throw(InvalidArgumentException);
 
-        /**
-         * Creates a port belonging to process with the same ID, data type and
-         * connections as another port. The connection at the other port is
-         * broken.
-         *
-         * @param rhs
-         *        Port to copy.
-         * @param process
-         *        Pointer to the process to which this port belongs.
-         * @throws InvalidArgumentException
-         *         When \c process is \c NULL.
-         */
-        explicit IOPort(IOPort& rhs, Composite* composite)
-            throw(InvalidArgumentException);
 
         /**
          * Destroys this port. This also breaks the connection, if any.

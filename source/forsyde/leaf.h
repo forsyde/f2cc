@@ -55,11 +55,11 @@ namespace ForSyDe {
  *
  * The \c Leaf is a base class for leaf nodes in internal representation
  * of ForSyDe models. It provides functionality common for all leafs such as
- * in and out interface definition and signal management.
+ * in and out port definition and signal management.
  */
 class Leaf : public Process{
   public:
-    class Interface;
+    class Port;
 
   public:
     /**
@@ -74,8 +74,8 @@ class Leaf : public Process{
     		const std::string moc, int cost) throw();
 
     /**
-     * Destroys this leaf. This also destroys all interfaces and breaks all
-     * interface connections.
+     * Destroys this leaf. This also destroys all ports and breaks all
+     * port connections.
      */
     virtual ~Leaf() throw();
 
@@ -96,120 +96,120 @@ class Leaf : public Process{
     void setCost(int& cost) throw();
 
     /**
-     * Adds an in interface to this leaf. Leafs are not allowed to have
-     * multiple in interfaces with the same ID.
+     * Adds an in port to this leaf. Leafs are not allowed to have
+     * multiple in ports with the same ID.
      *
      * @param id
-     *        Interface ID.
-     * @returns \c true if such an in interface did not already exist and was
+     *        Port ID.
+     * @returns \c true if such an in port did not already exist and was
      *          successfully added.
      * @throws OutOfMemoryException
-     *         When a interface cannot be added due to memory shortage.
+     *         When a port cannot be added due to memory shortage.
      */
     bool addInPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
 
     /**
-     * Creates a new interface with the same ID and connections as another interface and
-     * adds it as in interface to this leaf. The connections at the other interface are
-     * broken. Leafs are not allowed to have multiple in interfaces with the same
+     * Creates a new port with the same ID and connections as another port and
+     * adds it as in port to this leaf. The connections at the other port are
+     * broken. Leafs are not allowed to have multiple in ports with the same
      * ID.
      *
-     * @param interface
-     *        Interface.
-     * @returns \c true if such an in interface did not already exist and was
+     * @param port
+     *        Port.
+     * @returns \c true if such an in port did not already exist and was
      *          successfully copied and added.
      * @throws OutOfMemoryException
-     *         When a interface cannot be added due to memory shortage.
+     *         When a port cannot be added due to memory shortage.
      */
-    bool addInPort(Interface& interface) throw(OutOfMemoryException);
+    bool addInPort(Port& port) throw(OutOfMemoryException);
 
     /**
-     * Deletes and destroys an in interface to this leaf.
+     * Deletes and destroys an in port to this leaf.
      *
      * @param id
-     *        Interface ID.
-     * @returns \c true if such a interface was found and successfully deleted.
+     *        Port ID.
+     * @returns \c true if such a port was found and successfully deleted.
      */
     bool deleteInPort(const ForSyDe::Id& id) throw();
 
     /**
-     * Gets the number of in interfaces of this leaf.
+     * Gets the number of in ports of this leaf.
      *
-     * @returns Number of in interfaces.
+     * @returns Number of in ports.
      */
     size_t getNumInPorts() const throw();
 
     /**
-     * Gets an in interface by ID belonging to this this leaf.
+     * Gets an in port by ID belonging to this this leaf.
      *
      * @param id
-     *        Interface id.
-     * @returns Interface, if found; otherwise \c NULL.
+     *        Port id.
+     * @returns Port, if found; otherwise \c NULL.
      */
-    Interface* getInPort(const ForSyDe::Id& id) throw();
+    Port* getInPort(const ForSyDe::Id& id) throw();
 
     /**
-     * Gets a list of in interfaces belonging to this this leaf.
+     * Gets a list of in ports belonging to this this leaf.
      *
-     * @returns List of in interfaces.
+     * @returns List of in ports.
      */
-    std::list<Interface*> getInPorts() throw();
+    std::list<Port*> getInPorts() throw();
 
     /**
-     * Same as addIn Interface(const ForSyDe::Id&) but for out interfaces.
+     * Same as addIn Port(const ForSyDe::Id&) but for out ports.
      *
      * @param id
-     *        Interface ID.
-     * @returns \c true if such a interface did not already exist and was
+     *        Port ID.
+     * @returns \c true if such a port did not already exist and was
      *          successfully added.
      * @throws OutOfMemoryException
-     *         When a interface cannot be added due to memory shortage.
+     *         When a port cannot be added due to memory shortage.
      */
     bool addOutPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
 
     /**
-     * Same as addInPort(Interface&) but for out interfaces.
+     * Same as addInPort(Port&) but for out ports.
      *
-     * @param interface
-     *        Interface.
-     * @returns \c true if such an out interface did not already exist and was
+     * @param port
+     *        Port.
+     * @returns \c true if such an out port did not already exist and was
      *          successfully copied and added.
      * @throws OutOfMemoryException
-     *         When a interface cannot be added due to memory shortage.
+     *         When a port cannot be added due to memory shortage.
      */
-    bool addOutPort(Interface& interface) throw(OutOfMemoryException);
+    bool addOutPort(Port& port) throw(OutOfMemoryException);
 
     /**
-     * Same as deleteOutPort(const ForSyDe::Id&) but for out interfaces.
+     * Same as deleteOutPort(const ForSyDe::Id&) but for out ports.
      *
      * @param id
-     *        Interface ID.
-     * @returns \c true if such a interface was found and successfully deleted.
+     *        Port ID.
+     * @returns \c true if such a port was found and successfully deleted.
      */
     bool deleteOutPort(const ForSyDe::Id& id) throw();
 
     /**
-     * Same as getNumInPorts() but for out interfaces.
+     * Same as getNumInPorts() but for out ports.
      *
-     * @returns Number of out interfaces.
+     * @returns Number of out ports.
      */
     size_t getNumOutPorts() const throw();
 
     /**
-     * Same as getOutPort(const ForSyDe::Id&) but for out interfaces.
+     * Same as getOutPort(const ForSyDe::Id&) but for out ports.
      *
      * @param id
-     *        Interface ID.
-     * @returns Interface, if found; otherwise \c NULL.
+     *        Port ID.
+     * @returns Port, if found; otherwise \c NULL.
      */
-    Interface* getOutPort(const ForSyDe::Id& id) throw();
+    Port* getOutPort(const ForSyDe::Id& id) throw();
 
     /**
-     * Same as getInPorts() but for out interfaces.
+     * Same as getInPorts() but for out ports.
      *
-     * @returns List of out interfaces.
+     * @returns List of out ports.
      */
-    std::list<Interface*> getOutPorts() throw();
+    std::list<Port*> getOutPorts() throw();
 
 
     /**
@@ -219,9 +219,9 @@ class Leaf : public Process{
      * {
      *  LeafID: <leaf_id>,
      *  LeafType: <leaf_type>
-     *  NumInPorts : <num_in_interfaces>
+     *  NumInPorts : <num_in_ports>
      *  InPorts = {...}
-     *  NumOutPorts : <num_out_interfaces>
+     *  NumOutPorts : <num_out_ports>
      *  OutPorts = {...}
      *  [aditional data]
      * }
@@ -237,7 +237,7 @@ class Leaf : public Process{
     /**
      * Checks whether this leaf is equal to another. Two leafs are equal
      * if they are of the same leaf type and have the same number of in and
-     * out interfaces.
+     * out ports.
      *
      * @param rhs
      *        Leaf to compare with.
@@ -266,10 +266,10 @@ class Leaf : public Process{
      * Performs leaf type-related checks on this leaf. This needs to be
      * derived by all subclasses.
      *
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidLeafException) = 0;
+    virtual void moreChecks() throw(InvalidProcessException) = 0;
 
     /**
      * Additional string output to be included when this leaf is converted to
@@ -283,57 +283,52 @@ class Leaf : public Process{
   private:
 
     /**
-     * Attempts to find a interface with a given ID from a list of interfaces. If the list
-     * is not empty and such a interface is found, an iterator pointing to that interface
+     * Attempts to find a port with a given ID from a list of ports. If the list
+     * is not empty and such a port is found, an iterator pointing to that port
      * is returned; otherwise the list's \c end() iterator is returned.
      *
      * @param id
-     *        Interface ID.
-     * @param interfaces
-     *        List of interfaces.
-     * @returns Iterator pointing either at the found interface, or an iterator equal
+     *        Port ID.
+     * @param ports
+     *        List of ports.
+     * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Interface*>::iterator findInterface(const ForSyDe::Id& id,
-                                        std::list<Interface*>& interfaces) const throw();
+    std::list<Port*>::iterator findPort(const ForSyDe::Id& id,
+                                        std::list<Port*>& ports) const throw();
 
     /**
-     * Takes a list of interfaces and converts it into a string representation. Each
-     * interface is converted into
+     * Takes a list of ports and converts it into a string representation. Each
+     * port is converted into
      * @code
-     *  InterfaceID: <interface_id>, not connected / connected to <leaf>:<interface>,
+     *  PortID: <port_id>, not connected / connected to <leaf>:<port>,
      *  ...
      * @endcode
      *
-     * @param interfaces
-     *        Interface list.
+     * @param ports
+     *        Port list.
      * @returns String representation.
      */
-    std::string interfacesToString(const std::list<Interface*> interfaces) const throw();
+    std::string portsToString(const std::list<Port*> ports) const throw();
 
     /**
-     * Destroys all interfaces in a given list.
+     * Destroys all ports in a given list.
      *
-     * @param interfaces
-     *        List of interfaces to destroy.
+     * @param ports
+     *        List of ports to destroy.
      */
-    void destroyAllInterfaces(std::list<Interface*>& interfaces) throw();
+    void destroyAllPorts(std::list<Port*>& ports) throw();
 
   protected:
+    /**
+     * List of in ports.
+     */
+    std::list<Port*> in_ports_;
 
     /**
-	 * Leaf ID.
-	 */
-	const ForSyDe::Id id_;
-    /**
-     * List of in interfaces.
+     * List of out ports.
      */
-    std::list<Interface*> in_interfaces_;
-
-    /**
-     * List of out interfaces.
-     */
-    std::list<Interface*> out_interfaces_;
+    std::list<Port*> out_ports_;
 
     /**
 	 * Process MoC.
@@ -344,124 +339,164 @@ class Leaf : public Process{
 
   public:
     /**
-     * @brief Class used for in- and out interfaces by the \c Leaf class.
+     * @brief Class used for in- and out ports by the \c Leaf class.
      *
-     * The \c Interface class defines a leaf interface. A interface is identified by an ID
-     * and can be connected to another interface.
+     * The \c Port class defines a leaf port. A port is identified by an ID
+     * and can be connected to another port.
      */
-    class Interface : public Port {
+    class Port : public Interface {
       public:
         /**
-         * Creates a interface belonging to no leaf.
+         * Creates a port belonging to no leaf.
          *
          * @param id
-         *        Interface ID.
+         *        Port ID.
          */
-        Interface(const ForSyDe::Id& id) throw();
+        Port(const ForSyDe::Id& id) throw();
 
         /**
-         * Creates a interface belonging to a leaf.
+         * Creates a port belonging to a leaf.
          *
          * @param id
-         *        Interface ID.
+         *        Port ID.
          * @param leaf
-         *        Pointer to the leaf to which this interface belongs.
+         *        Pointer to the leaf to which this port belongs.
          * @throws InvalidArgumentException
          *         When \c leaf is \c NULL.
          */
-        Interface(const ForSyDe::Id& id, Leaf* leaf)
+        Port(const ForSyDe::Id& id, Leaf* leaf)
             throw(InvalidArgumentException);
 
-        /**
-         * Creates a interface belonging to no leaf with the same ID and
-         * connections as another interface. The connection at the other interface is
-         * broken.
-         *
-         * @param rhs
-         *        Interface to copy.
-         */
-        explicit Interface(Interface& rhs) throw();
 
         /**
-         * Creates a interface belonging to leaf with the same ID and
-         * connections as another interface. The connection at the other interface is
-         * broken.
+         * Creates a port belonging to a leaf.
          *
-         * @param rhs
-         *        Interface to copy.
+         * @param id
+         *        Port ID.
          * @param leaf
-         *        Pointer to the leaf to which this interface belongs.
+         *        Pointer to the leaf to which this port belongs.
          * @throws InvalidArgumentException
          *         When \c leaf is \c NULL.
          */
-        explicit Interface(Interface& rhs, Leaf* leaf)
+        Port(const ForSyDe::Id& id, Leaf* leaf, CDataType data_type)
             throw(InvalidArgumentException);
 
         /**
-         * Destroys this interface. This also breaks the connection, if any.
+         * Creates a port belonging to no leaf with the same ID and
+         * connections as another port. The connection at the other port is
+         * broken.
+         *
+         * @param rhs
+         *        Port to copy.
          */
-        virtual ~Interface() throw();
+        explicit Port(Port& rhs) throw();
+
+        /**
+         * Creates a port belonging to leaf with the same ID and
+         * connections as another port. The connection at the other port is
+         * broken.
+         *
+         * @param rhs
+         *        Port to copy.
+         * @param leaf
+         *        Pointer to the leaf to which this port belongs.
+         * @throws InvalidArgumentException
+         *         When \c leaf is \c NULL.
+         */
+        explicit Port(Port& rhs, Leaf* leaf)
+            throw(InvalidArgumentException);
+
+        /**
+         * Destroys this port. This also breaks the connection, if any.
+         */
+        virtual ~Port() throw();
         
+        /**
+		 * Sets the data type of this port.
+		 *
+		 * @param datatype
+		 *        The new data type that has to be set.
+		 */
+        CDataType getDataType() throw();
 
         /**
-         * Checks if this interface is connected to any other interface.
+		 * Sets the data type of this port.
+		 *
+		 * @param datatype
+		 *        The new data type that has to be set.
+		 */
+        void setDataType(CDataType datatype) throw();
+
+        /**
+         * Checks if this port is connected to any other port.
          *
          * @returns \c true if connected.
          */
         bool isConnected() const throw();
 
         /**
-         * Connects this interface to another. This also sets the other interface as
-         * connected to this interface. If there already is a connection it will
-         * automatically be broken. 
+         * Checks if this port is connected to any other port.
          *
-         * Setting the interface parameter to \c NULL is equivalent to breaking the
-         * connection. If both ends of a connection is the same interface, this
-         * method call is effectively ignored.
-         *
-         * @param interface
-         *        Interface to connect.
+         * @returns \c true if connected.
          */
-        void connect(Process::Port* port) throw();
+        bool isConnectedToLeaf() const throw(IllegalStateException);
 
         /**
-         * Breaks the connection that this interface may have to another. If there is
+         * Connects this port to another. This also sets the other port as
+         * connected to this port. If there already is a connection it will
+         * automatically be broken. 
+         *
+         * Setting the port parameter to \c NULL is equivalent to breaking the
+         * connection. If both ends of a connection is the same port, this
+         * method call is effectively ignored.
+         *
+         * @param port
+         *        Port to connect.
+         */
+        void connect(Process::Interface* port) throw(InvalidArgumentException);
+
+        /**
+         * Breaks the connection that this port may have to another. If there is
          * no connection, nothing happens.
          */
         void unconnect() throw();
 
-        /**
-         * Gets the interface at the other end of the connection, if any.
-         *
-         * @returns Connected interface, if any; otherwise \c NULL.
-         */
-        Process::Port* getConnectedPort() const throw();
+        void unconnectFromLeaf() throw();
 
         /**
-         * Checks for equality between this interface and another.
+         * Gets the port at the other end of the connection, if any.
+         *
+         * @returns Connected port, if any; otherwise \c NULL.
+         */
+        Process::Interface* getConnectedPort() const throw();
+
+        Leaf::Port* getConnectedLeafPort() const throw();
+
+        /**
+         * Checks for equality between this port and another.
          *
          * @param rhs
-         *        Interface to compare.
+         *        Port to compare.
          * @returns \c true if both belong to the same leaf and if their IDs
          *          are identical.
          */
-        bool operator==(const Process::Port& rhs) const throw();
+        bool operator==(const Leaf::Port& rhs) const throw();
 
         /**
-         * Checks for inequality between this interface and another.
+         * Checks for inequality between this port and another.
          *
          * @param rhs
-         *        Interface to compare.
-         * @returns \c true if the interfaces belong to different leafs or if
+         *        Port to compare.
+         * @returns \c true if the ports belong to different leafs or if
          *          their IDs are not identical.
          */
-        bool operator!=(const Process::Port& rhs) const throw();
+        bool operator!=(const Leaf::Port& rhs) const throw();
 
         /**
-         * Converts this interface into a string representation. The resultant string
+         * Converts this port into a string representation. The resultant string
          * is as follows:
          * @code
-         *  <leaf_id>:<interface_id>
+         *  <leaf_id>:<port_id>
          * @endcode
          *
          * @returns String representation.
@@ -470,18 +505,22 @@ class Leaf : public Process{
 
       private:
         /**
-         * Due to how interface copying works, the assign operator is hidden and thus
+         * Due to how port copying works, the assign operator is hidden and thus
          * not allowed to avoid potential bugs as it is easy to forget this
          * fact.
          */
-        void operator=(const Interface&) throw();
+        void operator=(const Port&) throw();
 
       private:
-
         /**
          * Pointer to the other end of a connection.
          */
-        Process::Port* connected_port_;
+        Process::Interface* connected_port_;
+        /**
+		 * Port data type.
+		 */
+		CDataType data_type_;
+
     };
 
   public:

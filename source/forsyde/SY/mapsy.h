@@ -86,13 +86,13 @@ class Map : public Leaf {
 
   protected:
     /**
-     * Checks that this leaf has only one in interface and one out interface. It also
+     * Checks that this leaf has only one in port and one out port. It also
      * checks the function (see checkFunction(const CFunction&)).
      *
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidLeafException);
+    virtual void moreChecks() throw(InvalidProcessException);
 
     /**
      * Performs a series of checks:
@@ -107,11 +107,11 @@ class Map : public Leaf {
      *
      * @param function
      *        Function to check.
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
     virtual void checkFunction(CFunction& function) const
-        throw(InvalidLeafException);
+        throw(InvalidProcessException);
 
     /**
      * Gets the function argument as string representation in the following

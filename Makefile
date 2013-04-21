@@ -21,23 +21,23 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-unexinterface
+unexport
 
 SEP                     = "=============================="
-exinterface PREBUILDMSG      = "$(SEP)\n Building % module...\n"
-exinterface POSTBUILDMSG     = " Done.\n$(SEP)\n\n"
-exinterface ITEMBUILDMSG     = " * %\n"
-exinterface PRELINKMSG       = "$(SEP)\n Linking...\n"
-exinterface POSTLINKMSG      = $(POSTBUILDMSG)
-exinterface ITEMLINKMSG      = " * %\n"
-exinterface PREDOCSBUILDMSG  = "$(SEP)\n Building API docs...\n"
-exinterface POSTDOCSBUILDMSG = " Done.\n$(SEP)\n\n"
-exinterface PARTDOCSBUILDMSG = "%...\n"
+export PREBUILDMSG      = "$(SEP)\n Building % module...\n"
+export POSTBUILDMSG     = " Done.\n$(SEP)\n\n"
+export ITEMBUILDMSG     = " * %\n"
+export PRELINKMSG       = "$(SEP)\n Linking...\n"
+export POSTLINKMSG      = $(POSTBUILDMSG)
+export ITEMLINKMSG      = " * %\n"
+export PREDOCSBUILDMSG  = "$(SEP)\n Building API docs...\n"
+export POSTDOCSBUILDMSG = " Done.\n$(SEP)\n\n"
+export PARTDOCSBUILDMSG = "%...\n"
 
 
-exinterface TARGET     = bin
-exinterface TARGETPATH = $(CURDIR)/$(TARGET)
-exinterface DOMAKE     = $(MAKE) --no-print-directory
+export TARGET     = bin
+export TARGETPATH = $(CURDIR)/$(TARGET)
+export DOMAKE     = $(MAKE) --no-print-directory
 TESTMODELSPATH    = testmodels
 TESTBENCHPATH     = testbench
 

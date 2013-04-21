@@ -36,7 +36,7 @@
 
 #include "../logger/logger.h"
 #include "../forsyde/id.h"
-#include "../forsyde/model.h"
+#include "../forsyde/processnetwork.h"
 #include "../forsyde/leaf.h"
 #include "../exceptions/ioexception.h"
 #include "../exceptions/outofmemoryexception.h"
@@ -52,34 +52,34 @@
 namespace f2cc {
 
 /**
- * @brief A class for finding a leaf schedule for a given \c ForSyDe::Model
+ * @brief A class for finding a leaf schedule for a given \c ForSyDe::ProcessNetwork
  *        instance.
  *
  * The \c ScheduleFinder class implements an algorithm for finding a leaf
- * schedule for a given instance of a \c ForSyDe::Model.
+ * schedule for a given instance of a \c ForSyDe::ProcessNetwork.
  *
  * The algorithm is a recursive DFS algorithm which traverses over the leafs
- * in the model. It starts by building a \em starting \em point \em queue,
- * containing all leafs connected directly to the model outputs. It then
+ * in the processnetwork. It starts by building a \em starting \em point \em queue,
+ * containing all leafs connected directly to the processnetwork outputs. It then
  * pops a leaf from the head of the queue, and creates a \em partial \em
  * leaf \em schedule. The partial leaf schedule is created by recursively
- * traversing upwards along the data flow, moving via the in interfaces (\c
- * ForSyDe::Leaf::Interface) of a \c ForSyDe::Leaf. When no more traversing can
+ * traversing upwards along the data flow, moving via the in ports (\c
+ * ForSyDe::Leaf::Port) of a \c ForSyDe::Leaf. When no more traversing can
  * be done, it rewinds the stack, and adds the current leaf to the
- * schedule. If a leaf has more than one in interface, then a partial schedule is
+ * schedule. If a leaf has more than one in port, then a partial schedule is
  * generated for each, concatenated together, and then the current leaf is
  * appended to the end of the partial leaf schedule. Throughout the
  * traversing, a set of already-visited leafs is maintained. If an
  * already-visited leaf is reached, then an empty schedule is returned and
  * the function stack starts to rewind.
  *
- * This works very well as long as the model contains no loops. However, if it
+ * This works very well as long as the processnetwork contains no loops. However, if it
  * does, then more needs to be done to get a correct schedule. First, the
  * visited leaf set is split into a \em global and a \em local set. Whenever
  * a leaf is popped from the starting point queue, the local set is reset,
  * and once the partial search has finished for that starting point leaf, the
  * local set is added to the global set. In addition to halting the search
- * whenever no more traversing can be done (i.e. when reaching a model input)
+ * whenever no more traversing can be done (i.e. when reaching a processnetwork input)
  * and when a leaf has already been visited, the search also halts whenever a
  * delay element is hit. In such instances, the preceding leaf (if any) is
  * added to the starting point queue, the delay element is added to the partial
@@ -87,7 +87,7 @@ namespace f2cc {
  *
  * Lastly, for a given partial schedule, we need to know where to insert it
  * into the final schedule. If the partial search was halted due to hitting a
- * model input, then the partial schedule is inserted at the beginning of the
+ * processnetwork input, then the partial schedule is inserted at the beginning of the
  * schedule. If the partial search was halted due to hitting a globally-visited
  * leaf \em P, then the partial schedule is inserted after the leaf \em P
  * in the schedule.
@@ -100,14 +100,14 @@ class ScheduleFinder {
     /**
      * Creates a schedule finder.
      *
-     * @param model
-     *        ForSyDe model.
+     * @param processnetwork
+     *        ForSyDe processnetwork.
      * @param logger
      *        Reference to the logger object.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
+     *         When \c processnetwork is \c NULL.
      */
-    ScheduleFinder(ForSyDe::Model* model, Logger& logger)
+    ScheduleFinder(ForSyDe::ProcessNetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
@@ -116,7 +116,7 @@ class ScheduleFinder {
     ~ScheduleFinder() throw();
 
     /**
-     * Finds a leaf schedule for the model. The schedule is such that if the
+     * Finds a leaf schedule for the processnetwork. The schedule is such that if the
      * leafs are executed one by one the result will be the same as if the
      * perfect synchrony hypothesis still applied.
      *
@@ -133,7 +133,7 @@ class ScheduleFinder {
 
     /**
      * Finds a partial schedule for unvisited leafs when traversing from a
-     * given leaf to an input interface of the model.
+     * given leaf to an input port of the processnetwork.
      *
      * See detailed class description for information on how the algorithm
      * works.
@@ -176,9 +176,9 @@ class ScheduleFinder {
 
   private:
     /**
-     * ForSyDe model.
+     * ForSyDe processnetwork.
      */
-    ForSyDe::Model* const model_;
+    ForSyDe::ProcessNetwork* const processnetwork_;
 
     /**
      * Logger.

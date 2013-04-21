@@ -52,7 +52,7 @@ namespace f2cc {
 class Config {
   public:
     /**
-     * Denotes the target platform to which the ForSyDe model is to be
+     * Denotes the target platform to which the ForSyDe processnetwork is to be
      * synthesized.
      */
     enum TargetPlatform {
@@ -187,7 +187,7 @@ class Config {
     void setLogLevel(Logger::LogLevel level) throw();
 
     /**
-     * Gets whether data parallel leafs in the model should be coalesced.
+     * Gets whether data parallel leafs in the processnetwork should be coalesced.
      * Default setting is \c true.
      *
      * @returns \c true if such action should be performed.
@@ -195,7 +195,7 @@ class Config {
     bool doDataParallelLeafCoalesing() const throw();
 
     /**
-     * Sets whether data parallel leafs in the model should be coalesced.
+     * Sets whether data parallel leafs in the processnetwork should be coalesced.
      *
      * @param setting
      *        New setting.

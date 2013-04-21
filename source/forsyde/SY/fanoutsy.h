@@ -48,8 +48,8 @@ namespace SY {
  *        signals.
  *
  * The \c fanout leaf is a special leaf whose only purpose is to copy the
- * value on the input signal to all of its output signals. The internal model
- * does no allow a interface to be connected to multiple other interfaces. However,
+ * value on the input signal to all of its output signals. The internal processnetwork
+ * does no allow a port to be connected to multiple other ports. However,
  * ForSyDe itself does allow multiple signals to retrieve its values from the
  * same source. Thus, during parsing when encountering such instances, an
  * intermediate \c fanout leaf is created and the signals redirected to its
@@ -79,12 +79,12 @@ class fanout : public Leaf {
 
   protected:
     /**
-     * Checks that this leaf has only one in interface.
+     * Checks that this leaf has only one in port.
      *
-     * @throws InvalidLeafException
+     * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidLeafException);
+    virtual void moreChecks() throw(InvalidProcessException);
 };
 
 }

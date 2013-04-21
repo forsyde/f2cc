@@ -34,23 +34,35 @@ using std::list;
 using std::bad_alloc;
 using std::vector;
 
-Leaf::Leaf(const Id& id) throw() : id_(id) {}
+Leaf::Leaf(const Id& id) throw() : Process(id) {}
+
+Leaf::Leaf(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+ 		const std::string moc, int cost) :
+		Process(id, hierarchy), moc_(moc), cost_(cost){}
 
 Leaf::~Leaf() throw() {
-    destroyAllInterfaces(in_interfaces_);
-    destroyAllInterfaces(out_interfaces_);
+    destroyAllPorts(in_ports_);
+    destroyAllPorts(out_ports_);
 }
 
-const Id* Leaf::getId() const throw() {
-    return &id_;
+const string Leaf::getMoc() const throw() {
+    return moc_;
+}
+
+int Leaf::getCost() const throw(){
+	return cost_;
+}
+
+void  Leaf::setCost(int& cost) throw(){
+	cost_ = cost;
 }
 
 bool Leaf::addInPort(const Id& id) throw(OutOfMemoryException) {
-    if (findInterface(id, in_interfaces_) != in_interfaces_.end()) return false;
+    if (findPort(id, in_ports_) != in_ports_.end()) return false;
 
     try {
-        Interface* new_interface = new Interface(id, this);
-        in_interfaces_.push_back(new_interface);
+        Port* new_port = new Port(id, this);
+        in_ports_.push_back(new_port);
         return true;
     }
     catch (bad_alloc&) {
@@ -58,12 +70,12 @@ bool Leaf::addInPort(const Id& id) throw(OutOfMemoryException) {
     }
 }
 
-bool Leaf::addInPort(Interface& interface) throw(OutOfMemoryException) {
-    if (findInterface(*interface.getId(), in_interfaces_) != in_interfaces_.end()) return false;
+bool Leaf::addInPort(Port& port) throw(OutOfMemoryException) {
+    if (findPort(*port.getId(), in_ports_) != in_ports_.end()) return false;
 
     try {
-        Interface* new_interface = new Interface(interface, this);
-        in_interfaces_.push_back(new_interface);
+        Port* new_port = new Port(port, this);
+        in_ports_.push_back(new_port);
         return true;
     }
     catch (bad_alloc&) {
@@ -72,11 +84,11 @@ bool Leaf::addInPort(Interface& interface) throw(OutOfMemoryException) {
 }
 
 bool Leaf::deleteInPort(const Id& id) throw() {
-    list<Interface*>::iterator it = findInterface(id, in_interfaces_);
-    if (it != in_interfaces_.end()) {
-        Interface* removed_interface = *it;
-        in_interfaces_.erase(it);
-        delete removed_interface;
+    list<Port*>::iterator it = findPort(id, in_ports_);
+    if (it != in_ports_.end()) {
+        Port* removed_port = *it;
+        in_ports_.erase(it);
+        delete removed_port;
         return true;
     }
     else {
@@ -85,12 +97,12 @@ bool Leaf::deleteInPort(const Id& id) throw() {
 }
 
 size_t Leaf::getNumInPorts() const throw() {
-    return in_interfaces_.size();
+    return in_ports_.size();
 }
 
-Leaf::Interface* Leaf::getInPort(const Id& id) throw() {
-    list<Interface*>::iterator it = findInterface(id, in_interfaces_);
-    if (it != in_interfaces_.end()) {
+Leaf::Port* Leaf::getInPort(const Id& id) throw() {
+    list<Port*>::iterator it = findPort(id, in_ports_);
+    if (it != in_ports_.end()) {
         return *it;
     }
     else {
@@ -98,16 +110,16 @@ Leaf::Interface* Leaf::getInPort(const Id& id) throw() {
     }
 }
 
-list<Leaf::Interface*> Leaf::getInPorts() throw() {
-    return in_interfaces_;
+list<Leaf::Port*> Leaf::getInPorts() throw() {
+    return in_ports_;
 }
 
 bool Leaf::addOutPort(const Id& id) throw(OutOfMemoryException) {
-    if (findInterface(id, out_interfaces_) != out_interfaces_.end()) return false;
+    if (findPort(id, out_ports_) != out_ports_.end()) return false;
 
     try {
-        Interface* new_interface = new Interface(id, this);
-        out_interfaces_.push_back(new_interface);
+        Port* new_port = new Port(id, this);
+        out_ports_.push_back(new_port);
         return true;
     }
     catch (bad_alloc&) {
@@ -115,12 +127,12 @@ bool Leaf::addOutPort(const Id& id) throw(OutOfMemoryException) {
     }
 }
 
-bool Leaf::addOutPort(Interface& interface) throw(OutOfMemoryException) {
-    if (findInterface(*interface.getId(), out_interfaces_) != out_interfaces_.end()) return false;
+bool Leaf::addOutPort(Port& port) throw(OutOfMemoryException) {
+    if (findPort(*port.getId(), out_ports_) != out_ports_.end()) return false;
 
     try {
-        Interface* new_interface = new Interface(interface, this);
-        out_interfaces_.push_back(new_interface);
+        Port* new_port = new Port(port, this);
+        out_ports_.push_back(new_port);
         return true;
     }
     catch (bad_alloc&) {
@@ -129,11 +141,11 @@ bool Leaf::addOutPort(Interface& interface) throw(OutOfMemoryException) {
 }
 
 bool Leaf::deleteOutPort(const Id& id) throw() {
-    list<Interface*>::iterator it = findInterface(id, out_interfaces_);
-    if (it != out_interfaces_.end()) {
-        Interface* removed_interface = *it;
-        out_interfaces_.erase(it);
-        delete removed_interface;
+    list<Port*>::iterator it = findPort(id, out_ports_);
+    if (it != out_ports_.end()) {
+        Port* removed_port = *it;
+        out_ports_.erase(it);
+        delete removed_port;
         return true;
     }
     else {
@@ -142,12 +154,12 @@ bool Leaf::deleteOutPort(const Id& id) throw() {
 }
 
 size_t Leaf::getNumOutPorts() const throw() {
-    return out_interfaces_.size();
+    return out_ports_.size();
 }
 
-Leaf::Interface* Leaf::getOutPort(const Id& id) throw() {
-    list<Interface*>::iterator it = findInterface(id, out_interfaces_);
-    if (it != out_interfaces_.end()) {
+Leaf::Port* Leaf::getOutPort(const Id& id) throw() {
+    list<Port*>::iterator it = findPort(id, out_ports_);
+    if (it != out_ports_.end()) {
         return *it;
     }
     else {
@@ -155,8 +167,8 @@ Leaf::Interface* Leaf::getOutPort(const Id& id) throw() {
     }
 }
 
-list<Leaf::Interface*> Leaf::getOutPorts() throw() {
-    return out_interfaces_;
+list<Leaf::Port*> Leaf::getOutPorts() throw() {
+    return out_ports_;
 }
 
 string Leaf::toString() const throw() {
@@ -172,14 +184,14 @@ string Leaf::toString() const throw() {
     str += tools::toString(getNumInPorts());
     str += ",\n";
     str += " InPorts = {";
-    str += interfacesToString(in_interfaces_);
+    str += portsToString(in_ports_);
     str += "}";
     str += ",\n";
     str += " NumOutPorts: ";
     str += tools::toString(getNumOutPorts());
     str += ",\n";
     str += " OutPorts = {";
-    str += interfacesToString(out_interfaces_);
+    str += portsToString(out_ports_);
     string additional_data(moreToString());
     if (additional_data.length() > 0) {
         str += "},\n";
@@ -200,26 +212,26 @@ string Leaf::moreToString() const throw() {
     return "";
 }
 
-list<Leaf::Interface*>::iterator Leaf::findInterface(
-    const Id& id, list<Interface*>& interfaces) const throw() {
-    list<Interface*>::iterator it;
-    for (it = interfaces.begin(); it != interfaces.end(); ++it) {
+list<Leaf::Port*>::iterator Leaf::findPort(
+    const Id& id, list<Port*>& ports) const throw() {
+    list<Port*>::iterator it;
+    for (it = ports.begin(); it != ports.end(); ++it) {
         if (*(*it)->getId() == id) {
             return it;
         }
     }
 
-    // No such interface was found
+    // No such port was found
     return it;
 }
 
-string Leaf::interfacesToString(const list<Interface*> interfaces) const throw() {
+string Leaf::portsToString(const list<Port*> ports) const throw() {
     string str;
-    if (interfaces.size() > 0) {
+    if (ports.size() > 0) {
         str += "\n";
         bool first = true;
-        for (list<Leaf::Interface*>::const_iterator it = interfaces.begin();
-             it != interfaces.end(); ++it) {
+        for (list<Leaf::Port*>::const_iterator it = ports.begin();
+             it != ports.end(); ++it) {
             if (!first) {
                 str += ",\n";
             }
@@ -227,16 +239,16 @@ string Leaf::interfacesToString(const list<Interface*> interfaces) const throw()
                 first = false;
             }
 
-            Leaf::Interface* interface = *it;
+            Leaf::Port* port = *it;
             str += "  ID: ";
-            str += interface->getId()->getString();
+            str += port->getId()->getString();
             str += ", ";
-            if (interface->isConnected()) {
+            if (port->isConnected()) {
                 str += "connected to ";
-                str += interface->getConnectedInterface()->getLeaf()->getId()
+                str += port->getConnectedPort()->getProcess()->getId()
                     ->getString();
                 str += ":";
-                str += interface->getConnectedInterface()->getId()->getString();
+                str += port->getConnectedPort()->getId()->getString();
             }
             else {
                 str += "not connected";
@@ -247,16 +259,12 @@ string Leaf::interfacesToString(const list<Interface*> interfaces) const throw()
     return str;
 }
 
-void Leaf::destroyAllInterfaces(list<Interface*>& interfaces) throw() {
-    while (interfaces.size() > 0) {
-        Interface* interface = interfaces.front();
-        interfaces.pop_front();
-        delete interface;
+void Leaf::destroyAllPorts(list<Port*>& ports) throw() {
+    while (ports.size() > 0) {
+        Port* port = ports.front();
+        ports.pop_front();
+        delete port;
     }
-}
-
-void Leaf::check() throw(InvalidLeafException) {
-    moreChecks();
 }
 
 bool Leaf::operator==(const Leaf& rhs) const throw() {
@@ -269,94 +277,198 @@ bool Leaf::operator!=(const Leaf& rhs) const throw() {
     return !operator==(rhs);
 }
 
-Leaf::Interface::Interface(const Id& id) throw()
-        : id_(id), leaf_(NULL), connected_interface_(NULL) {}
+Leaf::Port::Port(const Id& id) throw()
+        : Interface(id), connected_port_(NULL), data_type_(CDataType()) {}
 
-Leaf::Interface::Interface(const Id& id, Leaf* leaf)
-        throw(InvalidArgumentException)
-        : id_(id), leaf_(leaf), connected_interface_(NULL) {
+Leaf::Port::Port(const Id& id, Leaf* leaf) throw(InvalidArgumentException)
+        : Interface(id, leaf), connected_port_(NULL), data_type_(CDataType()) {
     if (!leaf) {
         THROW_EXCEPTION(InvalidArgumentException, "leaf must not be NULL");
     }
 }
 
-Leaf::Interface::Interface(Interface& rhs) throw()
-        : id_(rhs.id_), leaf_(NULL), connected_interface_(NULL) {
-    if (rhs.isConnected()) {
-        Interface* interface = rhs.connected_interface_;
-        rhs.unconnect();
-        connect(interface);
+Leaf::Port::Port(const Id& id, Leaf* leaf, CDataType data_type) throw(InvalidArgumentException)
+        : Interface(id, leaf), connected_port_(NULL), data_type_(data_type) {
+    if (!leaf) {
+        THROW_EXCEPTION(InvalidArgumentException, "leaf must not be NULL");
     }
 }
 
-Leaf::Interface::Interface(Interface& rhs, Leaf* leaf) throw(InvalidArgumentException)
-        : id_(rhs.id_), leaf_(leaf), connected_interface_(NULL) {
+Leaf::Port::Port(Port& rhs) throw()
+        : Interface(rhs.id_), connected_port_(NULL), data_type_(CDataType()) {
+    if (rhs.isConnected()) {
+    	Process::Interface* port = rhs.connected_port_;
+        rhs.unconnect();
+        connect(port);
+    }
+}
+
+Leaf::Port::Port(Port& rhs, Leaf* leaf) throw(InvalidArgumentException)
+        : Interface(rhs.id_, leaf), connected_port_(NULL), data_type_(CDataType()) {
     if (!leaf) {
         THROW_EXCEPTION(InvalidArgumentException, "\"leaf\" must not be "
                         "NULL");
     }
 
     if (rhs.isConnected()) {
-        Interface* interface = rhs.connected_interface_;
+    	Process::Interface* port = rhs.connected_port_;
         rhs.unconnect();
-        connect(interface);
+        connect(port);
     }
 }
 
-Leaf::Interface::~Interface() throw() {
+Leaf::Port::~Port() throw() {
     unconnect();
 }
-        
-Leaf* Leaf::Interface::getLeaf() const throw() {
-    return leaf_;
+
+f2cc::CDataType Leaf::Port::getDataType() throw() {
+    return data_type_;
 }
 
-const Id* Leaf::Interface::getId() const throw() {
-    return &id_;
+void Leaf::Port::setDataType(CDataType datatype) throw() {
+	data_type_ = datatype;
 }
 
-bool Leaf::Interface::isConnected() const throw() {
-    return connected_interface_;
+
+bool Leaf::Port::isConnected() const throw() {
+    return connected_port_;
 }
 
-void Leaf::Interface::connect(Interface* interface) throw() {
-    if (interface == this) return;
-    if (!interface) {
+bool Leaf::Port::isConnectedToLeaf() const throw(IllegalStateException) {
+	if (connected_port_){
+		if (!getProcess()) {
+			THROW_EXCEPTION(IllegalStateException, string("Error in: ")
+						+ toString()
+			            + "! Finding relation without hierarchy is not possible");
+		}
+		static const Composite::IOPort* ioport =
+				dynamic_cast<const Composite::IOPort*>(connected_port_);
+		if(ioport){
+			Hierarchy::Relation relation = getProcess()->findRelation(connected_port_->getProcess());
+			if (relation == Hierarchy::Sibling)
+				return (ioport->isConnectedToLeafInside());
+			else
+				return (ioport->isConnectedToLeafOutside());
+		}
+		else return true;
+	}
+	else return false;
+}
+
+void Leaf::Port::connect(Process::Interface* port) throw(InvalidArgumentException) {
+    if (!port) {
         unconnect();
         return;
     }
+    // Checking if other end is IOPort
+	Composite::IOPort* ioport_to_connect = dynamic_cast<Composite::IOPort*>(port);
+	if (ioport_to_connect) {
+		ioport_to_connect->connect(this);
+		return;
+	}
+	 // Checking if other end is Port
+	Leaf::Port* port_to_connect = dynamic_cast<Composite::IOPort*>(port);
+	if (port_to_connect) {
+		if (port_to_connect == this) return;
+		if (connected_port_) {
+			unconnect();
+		}
+		connected_port_ = port_to_connect;
+		port_to_connect->connected_port_ = this;
+		return;
+	}
+	// It should never be here
+	THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+					+ toString()
+					+ "! Connected port is of unknown type");
+}
 
-    if (connected_interface_) {
-        unconnect();
+void Leaf::Port::unconnect() throw() {
+    if (connected_port_) {
+    	// Checking if other end is IOPort
+		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_);
+		if (ioport_to_unconnect) {
+			ioport_to_unconnect->unconnect(this);
+		}
+		 // Checking if other end is Port
+		Leaf::Port* port_to_unconnect = dynamic_cast<Composite::IOPort*>(port);
+		if (port_to_unconnect) {
+			port_to_unconnect->connected_port_ = NULL;
+			connected_port_ = NULL;
+		}
+		// It should never be here
+		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+						+ toString()
+						+ "! Connected port is of unknown type");
     }
-    connected_interface_ = interface;
-    interface->connected_interface_ = this;
 }
 
-void Leaf::Interface::unconnect() throw() {
-    if (connected_interface_) {
-        connected_interface_->connected_interface_ = NULL;
-        connected_interface_ = NULL;
+void Leaf::Port::unconnectFromLeaf() throw() {
+    if (connected_port_) {
+    	// Checking if other end is IOPort
+		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_);
+		if (ioport_to_unconnect) {
+			ioport_to_unconnect->unconnectFromLeafOutside();
+			ioport_to_unconnect->unconnectFromLeafInside();
+		}
+		 // Checking if other end is Port
+		Leaf::Port* port_to_unconnect = dynamic_cast<Composite::IOPort*>(port);
+		if (port_to_unconnect) {
+			port_to_unconnect->connected_port_ = NULL;
+			connected_port_ = NULL;
+		}
+		// It should never be here
+		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+						+ toString()
+						+ "! Connected port is of unknown type");
     }
 }
 
-Leaf::Interface* Leaf::Interface::getConnectedInterface() const throw() {
-    return connected_interface_;
+Process::Interface* Leaf::Port::getConnectedPort() const throw() {
+    return connected_port_;
 }
 
-bool Leaf::Interface::operator==(const Interface& rhs) const throw() {
-    return (leaf_ == rhs.leaf_) && (id_ == rhs.id_);
+Leaf::Port* Leaf::Port::getConnectedLeafPort() const throw() {
+	if (!getProcess()) {
+		THROW_EXCEPTION(IllegalStateException, string("Error in: ")
+					+ toString()
+					+ "! Finding relation without hierarchy is not possible");
+	}
+    if (connected_port_) {
+    	// Checking if other end is IOPort
+		Composite::IOPort* ioport_to_get = dynamic_cast<Composite::IOPort*>(connected_port_);
+		if (ioport_to_get) {
+			Hierarchy::Relation relation = getProcess()->findRelation(ioport_to_get->getProcess());
+			if (relation == Hierarchy::Sibling){
+				return ioport_to_get->getConnectedLeafPortInside();
+			}
+			else return ioport_to_get->getConnectedLeafPortOutside();
+		}
+		 // Checking if other end is Port
+		Leaf::Port* port_to_get = dynamic_cast<Composite::IOPort*>(port);
+		if (port_to_get) {
+			return connected_port_;
+		}
+		// It should never be here
+		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+						+ toString()
+						+ "! Connected port is of unknown type");
+    }
+    else return NULL;
 }
 
-bool Leaf::Interface::operator!=(const Interface& rhs) const throw() {
+bool Leaf::Port::operator==(const Port& rhs) const throw() {
+    return (process_ == rhs.process_) && (id_ == rhs.id_) && (data_type_ == rhs.data_type_);
+}
+
+bool Leaf::Port::operator!=(const Port& rhs) const throw() {
     return !operator==(rhs);
 }
 
-string Leaf::Interface::toString() const throw() {
+string Leaf::Port::moreToString() const throw() {
     string str;
-    if (leaf_) str += leaf_->getId()->getString();
-    else          str += "NULL";
-    str += ":";
-    str += id_.getString();
+    str += "(";
+    str += data_type_.toString();
+    str += ")";
     return str;
 }

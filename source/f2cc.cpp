@@ -32,7 +32,7 @@
  *
  * This file acts as the driver for f2cc. It performs necessary initializations,
  * invokes the parsing and synthesis leaf, and writes the generated code to
- * file. It also handles reinterfaceing of errors to the user by catching all
+ * file. It also handles reporting of errors to the user by catching all
  * exceptions.
  */
 
@@ -43,7 +43,7 @@
 #include "frontend/graphmlparser.h"
 #include "forsyde/processnetwork.h"
 #include "forsyde/leaf.h"
-#include "forsyde/modelmodifier.h"
+#include "forsyde/processnetworkmodifier.h"
 #include "synthesizer/synthesizer.h"
 #include "exceptions/exception.h"
 #include "exceptions/ioexception.h"
@@ -64,16 +64,16 @@ using std::endl;
 using std::list;
 using std::set;
 
-string getProcessNetworkInfo(ProcessNetwork* model) {
+string getProcessNetworkInfo(ProcessNetwork* processnetwork) {
     string info;
     info += "Number of leafs: ";
-    info += tools::toString(model->getNumLeafs());
+    info += tools::toString(processnetwork->getNumProcesses());
     info += "\n";
     info += "Number of inputs: ";
-    info += tools::toString(model->getNumInputs());
+    info += tools::toString(processnetwork->getNumInputs());
     info += "\n";
     info += "Number of outputs: ";
-    info += tools::toString(model->getNumOutputs());
+    info += tools::toString(processnetwork->getNumOutputs());
     return info;
 }
 
@@ -134,11 +134,11 @@ int main(int argc, const char* argv[]) {
             logger.logInfoMessage(string("MODEL INPUT FILE: ")
                                   + config.getInputFile());
             logger.logInfoMessage("Parsing input file...");
-            ProcessNetwork* model = parser->parse(config.getInputFile());
+            ProcessNetwork* processnetwork = parser->parse(config.getInputFile());
             delete parser;
 
             string processnetwork_info_message("MODEL INFO:\n");
-            processnetwork_info_message += getProcessNetworkInfo(model);
+            processnetwork_info_message += getProcessNetworkInfo(processnetwork);
             logger.logInfoMessage(processnetwork_info_message);
 
             string target_platform_message("TARGET PLATFORM: ");
@@ -155,12 +155,12 @@ int main(int argc, const char* argv[]) {
             }
             logger.logInfoMessage(target_platform_message);
 
-            // Make model modifications, if necessary
-            ModelModifier modifier(model, logger);
+            // Make processnetwork modifications, if necessary
+            ProcessNetworkModifier modifier(processnetwork, logger);
             logger.logInfoMessage("Removing redundant leafs...");
             modifier.removeRedundantLeafs();
             logger.logInfoMessage("Converting comb leafs "
-                              "with one in interface to comb leafs...");
+                              "with one in port to comb leafs...");
             modifier.convertZipWith1Tocomb();
             if (config.getTargetPlatform() == Config::CUDA) {
                 string leaf_coalescing_message("DATA PARALLEL PROCESS "
@@ -196,11 +196,11 @@ int main(int argc, const char* argv[]) {
                 }
             }
             processnetwork_info_message = "NEW MODEL INFO:\n";
-            processnetwork_info_message += getProcessNetworkInfo(model);
+            processnetwork_info_message += getProcessNetworkInfo(processnetwork);
             logger.logInfoMessage(processnetwork_info_message);
 
             // Generate code and write to file
-            Synthesizer synthesizer(model, logger, config);
+            Synthesizer synthesizer(processnetwork, logger, config);
             Synthesizer::CodeSet code;
             switch (config.getTargetPlatform()) {
                 case Config::C: {
@@ -222,14 +222,14 @@ int main(int argc, const char* argv[]) {
             logger.logInfoMessage("MODEL NTHESIS COMPLETE");
 
             // Clean up
-            delete model;
+            delete processnetwork;
             logger.logDebugMessage("Closing logger...");
             logger.close();
         } catch (FileNotFoundException& ex) {
             logger.logErrorMessage(ex.getMessage());
         } catch (ParseException& ex) {
             logger.logErrorMessage(parse_error_str + ex.getMessage());
-        } catch (InvalidModelException& ex) {
+        } catch (InvalidProcessNetworkException& ex) {
             logger.logErrorMessage(processnetwork_error_str + ex.getMessage());
         } catch (IOException& ex) {
             logger.logErrorMessage(io_error_str + ex.getMessage());

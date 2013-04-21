@@ -23,7 +23,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "leaf.h"
+#include "process.h"
 #include "../tools/tools.h"
 #include <new>
 #include <vector>
@@ -34,329 +34,80 @@ using std::list;
 using std::bad_alloc;
 using std::vector;
 
-Leaf::Leaf(const Id& id) throw() : id_(id) {}
-
-Leaf::~Leaf() throw() {
-    destroyAllInterfaces(in_interfaces_);
-    destroyAllInterfaces(out_interfaces_);
+Process::Process(const Id& id) throw()
+		: id_(id) {
+	hierarchy_.lowerLevel(id_);
 }
 
-const Id* Leaf::getId() const throw() {
-    return &id_;
+Process::Process(const Id& id, Hierarchy hierarchy) :
+		id_(id), hierarchy_(hierarchy){
+	hierarchy_.lowerLevel(id_);
 }
 
-bool Leaf::addInPort(const Id& id) throw(OutOfMemoryException) {
-    if (findInterface(id, in_interfaces_) != in_interfaces_.end()) return false;
-
-    try {
-        Interface* new_interface = new Interface(id, this);
-        in_interfaces_.push_back(new_interface);
-        return true;
-    }
-    catch (bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
+Process::~Process() throw() {
 }
 
-bool Leaf::addInPort(Interface& interface) throw(OutOfMemoryException) {
-    if (findInterface(*interface.getId(), in_interfaces_) != in_interfaces_.end()) return false;
-
-    try {
-        Interface* new_interface = new Interface(interface, this);
-        in_interfaces_.push_back(new_interface);
-        return true;
-    }
-    catch (bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
+const Id* Process::getId() const throw() {
+    return hierarchy_.getId();
 }
 
-bool Leaf::deleteInPort(const Id& id) throw() {
-    list<Interface*>::iterator it = findInterface(id, in_interfaces_);
-    if (it != in_interfaces_.end()) {
-        Interface* removed_interface = *it;
-        in_interfaces_.erase(it);
-        delete removed_interface;
-        return true;
-    }
-    else {
-        return false;
-    }
+Hierarchy Process::getHierarchy() const throw() {
+    return hierarchy_;
 }
 
-size_t Leaf::getNumInPorts() const throw() {
-    return in_interfaces_.size();
+void Process::setHierarchy(Hierarchy hierarchy) throw() {
+	hierarchy_.setHierarchy(hierarchy.getHierarchy());
+    hierarchy_.lowerLevel(id_);
 }
 
-Leaf::Interface* Leaf::getInPort(const Id& id) throw() {
-    list<Interface*>::iterator it = findInterface(id, in_interfaces_);
-    if (it != in_interfaces_.end()) {
-        return *it;
-    }
-    else {
-        return NULL;
-    }
+Hierarchy::Relation Process::findRelation(const Process* rhs) const throw(RuntimeException){
+	if (rhs) return hierarchy_.findRelation(rhs->hierarchy_);
+	else {
+		THROW_EXCEPTION(IllegalStateException, string("Error in : ")
+					+ getId()->getString()
+		            + "! Finding relation without hierarchy is not possible");
+	}
 }
 
-list<Leaf::Interface*> Leaf::getInPorts() throw() {
-    return in_interfaces_;
-}
-
-bool Leaf::addOutPort(const Id& id) throw(OutOfMemoryException) {
-    if (findInterface(id, out_interfaces_) != out_interfaces_.end()) return false;
-
-    try {
-        Interface* new_interface = new Interface(id, this);
-        out_interfaces_.push_back(new_interface);
-        return true;
-    }
-    catch (bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-bool Leaf::addOutPort(Interface& interface) throw(OutOfMemoryException) {
-    if (findInterface(*interface.getId(), out_interfaces_) != out_interfaces_.end()) return false;
-
-    try {
-        Interface* new_interface = new Interface(interface, this);
-        out_interfaces_.push_back(new_interface);
-        return true;
-    }
-    catch (bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-bool Leaf::deleteOutPort(const Id& id) throw() {
-    list<Interface*>::iterator it = findInterface(id, out_interfaces_);
-    if (it != out_interfaces_.end()) {
-        Interface* removed_interface = *it;
-        out_interfaces_.erase(it);
-        delete removed_interface;
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-size_t Leaf::getNumOutPorts() const throw() {
-    return out_interfaces_.size();
-}
-
-Leaf::Interface* Leaf::getOutPort(const Id& id) throw() {
-    list<Interface*>::iterator it = findInterface(id, out_interfaces_);
-    if (it != out_interfaces_.end()) {
-        return *it;
-    }
-    else {
-        return NULL;
-    }
-}
-
-list<Leaf::Interface*> Leaf::getOutPorts() throw() {
-    return out_interfaces_;
-}
-
-string Leaf::toString() const throw() {
-    string str;
-    str += "{\n";
-    str += " LeafID: ";
-    str += getId()->getString();
-    str += ",\n";
-    str += " LeafType: ";
-    str += type();
-    str += ",\n";
-    str += " NumInPorts: ";
-    str += tools::toString(getNumInPorts());
-    str += ",\n";
-    str += " InPorts = {";
-    str += interfacesToString(in_interfaces_);
-    str += "}";
-    str += ",\n";
-    str += " NumOutPorts: ";
-    str += tools::toString(getNumOutPorts());
-    str += ",\n";
-    str += " OutPorts = {";
-    str += interfacesToString(out_interfaces_);
-    string additional_data(moreToString());
-    if (additional_data.length() > 0) {
-        str += "},\n";
-        additional_data.insert(0, 1, ' ');
-        tools::searchReplace(additional_data, "\n", "\n ");
-        str += additional_data;
-        str += "\n";
-    }
-    else {
-        str += "}\n";
-    }
-    str += "}";
-
-    return str;
-}
-
-string Leaf::moreToString() const throw() {
-    return "";
-}
-
-list<Leaf::Interface*>::iterator Leaf::findInterface(
-    const Id& id, list<Interface*>& interfaces) const throw() {
-    list<Interface*>::iterator it;
-    for (it = interfaces.begin(); it != interfaces.end(); ++it) {
-        if (*(*it)->getId() == id) {
-            return it;
-        }
-    }
-
-    // No such interface was found
-    return it;
-}
-
-string Leaf::interfacesToString(const list<Interface*> interfaces) const throw() {
-    string str;
-    if (interfaces.size() > 0) {
-        str += "\n";
-        bool first = true;
-        for (list<Leaf::Interface*>::const_iterator it = interfaces.begin();
-             it != interfaces.end(); ++it) {
-            if (!first) {
-                str += ",\n";
-            }
-            else {
-                first = false;
-            }
-
-            Leaf::Interface* interface = *it;
-            str += "  ID: ";
-            str += interface->getId()->getString();
-            str += ", ";
-            if (interface->isConnected()) {
-                str += "connected to ";
-                str += interface->getConnectedInterface()->getLeaf()->getId()
-                    ->getString();
-                str += ":";
-                str += interface->getConnectedInterface()->getId()->getString();
-            }
-            else {
-                str += "not connected";
-            }
-        }
-        str += "\n ";
-    }
-    return str;
-}
-
-void Leaf::destroyAllInterfaces(list<Interface*>& interfaces) throw() {
-    while (interfaces.size() > 0) {
-        Interface* interface = interfaces.front();
-        interfaces.pop_front();
-        delete interface;
-    }
-}
-
-void Leaf::check() throw(InvalidLeafException) {
+void Process::check() throw(InvalidProcessException) {
     moreChecks();
 }
 
-bool Leaf::operator==(const Leaf& rhs) const throw() {
-    if (getNumInPorts() != rhs.getNumInPorts()) return false;
-    if (getNumOutPorts() != rhs.getNumOutPorts()) return false;
-    return true;
-}
+Process::Interface::Interface(const Id& id) throw()
+        : id_(id), process_(NULL) {}
 
-bool Leaf::operator!=(const Leaf& rhs) const throw() {
-    return !operator==(rhs);
-}
-
-Leaf::Interface::Interface(const Id& id) throw()
-        : id_(id), leaf_(NULL), connected_interface_(NULL) {}
-
-Leaf::Interface::Interface(const Id& id, Leaf* leaf)
-        throw(InvalidArgumentException)
-        : id_(id), leaf_(leaf), connected_interface_(NULL) {
-    if (!leaf) {
-        THROW_EXCEPTION(InvalidArgumentException, "leaf must not be NULL");
+Process::Interface::Interface(const Id& id, Process* process) throw(InvalidArgumentException)
+        : id_(id), process_(process) {
+    if (!process) {
+        THROW_EXCEPTION(InvalidArgumentException, "process must not be NULL");
     }
 }
 
-Leaf::Interface::Interface(Interface& rhs) throw()
-        : id_(rhs.id_), leaf_(NULL), connected_interface_(NULL) {
-    if (rhs.isConnected()) {
-        Interface* interface = rhs.connected_interface_;
-        rhs.unconnect();
-        connect(interface);
-    }
-}
-
-Leaf::Interface::Interface(Interface& rhs, Leaf* leaf) throw(InvalidArgumentException)
-        : id_(rhs.id_), leaf_(leaf), connected_interface_(NULL) {
-    if (!leaf) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"leaf\" must not be "
-                        "NULL");
-    }
-
-    if (rhs.isConnected()) {
-        Interface* interface = rhs.connected_interface_;
-        rhs.unconnect();
-        connect(interface);
-    }
-}
-
-Leaf::Interface::~Interface() throw() {
-    unconnect();
+Process::Interface::~Interface() throw() {
 }
         
-Leaf* Leaf::Interface::getLeaf() const throw() {
-    return leaf_;
+Process* Process::Interface::getProcess() const throw() {
+    return process_;
 }
 
-const Id* Leaf::Interface::getId() const throw() {
+const Id* Process::Interface::getId() const throw() {
     return &id_;
 }
 
-bool Leaf::Interface::isConnected() const throw() {
-    return connected_interface_;
-}
-
-void Leaf::Interface::connect(Interface* interface) throw() {
-    if (interface == this) return;
-    if (!interface) {
-        unconnect();
-        return;
-    }
-
-    if (connected_interface_) {
-        unconnect();
-    }
-    connected_interface_ = interface;
-    interface->connected_interface_ = this;
-}
-
-void Leaf::Interface::unconnect() throw() {
-    if (connected_interface_) {
-        connected_interface_->connected_interface_ = NULL;
-        connected_interface_ = NULL;
-    }
-}
-
-Leaf::Interface* Leaf::Interface::getConnectedInterface() const throw() {
-    return connected_interface_;
-}
-
-bool Leaf::Interface::operator==(const Interface& rhs) const throw() {
-    return (leaf_ == rhs.leaf_) && (id_ == rhs.id_);
-}
-
-bool Leaf::Interface::operator!=(const Interface& rhs) const throw() {
-    return !operator==(rhs);
-}
-
-string Leaf::Interface::toString() const throw() {
+string Process::Interface::toString() const throw() {
     string str;
-    if (leaf_) str += leaf_->getId()->getString();
+    if (process_) str += process_->getId()->getString();
     else          str += "NULL";
     str += ":";
     str += id_.getString();
+    string additional_data(moreToString());
+    if (additional_data.length() > 0) {
+        str += additional_data;
+        str += "\n";
+    }
     return str;
+}
+
+string Process::Interface::moreToString() const throw() {
+    return "";
 }

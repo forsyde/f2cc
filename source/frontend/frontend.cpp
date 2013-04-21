@@ -35,30 +35,30 @@ Frontend::Frontend(Logger& logger) throw() : logger_(logger) {}
 
 Frontend::~Frontend() throw() {}
 
-Model* Frontend::parse(const string& file)
+ProcessNetwork* Frontend::parse(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidModelException, RuntimeException) {
+          ParseException, InvalidProcessNetworkException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
     }
 
-    Model* model = createModel(file);
+    ProcessNetwork* processnetwork = createProcessNetwork(file);
 
-    logger_.logMessage(Logger::INFO, "Checking that the internal model is "
+    logger_.logMessage(Logger::INFO, "Checking that the internal processnetwork is "
                        "sane...");
-    checkModel(model);
+    checkProcessNetwork(processnetwork);
     logger_.logMessage(Logger::INFO, "All checks passed");
 
-    postCheckFixes(model);
+    postCheckFixes(processnetwork);
 
-    return model;
+    return processnetwork;
 }
 
-void Frontend::checkModel(Model* model)
-    throw(InvalidArgumentException, InvalidModelException, IOException,
+void Frontend::checkProcessNetwork(ProcessNetwork* processnetwork)
+    throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
           RuntimeException) {
-    list<Leaf*> leafs = model->getLeafs();
+    list<Leaf*> leafs = processnetwork->getProcesses();
     list<Leaf*>::iterator leaf_it;
     for (leaf_it = leafs.begin(); leaf_it != leafs.end();
          ++leaf_it) {
@@ -70,66 +70,66 @@ void Frontend::checkModel(Model* model)
         // Leaf type-related check
         try {
             leaf->check();
-        } catch (InvalidLeafException& ex) {
-            THROW_EXCEPTION(InvalidModelException, ex.getMessage());
+        } catch (InvalidProcessException& ex) {
+            THROW_EXCEPTION(InvalidProcessNetworkException, ex.getMessage());
         }
 
-        // Interface checks
-        list<Leaf::Interface*> interfaces = leaf->getInPorts();
-        list<Leaf::Interface*>::iterator interface_it;
-        for (interface_it = interfaces.begin(); interface_it != interfaces.end(); ++interface_it) {
-            checkInterface(*interface_it, model);
+        // Port checks
+        list<Leaf::Port*> ports = leaf->getInPorts();
+        list<Leaf::Port*>::iterator port_it;
+        for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
+            checkPort(*port_it, processnetwork);
         }
-        interfaces = leaf->getOutPorts();
-        for (interface_it = interfaces.begin(); interface_it != interfaces.end(); ++interface_it) {
-            checkInterface(*interface_it, model);
+        ports = leaf->getOutPorts();
+        for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
+            checkPort(*port_it, processnetwork);
         }
     }
 }
 
-void Frontend::checkInterface(Leaf::Interface* interface, Model* model)
-    throw(InvalidArgumentException, InvalidModelException, IOException,
+void Frontend::checkPort(Leaf::Port* port, ProcessNetwork* processnetwork)
+    throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
           RuntimeException) {
-    if (!interface) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"interface\" must not be NULL");
+    if (!port) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
     }
-    if (!model) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
-    if (!interface->isConnected()) {
-        THROW_EXCEPTION(InvalidModelException, string("Interface \"")
-                        + interface->getId()->getString()
+    if (!port->isConnected()) {
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("Port \"")
+                        + port->getId()->getString()
                         + "\" in leaf \""
-                        + interface->getLeaf()->getId()->getString()
+                        + port->getProcess()->getId()->getString()
                         + "\" is unconnected");
     }
 
-    // Check that the interface is not connected to its own leaf
-    if (interface->getConnectedInterface()->getLeaf() == interface->getLeaf()) {
-        THROW_EXCEPTION(InvalidModelException, string("Interface \"")
-                        + interface->getId()->getString()
+    // Check that the port is not connected to its own leaf
+    if (port->getConnectedPort()->getProcess() == port->getProcess()) {
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("Port \"")
+                        + port->getId()->getString()
                         + "\" in leaf \""
-                        + interface->getLeaf()->getId()->getString()
-                        + "\" is connected to its own model "
+                        + port->getProcess()->getId()->getString()
+                        + "\" is connected to its own processnetwork "
                         + "(combinatorial looping)");
     }
 
-    // Check that the other interface belongs to a leaf in the model
-    if (!model->getLeaf(*interface->getConnectedInterface()->getLeaf()->getId())) {
-        THROW_EXCEPTION(InvalidModelException, string("Interface \"")
-                        + interface->getId()->getString()
+    // Check that the other port belongs to a leaf in the processnetwork
+    if (!processnetwork->getProcess(*port->getConnectedPort()->getProcess()->getId())) {
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("Port \"")
+                        + port->getId()->getString()
                         + "\" in leaf \""
-                        + interface->getLeaf()->getId()->getString()
+                        + port->getProcess()->getId()->getString()
                         + "\" is connected to a leaf outside the "
-                        + "model");
+                        + "processnetwork");
     }
 }
 
-void Frontend::checkModelMore(ForSyDe::Model* model)
-    throw(InvalidArgumentException, InvalidModelException, IOException,
+void Frontend::checkProcessNetworkMore(ForSyDe::ProcessNetwork* processnetwork)
+    throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
           RuntimeException) {}
 
 
-void Frontend::postCheckFixes(ForSyDe::Model* model)
+void Frontend::postCheckFixes(ForSyDe::ProcessNetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {}

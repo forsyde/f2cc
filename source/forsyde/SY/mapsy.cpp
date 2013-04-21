@@ -57,16 +57,16 @@ string Map::type() const throw() {
     return "Map";
 }
 
-void Map::moreChecks() throw(InvalidLeafException) {
+void Map::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have exactly one (1) in interface");
+                        + type() + "\" must have exactly one (1) in port");
     }
     if (getOutPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have exactly one (1) out interface");
+                        + type() + "\" must have exactly one (1) out port");
     }
     checkFunction(function_);
 }
@@ -76,18 +76,18 @@ string Map::moreToString() const throw() {
 }
 
 void Map::checkFunction(CFunction& function) const
-    throw(InvalidLeafException) {
+    throw(InvalidProcessException) {
     if (function.getInputParameters().size() == 1) {
         if (function.getReturnDataType()->getFunctionReturnDataTypeString()
             == "void") {
-            THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
                             + type() + "\": function arguments with one input "
                             "parameter must return data (i.e. have return "
                             "data type other than \"void\")");
         }
         if (function.getReturnDataType()->isArray()) {
-            THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
                             + type() + "\": return type of function arguments "
                             "with one input parameter must not be an array");
@@ -96,7 +96,7 @@ void Map::checkFunction(CFunction& function) const
     else if (function.getInputParameters().size() == 2) {
         if (function.getReturnDataType()->getFunctionReturnDataTypeString()
             != "void") {
-            THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
                             + type() + "\": function arguments with two input "
                             "parameters must not return data (i.e. have return "
@@ -104,7 +104,7 @@ void Map::checkFunction(CFunction& function) const
         }
     }
     else {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have a function argument with "
                         "one or two input parameters");
@@ -113,7 +113,7 @@ void Map::checkFunction(CFunction& function) const
     CDataType first_input_data_type =
         *function.getInputParameters().front()->getDataType();
     if (first_input_data_type.isArray() && !first_input_data_type.isConst()) {
-        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\": first input parameter is a "
                         "reference or array but not declared const");

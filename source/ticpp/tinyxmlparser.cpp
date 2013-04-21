@@ -400,7 +400,7 @@ const char* TiXmlBase::SkipWhiteSpace( const char* p, TiXmlEncoding encoding )
 //
 const char* TiXmlBase::ReadName( const char* p, TIXML_STRING * name, TiXmlEncoding encoding )
 {
-	// Oddly, not supinterfaceed on some comilers,
+	// Oddly, not supported on some comilers,
 	//name->clear();
 	// So use this:
 	*name = "";
@@ -902,7 +902,7 @@ TiXmlNode* TiXmlNode::Identify( const char* p, TiXmlEncoding encoding )
 
 	if ( returnNode )
 	{
-		// Set the parent, so it can reinterface errors
+		// Set the parent, so it can report errors
 		returnNode->parent = this;
 	}
 	else
@@ -1125,7 +1125,7 @@ const char* TiXmlElement::Parse( const char* p, TiXmlParsingData* data, TiXmlEnc
 			p = ReadValue( p, data, encoding );		// Note this is an Element method, and will set the error if one happens.
 			if ( !p || !*p ) {
 				// We were looking for the end tag, but found nothing.
-				// Fix for [ 1663758 ] Failure to reinterface error on bad XML
+				// Fix for [ 1663758 ] Failure to report error on bad XML
 				if ( document ) document->SetError( TIXML_ERROR_READING_END_TAG, p, data, encoding );
 				return 0;
 			}

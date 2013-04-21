@@ -42,7 +42,7 @@ distribution.
 #include <assert.h>
 #include <string.h>
 
-/*	The supinterface for explicit isn't that universal, and it isn't really
+/*	The support for explicit isn't that universal, and it isn't really
 	required - it is used to check that the TiXmlString class isn't incorrectly
 	used. Be nice to old compilers and macro it here:
 */
@@ -59,7 +59,7 @@ distribution.
 
 /*
    TiXmlString is an emulation of a subset of the std::string template.
-   Its purpose is to allow compiling TinyXML on compilers with no or poor STL supinterface.
+   Its purpose is to allow compiling TinyXML on compilers with no or poor STL support.
    Only the member functions relevant to the TinyXML project have been implemented.
    The buffer allocation is made by a simplistic power of 2 like mechanism : if we increase
    a string and there's no more room, we allocate a buffer twice as big as we need.
