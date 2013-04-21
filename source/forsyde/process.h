@@ -96,7 +96,7 @@ class Process{
      *
      * @returns The parent process.
      */
-    Hierarchy::Relation findRelation(const Process* rhs) const throw();
+    Hierarchy::Relation findRelation(const Process* rhs) const throw(RuntimeException);
 
     /**
 	 * Gets the ID of this process.

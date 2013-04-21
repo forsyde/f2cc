@@ -636,7 +636,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::pair<CVariable, std::string> getDelayVariable(
-        ForSyDe::delay* leaf)
+        ForSyDe::SY::delay* leaf)
         throw(InvalidArgumentException, RuntimeException);
 
     /**
@@ -1088,7 +1088,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateLeafExecutionCodeFordelayStep1(
-        ForSyDe::delay* leaf)
+        ForSyDe::SY::delay* leaf)
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
     /**
@@ -1107,7 +1107,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateLeafExecutionCodeFordelayStep2(
-        ForSyDe::delay* leaf)
+        ForSyDe::SY::delay* leaf)
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
     /**
@@ -1125,7 +1125,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForMap(ForSyDe::Map* leaf)
+    std::string generateLeafExecutionCodeForMap(ForSyDe::SY::Map* leaf)
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
     /**
@@ -1164,7 +1164,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateLeafExecutionCodeForunzipx(
-        ForSyDe::unzipx* leaf)
+        ForSyDe::SY::unzipx* leaf)
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
     /**
@@ -1183,7 +1183,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForzipx(ForSyDe::zipx* leaf)
+    std::string generateLeafExecutionCodeForzipx(ForSyDe::SY::zipx* leaf)
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
     /**
@@ -1200,7 +1200,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForfanout(ForSyDe::fanout* leaf)
+    std::string generateLeafExecutionCodeForfanout(ForSyDe::SY::fanout* leaf)
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
   private:
@@ -1238,7 +1238,7 @@ class Synthesizer {
      * Mapset of delay variables. The delay leaf is used as key, and the
      * value is a pair of a \c CVariable and its initial value.
      */
-    std::map< ForSyDe::delay*, std::pair<CVariable, std::string> >
+    std::map< ForSyDe::SY::delay*, std::pair<CVariable, std::string> >
     delay_variables_;
 
   private:

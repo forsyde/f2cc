@@ -83,7 +83,7 @@ class ProcessNetwork: public Model {
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInput(Leaf::Port* port)
+    bool addInput(Process::Interface* port)
         throw(InvalidArgumentException, IllegalStateException,
               OutOfMemoryException);
 
@@ -97,7 +97,7 @@ class ProcessNetwork: public Model {
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      */
-    bool deleteInput(Leaf::Port* port) throw(InvalidArgumentException);
+    bool deleteInput(Process::Interface* port) throw(InvalidArgumentException);
 
     /**
      * Gets the number of inputs of this leaf network.
@@ -111,10 +111,10 @@ class ProcessNetwork: public Model {
      *
      * @returns List of inputs.
      */
-    std::list<Leaf::Port*> getInputs() throw();
+    std::list<Process::Interface*> getInputs() throw();
 
     /**
-     * Same as addInput(const Leaf::Port*) but for outputs.
+     * Same as addInput(const Process::Interface*) but for outputs.
      *
      * @param port
      *        Outport of a leaf.
@@ -127,12 +127,12 @@ class ProcessNetwork: public Model {
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutput(Leaf::Port* port)
+    bool addOutput(Process::Interface* port)
         throw(InvalidArgumentException, IllegalStateException,
               OutOfMemoryException);
 
     /**
-     * Same as deleteInput(Leaf::Port*) but for outputs.
+     * Same as deleteInput(Process::Interface*) but for outputs.
      *
      * @param port
      *        Port.
@@ -141,10 +141,10 @@ class ProcessNetwork: public Model {
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      */
-    bool deleteOutput(Leaf::Port* port) throw(InvalidArgumentException);
+    bool deleteOutput(Process::Interface* port) throw(InvalidArgumentException);
 
     /**
-     * Same as addInput(const Leaf::Port*) but for outputs.
+     * Same as addInput(const Process::Interface*) but for outputs.
      * Gets the number of inputs of this processnetwork.
      *
      * @returns Number of inputs.
@@ -156,7 +156,7 @@ class ProcessNetwork: public Model {
      *
      * @returns List of outputs.
      */
-    std::list<Leaf::Port*> getOutputs() throw();
+    std::list<Process::Interface*> getOutputs() throw();
 
   private:
 
@@ -172,8 +172,8 @@ class ProcessNetwork: public Model {
      * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Leaf::Port*>::iterator findPort(
-        const Id& id, std::list<Leaf::Port*>& ports) const throw();
+    std::list<Process::Interface*>::iterator findPort(
+        const Id& id, std::list<Process::Interface*>& ports) const throw();
 
     /**
      * Attempts to find a given port from a list of ports. If the list
@@ -187,8 +187,8 @@ class ProcessNetwork: public Model {
      * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Leaf::Port*>::iterator findPort(
-        Leaf::Port* port, std::list<Leaf::Port*>& ports)  const throw();
+    std::list<Process::Interface*>::iterator findPort(
+        Process::Interface* port, std::list<Process::Interface*>& ports)  const throw();
 
 
 
@@ -204,7 +204,7 @@ class ProcessNetwork: public Model {
      *        Port list.
      * @returns String representation.
      */
-    std::string portsToString(const std::list<Leaf::Port*> ports) const
+    std::string portsToString(const std::list<Process::Interface*> ports) const
         throw();
 
     /**
@@ -230,12 +230,12 @@ class ProcessNetwork: public Model {
     /**
      * List of inputs.
      */
-    std::list<Leaf::Port*> inputs_;
+    std::list<Process::Interface*> inputs_;
 
     /**
      * List of outputs.
      */
-    std::list<Leaf::Port*> outputs_;
+    std::list<Process::Interface*> outputs_;
 };
 
 }

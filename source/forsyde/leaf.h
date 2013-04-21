@@ -470,9 +470,9 @@ class Leaf : public Process{
          */
         Process::Interface* getConnectedPort() const throw();
 
-        void setConnection(Process::Interface* port) const throw();
+        void setConnection(Process::Interface* port) throw();
 
-        Leaf::Port* getConnectedLeafPort() const throw();
+        //Leaf::Port* getConnectedLeafPort() const throw();
 
         /**
          * Checks for equality between this port and another.
@@ -494,6 +494,8 @@ class Leaf : public Process{
          */
         bool operator!=(const Leaf::Port& rhs) const throw();
 
+      private:
+
         /**
          * Converts this port into a string representation. The resultant string
          * is as follows:
@@ -503,9 +505,8 @@ class Leaf : public Process{
          *
          * @returns String representation.
          */
-        std::string toString() const throw();
+        virtual std::string moretoString() const throw();
 
-      private:
         /**
          * Due to how port copying works, the assign operator is hidden and thus
          * not allowed to avoid potential bugs as it is easy to forget this

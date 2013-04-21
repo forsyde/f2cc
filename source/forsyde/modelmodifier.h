@@ -37,10 +37,10 @@
 #include "id.h"
 #include "processnetwork.h"
 #include "leaf.h"
-#include "mapsy.h"
-#include "parallelmapsy.h"
-#include "unzipxsy.h"
-#include "zipxsy.h"
+#include "SY/mapsy.h"
+#include "SY/parallelmapsy.h"
+#include "SY/unzipxsy.h"
+#include "SY/zipxsy.h"
 #include "../logger/logger.h"
 #include "../exceptions/ioexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -56,13 +56,13 @@ namespace ForSyDe {
  * @brief Performs semantic-preserving modifications on a \c ProcessNetwork
  *        object.
  *
- * The \c ProcessNetworkModifier is a class which provides a set of processnetwork modification
+ * The \c ModelModifier is a class which provides a set of processnetwork modification
  * methods. The modifications are such that they preserve the semantics of the
  * processnetwork, and are used to simplify the latter synthesis leaf or affect the
  * structure of the generated code (i.e. whether to generate sequential C code
  * or parallel CUDA C code).
  */
-class ProcessNetworkModifier {
+class ModelModifier {
   private:
     class ContainedSection;
 
@@ -77,13 +77,13 @@ class ProcessNetworkModifier {
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
      */
-    ProcessNetworkModifier(ForSyDe::ProcessNetwork* processnetwork, Logger& logger)
+    ModelModifier(ForSyDe::ProcessNetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
      * Destroys this processnetwork modifier. The logger remains open.
      */
-    ~ProcessNetworkModifier() throw();
+    ~ModelModifier() throw();
 
     /**
      * Coalesces data parallel leafs across different segments into a
@@ -260,7 +260,7 @@ class ProcessNetworkModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    ForSyDe::unzipx* findNearestunzipxLeaf(ForSyDe::Leaf* begin)
+    ForSyDe::SY::unzipx* findNearestunzipxLeaf(ForSyDe::Leaf* begin)
     throw(IOException, RuntimeException);
 
     /**
@@ -403,7 +403,7 @@ class ProcessNetworkModifier {
      *         bug.
      */
     bool isParallelMapSyChainCoalescable(
-        std::list<ForSyDe::ParallelMap*> chain) throw(RuntimeException);
+        std::list<ForSyDe::SY::ParallelMap*> chain) throw(RuntimeException);
 
     /**
      * Searches for chains for \c ParallelMap leafs within the processnetwork.
@@ -415,7 +415,7 @@ class ProcessNetworkModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    std::list< std::list<ForSyDe::ParallelMap*> > findParallelMapSyChains()
+    std::list< std::list<ForSyDe::SY::ParallelMap*> > findParallelMapSyChains()
         throw(IOException, RuntimeException);
 
     
@@ -435,7 +435,7 @@ class ProcessNetworkModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    std::list< std::list<ParallelMap*> > findParallelMapSyChains(
+    std::list< std::list<SY::ParallelMap*> > findParallelMapSyChains(
         ForSyDe::Leaf* begin, std::set<ForSyDe::Id> visited)
         throw(IOException, RuntimeException);
 
@@ -451,7 +451,7 @@ class ProcessNetworkModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void coalesceParallelMapSyChain(std::list<ForSyDe::ParallelMap*> chain)
+    void coalesceParallelMapSyChain(std::list<ForSyDe::SY::ParallelMap*> chain)
         throw(RuntimeException);
 
     /**
@@ -467,7 +467,7 @@ class ProcessNetworkModifier {
     /**
      * @copydoc leafChainToString(std::list<ForSyDe::Leaf*>) const
      */
-    std::string leafChainToString(std::list<ForSyDe::ParallelMap*> chain)
+    std::string leafChainToString(std::list<ForSyDe::SY::ParallelMap*> chain)
         const throw();
 
     /**

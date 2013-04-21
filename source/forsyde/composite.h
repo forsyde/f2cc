@@ -90,7 +90,7 @@ public:
      *
      * @returns Port data type.
      */
-    const ForSyDe::Id* getName() const throw();
+    ForSyDe::Id getName() const throw();
 
     void changeName(ForSyDe::Id* name) throw();
 
@@ -286,7 +286,7 @@ public:
     /**
      * The composite process' name
      */
-    const ForSyDe::Id composite_name_;
+    ForSyDe::Id composite_name_;
     /**
      * List of in ports.
      */
@@ -358,7 +358,15 @@ public:
          * @returns \c true if connected.
 		 */
 
-		bool isConnectedToLeaf(Interface* startpoint) const throw();
+		bool isConnectedToLeaf(const Interface* startpoint) const throw();
+
+        /**
+         * Checks if this \c IOPort is connected to a port inside the composite process.
+         *
+         * @returns \c true if connected.
+		 */
+
+		bool unconnectFromLeaf(Interface* previous) throw();
 
         /**
          * Checks if this \c IOPort is connected to a port inside the composite process.
@@ -465,7 +473,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		Leaf::Port* getConnectedLeafPortOutside() const throw(InvalidArgumentException);
+		//Leaf::Port* getConnectedLeafPortOutside() const throw(InvalidArgumentException);
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
          *
@@ -474,9 +482,10 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		Leaf::Port* getConnectedLeafPortInside() const throw(InvalidArgumentException);
+		//Leaf::Port* getConnectedLeafPortInside() const throw(InvalidArgumentException);
 
 
+      private:
         /**
          * Converts this port into a string representation. The resultant string
          * is as follows:
@@ -486,9 +495,8 @@ public:
          *
          * @returns String representation.
          */
-        virtual std::string toString() const throw();
+        virtual std::string moretoString() const throw();
 
-      private:
         /**
          * Due to how port copying works, the assign operator is hidden and thus
          * not allowed to avoid potential bugs as it is easy to forget this

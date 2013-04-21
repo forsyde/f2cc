@@ -27,7 +27,7 @@
 #include <typeinfo>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 

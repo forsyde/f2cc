@@ -26,8 +26,8 @@
 #include "synthesizer.h"
 #include "schedulefinder.h"
 #include "../forsyde/SY/mapsy.h"
-#include "../forsyde/coalescedmapsy.h"
-#include "../forsyde/parallelmapsy.h"
+#include "../forsyde/SY/coalescedmapsy.h"
+#include "../forsyde/SY/parallelmapsy.h"
 #include "../forsyde/SY/delaysy.h"
 #include "../forsyde/SY/zipxsy.h"
 #include "../forsyde/SY/unzipxsy.h"
@@ -42,6 +42,7 @@
 
 using namespace f2cc;
 using namespace f2cc::ForSyDe;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -249,7 +250,7 @@ Synthesizer::Signal* Synthesizer::getSignalByOutPort(Leaf::Port* out_port)
     }
     Leaf::Port* in_port = NULL;
     if (out_port->isConnected()) {
-        in_port = out_port->getConnectedPort();
+        in_port = dynamic_cast<Leaf::Port*>(out_port->getConnectedPort());
     }
     return getSignal(out_port, in_port);
 }
@@ -262,7 +263,7 @@ Synthesizer::Signal* Synthesizer::getSignalByInPort(Leaf::Port* in_port)
     }
     Leaf::Port* out_port = NULL;
     if (in_port->isConnected()) {
-        out_port = in_port->getConnectedPort();
+        out_port = dynamic_cast<Leaf::Port*>(in_port->getConnectedPort());
     }
     return getSignal(out_port, in_port);
 }
@@ -581,11 +582,11 @@ string Synthesizer::generateProcessNetworkFunctionDescription()
         + " *\n";
 
     // Generate description for the function input parameters
-    list<Leaf::Port*> inputs = processnetwork_->getInputs();
-    list<Leaf::Port*>::iterator it;
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    list<Process::Interface*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort(dynamic_cast<Leaf::Port*>(*it));
         CDataType data_type = *signal->getDataType();
         string param_name = kProcessNetworkInputParameterPrefix + tools::toString(id);
         string leaf_name =
@@ -600,9 +601,9 @@ string Synthesizer::generateProcessNetworkFunctionDescription()
     }
 
     // Generate description for the function output parameters
-    list<Leaf::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Interface*> outputs = processnetwork_->getOutputs();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
+        Signal* signal = getSignalByOutPort(dynamic_cast<Leaf::Port*>(*it));
         CDataType data_type = *signal->getDataType();
         string param_name = kProcessNetworkOutputParameterPrefix + tools::toString(id);
         string leaf_name =
@@ -626,12 +627,12 @@ string Synthesizer::generateProcessNetworkFunctionParameterListCode()
 
     // Generate input parameters
     bool has_input_parameter = false;
-    list<Leaf::Port*> inputs = processnetwork_->getInputs();
-    list<Leaf::Port*>::iterator it;
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    list<Process::Interface*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
         if (it != inputs.begin()) code += ", ";
-        CDataType data_type = *getSignalByInPort(*it)->getDataType();
+        CDataType data_type = *getSignalByInPort(dynamic_cast<Leaf::Port*>(*it))->getDataType();
         data_type.setIsConst(true);
         CVariable parameter(kProcessNetworkInputParameterPrefix + tools::toString(id),
                             data_type);
@@ -640,10 +641,10 @@ string Synthesizer::generateProcessNetworkFunctionParameterListCode()
     }
 
     // Generate output parameters
-    list<Leaf::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Interface*> outputs = processnetwork_->getOutputs();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
         if (has_input_parameter || it != outputs.begin()) code += ", ";
-        CDataType data_type = *getSignalByOutPort(*it)->getDataType();
+        CDataType data_type = *getSignalByOutPort(dynamic_cast<Leaf::Port*>(*it))->getDataType();
         if (!data_type.isArray()) data_type.setIsPointer(true);
         CVariable parameter(kProcessNetworkOutputParameterPrefix + tools::toString(id),
                             data_type);
@@ -657,12 +658,12 @@ string Synthesizer::generateInputsToSignalsCopyingCode()
     throw(InvalidProcessNetworkException, RuntimeException) {
     string code;
 
-    list<Leaf::Port*> inputs = processnetwork_->getInputs();
-    list<Leaf::Port*>::iterator it;
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    list<Process::Interface*>::iterator it;
     int id;
     bool at_least_one = false;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort(dynamic_cast<Leaf::Port*>(*it));
         logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
                            + signal->toString() + "...");
 
@@ -686,12 +687,12 @@ string Synthesizer::generateSignalsToOutputsCopyingCode()
     throw(InvalidProcessNetworkException, RuntimeException) {
     string code;
 
-    list<Leaf::Port*> outputs = processnetwork_->getOutputs();
-    list<Leaf::Port*>::iterator it;
+    list<Process::Interface*> outputs = processnetwork_->getOutputs();
+    list<Process::Interface*>::iterator it;
     int id;
     bool at_least_one = false;
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
+        Signal* signal = getSignalByOutPort(dynamic_cast<Leaf::Port*>(*it));
         logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
                            + signal->toString() + "...");
 
@@ -718,11 +719,11 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
     bool at_least_one = false;
 
     // Iterate over the input parameters
-    list<Leaf::Port*> inputs = processnetwork_->getInputs();
-    list<Leaf::Port*>::iterator it;
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    list<Process::Interface*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort(dynamic_cast<Leaf::Port*>(*it));
         logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
                            + signal->toString() + "...");
 
@@ -736,9 +737,9 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
     }
 
     // Iterate over the output parameters
-    list<Leaf::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Interface*> outputs = processnetwork_->getOutputs();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
+        Signal* signal = getSignalByOutPort(dynamic_cast<Leaf::Port*>(*it));
         logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
                            + signal->toString() + "...");
 
@@ -829,10 +830,10 @@ void Synthesizer::createDelayVariables() throw(IOException, RuntimeException) {
 
 void Synthesizer::setInputArraySignalVariableDataTypesAsConst()
     throw(IOException, RuntimeException) {
-    list<Leaf::Port*> inputs = processnetwork_->getInputs();
-    for (list<Leaf::Port*>::iterator it = inputs.begin(); it != inputs.end();
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    for (list<Process::Interface*>::iterator it = inputs.begin(); it != inputs.end();
          ++it) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort(dynamic_cast<Leaf::Port*>(*it));
         CDataType data_type = *signal->getDataType();
         if (!data_type.isArray()) continue;
         logger_.logMessage(Logger::DEBUG, string("Modifying data type for ")
@@ -878,7 +879,7 @@ CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
     // data type from the function argument's corresponding input parameter;
     // if not, then the data type of a neighbouring signal is used
     CDataType data_type;
-    Leaf* leaf = signal->getInPort()->getProcess();
+    Leaf* leaf = dynamic_cast<Leaf*>(signal->getInPort()->getProcess());
     if (Map* mapsy = dynamic_cast<Map*>(leaf)) {
         data_type =
             *mapsy->getFunction()->getInputParameters().front()->getDataType();
@@ -976,7 +977,7 @@ CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
     // function argument's last input parameter; if not, then the data type of
     // a neighbouring signal is used
     CDataType data_type;
-    Leaf* leaf = signal->getOutPort()->getProcess();
+    Leaf* leaf = dynamic_cast<Leaf*>(signal->getOutPort()->getProcess());
     if (Map* mapsy = dynamic_cast<Map*>(leaf)) {
         CFunction* function = mapsy->getFunction();
         if (function->getNumInputParameters() == 1) {
@@ -1107,7 +1108,7 @@ size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
     // size by summing up the array sizes of its out port signals; if it is not
     // an unzipx, get the array size from a neighbouring signal
     size_t array_size = 0;
-    Leaf* leaf = signal->getInPort()->getProcess();
+    Leaf* leaf = dynamic_cast<Leaf*>(signal->getInPort()->getProcess());
     list<Leaf::Port*> out_ports = leaf->getOutPorts();
     if (out_ports.size() == 0) {
         THROW_EXCEPTION(IllegalStateException, string("Leaf \"")
@@ -1164,7 +1165,7 @@ size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
     // size by summing up the array sizes of its in port signals; if it is not
     // a zipx, get the array size from a neighbouring signal
     size_t array_size = 0;
-    Leaf* leaf = signal->getOutPort()->getProcess();
+    Leaf* leaf = dynamic_cast<Leaf*>(signal->getOutPort()->getProcess());
     list<Leaf::Port*> in_ports = leaf->getInPorts();
     if (in_ports.size() == 0) {
         THROW_EXCEPTION(IllegalStateException, string("Leaf \"")

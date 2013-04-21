@@ -28,12 +28,12 @@
 #include "../ticpp/tinyxml.h"
 #include "../tools/tools.h"
 #include "../forsyde/SY/mapsy.h"
-#include "../forsyde/parallelmapsy.h"
+#include "../forsyde/SY/parallelmapsy.h"
 #include "../forsyde/SY/zipxsy.h"
 #include "../forsyde/SY/unzipxsy.h"
 #include "../forsyde/SY/delaysy.h"
 #include "../forsyde/SY/inport.h"
-#include "../forsyde/outport.h"
+#include "../forsyde/SY/outport.h"
 #include "../forsyde/SY/fanoutsy.h"
 #include "../forsyde/SY/zipwithnsy.h"
 #include "../language/cdatatype.h"
@@ -48,6 +48,7 @@
 
 using namespace f2cc;
 using namespace f2cc::ForSyDe;
+using namespace f2cc::ForSyDe::SY;
 using ticpp::Document;
 using ticpp::Node;
 using ticpp::Element;
@@ -223,8 +224,8 @@ ProcessNetwork* GraphmlParser::generateProcessNetwork(Element* xml)
     parseXmlNodes(xml, processnetwork);
 
     logger_.logMessage(Logger::DEBUG, "Parsing \"edge\" elements...");
-    map<Leaf::Port*, Leaf*> copy_leafs;
-    parseXmlEdges(xml, processnetwork, copy_leafs);
+    map<Leaf::Port*, Leaf*> copy_processs;
+    parseXmlEdges(xml, processnetwork, copy_processs);
 
     return processnetwork;
 }
@@ -245,13 +246,13 @@ void GraphmlParser::parseXmlNodes(Element* xml, ProcessNetwork* processnetwork)
         logger_.logMessage(Logger::DEBUG, string("Analyzing line "
                                                  + tools::toString((*it)->Row())
                                                  + "..."));
-        Leaf* leaf = generateLeaf(*it);
+        Leaf* process = generateLeaf(*it);
         try {
-            if (!processnetwork->addProcess(leaf)) {
+            if (!processnetwork->addProcess(process)) {
                 THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
                                 (*it)->Column(),
-                                string("Multiple leafs with ID \"")
-                                + leaf->getId()->getString() + "\"");
+                                string("Multiple processs with ID \"")
+                                + process->getId()->getString() + "\"");
             }
         } catch (bad_alloc&) {
             THROW_EXCEPTION(OutOfMemoryException);
@@ -260,7 +261,7 @@ void GraphmlParser::parseXmlNodes(Element* xml, ProcessNetwork* processnetwork)
 }
 
 void GraphmlParser::parseXmlEdges(Element* xml, ProcessNetwork* processnetwork,
-                                  map<Leaf::Port*, Leaf*>& copy_leafs)
+                                  map<Leaf::Port*, Leaf*>& copy_processs)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -276,7 +277,7 @@ void GraphmlParser::parseXmlEdges(Element* xml, ProcessNetwork* processnetwork,
         logger_.logMessage(Logger::DEBUG, string("Analyzing line "
                                                  + tools::toString((*it)->Row())
                                                  + "..."));
-        generateConnection(*it, processnetwork, copy_leafs);
+        generateConnection(*it, processnetwork, copy_processs);
     }
 }
 
@@ -286,50 +287,50 @@ void GraphmlParser::fixProcessNetworkInputsOutputs(ProcessNetwork* processnetwor
         THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
-    Leaf* inport_leaf = NULL;
-    Leaf* outport_leaf = NULL;
+    Leaf* inport_process = NULL;
+    Leaf* outport_process = NULL;
 
-    // Get InPort and OutPort leafs from the processnetwork
-    list<Leaf*> leafs = processnetwork->getProcesses();
-    list<Leaf*>::iterator leaf_it;
-    for (leaf_it = leafs.begin(); leaf_it != leafs.end();
-         ++leaf_it) {
-        Leaf* leaf = *leaf_it;
-        if (dynamic_cast<InPort*>(leaf)) {
-            inport_leaf = leaf;
+    // Get InPort and OutPort processs from the processnetwork
+    list<Leaf*> processs = processnetwork->getProcesses();
+    list<Leaf*>::iterator process_it;
+    for (process_it = processs.begin(); process_it != processs.end();
+         ++process_it) {
+        Leaf* process = *process_it;
+        if (dynamic_cast<InPort*>(process)) {
+            inport_process = process;
         }
-        if (dynamic_cast<OutPort*>(leaf)) {
-            outport_leaf = leaf;
+        if (dynamic_cast<OutPort*>(process)) {
+            outport_process = process;
         }
     }
-    if (!inport_leaf) {
+    if (!inport_process) {
         THROW_EXCEPTION(IllegalStateException, "Failed to locate InPort "
-                        "leaf");
+                        "process");
     }
-    if (!outport_leaf) {
+    if (!outport_process) {
         THROW_EXCEPTION(IllegalStateException, "Failed to locate OutPort "
-                        "leaf");
+                        "process");
     }
 
     // Set their in and out ports as outputs and inputs to the processnetwork
-    list<Leaf::Port*> ports = inport_leaf->getOutPorts();
+    list<Leaf::Port*> ports = inport_process->getOutPorts();
     list<Leaf::Port*>::iterator port_it;
     for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
         processnetwork->addInput((*port_it)->getConnectedPort());
     }
-    ports = outport_leaf->getInPorts();
+    ports = outport_process->getInPorts();
     for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
         processnetwork->addOutput((*port_it)->getConnectedPort());
     }
 
-    // Delete the leafs
-    if (!processnetwork->deleteProcess(*inport_leaf->getId())) {
+    // Delete the processs
+    if (!processnetwork->deleteProcess(*inport_process->getId())) {
         THROW_EXCEPTION(IllegalStateException, "Failed to delete InPort "
-                        "leaf");
+                        "process");
     }
-    if (!processnetwork->deleteProcess(*outport_leaf->getId())) {
+    if (!processnetwork->deleteProcess(*outport_process->getId())) {
         THROW_EXCEPTION(IllegalStateException, "Failed to delete OutPort "
-                        "leaf");
+                        "process");
     }
 }
 
@@ -340,55 +341,55 @@ Leaf* GraphmlParser::generateLeaf(Element* xml)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Leaf* leaf;
+    Leaf* process;
 
-    // Create leaf of right type
-    string leaf_id = getId(xml);
-    string leaf_type = getProcessType(xml);
-    tools::toLowerCase(tools::trim(leaf_type));
-    if (leaf_type.length() == 0) {
-        THROW_EXCEPTION(ParseException, file_, xml->Row(), "No leaf type");
+    // Create process of right type
+    string process_id = getId(xml);
+    string process_type = getProcessType(xml);
+    tools::toLowerCase(tools::trim(process_type));
+    if (process_type.length() == 0) {
+        THROW_EXCEPTION(ParseException, file_, xml->Row(), "No process type");
     }
     try {
-        if (leaf_type == "inport") {
-            leaf = new InPort(Id(leaf_id));
+        if (process_type == "inport") {
+            process = new InPort(Id(process_id));
         }
-        else if (leaf_type == "outport") {
-            leaf = new OutPort(Id(leaf_id));
+        else if (process_type == "outport") {
+            process = new OutPort(Id(process_id));
         }
-        else if (leaf_type == "mapsy") {
-            leaf = new Map(Id(leaf_id), generateLeafFunction(xml));
+        else if (process_type == "mapsy") {
+            process = new Map(Id(process_id), generateLeafFunction(xml));
         }
-        else if (leaf_type == "parallelmapsy") {
-            leaf = new ParallelMap(Id(leaf_id), getNumProcesses(xml),
+        else if (process_type == "parallelmapsy") {
+            process = new ParallelMap(Id(process_id), getNumProcesses(xml),
                                         generateLeafFunction(xml));
         }
-        else if (leaf_type == "unzipxsy") {
-            leaf = new unzipx(Id(leaf_id));
+        else if (process_type == "unzipxsy") {
+            process = new unzipx(Id(process_id));
         }
-        else if (leaf_type == "zipxsy") {
-            leaf = new zipx(Id(leaf_id));
+        else if (process_type == "zipxsy") {
+            process = new zipx(Id(process_id));
         }
-        else if (leaf_type == "delaysy") {
-            leaf = new delay(Id(leaf_id), getInitialDelayValue(xml));
+        else if (process_type == "delaysy") {
+            process = new delay(Id(process_id), getInitialDelayValue(xml));
         }
-        else if (leaf_type == "zipwithnsy") {
-            leaf = new ZipWithNSY(Id(leaf_id),
+        else if (process_type == "zipwithnsy") {
+            process = new ZipWithNSY(Id(process_id),
                                      generateLeafFunction(xml));
         }
         else {
             THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                            string("Unknown leaf type \"")
-                            + leaf_type
+                            string("Unknown process type \"")
+                            + process_type
                             + "\"");
         }
     }
     catch (bad_alloc&) {
         THROW_EXCEPTION(OutOfMemoryException);
     }
-    if (!leaf) THROW_EXCEPTION(OutOfMemoryException);
-    logger_.logMessage(Logger::DEBUG, string("Generated ") + leaf->type()
-                       + " from \"" + leaf->getId()->getString() + "\"");
+    if (!process) THROW_EXCEPTION(OutOfMemoryException);
+    logger_.logMessage(Logger::DEBUG, string("Generated ") + process->type()
+                       + " from \"" + process->getId()->getString() + "\"");
 
     // Get ports
     list<Element*> elements = getElementsByName(xml, "port");
@@ -406,8 +407,8 @@ Leaf* GraphmlParser::generateLeaf(Element* xml)
         }
 
         bool port_added;
-        if (is_in_port) port_added = leaf->addInPort(*port);
-        else            port_added = leaf->addOutPort(*port);
+        if (is_in_port) port_added = process->addInPort(*port);
+        else            port_added = process->addOutPort(*port);
         if (!port_added) {
             THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
                             (*it)->Column(), string("Multiple ")
@@ -418,12 +419,12 @@ Leaf* GraphmlParser::generateLeaf(Element* xml)
         logger_.logMessage(Logger::DEBUG, string()
                            + (is_in_port ? "In" : "Out")
                            + " port \"" + port->getId()->getString()
-                           + "\" added to leaf \""
-                           + leaf->getId()->getString() + "\"");
+                           + "\" added to process \""
+                           + process->getId()->getString() + "\"");
         delete port;
     }
     
-    return leaf;
+    return process;
 }
 
 string GraphmlParser::getId(Element* xml)
@@ -466,14 +467,14 @@ string GraphmlParser::getProcessType(Element* xml)
                            string("Analyzing line "
                                   + tools::toString((*it)->Row()) + "..."));
         string attr_name = (*it)->GetAttribute("key");
-        if (attr_name == "leaf_type") {
+        if (attr_name == "process_type") {
             string type = (*it)->GetText(false);
             return tools::trim(type);
         }
     }
 
     // No such element found
-    THROW_EXCEPTION(ParseException, file_, xml->Row(), "No leaf type found");
+    THROW_EXCEPTION(ParseException, file_, xml->Row(), "No process type found");
 }
 
 CFunction GraphmlParser::generateLeafFunction(Element* xml)
@@ -499,7 +500,7 @@ CFunction GraphmlParser::generateLeafFunction(Element* xml)
                 return function;
             } catch (InvalidFormatException& ex) {
                 THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
-                                string("Invalid leaf function argument: ")
+                                string("Invalid process function argument: ")
                                 + ex.getMessage());
             }
         }
@@ -507,7 +508,7 @@ CFunction GraphmlParser::generateLeafFunction(Element* xml)
 
     // No such element found
     THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                    "No leaf function argument found");
+                    "No process function argument found");
 }
 
 CFunction GraphmlParser::generateLeafFunctionFromString(
@@ -647,7 +648,7 @@ int GraphmlParser::getNumProcesses(ticpp::Element* xml)
                            string("Analyzing line "
                                   + tools::toString((*it)->Row()) + "..."));
         string attr_name = (*it)->GetAttribute("key");
-        if (attr_name == "num_leafs") {
+        if (attr_name == "num_processes") {
             string str = (*it)->GetText(false);
             tools::trim(str);
             try {
@@ -661,7 +662,7 @@ int GraphmlParser::getNumProcesses(ticpp::Element* xml)
     }
 
     // No such element found
-    THROW_EXCEPTION(ParseException, file_, xml->Row(), "Number of leafs "
+    THROW_EXCEPTION(ParseException, file_, xml->Row(), "Number of processes "
                     "not found");
 }
 
@@ -878,7 +879,7 @@ bool GraphmlParser::isValidPortId(const std::string& id,
 
 void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetwork,
                                        map<Leaf::Port*, Leaf*>&
-                                       copy_leafs)
+                                       copy_processs)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -888,72 +889,72 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
         THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
-    // Get source leaf ID
-    string source_leaf_id = xml->GetAttribute("source");
-    if (source_leaf_id.length() == 0) {
+    // Get source process ID
+    string source_process_id = xml->GetAttribute("source");
+    if (source_process_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"source\" attribute");
     }
 
-    // Get source leaf port ID
-    string source_leaf_port_id = xml->GetAttribute("sourceport");
-    if (source_leaf_port_id.length() == 0) {
+    // Get source process port ID
+    string source_process_port_id = xml->GetAttribute("sourceport");
+    if (source_process_port_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"sourceport\" attribute");
     }
 
-    // Get target leaf ID
-    string target_leaf_id = xml->GetAttribute("target");
-    if (target_leaf_id.length() == 0) {
+    // Get target process ID
+    string target_process_id = xml->GetAttribute("target");
+    if (target_process_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"target\" attribute");
     }
 
-    // Get target leaf port ID
-    string target_leaf_port_id = xml->GetAttribute("targetport");
-    if (target_leaf_port_id.length() == 0) {
+    // Get target process port ID
+    string target_process_port_id = xml->GetAttribute("targetport");
+    if (target_process_port_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"targetport\" attribute");
     }
 
-    // Get source and target leafs
-    Leaf* source_leaf = processnetwork->getProcess(source_leaf_id);
-    if (source_leaf == NULL) {
+    // Get source and target processs
+    Leaf* source_process = processnetwork->getProcess(source_process_id);
+    if (source_process == NULL) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        string("No source leaf \"")
-                        + source_leaf_id + "\" found");
+                        string("No source process \"")
+                        + source_process_id + "\" found");
     }
-    Leaf* target_leaf = processnetwork->getProcess(target_leaf_id);
-    if (target_leaf == NULL) {
+    Leaf* target_process = processnetwork->getProcess(target_process_id);
+    if (target_process == NULL) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        string("No target leaf \"")
-                        + target_leaf_id + "\" found");
+                        string("No target process \"")
+                        + target_process_id + "\" found");
     }
 
     // Get source and target ports
     Leaf::Port* source_port =
-        source_leaf->getOutPort(source_leaf_port_id);
+        source_process->getOutPort(source_process_port_id);
     if (!source_port) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        string("No source leaf out port \"")
-                        + source_leaf_id + ":"
-                        + source_leaf_port_id + "\" ");
+                        string("No source process out port \"")
+                        + source_process_id + ":"
+                        + source_process_port_id + "\" ");
     }
     Leaf::Port* target_port =
-        target_leaf->getInPort(target_leaf_port_id);
+        target_process->getInPort(target_process_port_id);
     if (!target_port) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        string("No target leaf in port \"")
-                        + target_leaf_id + ":"
-                        + target_leaf_port_id + "\" found");
+                        string("No target process in port \"")
+                        + target_process_id + ":"
+                        + target_process_port_id + "\" found");
     }
 
     // Check that the target port is not already connected to another port
     if (target_port->isConnected()) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         string("Target port \"")
-                        + target_leaf_id + ":"
-                        + target_leaf_port_id
+                        + target_process_id + ":"
+                        + target_process_port_id
                         + "\" is already connected to another port");
     }
 
@@ -966,88 +967,88 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
                            + target_port->toString() + "\"");
     }
     else {
-        // Source port already connected; use intermediate fanout leaf
+        // Source port already connected; use intermediate fanout process
         logger_.logMessage(Logger::DEBUG,
                            string("Source port \"")
                            + source_port->toString() + "\" already connected "
                            + "to \""
                            + source_port->getConnectedPort()->toString()
-                           + "\". Using intermediate fanout leaf.");
+                           + "\". Using intermediate fanout process.");
 
-        // Get fanout leaf
-        Leaf* copy_leaf;
+        // Get fanout process
+        Leaf* copy_process;
         map<Leaf::Port*, Leaf*>::iterator it =
-            copy_leafs.find(source_port);
-        if (it != copy_leafs.end()) {
-            copy_leaf = it->second;
+            copy_processs.find(source_port);
+        if (it != copy_processs.end()) {
+            copy_process = it->second;
         }
         else {
-            // No such fanout leaf; create a new one
-            copy_leaf = new (std::nothrow)
+            // No such fanout process; create a new one
+            copy_process = new (std::nothrow)
                 fanout(processnetwork->getUniqueProcessId("_copySY_"));
-            if (copy_leaf == NULL) THROW_EXCEPTION(OutOfMemoryException);
-            copy_leafs.insert(pair<Leaf::Port*, Leaf*>(source_port,
-                                                                 copy_leaf));
-            logger_.logMessage(Logger::DEBUG, string("New fanout leaf \"")
-                               + copy_leaf->getId()->getString()
+            if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
+            copy_processs.insert(pair<Leaf::Port*, Leaf*>(source_port,
+                                                                 copy_process));
+            logger_.logMessage(Logger::DEBUG, string("New fanout process \"")
+                               + copy_process->getId()->getString()
                                + "\" created");
 
             // Add to processnetwork
-            if (!processnetwork->addProcess(copy_leaf)) {
+            if (!processnetwork->addProcess(copy_process)) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to ")
-                                + "add new leaf: Leaf with ID \""
-                                + copy_leaf->getId()->getString()
+                                + "add new process: Leaf with ID \""
+                                + copy_process->getId()->getString()
                                 + "\" already existed");
             }
-            logger_.logMessage(Logger::DEBUG, string("New leaf \"")
-                               + copy_leaf->getId()->getString()
+            logger_.logMessage(Logger::DEBUG, string("New process \"")
+                               + copy_process->getId()->getString()
                                + "\" added to the processnetwork");
 
             // Break the current connection and connect the source and previous
-            // target connection through the fanout leaf
-            if(!copy_leaf->addInPort(Id("in"))) {
+            // target connection through the fanout process
+            if(!copy_process->addInPort(Id("in"))) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
-                                + "in port to leaf \""
-                                + copy_leaf->getId()->getString() + "\"");
+                                + "in port to process \""
+                                + copy_process->getId()->getString() + "\"");
             }
-            Leaf::Port* old_target_port = source_port->getConnectedPort();
+            Leaf::Port* old_target_port = dynamic_cast<Leaf::Port*>(source_port->getConnectedPort());
             source_port->unconnect();
             logger_.logMessage(Logger::DEBUG,
                                string("Broke port connection \"")
                                + source_port->toString() + "\"--\""
                                + old_target_port->toString() + "\"");
-            source_port->connect(copy_leaf->getInPorts().front());
+            source_port->connect(copy_process->getInPorts().front());
             logger_.logMessage(Logger::DEBUG,
                                string("Connected port \"")
                                + source_port->toString()
                                + "\" with \""
-                               + copy_leaf->getInPorts().front()->toString()
+                               + copy_process->getInPorts().front()->toString()
                                + "\"");
-            if(!copy_leaf->addOutPort(Id("out1"))) {
+            if(!copy_process->addOutPort(Id("out1"))) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
-                                + "out port to leaf \""
-                                + copy_leaf->getId()->getString() + "\"");
+                                + "out port to process \""
+                                + copy_process->getId()->getString() + "\"");
             }
-            old_target_port->connect(copy_leaf->getOutPorts().front());
+            old_target_port->connect(copy_process->getOutPorts().front());
             logger_.logMessage(Logger::DEBUG,
                                string("Connected port \"")
-                               + copy_leaf->getOutPorts().front()->toString()
+                               + copy_process->getOutPorts().front()->toString()
                                + "\" with \""
                                + old_target_port->toString() + "\"");
         }
 
         string new_out_port_id = string("out")
-            + tools::toString(copy_leaf->getOutPorts().size() + 1);
-        if(!copy_leaf->addOutPort(new_out_port_id)) {
+            + tools::toString(copy_process->getOutPorts().size() + 1);
+        if(!copy_process->addOutPort(new_out_port_id)) {
             THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
-                            + "out port to leaf \""
-                            + copy_leaf->getId()->getString() + "\"");
+                            + "out port to process \""
+                            + copy_process->getId()->getString() + "\"");
         }
-        target_port->connect(copy_leaf->getOutPorts().back());
+        target_port->connect(copy_process->getOutPorts().back());
 
         logger_.logMessage(Logger::DEBUG,
                            string("Connected port \"")
-                           + copy_leaf->getOutPorts().back()->toString()
+                           + copy_process->getOutPorts().back()->toString()
                            + "\" with \""
                            + target_port->toString() + "\"");
     }
@@ -1056,40 +1057,40 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
 void GraphmlParser::checkProcessNetworkMore(ProcessNetwork* processnetwork)
     throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
           RuntimeException) {
-    bool found_in_port_leaf = false;
-    bool found_out_port_leaf = false;
-    list<Leaf*> leafs = processnetwork->getProcesses();
-    list<Leaf*>::iterator leaf_it;
-    for (leaf_it = leafs.begin(); leaf_it != leafs.end();
-         ++leaf_it) {
-        Leaf* leaf = *leaf_it;
+    bool found_in_port_process = false;
+    bool found_out_port_process = false;
+    list<Leaf*> processs = processnetwork->getProcesses();
+    list<Leaf*>::iterator process_it;
+    for (process_it = processs.begin(); process_it != processs.end();
+         ++process_it) {
+        Leaf* process = *process_it;
         logger_.logMessage(Logger::DEBUG,
-                           string("Checking leaf \"")
-                           + leaf->getId()->getString() + "\"");
+                           string("Checking process \"")
+                           + process->getId()->getString() + "\"");
 
         // In- and OutPort presence check
-        if (dynamic_cast<InPort*>(leaf)) {
-            if (!found_in_port_leaf) {
-                found_in_port_leaf = true;
+        if (dynamic_cast<InPort*>(process)) {
+            if (!found_in_port_process) {
+                found_in_port_process = true;
             }
             else {
                 THROW_EXCEPTION(InvalidProcessNetworkException,
-                                "Only one \"InPort\" leaf is allowed");
+                                "Only one \"InPort\" process is allowed");
             }
         }
-        if (dynamic_cast<OutPort*>(leaf)) {
-            if (!found_out_port_leaf) {
-                found_out_port_leaf = true;
+        if (dynamic_cast<OutPort*>(process)) {
+            if (!found_out_port_process) {
+                found_out_port_process = true;
             }
             else {
                 THROW_EXCEPTION(InvalidProcessNetworkException,
-                                "Only one \"OutPort\" leaf is allowed");
+                                "Only one \"OutPort\" process is allowed");
             }
         }
     }
-    if (!found_out_port_leaf) {
+    if (!found_out_port_process) {
         THROW_EXCEPTION(InvalidProcessNetworkException,
-                        "No \"OutPort\" leaf found");
+                        "No \"OutPort\" process found");
     }
 }
 

@@ -34,8 +34,8 @@
  * @brief Implements a dummy leaf for network in ports.
  */
 
-#include "leaf.h"
-#include "../exceptions/notsupportedexception.h"
+#include "../leaf.h"
+#include "../../exceptions/notsupportedexception.h"
 #include <string>
 
 namespace f2cc {
