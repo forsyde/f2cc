@@ -31,12 +31,12 @@ using std::string;
 using std::bad_cast;
 
 zipx::zipx(const Id& id) throw()
-        : Process(id) {}
+        : Leaf(id) {}
 
 zipx::~zipx() throw() {}
 
-bool zipx::operator==(const Process& rhs) const throw() {
-    if (Process::operator==(rhs)) return false;
+bool zipx::operator==(const Leaf& rhs) const throw() {
+    if (Leaf::operator==(rhs)) return false;
 
     try {
         dynamic_cast<const zipx&>(rhs);
@@ -51,10 +51,10 @@ string zipx::type() const throw() {
     return "zipx";
 }
 
-void zipx::moreChecks() throw(InvalidProcessException) {
+void zipx::moreChecks() throw(InvalidLeafException) {
     if (getOutPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have exactly one (1) out port");
+                        + type() + "\" must have exactly one (1) out interface");
     }
 }

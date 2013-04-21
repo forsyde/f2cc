@@ -38,7 +38,7 @@ using std::vector;
 Composite::Composite(const Id& id) throw() : id_(id) {}
 
 Composite::~Composite() throw() {
-	destroyAllProcesses();
+	destroyAllLeafs();
 }
 
 const Id* Composite::getId() const throw() {
@@ -49,22 +49,22 @@ const Id* Composite::getId() const throw() {
 string Composite::toString() const throw() {
     string str;
     str += "{\n";
-    str += "  Composite Process: ";
+    str += "  Composite Leaf: ";
     str += getId()->getString();
     str += ",\n";
-    str += " List of Processes : ";
-    str += ProcessesToString(processes_);
+    str += " List of Leafs : ";
+    str += LeafsToString(leafs_);
     str += ",\n";
     str += "}";
 
     return str;
 }
 
-string Composite::ProcessesToString(std::map<const Id, Process*> processes) const throw() {
+string Composite::LeafsToString(std::map<const Id, Leaf*> leafs) const throw() {
     string str;
     str += "\n";
-    std::map<const Id, Process*>::iterator it;
-	for (it = processes.begin(); it != processes.end(); ++it) {
+    std::map<const Id, Leaf*>::iterator it;
+	for (it = leafs.begin(); it != leafs.end(); ++it) {
 		str+= "ID = ";
 		str += it->second->getId()->getString();
 		str += "\n";
@@ -73,6 +73,6 @@ string Composite::ProcessesToString(std::map<const Id, Process*> processes) cons
 }
 
 
-void Composite::check() throw(InvalidProcessException) {
+void Composite::check() throw(InvalidLeafException) {
 	//TODO: implement checks
 }

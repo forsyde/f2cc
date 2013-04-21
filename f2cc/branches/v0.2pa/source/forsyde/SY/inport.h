@@ -23,38 +23,61 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "inport.h"
-#include <typeinfo>
+#ifndef F2CC_SOURCE_FORSYDE_INPORT_H_
+#define F2CC_SOURCE_FORSYDE_INPORT_H_
 
-using namespace f2cc::ForSyDe;
-using std::string;
-using std::bad_cast;
+/**
+ * @file
+ * @author  Gabriel Hjort Blindell <ghb@kth.se>
+ * @version 0.1
+ *
+ * @brief Implements a dummy leaf for network in interfaces.
+ */
 
-InPort::InPort(const Id& id) throw()
-        : Process(id) {}
+#include "leaf.h"
+#include "../exceptions/notsupportedexception.h"
+#include <string>
 
-InPort::~InPort() throw() {}
+namespace f2cc {
+namespace ForSyDe {
 
-bool InPort::operator==(const Process& rhs) const throw() {
-    if (Process::operator==(rhs)) return false;
+/**
+ * @brief Implements a dummy leaf for network inports.
+ */
+class InPort : public Leaf {
+  public:
+    /**
+     * @copydoc Leaf(const Id&)
+     */
+    InPort(const Id& id) throw();
 
-    try {
-        dynamic_cast<const InPort&>(rhs);
-    }
-    catch (bad_cast&) {
-        return false;
-    }
-    return true;
+    /**
+     * @copydoc ~Leaf()
+     */
+    virtual ~InPort() throw();
+
+    /**
+     * @copydoc Leaf::operator==(const Leaf&) const
+     */
+    virtual bool operator==(const Leaf& rhs) const throw();
+
+    /**
+     * @copydoc Leaf::type()
+     */
+    virtual std::string type() const throw();
+
+  protected:
+    /**
+     * Checks that this leaf has no in interfaces.
+     *
+     * @throws InvalidLeafException
+     *         When the check fails.
+     */
+    virtual void moreChecks() throw(InvalidLeafException);
+
+};
+
+}
 }
 
-string InPort::type() const throw() {
-    return "InPort";
-}
-
-void InPort::moreChecks() throw(InvalidProcessException) {
-    if (getInPorts().size() != 0) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
-                        + getId()->getString() + "\" of type \""
-                        + type() + "\" is not allowed to have in ports");
-    }
-}
+#endif

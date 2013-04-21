@@ -59,17 +59,17 @@ string Config::getHelpMenu() const throw() {
 
     part = "This tool is part of the ForSyDe framework for synthesizing "
         "programs modeled at a high level of abstraction into compilable C or "
-        "CUDA C code. The synthesis process is semantic-preserving which means "
+        "CUDA C code. The synthesis leaf is semantic-preserving which means "
         "that a model which is proven to be correct will also yield correct C "
         "or CUDA C code.\n"
         "\n"
         "The tool expects the model to be represented as a GraphML file. "
-        "Currently, the tool supports the following processes:\n";
+        "Currently, the tool supinterfaces the following leafs:\n";
     tools::breakLongLines(part, maximum_line_length, 0);
     part += ""
-        "   * comb\n"
+        "   * Map\n"
         "   * ParallelMap\n"
-        "   * comb\n"
+        "   * ZipWithNSY\n"
         "   * unzipx\n"
         "   * zipx\n"
         "   * delay\n"
@@ -95,9 +95,9 @@ string Config::getHelpMenu() const throw() {
     tools::breakLongLines(part, maximum_line_length, indents);
     str += part;
 
-    part = "   -no-pc, --no-process-coalescing\n"
+    part = "   -no-pc, --no-leaf-coalescing\n"
         "      CUDA ONLY. Specifies that the tool should not coalesce "
-        "processes, even "
+        "leafs, even "
         "when it is possible to do so for the given input model."
         "\n\n";
     tools::breakLongLines(part, maximum_line_length, indents);
@@ -137,7 +137,7 @@ string Config::getHelpMenu() const throw() {
     tools::breakLongLines(part, maximum_line_length, indents);
     str += part;
 
-    part = "Report bugs to: <ghb@kth.se>\n";
+    part = "Reinterface bugs to: <ghb@kth.se>\n";
     str += part;
 
     return str;
@@ -188,7 +188,7 @@ void Config::setDefaults() throw() {
     do_print_version_ = false;
     log_file_ = "output.log";
     log_level_ = Logger::INFO;
-    do_data_parallel_process_coalescing_ = true;
+    do_data_parallel_leaf_coalescing_ = true;
     use_shared_memory_for_input_ = false;
     use_shared_memory_for_output_ = false;
     target_platform_ = Config::CUDA;
@@ -325,15 +325,15 @@ void Config::setFromCommandLine(int argc, const char** argv)
                     is_output_file_set = true;
                 }
                 else if (option == "-no-pc" 
-                         || option == "--no-process-coalescing") {
-                    do_data_parallel_process_coalescing_ = false;
+                         || option == "--no-leaf-coalescing") {
+                    do_data_parallel_leaf_coalescing_ = false;
                 }
                 else if (option == "-use-sm-i" 
                          || option == "--use-shared-memory-for-input") {
                     use_shared_memory_for_input_ = true;
                 }
                 /*
-                 // Usage of shared memory for output data is not yet supported
+                 // Usage of shared memory for output data is not yet supinterfaceed
                 else if (option == "-use-sm-o" 
                          || option == "--use-shared-memory-for-output") {
                     use_shared_memory_for_output_ = true;
@@ -370,12 +370,12 @@ void Config::setFromCommandLine(int argc, const char** argv)
     }
 }
 
-bool Config::doDataParallelProcessCoalesing() const throw() {
-    return do_data_parallel_process_coalescing_;
+bool Config::doDataParallelLeafCoalesing() const throw() {
+    return do_data_parallel_leaf_coalescing_;
 }
 
-void Config::setDoDataParallelProcessCoalesing(bool setting) throw() {
-    do_data_parallel_process_coalescing_ = setting;
+void Config::setDoDataParallelLeafCoalesing(bool setting) throw() {
+    do_data_parallel_leaf_coalescing_ = setting;
 }
 
 bool Config::useSharedMemoryForInput() const throw() {
@@ -412,7 +412,7 @@ bool Config::isCompositeOption(const string& str) const throw() {
 }
 
 string Config::getVersion() throw() {
-    return "0.1.1";
+    return "0.1";
 }
 
 string Config::getSvnRevision() throw() {

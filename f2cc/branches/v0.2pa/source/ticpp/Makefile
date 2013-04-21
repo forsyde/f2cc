@@ -4,11 +4,11 @@
 ifndef config
   config=debug
 endif
-export config
+exinterface config
 
 PROJECTS := TiCPP
 
-export TICPPOBJPATH := $(OBJPATH)/ticpp
+exinterface TICPPOBJPATH := $(OBJPATH)/ticpp
 
 .PHONY: all clean help $(PROJECTS) $(TICPPOBJPATH)
 

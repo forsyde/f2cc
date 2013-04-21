@@ -23,30 +23,30 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "combsy.h"
+#include "zipwithnsy.h"
 #include <typeinfo>
 #include <list>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::ForSyDe;
 using std::string;
 using std::bad_cast;
 using std::list;
 
-comb::comb(const Id& id, const CFunction& function) throw()
+ZipWithNSY::ZipWithNSY(const Id& id, const CFunction& function) throw()
         : Leaf(id), function_(function) {}
 
-comb::~comb() throw() {}
+ZipWithNSY::~ZipWithNSY() throw() {}
 
-CFunction* comb::getFunction() throw() {
+CFunction* ZipWithNSY::getFunction() throw() {
     return &function_;
 }
 
-bool comb::operator==(const Leaf& rhs) const throw() {
+bool ZipWithNSY::operator==(const Leaf& rhs) const throw() {
     if (!Leaf::operator==(rhs)) return false;
 
     try {
-        const comb& other = dynamic_cast<const comb&>(rhs);
+        const ZipWithNSY& other = dynamic_cast<const ZipWithNSY&>(rhs);
         if (function_ != other.function_) return false;
     }
     catch (bad_cast&) {
@@ -55,11 +55,11 @@ bool comb::operator==(const Leaf& rhs) const throw() {
     return true;
 }
 
-string comb::type() const throw() {
-    return "comb";
+string ZipWithNSY::type() const throw() {
+    return "ZipWithNSY";
 }
 
-void comb::moreChecks() throw(InvalidLeafException) {
+void ZipWithNSY::moreChecks() throw(InvalidLeafException) {
     if (getInPorts().size() < 1) {
         THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
@@ -73,11 +73,11 @@ void comb::moreChecks() throw(InvalidLeafException) {
     checkFunction(function_, getNumInPorts());
 }
 
-string comb::moreToString() const throw() {
+string ZipWithNSY::moreToString() const throw() {
     return string("LeafFunction: ") + function_.toString();
 }
 
-void comb::checkFunction(CFunction& function, size_t num_in_interfaces) const
+void ZipWithNSY::checkFunction(CFunction& function, size_t num_in_interfaces) const
     throw(InvalidLeafException) {
     if (function.getInputParameters().size() == num_in_interfaces) {
         if (function.getReturnDataType()->getFunctionReturnDataTypeString()

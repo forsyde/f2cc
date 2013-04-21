@@ -27,14 +27,15 @@
 #include "../ticpp/ticpp.h"
 #include "../ticpp/tinyxml.h"
 #include "../tools/tools.h"
-#include "../forsyde/SY/parallelmapsy.h"
+#include "../forsyde/SY/mapsy.h"
+#include "../forsyde/parallelmapsy.h"
 #include "../forsyde/SY/zipxsy.h"
 #include "../forsyde/SY/unzipxsy.h"
 #include "../forsyde/SY/delaysy.h"
-#include "../forsyde/inport.h"
+#include "../forsyde/SY/inport.h"
 #include "../forsyde/outport.h"
 #include "../forsyde/SY/fanoutsy.h"
-#include "../forsyde/SY/combsy.h"
+#include "../forsyde/SY/zipwithnsy.h"
 #include "../language/cdatatype.h"
 #include "../exceptions/invalidprocessexception.h"
 #include "../exceptions/invalidformatexception.h"
@@ -47,7 +48,6 @@
 
 using namespace f2cc;
 using namespace f2cc::ForSyDe;
-using namespace f2cc::ForSyDe::SY;
 using ticpp::Document;
 using ticpp::Node;
 using ticpp::Element;
@@ -62,7 +62,7 @@ GraphmlParser::GraphmlParser(Logger& logger) throw() : Frontend(logger) {}
 
 GraphmlParser::~GraphmlParser() throw() {}
 
-Processnetwork* GraphmlParser::createProcessnetwork(const string& file)
+Model* GraphmlParser::createModel(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
           ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
@@ -73,35 +73,35 @@ Processnetwork* GraphmlParser::createProcessnetwork(const string& file)
 
     // Read file content
     string xml_data;
-    logger_.logInfoMessage(string("Reading xml data from file..."));
+    logger_.logMessage(Logger::INFO, string("Reading xml data from file..."));
     try {
         tools::readFile(file_, xml_data);
     } catch (FileNotFoundException& ex) {
-        logger_.logErrorMessage(string("No xml input file \"") + file_
-                                + "\" could be found");
+        logger_.logMessage(Logger::ERROR, string("No xml input file \"") + file_
+                           + "\" could be found");
         throw;
     } catch (IOException& ex) {
-        logger_.logErrorMessage(string("Failed to read xml file:\n")
-                                + ex.getMessage());
+        logger_.logMessage(Logger::ERROR, string("Failed to read xml file:\n")
+                           + ex.getMessage());
         throw;
     }
 
     // Parse content
     Document xml;
     try {
-        logger_.logInfoMessage("Building xml structure...");
+        logger_.logMessage(Logger::INFO, "Building xml structure...");
         xml.Parse(xml_data);
     } catch (ticpp::Exception& ex) {
         // @todo throw more detailed ParseException (with line and column)
         THROW_EXCEPTION(ParseException, file_, ex.what());
     }
             
-    logger_.logInfoMessage("Checking xml structure...");
+    logger_.logMessage(Logger::INFO, "Checking xml structure...");
     checkXmlDocument(&xml);
-    logger_.logInfoMessage("All checks passed");
+    logger_.logMessage(Logger::INFO, "All checks passed");
 
-    logger_.logInfoMessage("Generating internal model...");
-    Processnetwork* model = generateProcessnetwork(findXmlGraphElement(&xml));
+    logger_.logMessage(Logger::INFO, "Generating internal model...");
+    Model* model = generateModel(findXmlGraphElement(&xml));
 
     return model;
 }
@@ -138,11 +138,11 @@ list<Element*> GraphmlParser::getElementsByName(Node* xml, const string& name)
             case TiXmlNode::STYLESHEETREFERENCE:
             case TiXmlNode::TYPECOUNT: {
                 // Found unknown XML data; warn and remove
-                logger_.logWarningMessage(string("Unknown XML data at line ")
-                                          + tools::toString(child->Row())
-                                          + ", column "
-                                          + tools::toString(child->Column())
-                                          + ":\n" + child->Value());
+                logger_.logMessage(Logger::WARNING,
+                                   string("Unknown XML data at line ")
+                                   + tools::toString(child->Row()) + ", column "
+                                   + tools::toString(child->Column()) + ":\n"
+                                   + child->Value());
                 Node* prev_child = child->PreviousSibling(name, false);
                 xml->RemoveChild(child);
                 child = prev_child;
@@ -169,7 +169,7 @@ void GraphmlParser::checkXmlDocument(Document* xml)
     }
 
     // @todo implement
-    logger_.logWarningMessage("XML document check not implemented");
+    logger_.logMessage(Logger::WARNING, "XML document check not implemented");
 }
 
 Element* GraphmlParser::findXmlGraphElement(Document* xml)
@@ -209,27 +209,27 @@ Element* GraphmlParser::findXmlGraphElement(Document* xml)
     return xml_graph;
 }
 
-Processnetwork* GraphmlParser::generateProcessnetwork(Element* xml)
+Model* GraphmlParser::generateModel(Element* xml)
     throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Processnetwork* model = new (std::nothrow) Processnetwork();
+    Model* model = new (std::nothrow) Model();
     if (!model) THROW_EXCEPTION(OutOfMemoryException);
 
-    logger_.logDebugMessage("Parsing \"node\" elements...");
+    logger_.logMessage(Logger::DEBUG, "Parsing \"node\" elements...");
     parseXmlNodes(xml, model);
 
-    logger_.logDebugMessage("Parsing \"edge\" elements...");
-    map<Process::Port*, Process*> copy_processes;
-    parseXmlEdges(xml, model, copy_processes);
+    logger_.logMessage(Logger::DEBUG, "Parsing \"edge\" elements...");
+    map<Leaf::Interface*, Leaf*> copy_leafs;
+    parseXmlEdges(xml, model, copy_leafs);
 
     return model;
 }
 
-void GraphmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
+void GraphmlParser::parseXmlNodes(Element* xml, Model* model)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -242,16 +242,16 @@ void GraphmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
     list<Element*> elements = getElementsByName(xml, "node");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logDebugMessage(string("Analyzing line "
-                                       + tools::toString((*it)->Row())
-                                       + "..."));
-        Process* process = generateProcess(*it);
+        logger_.logMessage(Logger::DEBUG, string("Analyzing line "
+                                                 + tools::toString((*it)->Row())
+                                                 + "..."));
+        Leaf* leaf = generateLeaf(*it);
         try {
-            if (!model->addProcess(process)) {
+            if (!model->addLeaf(leaf)) {
                 THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
                                 (*it)->Column(),
-                                string("Multiple processes with ID \"")
-                                + process->getId()->getString() + "\"");
+                                string("Multiple leafs with ID \"")
+                                + leaf->getId()->getString() + "\"");
             }
         } catch (bad_alloc&) {
             THROW_EXCEPTION(OutOfMemoryException);
@@ -259,8 +259,8 @@ void GraphmlParser::parseXmlNodes(Element* xml, Processnetwork* model)
     }
 }
 
-void GraphmlParser::parseXmlEdges(Element* xml, Processnetwork* model,
-                                  map<Process::Port*, Process*>& copy_processes)
+void GraphmlParser::parseXmlEdges(Element* xml, Model* model,
+                                  map<Leaf::Interface*, Leaf*>& copy_leafs)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -273,198 +273,162 @@ void GraphmlParser::parseXmlEdges(Element* xml, Processnetwork* model,
     list<Element*> elements = getElementsByName(xml, "edge");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logDebugMessage(string("Analyzing line ")
-                                + tools::toString((*it)->Row()) + "...");
-        generateConnection(*it, model, copy_processes);
+        logger_.logMessage(Logger::DEBUG, string("Analyzing line "
+                                                 + tools::toString((*it)->Row())
+                                                 + "..."));
+        generateConnection(*it, model, copy_leafs);
     }
 }
 
-void GraphmlParser::fixProcessnetworkInputsOutputs(Processnetwork* model)
+void GraphmlParser::fixModelInputsOutputs(Model* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!model) {
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
     }
 
-    logger_.logInfoMessage("Running post-check fixes - removing InPort and "
-                            "OutPort processes from the model...");
+    Leaf* inport_leaf = NULL;
+    Leaf* outport_leaf = NULL;
 
-    list<Process*> inport_processes;
-    list<Process*> outport_processes;
-
-    // Get InPort and OutPort processes from the model
-    logger_.logDebugMessage("Searching for InPort and OutPort processes...");
-    list<Process*> processes = model->getProcesses();
-    list<Process*>::iterator process_it;
-    for (process_it = processes.begin(); process_it != processes.end();
-         ++process_it) {
-        Process* process = *process_it;
-
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + process->getId()->getString() + "\"...");
-
-        if (dynamic_cast<InPort*>(process)) {
-            logger_.logDebugMessage("Is an InPort");
-            inport_processes.push_back(process);
+    // Get InPort and OutPort leafs from the model
+    list<Leaf*> leafs = model->getLeafs();
+    list<Leaf*>::iterator leaf_it;
+    for (leaf_it = leafs.begin(); leaf_it != leafs.end();
+         ++leaf_it) {
+        Leaf* leaf = *leaf_it;
+        if (dynamic_cast<InPort*>(leaf)) {
+            inport_leaf = leaf;
         }
-        if (dynamic_cast<OutPort*>(process)) {
-            logger_.logDebugMessage("Is an OutPort");
-            outport_processes.push_back(process);
+        if (dynamic_cast<OutPort*>(leaf)) {
+            outport_leaf = leaf;
         }
     }
-    if (inport_processes.empty()) {
+    if (!inport_leaf) {
         THROW_EXCEPTION(IllegalStateException, "Failed to locate InPort "
-                        "processes");
+                        "leaf");
     }
-    if (outport_processes.empty()) {
+    if (!outport_leaf) {
         THROW_EXCEPTION(IllegalStateException, "Failed to locate OutPort "
-                        "processes");
+                        "leaf");
     }
 
-    // Redirect and remove the InPort processes
-    for (process_it = inport_processes.begin();
-         process_it != inport_processes.end();
-         ++process_it) {
-        Process* process = *process_it;
-
-        logger_.logDebugMessage(string("Redirecting out ports of InPort ")
-                                + "process \"" + process->getId()->getString()
-                                + " to model inputs...");
-        list<Process::Port*> ports = process->getOutPorts();
-        list<Process::Port*>::iterator port_it;
-        for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            model->addInput((*port_it)->getConnectedPort());
-        }
-
-        Id id = *process->getId();
-        if (!model->deleteProcess(id)) {
-            THROW_EXCEPTION(IllegalStateException,
-                            string("Failed to delete InPort process \"")
-                            + id.getString() + "\"");
-        }
+    // Set their in and out interfaces as outputs and inputs to the model
+    list<Leaf::Interface*> interfaces = inport_leaf->getOutPorts();
+    list<Leaf::Interface*>::iterator interface_it;
+    for (interface_it = interfaces.begin(); interface_it != interfaces.end(); ++interface_it) {
+        model->addInput((*interface_it)->getConnectedInterface());
+    }
+    interfaces = outport_leaf->getInPorts();
+    for (interface_it = interfaces.begin(); interface_it != interfaces.end(); ++interface_it) {
+        model->addOutput((*interface_it)->getConnectedInterface());
     }
 
-    // Redirect and remove the OutPort processes
-    for (process_it = outport_processes.begin();
-         process_it != outport_processes.end();
-         ++process_it) {
-        Process* process = *process_it;
-
-        logger_.logDebugMessage(string("Redirecting in ports of OutPort ")
-                                + "process \"" + process->getId()->getString()
-                                + " to model outputs...");
-        list<Process::Port*> ports = process->getInPorts();
-        list<Process::Port*>::iterator port_it;
-        for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
-            model->addOutput((*port_it)->getConnectedPort());
-        }
-
-        Id id = *process->getId();
-        if (!model->deleteProcess(id)) {
-            THROW_EXCEPTION(IllegalStateException,
-                            string("Failed to delete OutPort process \"")
-                            + id.getString() + "\"");
-        }
+    // Delete the leafs
+    if (!model->deleteLeaf(*inport_leaf->getId())) {
+        THROW_EXCEPTION(IllegalStateException, "Failed to delete InPort "
+                        "leaf");
     }
-
-    logger_.logInfoMessage("Post-check fixes complete");
+    if (!model->deleteLeaf(*outport_leaf->getId())) {
+        THROW_EXCEPTION(IllegalStateException, "Failed to delete OutPort "
+                        "leaf");
+    }
 }
 
-Process* GraphmlParser::generateProcess(Element* xml)
+Leaf* GraphmlParser::generateLeaf(Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Process* process;
+    Leaf* leaf;
 
-    // Create process of right type
-    string process_id = getId(xml);
-    string process_type = getProcessType(xml);
-    tools::toLowerCase(tools::trim(process_type));
-    if (process_type.length() == 0) {
-        THROW_EXCEPTION(ParseException, file_, xml->Row(), "No process type");
+    // Create leaf of right type
+    string leaf_id = getId(xml);
+    string leaf_type = getLeafType(xml);
+    tools::toLowerCase(tools::trim(leaf_type));
+    if (leaf_type.length() == 0) {
+        THROW_EXCEPTION(ParseException, file_, xml->Row(), "No leaf type");
     }
     try {
-        if (process_type == "inport") {
-            process = new InPort(Id(process_id));
+        if (leaf_type == "inport") {
+            leaf = new InPort(Id(leaf_id));
         }
-        else if (process_type == "outport") {
-            process = new OutPort(Id(process_id));
+        else if (leaf_type == "outport") {
+            leaf = new OutPort(Id(leaf_id));
         }
-        else if (process_type == "mapsy") {
-            process = new comb(Id(process_id), generateProcessFunction(xml));
+        else if (leaf_type == "mapsy") {
+            leaf = new Map(Id(leaf_id), generateLeafFunction(xml));
         }
-        else if (process_type == "parallelmapsy") {
-            process = new ParallelMap(Id(process_id), getNumProcesses(xml),
-                                        generateProcessFunction(xml));
+        else if (leaf_type == "parallelmapsy") {
+            leaf = new ParallelMap(Id(leaf_id), getNumLeafs(xml),
+                                        generateLeafFunction(xml));
         }
-        else if (process_type == "unzipxsy") {
-            process = new unzipx(Id(process_id));
+        else if (leaf_type == "unzipxsy") {
+            leaf = new unzipx(Id(leaf_id));
         }
-        else if (process_type == "zipxsy") {
-            process = new zipx(Id(process_id));
+        else if (leaf_type == "zipxsy") {
+            leaf = new zipx(Id(leaf_id));
         }
-        else if (process_type == "delaysy") {
-            process = new delay(Id(process_id), getInitialdelayValue(xml));
+        else if (leaf_type == "delaysy") {
+            leaf = new delay(Id(leaf_id), getInitialDelayValue(xml));
         }
-        else if (process_type == "zipwithnsy") {
-            process = new comb(Id(process_id),
-                                     generateProcessFunction(xml));
+        else if (leaf_type == "zipwithnsy") {
+            leaf = new ZipWithNSY(Id(leaf_id),
+                                     generateLeafFunction(xml));
         }
         else {
             THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                            string("Unknown process type \"")
-                            + process_type
+                            string("Unknown leaf type \"")
+                            + leaf_type
                             + "\"");
         }
     }
     catch (bad_alloc&) {
         THROW_EXCEPTION(OutOfMemoryException);
     }
-    if (!process) THROW_EXCEPTION(OutOfMemoryException);
-    logger_.logDebugMessage(string("Generated ") + process->type()
-                            + " from \"" + process->getId()->getString()
-                            + "\"");
+    if (!leaf) THROW_EXCEPTION(OutOfMemoryException);
+    logger_.logMessage(Logger::DEBUG, string("Generated ") + leaf->type()
+                       + " from \"" + leaf->getId()->getString() + "\"");
 
-    // Get ports
-    list<Element*> elements = getElementsByName(xml, "port");
+    // Get interfaces
+    list<Element*> elements = getElementsByName(xml, "interface");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logDebugMessage(string("Analyzing line ")
-                                + tools::toString((*it)->Row()) + "...");
-        Process::Port* port = generatePort(*it);
-        bool is_in_port = isInPort(port->getId()->getString());
-        bool is_out_port = isOutPort(port->getId()->getString());
-        if (!is_in_port && !is_out_port) {
+        logger_.logMessage(Logger::DEBUG,
+                           string("Analyzing line "
+                                  + tools::toString((*it)->Row()) + "..."));
+        Leaf::Interface* interface = generateInterface(*it);
+        bool is_in_interface = isInPort(interface->getId()->getString());
+        bool is_out_interface = isOutPort(interface->getId()->getString());
+        if (!is_in_interface && !is_out_interface) {
             THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
-                            (*it)->Column(), "Invalid port ID format");
+                            (*it)->Column(), "Invalid interface ID format");
         }
 
-        bool port_added;
-        if (is_in_port) port_added = process->addInPort(*port);
-        else            port_added = process->addOutPort(*port);
-        if (!port_added) {
+        bool interface_added;
+        if (is_in_interface) interface_added = leaf->addInPort(*interface);
+        else            interface_added = leaf->addOutPort(*interface);
+        if (!interface_added) {
             THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
                             (*it)->Column(), string("Multiple ")
-                            + (is_in_port ? "in ports" : "out ports")
+                            + (is_in_interface ? "in interfaces" : "out interfaces")
                             + " with the same ID \""
-                            + port->getId()->getString() + "\"");
+                            + interface->getId()->getString() + "\"");
         }
-        logger_.logDebugMessage(string()
-                                + (is_in_port ? "In" : "Out")
-                                + " port \"" + port->getId()->getString()
-                                + "\" added to process \""
-                                + process->getId()->getString() + "\"");
-        delete port;
+        logger_.logMessage(Logger::DEBUG, string()
+                           + (is_in_interface ? "In" : "Out")
+                           + " interface \"" + interface->getId()->getString()
+                           + "\" added to leaf \""
+                           + leaf->getId()->getString() + "\"");
+        delete interface;
     }
     
-    return process;
+    return leaf;
 }
 
 string GraphmlParser::getId(Element* xml)
-throw(InvalidArgumentException, ParseException, IOException,
-      RuntimeException) {
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
@@ -478,8 +442,8 @@ throw(InvalidArgumentException, ParseException, IOException,
 }
 
 string GraphmlParser::getName(Element* xml)
-throw(InvalidArgumentException, ParseException, IOException,
-      RuntimeException) {
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException) {
     string name = xml->GetAttribute("name");
     if (name.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
@@ -488,9 +452,9 @@ throw(InvalidArgumentException, ParseException, IOException,
     return tools::trim(name);
 }
 
-string GraphmlParser::getProcessType(Element* xml)
-throw(InvalidArgumentException, ParseException, IOException,
-      RuntimeException) {
+string GraphmlParser::getLeafType(Element* xml)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
@@ -498,22 +462,23 @@ throw(InvalidArgumentException, ParseException, IOException,
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logDebugMessage(string("Analyzing line ")
-                                + tools::toString((*it)->Row()) + "...");
+        logger_.logMessage(Logger::DEBUG,
+                           string("Analyzing line "
+                                  + tools::toString((*it)->Row()) + "..."));
         string attr_name = (*it)->GetAttribute("key");
-        if (attr_name == "process_type") {
+        if (attr_name == "leaf_type") {
             string type = (*it)->GetText(false);
             return tools::trim(type);
         }
     }
 
     // No such element found
-    THROW_EXCEPTION(ParseException, file_, xml->Row(), "No process type found");
+    THROW_EXCEPTION(ParseException, file_, xml->Row(), "No leaf type found");
 }
 
-CFunction GraphmlParser::generateProcessFunction(Element* xml)
-throw(InvalidArgumentException, ParseException, IOException,
-      RuntimeException) {
+CFunction GraphmlParser::generateLeafFunction(Element* xml)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
@@ -521,19 +486,20 @@ throw(InvalidArgumentException, ParseException, IOException,
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logDebugMessage(string("Analyzing line ")
-                                + tools::toString((*it)->Row()) + "...");
+        logger_.logMessage(Logger::DEBUG,
+                           string("Analyzing line "
+                                  + tools::toString((*it)->Row()) + "..."));
         string attr_name = (*it)->GetAttribute("key");
         if (attr_name == "procfun_arg") {
             string function_str = (*it)->GetText(false);
             try {
                 CFunction function(
-                    generateProcessFunctionFromString(function_str));
+                    generateLeafFunctionFromString(function_str));
                 findFunctionArraySizes(function, xml);
                 return function;
             } catch (InvalidFormatException& ex) {
                 THROW_EXCEPTION(ParseException, file_, (*it)->Row(),
-                                string("Invalid process function argument: ")
+                                string("Invalid leaf function argument: ")
                                 + ex.getMessage());
             }
         }
@@ -541,10 +507,10 @@ throw(InvalidArgumentException, ParseException, IOException,
 
     // No such element found
     THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                    "No process function argument found");
+                    "No leaf function argument found");
 }
 
-CFunction GraphmlParser::generateProcessFunctionFromString(
+CFunction GraphmlParser::generateLeafFunctionFromString(
     const std::string& str) throw(InvalidFormatException) {
     // Find function prototype and body
     size_t pos = str.find("{");
@@ -599,7 +565,7 @@ CFunction GraphmlParser::generateProcessFunctionFromString(
 }
 
 CDataType GraphmlParser::getDataTypeFromDeclaration(const string& str) const
-throw(InvalidFormatException) {
+    throw(InvalidFormatException) {
     size_t pos = str.find_last_of(" ");
     if (pos == string::npos) {
         THROW_EXCEPTION(InvalidFormatException, "No ' ' "
@@ -624,7 +590,7 @@ throw(InvalidFormatException) {
     }
 
     if (data_type_str.find("&") != string::npos) {
-        THROW_EXCEPTION(InvalidFormatException, "References are not supported");
+        THROW_EXCEPTION(InvalidFormatException, "References are not supinterfaceed");
     }
 
     if (data_type_str.length() == 0) {
@@ -639,7 +605,7 @@ throw(InvalidFormatException) {
     tools::trim(data_type_str);
     if (data_type_str.find("*") != string::npos) {
         THROW_EXCEPTION(InvalidFormatException, "Pointer-to-pointer data types "
-                        "are not supported");
+                        "are not supinterfaceed");
     }
 
     if (data_type_str.length() == 0) {
@@ -656,7 +622,7 @@ throw(InvalidFormatException) {
 }
 
 string GraphmlParser::getNameFromDeclaration(const string& str) const
-throw(InvalidFormatException) {
+    throw(InvalidFormatException) {
     size_t pos = str.find_last_of(" ");
     if (pos == string::npos) {
         THROW_EXCEPTION(InvalidFormatException, "No ' ' "
@@ -667,7 +633,7 @@ throw(InvalidFormatException) {
     return name;
 }
 
-int GraphmlParser::getNumProcesses(ticpp::Element* xml)
+int GraphmlParser::getNumLeafs(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -677,10 +643,11 @@ int GraphmlParser::getNumProcesses(ticpp::Element* xml)
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logDebugMessage(string("Analyzing line ")
-                                + tools::toString((*it)->Row()) + "...");
+        logger_.logMessage(Logger::DEBUG,
+                           string("Analyzing line "
+                                  + tools::toString((*it)->Row()) + "..."));
         string attr_name = (*it)->GetAttribute("key");
-        if (attr_name == "num_processes") {
+        if (attr_name == "num_leafs") {
             string str = (*it)->GetText(false);
             tools::trim(str);
             try {
@@ -694,7 +661,7 @@ int GraphmlParser::getNumProcesses(ticpp::Element* xml)
     }
 
     // No such element found
-    THROW_EXCEPTION(ParseException, file_, xml->Row(), "Number of processes "
+    THROW_EXCEPTION(ParseException, file_, xml->Row(), "Number of leafs "
                     "not found");
 }
 
@@ -706,22 +673,22 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "port");
+    list<Element*> elements = getElementsByName(xml, "interface");
 
     // If return data type or last input parameter is an array, find the array
-    // size by analyzing the out port XML elements
+    // size by analyzing the out interface XML elements
     CDataType* output_data_type = NULL;
     if (function.getReturnDataType()->isArray()) {
         output_data_type = function.getReturnDataType();
 
-        logger_.logDebugMessage("Searching array size for return "
-                                "data type...");
+        logger_.logMessage(Logger::DEBUG, "Searching array size for return "
+                           "data type...");
     } else if (function.getNumInputParameters() > 1) {
         output_data_type = function.getInputParameters().back()->getDataType();
         // Reset to NULL if the parameter is not what we are looking for
         if (output_data_type->isArray()) {
-            logger_.logDebugMessage("Searching array size for second "
-                                    "input parameter data type...");
+            logger_.logMessage(Logger::DEBUG, "Searching array size for second "
+                               "input parameter data type...");
         }
         else {
             output_data_type = NULL;
@@ -730,14 +697,16 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
     if (output_data_type) {
         list<Element*>::iterator it;
         for (it = elements.begin(); it != elements.end(); ++it) {
-            logger_.logDebugMessage(string("Analyzing line ")
-                                    + tools::toString((*it)->Row()) + "...");
-            string port_name = getName(*it);
-            if (isOutPort(port_name)) {
+            logger_.logMessage(Logger::DEBUG,
+                               string("Analyzing line "
+                                      + tools::toString((*it)->Row()) + "..."));
+            string interface_name = getName(*it);
+            if (isOutPort(interface_name)) {
                 size_t array_size = findArraySize(*it);
                 if (array_size > 0) {
-                    logger_.logDebugMessage(string("Found array size ")
-                                            + tools::toString(array_size));
+                    logger_.logMessage(Logger::DEBUG,
+                                       string("Found array size ")
+                                       + tools::toString(array_size));
                     output_data_type->setArraySize(array_size);
                 }
                 break;
@@ -746,27 +715,29 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
     }
 
     // Find array sizes for the input parameters which are arrays by analyzing
-    // the in port XML elements
+    // the in interface XML elements
     list<CVariable*> parameters = function.getInputParameters();
     list<CVariable*>::iterator param_it = parameters.begin();
-    list<CVariable*>::iterator param_sprocessnetwork_point;
+    list<CVariable*>::iterator param_stop_point;
     list<Element*>::iterator xml_it = elements.begin();
     if (function.getNumInputParameters() > 1) {
-        param_sprocessnetwork_point = --parameters.end();
+        param_stop_point = --parameters.end();
     }
     else {
-        param_sprocessnetwork_point = parameters.end();
+        param_stop_point = parameters.end();
     }
-    while (param_it != param_sprocessnetwork_point && xml_it != elements.end()) {
+    while (param_it != param_stop_point && xml_it != elements.end()) {
         if (param_it == parameters.begin()) {
-            logger_.logDebugMessage("Searching array size for "
-                                    "input parameter data type...");
+            logger_.logMessage(Logger::DEBUG, "Searching array size for "
+                               "input parameter data type...");
         }
-        logger_.logDebugMessage(string("Analyzing line ")
-                                + tools::toString((*xml_it)->Row()) + "...");
+        logger_.logMessage(Logger::DEBUG,
+                           string("Analyzing line "
+                                  + tools::toString((*xml_it)->Row())
+                                  + "..."));
 
         if (!isInPort(getName(*xml_it))) {
-            logger_.logDebugMessage("Not an in port, moving to next");
+            logger_.logMessage(Logger::DEBUG, "Not an in interface, moving to next");
             ++xml_it;
             continue;
         }
@@ -774,12 +745,13 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
         if ((*param_it)->getDataType()->isArray()) {
             size_t array_size = findArraySize(*xml_it);
             if (array_size > 0) {
-                logger_.logDebugMessage(string("Found array size ")
-                                        + tools::toString(array_size));
+                logger_.logMessage(Logger::DEBUG,
+                                   string("Found array size ")
+                                   + tools::toString(array_size));
                 (*param_it)->getDataType()->setArraySize(array_size);
             }
             else {
-                logger_.logDebugMessage("No array size key");
+                logger_.logMessage(Logger::DEBUG, "No array size key");
             }
         }
         ++param_it;
@@ -797,8 +769,9 @@ size_t GraphmlParser::findArraySize(ticpp::Element* xml)
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logDebugMessage(string("Analyzing line ")
-                                + tools::toString((*it)->Row()) + "...");
+        logger_.logMessage(Logger::DEBUG,
+                           string("Analyzing line "
+                                  + tools::toString((*it)->Row()) + "..."));
         string attr_name = (*it)->GetAttribute("key");
         if (attr_name == "array_size") {
             string array_size_str = (*it)->GetText(false);
@@ -819,9 +792,9 @@ size_t GraphmlParser::findArraySize(ticpp::Element* xml)
     return 0;
 }
 
-string GraphmlParser::getInitialdelayValue(Element* xml)
-throw(InvalidArgumentException, ParseException, IOException,
-      RuntimeException) {
+string GraphmlParser::getInitialDelayValue(Element* xml)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
@@ -829,8 +802,9 @@ throw(InvalidArgumentException, ParseException, IOException,
     list<Element*> elements = getElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
-        logger_.logDebugMessage(string("Analyzing line ")
-                                + tools::toString((*it)->Row()) + "...");
+        logger_.logMessage(Logger::DEBUG,
+                           string("Analyzing line "
+                                  + tools::toString((*it)->Row()) + "..."));
         string attr_name = (*it)->GetAttribute("key");
         if (attr_name == "initial_value") {
             string value = (*it)->GetText(false);
@@ -848,29 +822,30 @@ throw(InvalidArgumentException, ParseException, IOException,
                     "No initial delay value found");
 }
 
-Process::Port* GraphmlParser::generatePort(Element* xml)
+Leaf::Interface* GraphmlParser::generateInterface(Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    Process::Port* port = new (std::nothrow) Process::Port(getName(xml));
-    if (!port) THROW_EXCEPTION(OutOfMemoryException);
-    logger_.logDebugMessage(string("Generated port \"")
-                            + port->getId()->getString() + "\"");
-    return port;
+    Leaf::Interface* interface = new (std::nothrow) Leaf::Interface(getName(xml));
+    if (!interface) THROW_EXCEPTION(OutOfMemoryException);
+    logger_.logMessage(Logger::DEBUG,
+                       string("Generated interface \"") + interface->getId()->getString()
+                       + "\"");
+    return interface;
 }
 
 bool GraphmlParser::isInPort(const std::string& id) const throw() {
-    return isValidPortId(id, "in");
+    return isValidInterfaceId(id, "in");
 }
 
 bool GraphmlParser::isOutPort(const std::string& id) const throw() {
-    return isValidPortId(id, "out");
+    return isValidInterfaceId(id, "out");
 }
 
-bool GraphmlParser::isValidPortId(const std::string& id,
+bool GraphmlParser::isValidInterfaceId(const std::string& id,
                                   const std::string direction) const throw() {
     try {
         size_t separator_pos = id.find_last_of("_");
@@ -901,9 +876,9 @@ bool GraphmlParser::isValidPortId(const std::string& id,
     return false;
 }
 
-void GraphmlParser::generateConnection(Element* xml, Processnetwork* model,
-                                       map<Process::Port*, Process*>&
-                                       copy_processes)
+void GraphmlParser::generateConnection(Element* xml, Model* model,
+                                       map<Leaf::Interface*, Leaf*>&
+                                       copy_leafs)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -913,201 +888,212 @@ void GraphmlParser::generateConnection(Element* xml, Processnetwork* model,
         THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
     }
 
-    // Get source process ID
-    string source_process_id = xml->GetAttribute("source");
-    if (source_process_id.length() == 0) {
+    // Get source leaf ID
+    string source_leaf_id = xml->GetAttribute("source");
+    if (source_leaf_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"source\" attribute");
     }
 
-    // Get source process port ID
-    string source_process_port_id = xml->GetAttribute("sourceport");
-    if (source_process_port_id.length() == 0) {
+    // Get source leaf interface ID
+    string source_leaf_interface_id = xml->GetAttribute("sourceinterface");
+    if (source_leaf_interface_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        "\"edge\" element is missing \"sourceport\" attribute");
+                        "\"edge\" element is missing \"sourceinterface\" attribute");
     }
 
-    // Get target process ID
-    string target_process_id = xml->GetAttribute("target");
-    if (target_process_id.length() == 0) {
+    // Get target leaf ID
+    string target_leaf_id = xml->GetAttribute("target");
+    if (target_leaf_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
                         "\"edge\" element is missing \"target\" attribute");
     }
 
-    // Get target process port ID
-    string target_process_port_id = xml->GetAttribute("targetport");
-    if (target_process_port_id.length() == 0) {
+    // Get target leaf interface ID
+    string target_leaf_interface_id = xml->GetAttribute("targetinterface");
+    if (target_leaf_interface_id.length() == 0) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        "\"edge\" element is missing \"targetport\" attribute");
+                        "\"edge\" element is missing \"targetinterface\" attribute");
     }
 
-    // Get source and target processes
-    Process* source_process = model->getProcess(source_process_id);
-    if (source_process == NULL) {
+    // Get source and target leafs
+    Leaf* source_leaf = model->getLeaf(source_leaf_id);
+    if (source_leaf == NULL) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        string("No source process \"")
-                        + source_process_id + "\" found");
+                        string("No source leaf \"")
+                        + source_leaf_id + "\" found");
     }
-    Process* target_process = model->getProcess(target_process_id);
-    if (target_process == NULL) {
+    Leaf* target_leaf = model->getLeaf(target_leaf_id);
+    if (target_leaf == NULL) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        string("No target process \"")
-                        + target_process_id + "\" found");
-    }
-
-    // Get source and target ports
-    Process::Port* source_port =
-        source_process->getOutPort(source_process_port_id);
-    if (!source_port) {
-        THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        string("No source process out port \"")
-                        + source_process_id + ":"
-                        + source_process_port_id + "\" ");
-    }
-    Process::Port* target_port =
-        target_process->getInPort(target_process_port_id);
-    if (!target_port) {
-        THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        string("No target process in port \"")
-                        + target_process_id + ":"
-                        + target_process_port_id + "\" found");
+                        string("No target leaf \"")
+                        + target_leaf_id + "\" found");
     }
 
-    // Check that the target port is not already connected to another port
-    if (target_port->isConnected()) {
+    // Get source and target interfaces
+    Leaf::Interface* source_interface =
+        source_leaf->getOutPort(source_leaf_interface_id);
+    if (!source_interface) {
         THROW_EXCEPTION(ParseException, file_, xml->Row(),
-                        string("Target port \"")
-                        + target_process_id + ":"
-                        + target_process_port_id
-                        + "\" is already connected to another port");
+                        string("No source leaf out interface \"")
+                        + source_leaf_id + ":"
+                        + source_leaf_interface_id + "\" ");
+    }
+    Leaf::Interface* target_interface =
+        target_leaf->getInPort(target_leaf_interface_id);
+    if (!target_interface) {
+        THROW_EXCEPTION(ParseException, file_, xml->Row(),
+                        string("No target leaf in interface \"")
+                        + target_leaf_id + ":"
+                        + target_leaf_interface_id + "\" found");
     }
 
-    // Make port connections
-    if (!source_port->isConnected()) {
-        source_port->connect(target_port);
-        logger_.logDebugMessage(string("Connected port \"")
-                                + source_port->toString() + "\" with \""
-                                + target_port->toString() + "\"");
+    // Check that the target interface is not already connected to another interface
+    if (target_interface->isConnected()) {
+        THROW_EXCEPTION(ParseException, file_, xml->Row(),
+                        string("Target interface \"")
+                        + target_leaf_id + ":"
+                        + target_leaf_interface_id
+                        + "\" is already connected to another interface");
+    }
+
+    // Make interface connections
+    if (!source_interface->isConnected()) {
+        source_interface->connect(target_interface);
+        logger_.logMessage(Logger::DEBUG,
+                           string("Connected interface \"")
+                           + source_interface->toString() + "\" with \""
+                           + target_interface->toString() + "\"");
     }
     else {
-        // Source port already connected; use intermediate fanout process
-        logger_.logDebugMessage(string("Source port \"")
-                                + source_port->toString()
-                                + "\" already connected to \""
-                                + source_port->getConnectedPort()->toString()
-                                + "\". Using intermediate fanout process.");
+        // Source interface already connected; use intermediate fanout leaf
+        logger_.logMessage(Logger::DEBUG,
+                           string("Source interface \"")
+                           + source_interface->toString() + "\" already connected "
+                           + "to \""
+                           + source_interface->getConnectedInterface()->toString()
+                           + "\". Using intermediate fanout leaf.");
 
-        // Get fanout process
-        Process* copy_process;
-        map<Process::Port*, Process*>::iterator it =
-            copy_processes.find(source_port);
-        if (it != copy_processes.end()) {
-            copy_process = it->second;
+        // Get fanout leaf
+        Leaf* copy_leaf;
+        map<Leaf::Interface*, Leaf*>::iterator it =
+            copy_leafs.find(source_interface);
+        if (it != copy_leafs.end()) {
+            copy_leaf = it->second;
         }
         else {
-            // No such fanout process; create a new one
-            copy_process = new (std::nothrow)
-                fanout(model->getUniqueProcessId("_copy_"));
-            if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
-            copy_processes.insert(pair<Process::Port*, Process*>(source_port,
-                                                                 copy_process));
-            logger_.logDebugMessage(string("New fanout process \"")
-                                    + copy_process->getId()->getString()
-                                    + "\" created");
+            // No such fanout leaf; create a new one
+            copy_leaf = new (std::nothrow)
+                fanout(model->getUniqueLeafId("_copySY_"));
+            if (copy_leaf == NULL) THROW_EXCEPTION(OutOfMemoryException);
+            copy_leafs.insert(pair<Leaf::Interface*, Leaf*>(source_interface,
+                                                                 copy_leaf));
+            logger_.logMessage(Logger::DEBUG, string("New fanout leaf \"")
+                               + copy_leaf->getId()->getString()
+                               + "\" created");
 
             // Add to model
-            if (!model->addProcess(copy_process)) {
+            if (!model->addLeaf(copy_leaf)) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to ")
-                                + "add new process: Process with ID \""
-                                + copy_process->getId()->getString()
+                                + "add new leaf: Leaf with ID \""
+                                + copy_leaf->getId()->getString()
                                 + "\" already existed");
             }
-            logger_.logDebugMessage(string("New process \"")
-                                    + copy_process->getId()->getString()
-                                    + "\" added to the model");
+            logger_.logMessage(Logger::DEBUG, string("New leaf \"")
+                               + copy_leaf->getId()->getString()
+                               + "\" added to the model");
 
             // Break the current connection and connect the source and previous
-            // target connection through the fanout process
-            if(!copy_process->addInPort(Id("in"))) {
+            // target connection through the fanout leaf
+            if(!copy_leaf->addInPort(Id("in"))) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
-                                + "in port to process \""
-                                + copy_process->getId()->getString() + "\"");
+                                + "in interface to leaf \""
+                                + copy_leaf->getId()->getString() + "\"");
             }
-            Process::Port* old_target_port = source_port->getConnectedPort();
-            source_port->unconnect();
-            logger_.logDebugMessage( string("Broke port connection \"")
-                                     + source_port->toString() + "\"--\""
-                                     + old_target_port->toString() + "\"");
-            source_port->connect(copy_process->getInPorts().front());
-            logger_.logDebugMessage(string("Connected port \"")
-                                    + source_port->toString()
-                                    + "\" with \""
-                                    + copy_process->getInPorts().front()
-                                    ->toString() + "\"");
-            if(!copy_process->addOutPort(Id("out1"))) {
+            Leaf::Interface* old_target_interface = source_interface->getConnectedInterface();
+            source_interface->unconnect();
+            logger_.logMessage(Logger::DEBUG,
+                               string("Broke interface connection \"")
+                               + source_interface->toString() + "\"--\""
+                               + old_target_interface->toString() + "\"");
+            source_interface->connect(copy_leaf->getInPorts().front());
+            logger_.logMessage(Logger::DEBUG,
+                               string("Connected interface \"")
+                               + source_interface->toString()
+                               + "\" with \""
+                               + copy_leaf->getInPorts().front()->toString()
+                               + "\"");
+            if(!copy_leaf->addOutPort(Id("out1"))) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
-                                + "out port to process \""
-                                + copy_process->getId()->getString() + "\"");
+                                + "out interface to leaf \""
+                                + copy_leaf->getId()->getString() + "\"");
             }
-            old_target_port->connect(copy_process->getOutPorts().front());
-            logger_.logDebugMessage(string("Connected port \"")
-                                    + copy_process->getOutPorts().front()
-                                    ->toString()
-                                    + "\" with \""
-                                    + old_target_port->toString() + "\"");
+            old_target_interface->connect(copy_leaf->getOutPorts().front());
+            logger_.logMessage(Logger::DEBUG,
+                               string("Connected interface \"")
+                               + copy_leaf->getOutPorts().front()->toString()
+                               + "\" with \""
+                               + old_target_interface->toString() + "\"");
         }
 
-        string new_out_port_id = string("out")
-            + tools::toString(copy_process->getOutPorts().size() + 1);
-        if(!copy_process->addOutPort(new_out_port_id)) {
+        string new_out_interface_id = string("out")
+            + tools::toString(copy_leaf->getOutPorts().size() + 1);
+        if(!copy_leaf->addOutPort(new_out_interface_id)) {
             THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
-                            + "out port to process \""
-                            + copy_process->getId()->getString() + "\"");
+                            + "out interface to leaf \""
+                            + copy_leaf->getId()->getString() + "\"");
         }
-        target_port->connect(copy_process->getOutPorts().back());
+        target_interface->connect(copy_leaf->getOutPorts().back());
 
-        logger_.logDebugMessage(string("Connected port \"")
-                                + copy_process->getOutPorts().back()->toString()
-                                + "\" with \""
-                                + target_port->toString() + "\"");
+        logger_.logMessage(Logger::DEBUG,
+                           string("Connected interface \"")
+                           + copy_leaf->getOutPorts().back()->toString()
+                           + "\" with \""
+                           + target_interface->toString() + "\"");
     }
 }
 
-void GraphmlParser::checkProcessnetworkMore(Processnetwork* model)
+void GraphmlParser::checkModelMore(Model* model)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
-    logger_.logInfoMessage("Checking that the model contains at least one "
-                            "InPort and OutPort process...");
-
-    bool found_in_port_process = false;
-    bool found_out_port_process = false;
-    list<Process*> processes = model->getProcesses();
-    list<Process*>::iterator process_it;
-    for (process_it = processes.begin(); process_it != processes.end();
-         ++process_it) {
-        Process* process = *process_it;
-        logger_.logDebugMessage(string("Checking process \"")
-                                + process->getId()->getString() + "\"");
+    bool found_in_interface_leaf = false;
+    bool found_out_interface_leaf = false;
+    list<Leaf*> leafs = model->getLeafs();
+    list<Leaf*>::iterator leaf_it;
+    for (leaf_it = leafs.begin(); leaf_it != leafs.end();
+         ++leaf_it) {
+        Leaf* leaf = *leaf_it;
+        logger_.logMessage(Logger::DEBUG,
+                           string("Checking leaf \"")
+                           + leaf->getId()->getString() + "\"");
 
         // In- and OutPort presence check
-        if (dynamic_cast<InPort*>(process)) {
-            logger_.logDebugMessage("InPort found");
-            found_in_port_process = true;
+        if (dynamic_cast<InPort*>(leaf)) {
+            if (!found_in_interface_leaf) {
+                found_in_interface_leaf = true;
+            }
+            else {
+                THROW_EXCEPTION(InvalidModelException,
+                                "Only one \"InPort\" leaf is allowed");
+            }
         }
-        if (dynamic_cast<OutPort*>(process)) {
-            logger_.logDebugMessage("OutPort found");
-            found_out_port_process = true;
+        if (dynamic_cast<OutPort*>(leaf)) {
+            if (!found_out_interface_leaf) {
+                found_out_interface_leaf = true;
+            }
+            else {
+                THROW_EXCEPTION(InvalidModelException,
+                                "Only one \"OutPort\" leaf is allowed");
+            }
         }
     }
-    if (!found_in_port_process) {
-        THROW_EXCEPTION(InvalidModelException, "No InPort process found");
-    }
-    if (!found_out_port_process) {
-        THROW_EXCEPTION(InvalidModelException, "No OutPort process found");
+    if (!found_out_interface_leaf) {
+        THROW_EXCEPTION(InvalidModelException,
+                        "No \"OutPort\" leaf found");
     }
 }
 
-void GraphmlParser::postCheckFixes(ForSyDe::Processnetwork* model)
+void GraphmlParser::postCheckFixes(ForSyDe::Model* model)
     throw(InvalidArgumentException, IOException, RuntimeException) {
-    fixProcessnetworkInputsOutputs(model);
+    fixModelInputsOutputs(model);
 }

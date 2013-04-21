@@ -36,24 +36,24 @@ using std::list;
 using std::pair;
 using std::bad_alloc;
 
-Processnetwork::Processnetwork() throw() {}
+ProcessNetwork::ProcessNetwork() throw() {}
 
-Processnetwork::~Processnetwork() throw() {
-    destroyAllProcesses();
+ProcessNetwork::~ProcessNetwork() throw() {
+    destroyAllLeafs();
 }
 
-bool Processnetwork::addInput(Process::Port* port)
+bool ProcessNetwork::addInput(Leaf::Interface* interface)
     throw(InvalidArgumentException, IllegalStateException,
           OutOfMemoryException) {
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
+    if (!interface) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"interface\" must not be NULL");
     }
 
-    if (!port) return false;
-    if (findPort(port, inputs_) != inputs_.end()) return false;
+    if (!interface) return false;
+    if (findInterface(interface, inputs_) != inputs_.end()) return false;
 
     try {
-        inputs_.push_back(port);
+        inputs_.push_back(interface);
         return true;
     }
     catch (bad_alloc& ex) {
@@ -61,10 +61,10 @@ bool Processnetwork::addInput(Process::Port* port)
     }
 }
 
-bool Processnetwork::deleteInput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, inputs_);
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
+bool ProcessNetwork::deleteInput(Leaf::Interface* interface) throw(InvalidArgumentException) {
+    list<Leaf::Interface*>::iterator it = findInterface(interface, inputs_);
+    if (!interface) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"interface\" must not be NULL");
     }
 
     if (it != inputs_.end()) {
@@ -76,26 +76,26 @@ bool Processnetwork::deleteInput(Process::Port* port) throw(InvalidArgumentExcep
     }
 }
 
-int Processnetwork::getNumInputs() const throw() {
+int ProcessNetwork::getNumInputs() const throw() {
     return inputs_.size();
 }
 
-std::list<Process::Port*> Processnetwork::getInputs() throw() {
+std::list<Leaf::Interface*> ProcessNetwork::getInputs() throw() {
     return inputs_;
 }
 
-bool Processnetwork::addOutput(Process::Port* port)
+bool ProcessNetwork::addOutput(Leaf::Interface* interface)
     throw(InvalidArgumentException, IllegalStateException,
           OutOfMemoryException) {
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
+    if (!interface) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"interface\" must not be NULL");
     }
 
-    if (!port) return false;
-    if (findPort(port, outputs_) != outputs_.end()) return false;
+    if (!interface) return false;
+    if (findInterface(interface, outputs_) != outputs_.end()) return false;
 
     try {
-        outputs_.push_back(port);
+        outputs_.push_back(interface);
         return true;
     }
     catch (bad_alloc& ex) {
@@ -103,10 +103,10 @@ bool Processnetwork::addOutput(Process::Port* port)
     }
 }
 
-bool Processnetwork::deleteOutput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, outputs_);
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
+bool ProcessNetwork::deleteOutput(Leaf::Interface* interface) throw(InvalidArgumentException) {
+    list<Leaf::Interface*>::iterator it = findInterface(interface, outputs_);
+    if (!interface) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"interface\" must not be NULL");
     }
 
     if (it != outputs_.end()) {
@@ -118,68 +118,68 @@ bool Processnetwork::deleteOutput(Process::Port* port) throw(InvalidArgumentExce
     }
 }
 
-int Processnetwork::getNumOutputs() const throw() {
+int ProcessNetwork::getNumOutputs() const throw() {
     return outputs_.size();
 }
 
-std::list<Process::Port*> Processnetwork::getOutputs() throw() {
+std::list<Leaf::Interface*> ProcessNetwork::getOutputs() throw() {
     return outputs_;
 }
 
-list<Process::Port*>::iterator Processnetwork::findPort(
-    const Id& id, list<Process::Port*>& ports) const throw() {
-    list<Process::Port*>::iterator it;
-    for (it = ports.begin(); it != ports.end(); ++it) {
+list<Leaf::Interface*>::iterator ProcessNetwork::findInterface(
+    const Id& id, list<Leaf::Interface*>& interfaces) const throw() {
+    list<Leaf::Interface*>::iterator it;
+    for (it = interfaces.begin(); it != interfaces.end(); ++it) {
         if (*(*it)->getId() == id) {
             return it;
         }
     }
 
-    // No such port was found
+    // No such interface was found
     return it;
 }
 
-list<Process::Port*>::iterator Processnetwork::findPort(
-    Process::Port* port, std::list<Process::Port*>& ports) const throw() {
-    list<Process::Port*>::iterator it;
-    for (it = ports.begin(); it != ports.end(); ++it) {
-        if (*it == port) {
+list<Leaf::Interface*>::iterator ProcessNetwork::findInterface(
+    Leaf::Interface* interface, std::list<Leaf::Interface*>& interfaces) const throw() {
+    list<Leaf::Interface*>::iterator it;
+    for (it = interfaces.begin(); it != interfaces.end(); ++it) {
+        if (*it == interface) {
             return it;
         }
     }
 
-    // No such port was found
+    // No such interface was found
     return it;
 }
 
-std::string Processnetwork::toString() const throw() {
+std::string ProcessNetwork::toString() const throw() {
     string str;
     str += "{\n";
-    str += " Processnetwork Module\n";
+    str += " ProcessNetwork Module\n";
     str += " NumInputs: ";
     str += tools::toString(getNumInputs());
     str += ",\n";
     str += " Inputs = {";
-    str += portsToString(inputs_);
+    str += interfacesToString(inputs_);
     str += "}";
     str += ",\n";
     str += " NumOutputs: ";
     str += tools::toString(getNumOutputs());
     str += ",\n";
     str += " Outputs = {";
-    str += portsToString(outputs_);
+    str += interfacesToString(outputs_);
     str += "}\n";
     str += "}";
     return str;
 }
 
-string Processnetwork::portsToString(const list<Process::Port*> ports) const throw() {
+string ProcessNetwork::interfacesToString(const list<Leaf::Interface*> interfaces) const throw() {
     string str;
-    if (ports.size() > 0) {
+    if (interfaces.size() > 0) {
         str += "\n";
         bool first = true;
-        for (list<Process::Port*>::const_iterator it = ports.begin();
-             it != ports.end(); ++it) {
+        for (list<Leaf::Interface*>::const_iterator it = interfaces.begin();
+             it != interfaces.end(); ++it) {
             if (!first) {
                 str += ",\n";
             }
@@ -187,12 +187,12 @@ string Processnetwork::portsToString(const list<Process::Port*> ports) const thr
                 first = false;
             }
 
-            Process::Port* port = *it;
+            Leaf::Interface* interface = *it;
             str += "  ID: ";
-            str += port->getId()->getString();
+            str += interface->getId()->getString();
             str += ", ";
             str += "belonging to ";
-            str += port->getProcess()->getId()->getString();
+            str += interface->getLeaf()->getId()->getString();
         }
         str += "\n ";
     }

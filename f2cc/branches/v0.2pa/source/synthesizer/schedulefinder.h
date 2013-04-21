@@ -23,8 +23,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_NTHESIZER_SCHEDULEFINDER_H_
-#define F2CC_SOURCE_NTHESIZER_SCHEDULEFINDER_H_
+#ifndef F2CC_SOURCE_SYNTHESIZER_SCHEDULEFINDER_H_
+#define F2CC_SOURCE_SYNTHESIZER_SCHEDULEFINDER_H_
 
 /**
  * @file
@@ -36,8 +36,8 @@
 
 #include "../logger/logger.h"
 #include "../forsyde/id.h"
-#include "../forsyde/processnetwork.h"
-#include "../forsyde/process.h"
+#include "../forsyde/model.h"
+#include "../forsyde/leaf.h"
 #include "../exceptions/ioexception.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/runtimeexception.h"
@@ -52,36 +52,36 @@
 namespace f2cc {
 
 /**
- * @brief A class for finding a process schedule for a given \c ForSyDe::Processnetwork
+ * @brief A class for finding a leaf schedule for a given \c ForSyDe::Model
  *        instance.
  *
- * The \c ScheduleFinder class implements an algorithm for finding a process
- * schedule for a given instance of a \c ForSyDe::Processnetwork.
+ * The \c ScheduleFinder class implements an algorithm for finding a leaf
+ * schedule for a given instance of a \c ForSyDe::Model.
  *
- * The algorithm is a recursive DFS algorithm which traverses over the processes
+ * The algorithm is a recursive DFS algorithm which traverses over the leafs
  * in the model. It starts by building a \em starting \em point \em queue,
- * containing all processes connected directly to the model outputs. It then
- * pops a process from the head of the queue, and creates a \em partial \em
- * process \em schedule. The partial process schedule is created by recursively
- * traversing upwards along the data flow, moving via the in ports (\c
- * ForSyDe::Process::Port) of a \c ForSyDe::Process. When no more traversing can
- * be done, it rewinds the stack, and adds the current process to the
- * schedule. If a process has more than one in port, then a partial schedule is
- * generated for each, concatenated together, and then the current process is
- * appended to the end of the partial process schedule. Throughout the
- * traversing, a set of already-visited processes is maintained. If an
- * already-visited process is reached, then an empty schedule is returned and
+ * containing all leafs connected directly to the model outputs. It then
+ * pops a leaf from the head of the queue, and creates a \em partial \em
+ * leaf \em schedule. The partial leaf schedule is created by recursively
+ * traversing upwards along the data flow, moving via the in interfaces (\c
+ * ForSyDe::Leaf::Interface) of a \c ForSyDe::Leaf. When no more traversing can
+ * be done, it rewinds the stack, and adds the current leaf to the
+ * schedule. If a leaf has more than one in interface, then a partial schedule is
+ * generated for each, concatenated together, and then the current leaf is
+ * appended to the end of the partial leaf schedule. Throughout the
+ * traversing, a set of already-visited leafs is maintained. If an
+ * already-visited leaf is reached, then an empty schedule is returned and
  * the function stack starts to rewind.
  *
  * This works very well as long as the model contains no loops. However, if it
  * does, then more needs to be done to get a correct schedule. First, the
- * visited process set is split into a \em global and a \em local set. Whenever
- * a process is popped from the starting point queue, the local set is reset,
- * and once the partial search has finished for that starting point process, the
+ * visited leaf set is split into a \em global and a \em local set. Whenever
+ * a leaf is popped from the starting point queue, the local set is reset,
+ * and once the partial search has finished for that starting point leaf, the
  * local set is added to the global set. In addition to halting the search
  * whenever no more traversing can be done (i.e. when reaching a model input)
- * and when a process has already been visited, the search also halts whenever a
- * delay element is hit. In such instances, the preceding process (if any) is
+ * and when a leaf has already been visited, the search also halts whenever a
+ * delay element is hit. In such instances, the preceding leaf (if any) is
  * added to the starting point queue, the delay element is added to the partial
  * element, and the function stack then rewinds.
  *
@@ -89,7 +89,7 @@ namespace f2cc {
  * into the final schedule. If the partial search was halted due to hitting a
  * model input, then the partial schedule is inserted at the beginning of the
  * schedule. If the partial search was halted due to hitting a globally-visited
- * process \em P, then the partial schedule is inserted after the process \em P
+ * leaf \em P, then the partial schedule is inserted after the leaf \em P
  * in the schedule.
  */
 class ScheduleFinder {
@@ -107,7 +107,7 @@ class ScheduleFinder {
      * @throws InvalidArgumentException
      *         When \c model is \c NULL.
      */
-    ScheduleFinder(ForSyDe::Processnetwork* model, Logger& logger)
+    ScheduleFinder(ForSyDe::Model* model, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
@@ -116,14 +116,14 @@ class ScheduleFinder {
     ~ScheduleFinder() throw();
 
     /**
-     * Finds a process schedule for the model. The schedule is such that if the
-     * processes are executed one by one the result will be the same as if the
+     * Finds a leaf schedule for the model. The schedule is such that if the
+     * leafs are executed one by one the result will be the same as if the
      * perfect synchrony hypothesis still applied.
      *
      * See detailed class description for information on how the algorithm
      * works.
      *
-     * @returns Process schedule.
+     * @returns Leaf schedule.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -132,53 +132,53 @@ class ScheduleFinder {
     std::list<ForSyDe::Id> findSchedule() throw(IOException, RuntimeException);
 
     /**
-     * Finds a partial schedule for unvisited processes when traversing from a
-     * given process to an input port of the model.
+     * Finds a partial schedule for unvisited leafs when traversing from a
+     * given leaf to an input interface of the model.
      *
      * See detailed class description for information on how the algorithm
      * works.
      *
      * @param start
-     *        Process to start from.
+     *        Leaf to start from.
      * @param locally_visited
-     *        Set of already locally visited processes.
-     * @returns Partial process schedule.
+     *        Set of already locally visited leafs.
+     * @returns Partial leaf schedule.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
     PartialSchedule findPartialSchedule(
-        ForSyDe::Process* start, std::set<ForSyDe::Id>& locally_visited)
+        ForSyDe::Leaf* start, std::set<ForSyDe::Id>& locally_visited)
         throw(IOException, RuntimeException);
 
     /**
-     * Checks if a process has already been visited in a global sense. This
-     * does \em not, however, \em set the process as globally visited.
+     * Checks if a leaf has already been visited in a global sense. This
+     * does \em not, however, \em set the leaf as globally visited.
      *
-     * @param process
-     *        Process.
-     * @returns \c true if the process has already been visited.
+     * @param leaf
+     *        Leaf.
+     * @returns \c true if the leaf has already been visited.
      */
-    bool isGloballyVisited(ForSyDe::Process* process);
+    bool isGloballyVisited(ForSyDe::Leaf* leaf);
 
     /**
-     * Visits a process in a local sense.
+     * Visits a leaf in a local sense.
      *
-     * @param process
-     *        Process to visit.
+     * @param leaf
+     *        Leaf to visit.
      * @param visited
-     *        Set of locally visited processes.
-     * @returns \c true if the process has not previously been locally visisted.
+     *        Set of locally visited leafs.
+     * @returns \c true if the leaf has not previously been locally visisted.
      */
-    bool visitLocally(ForSyDe::Process* process,
+    bool visitLocally(ForSyDe::Leaf* leaf,
                       std::set<ForSyDe::Id>& visited);
 
   private:
     /**
      * ForSyDe model.
      */
-    ForSyDe::Processnetwork* const processnetwork_;
+    ForSyDe::Model* const model_;
 
     /**
      * Logger.
@@ -186,18 +186,18 @@ class ScheduleFinder {
     Logger& logger_;
 
     /**
-     * Set of globally already visited processes.
+     * Set of globally already visited leafs.
      */
     std::set<ForSyDe::Id> globally_visited_;
 
     /**
      * Queue of starting points.
      */
-    std::queue<ForSyDe::Process*> starting_points_;
+    std::queue<ForSyDe::Leaf*> starting_points_;
 
   private:
     /**
-     * A structure for describing a partial process schedule and where to 
+     * A structure for describing a partial leaf schedule and where to 
      * insert it in the final schedule.
      */
     struct PartialSchedule {
@@ -235,7 +235,7 @@ class ScheduleFinder {
         bool at_beginning;
 
         /**
-         * Process ID (only defined if the insertion point is not at the
+         * Leaf ID (only defined if the insertion point is not at the
          * beginning of the schedule).
          */
         ForSyDe::Id insertion_point;

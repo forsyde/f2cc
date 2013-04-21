@@ -23,61 +23,38 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_INPORT_H_
-#define F2CC_SOURCE_FORSYDE_INPORT_H_
+#include "outport.h"
+#include <typeinfo>
 
-/**
- * @file
- * @author  Gabriel Hjort Blindell <ghb@kth.se>
- * @version 0.1
- *
- * @brief Implements a dummy process for network in ports.
- */
+using namespace f2cc::ForSyDe;
+using std::string;
+using std::bad_cast;
 
-#include "process.h"
-#include "../exceptions/notsupportedexception.h"
-#include <string>
+OutPort::OutPort(const Id& id) throw()
+        : Leaf(id) {}
 
-namespace f2cc {
-namespace ForSyDe {
+OutPort::~OutPort() throw() {}
 
-/**
- * @brief Implements a dummy process for network inports.
- */
-class InPort : public Process {
-  public:
-    /**
-     * @copydoc Process(const Id&)
-     */
-    InPort(const Id& id) throw();
+bool OutPort::operator==(const Leaf& rhs) const throw() {
+    if (Leaf::operator==(rhs)) return false;
 
-    /**
-     * @copydoc ~Process()
-     */
-    virtual ~InPort() throw();
-
-    /**
-     * @copydoc Process::operator==(const Process&) const
-     */
-    virtual bool operator==(const Process& rhs) const throw();
-
-    /**
-     * @copydoc Process::type()
-     */
-    virtual std::string type() const throw();
-
-  protected:
-    /**
-     * Checks that this process has no in ports.
-     *
-     * @throws InvalidProcessException
-     *         When the check fails.
-     */
-    virtual void moreChecks() throw(InvalidProcessException);
-
-};
-
-}
+    try {
+        dynamic_cast<const OutPort&>(rhs);
+    }
+    catch (bad_cast&) {
+        return false;
+    }
+    return true;
 }
 
-#endif
+string OutPort::type() const throw() {
+    return "OutPort";
+}
+
+void OutPort::moreChecks() throw(InvalidLeafException) {
+    if (getOutPorts().size() != 0) {
+        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
+                        + getId()->getString() + "\" of type \""
+                        + type() + "\" is not allowed to have any out interfaces");
+    }
+}

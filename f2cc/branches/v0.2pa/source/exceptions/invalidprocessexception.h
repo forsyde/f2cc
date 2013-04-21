@@ -31,7 +31,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines exception for invalid process errors.
+ * @brief Defines exception for invalid leaf errors.
  */
 
 #include "exception.h"
@@ -40,20 +40,20 @@
 namespace f2cc {
 
 /**
- * @brief Used when a method was called with arguments of invalid process.
+ * @brief Used when a method was called with arguments of invalid leaf.
  */
-class InvalidProcessException : public Exception {
+class InvalidLeafException : public Exception {
   public:
     /**
      * @copydoc Exception::Exception(const std::string&, int, const std::string&)
      */
-    InvalidProcessException(const std::string& source_file, int source_line,
+    InvalidLeafException(const std::string& source_file, int source_line,
                           const std::string& message) throw();
 
     /**
      * @copydoc Exception::~Exception()
      */
-    virtual ~InvalidProcessException() throw();
+    virtual ~InvalidLeafException() throw();
 
   protected:
     /**

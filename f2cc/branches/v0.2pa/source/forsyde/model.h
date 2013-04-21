@@ -51,7 +51,7 @@ namespace ForSyDe {
  * @brief Contains the internal representation of a ForSyDe model.
  *
  * The \c Model embodies one or more of the
- * processes within the process network. It provides common methods for both
+ * leafs within the leaf network. It provides common methods for both
  * \c Processnetwork and \c Composite classes.
  */
 class Model {
@@ -62,39 +62,39 @@ class Model {
     Model() throw();
 
     /**
-     * Destroys this model. This also destroys all processes.
+     * Destroys this model. This also destroys all leafs.
      */
     virtual ~Model() throw();
 
     /**
-     * Adds a process to this model. Models are not allowed to have multiple
-     * processes with the same ID.
+     * Adds a leaf to this model. Models are not allowed to have multiple
+     * leafs with the same ID.
      *
-     * @param process
+     * @param leaf
      *        Process to add.
-     * @returns \c true if such a process did not already exist and was 
+     * @returns \c true if such a leaf did not already exist and was 
      *          successfully added.
      * @throws InvalidArgumentException
-     *         When \c process is \c NULL.
+     *         When \c leaf is \c NULL.
      * @throws OutOfMemoryException
-     *         When a process cannot be added due to memory shortage.
+     *         When a leaf cannot be added due to memory shortage.
      */
-    bool addProcess(Process* process)
+    bool addProcess(Process* leaf)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
-     * Adds multiple processes to this model at the same time.
+     * Adds multiple leafs to this model at the same time.
      *
-     * @param processes
-     *        combset of processes to add.
+     * @param leafs
+     *        combset of leafs to add.
      * @throws OutOfMemoryException
-     *         When a process cannot be added due to memory shortage.
+     *         When a leaf cannot be added due to memory shortage.
      */
-    void addProcesses(std::map<const Id, Process*> processes)
+    void addProcesss(std::map<const Id, Process*> leafs)
         throw(OutOfMemoryException);
 
     /**
-     * Gets a process by ID.
+     * Gets a leaf by ID.
      *
      * @param id
      *        Process ID.
@@ -103,32 +103,32 @@ class Model {
     Process* getProcess(const Id& id) throw();
 
     /**
-     * Gets the number of processes in this model.
+     * Gets the number of leafs in this model.
      *
      * @returns Process count.
      */
-    int getNumProcesses() const throw();
+    int getNumProcesss() const throw();
 
     /**
-     * Gets a list of all processes in this model.
+     * Gets a list of all leafs in this model.
      *
      * @returns Process list.
      */
-    std::list<Process*> getProcesses() throw();
+    std::list<Process*> getProcesss() throw();
 
     /**
-     * Removes and destroys a process by ID.
+     * Removes and destroys a leaf by ID.
      *
      * @param id
      *        Process ID.
-     * @returns \c true if such a process was found and successfully deleted.
+     * @returns \c true if such a leaf was found and successfully deleted.
      */
     bool deleteProcess(const Id& id) throw();
 
     /**
-     * Gets a new process ID which is not currently in use within this model.
+     * Gets a new leaf ID which is not currently in use within this model.
      *
-     * @returns A unique process ID.
+     * @returns A unique leaf ID.
      */
     ForSyDe::Id getUniqueProcessId() const throw();
 
@@ -138,31 +138,31 @@ class Model {
      *
      * @param prefix
      *        ID prefix.
-     * @returns A unique process ID.
+     * @returns A unique leaf ID.
      */
     ForSyDe::Id getUniqueProcessId(const std::string& prefix) const throw();
 
   protected:
     /**
-     * Attempts to find a process with a given ID. If the mapset of processes is
-     * not empty and such a process is found, an iterator pointing to that port
+     * Attempts to find a leaf with a given ID. If the mapset of leafs is
+     * not empty and such a leaf is found, an iterator pointing to that interface
      * is returned; otherwise the mapset's \c end() iterator is returned.
      *
      * @param id
      *        Process ID.
-     * @returns Iterator pointing either at the found process, or an iterator
+     * @returns Iterator pointing either at the found leaf, or an iterator
      *          equal to mapset's \c end() iterator.
      */
     std::map<const Id, Process*>::iterator findProcess(const Id& id) throw();
 
     /**
-     * Destroys all processes in this model.
+     * Destroys all leafs in this model.
      */
-    void destroyAllProcesses() throw();
+    void destroyAllProcesss() throw();
 
   protected:
     /**
-     * combset of processes.
+     * combset of leafs.
      */
     std::map<const Id, Process*> processes_;
 

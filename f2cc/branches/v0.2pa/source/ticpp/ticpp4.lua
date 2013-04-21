@@ -12,7 +12,7 @@
 --*	subject to the following conditions:
 --*
 --* The above copyright notice and this permission notice shall be included in all
---*	copies or substantial portions of the Software.
+--*	copies or substantial interfaceions of the Software.
 --*
 --*	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 --* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -112,7 +112,7 @@ project "TiCPP"
 		defines					{ "_CRT_SECURE_NO_DEPRECATE" }
 
 	configuration( "vs2008 or vs2010" )
-		-- multi-process building
+		-- multi-leaf building
 		flags( "NoMinimalRebuild" )
 		buildoptions( "/MP" )
 

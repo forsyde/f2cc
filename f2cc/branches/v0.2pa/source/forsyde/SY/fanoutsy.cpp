@@ -31,12 +31,12 @@ using std::string;
 using std::bad_cast;
 
 fanout::fanout(const Id& id) throw()
-        : Process(id) {}
+        : Leaf(id) {}
 
 fanout::~fanout() throw() {}
 
-bool fanout::operator==(const Process& rhs) const throw() {
-    if (Process::operator==(rhs)) return false;
+bool fanout::operator==(const Leaf& rhs) const throw() {
+    if (Leaf::operator==(rhs)) return false;
 
     try {
         dynamic_cast<const fanout&>(rhs);
@@ -51,10 +51,10 @@ string fanout::type() const throw() {
     return "copy";
 }
 
-void fanout::moreChecks() throw(InvalidProcessException) {
+void fanout::moreChecks() throw(InvalidLeafException) {
     if (getInPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have exactly one (1) in port");
+                        + type() + "\" must have exactly one (1) in interface");
     }
 }

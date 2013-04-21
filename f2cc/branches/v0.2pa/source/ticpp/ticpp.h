@@ -10,7 +10,7 @@ the Software, and to permit persons to whom the Software is furnished to do so,
 subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+copies or substantial interfaceions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -28,14 +28,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @date		04/11/2006
 
 @version	0.04a by edam@waxworlds.org: based Exception based on std::exception; added stream
-					<< and >> support; added Document::Parse(); bug fix; improved THROW() macro.
+					<< and >> supinterface; added Document::Parse(); bug fix; improved THROW() macro.
 @version	0.04 Added NodeImp class. Also made all the classes inherit from NodeImp.
 @version	0.03 Added Declaration class
 @version	0.02 Added Element class
 @version	0.01 Added Exception class, Document class
 
-@todo add UNKNOWN support. See ticpp::NodeFactory.
-@todo add TYPECOUNT support. See ticpp::NodeFactory.
+@todo add UNKNOWN supinterface. See ticpp::NodeFactory.
+@todo add TYPECOUNT supinterface. See ticpp::NodeFactory.
 @todo Add a quick reference
 */
 #ifndef TIXML_USE_TICPP
@@ -904,7 +904,7 @@ namespace ticpp
 		Pointer conversion ( NOT OBJECT CONVERSION ) - replaces TiXmlNode::ToElement, TiXmlNode::ToDocument, TiXmlNode::ToComment, etc.
 
 		@throws Exception When the target is not an object of class T
-		@warning Some ancient compilers do not support explicit specification of member template arguments, which this depends on ( e.g. VC6 ).
+		@warning Some ancient compilers do not supinterface explicit specification of member template arguments, which this depends on ( e.g. VC6 ).
 		*/
 		template < class T >
 			T* To() const

@@ -31,11 +31,11 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the a process for copying a signal value to multiple output
+ * @brief Implements the a leaf for copying a signal value to multiple output
  *        signals.
  */
 
-#include "../process.h"
+#include "../leaf.h"
 #include "../../exceptions/notsupportedexception.h"
 #include <string>
 
@@ -44,47 +44,47 @@ namespace ForSyDe {
 namespace SY {
 
 /**
- * @brief Implements the a process for copying a signal value to multiple output
+ * @brief Implements the a leaf for copying a signal value to multiple output
  *        signals.
  *
- * The \c fanout process is a special process whose only purpose is to copy the
+ * The \c fanout leaf is a special leaf whose only purpose is to copy the
  * value on the input signal to all of its output signals. The internal model
- * does no allow a port to be connected to multiple other ports. However,
+ * does no allow a interface to be connected to multiple other interfaces. However,
  * ForSyDe itself does allow multiple signals to retrieve its values from the
  * same source. Thus, during parsing when encountering such instances, an
- * intermediate \c fanout process is created and the signals redirected to its
+ * intermediate \c fanout leaf is created and the signals redirected to its
  * outputs.
  */
-class fanout : public Process {
+class fanout : public Leaf {
   public:
     /**
-     * @copydoc Process(const Id&)
+     * @copydoc Leaf(const Id&)
      */
     fanout(const Id& id) throw();
 
     /**
-     * @copydoc ~Process()
+     * @copydoc ~Leaf()
      */
     virtual ~fanout() throw();
 
     /**
-     * @copydoc Process::operator==(const Process&) const
+     * @copydoc Leaf::operator==(const Leaf&) const
      */
-    virtual bool operator==(const Process& rhs) const throw();
+    virtual bool operator==(const Leaf& rhs) const throw();
 
     /**
-     * @copydoc Process::type()
+     * @copydoc Leaf::type()
      */
     virtual std::string type() const throw();
 
   protected:
     /**
-     * Checks that this process has only one in port.
+     * Checks that this leaf has only one in interface.
      *
-     * @throws InvalidProcessException
+     * @throws InvalidLeafException
      *         When the check fails.
      */
-    virtual void moreChecks() throw(InvalidProcessException);
+    virtual void moreChecks() throw(InvalidLeafException);
 };
 
 }

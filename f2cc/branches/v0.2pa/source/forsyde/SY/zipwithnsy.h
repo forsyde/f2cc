@@ -23,58 +23,54 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_DELAY_H_
-#define F2CC_SOURCE_FORSYDE_DELAY_H_
+#ifndef F2CC_SOURCE_FORSYDE_ZIPWITHN_H_
+#define F2CC_SOURCE_FORSYDE_ZIPWITHN_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c delay leaf.
+ * @brief Implements the generic ForSyDe \c zipWithN leaf.
  */
 
 #include "../leaf.h"
-#include "../../exceptions/invalidargumentexception.h"
+#include "../language/cfunction.h"
 #include <string>
 
 namespace f2cc {
 namespace ForSyDe {
-namespace SY {
 
 /**
- * @brief Implements the ForSyDe \c delay leaf.
+ * @brief Implements the generic ForSyDe \c zipWithN leaf.
  */
-class delay : public Leaf {
+class ZipWithNSY : public Leaf {
   public:
     /**
      * Creates a leaf.
      *
      * @param id
      *        Leaf ID.
-     * @param initial_value
-     *        Initial delay value.
-     * @throws InvalidArgumentException
-     *         When the initial delay value is empty string.
+     * @param function
+     *        Leaf function argument.
      */
-    delay(const Id& id, const std::string& initial_value)
-        throw(InvalidArgumentException);
+    ZipWithNSY(const Id& id, const CFunction& function) throw();
 
     /**
      * @copydoc ~Leaf()
      */
-    virtual ~delay() throw();
+    virtual ~ZipWithNSY() throw();
 
     /**
-     * Gets the initial value for this leaf.
+     * Gets the function argument of this leaf.
      *
-     * @returns Initial value.
+     * @returns Function argument.
      */
-    std::string getInitialValue() throw();
+    virtual CFunction* getFunction() throw();
 
     /**
      * Same as Leaf::operator==(const Leaf&) const but with the additional
-     * check that the leafs' initial values must also be equal.
+     * check that the leafs' function arguments must also be equal.
      *
      * @param rhs
      *        Leaf to compare with.
@@ -89,12 +85,38 @@ class delay : public Leaf {
 
   protected:
     /**
-     * Checks that this leaf has only one in interface and one out interface.
+     * Checks that this leaf has at least one in interface and only one out
+     * interface. It also checks the function (see checkFunction(const CFunction&)).
      *
      * @throws InvalidLeafException
      *         When the check fails.
      */
     virtual void moreChecks() throw(InvalidLeafException);
+
+    /**
+     * Performs a series of checks:
+     *    - The function must have either equal number of input parameters as
+     *      the leaf has in interfaces, or equal number of input parameters as
+     *      the leaf has in interfaces + 1 (for the out interface).
+     *    - If the function has the same number of input parameters as the
+     *      leaf has in interfaces, then the function must return data (i.e. have
+     *      return data type other than \c void) which also is not an array.
+     *    - If the function has the same number of input parameters as the
+     *      leaf has in interfaces + 1 (for the out interface), then the function must
+     *      not return data (i.e. have return data type \c void).
+     *    - If any input parameter is an array or pointer, it must also be
+     *      declared \c const. If the function returns \c void, then the last
+     *      input parameter is not considered.
+     *
+     * @param function
+     *        Function to check.
+     * @param num_in_interfaces
+     *        Number of in interfaces to the leaf.
+     * @throws InvalidLeafException
+     *         When the check fails.
+     */
+    virtual void checkFunction(CFunction& function, size_t num_in_interfaces) const
+        throw(InvalidLeafException);
 
     /**
      * Gets the function argument as string representation in the following
@@ -112,10 +134,9 @@ class delay : public Leaf {
     /**
      * Leaf function argument.
      */
-    std::string initial_value_;
+    CFunction function_;
 };
 
-}
 }
 }
 

@@ -105,8 +105,8 @@ void CoalescedMap::insertFunctionLast(const CFunction& function)
     }
 }
 
-bool CoalescedMap::operator==(const Process& rhs) const throw() {
-    if (!Process::operator==(rhs)) return false;
+bool CoalescedMap::operator==(const Leaf& rhs) const throw() {
+    if (!Leaf::operator==(rhs)) return false;
 
     try {
         const CoalescedMap& other = dynamic_cast<const CoalescedMap&>(rhs);
@@ -128,16 +128,16 @@ string CoalescedMap::type() const throw() {
     return "CoalescedMap";
 }
 
-void CoalescedMap::moreChecks() throw(InvalidProcessException) {
+void CoalescedMap::moreChecks() throw(InvalidLeafException) {
     if (getInPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have exactly one (1) in port");
+                        + type() + "\" must have exactly one (1) in interface");
     }
     if (getOutPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+        THROW_EXCEPTION(InvalidLeafException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have exactly one (1) out port");
+                        + type() + "\" must have exactly one (1) out interface");
     }
     list<CFunction*>::const_iterator it;
     for (it = functions_.begin(); it != functions_.end(); ++it) {
@@ -150,7 +150,7 @@ string CoalescedMap::moreToString() const throw() {
     list<CFunction*>::const_iterator it;
     for (it = functions_.begin(); it != functions_.end(); ++it) {
         if (it != functions_.begin()) str += ",\n";
-        str += string("ProcessFunction: ") + (*it)->toString();
+        str += string("LeafFunction: ") + (*it)->toString();
     }
     return str;
 }
