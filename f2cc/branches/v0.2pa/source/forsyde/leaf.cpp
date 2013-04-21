@@ -49,6 +49,10 @@ const string Leaf::getMoc() const throw() {
     return moc_;
 }
 
+Leaf* Process::Interface::getProcess() const throw() {
+    return process_;
+}
+
 int Leaf::getCost() const throw(){
 	return cost_;
 }
@@ -336,20 +340,10 @@ bool Leaf::Port::isConnected() const throw() {
 
 bool Leaf::Port::isConnectedToLeaf() const throw(IllegalStateException) {
 	if (connected_port_){
-		if (!getProcess()) {
-			THROW_EXCEPTION(IllegalStateException, string("Error in: ")
-						+ toString()
-			            + "! Finding relation without hierarchy is not possible");
-		}
 		static const Composite::IOPort* ioport =
 				dynamic_cast<const Composite::IOPort*>(connected_port_);
-		if(ioport){
-			Hierarchy::Relation relation = getProcess()->findRelation(connected_port_->getProcess());
-			if (relation == Hierarchy::Sibling)
-				return (ioport->isConnectedToLeafInside());
-			else
-				return (ioport->isConnectedToLeafOutside());
-		}
+
+		if(ioport) return (ioport->isConnectedToLeaf(this));
 		else return true;
 	}
 	else return false;
@@ -426,6 +420,10 @@ void Leaf::Port::unconnectFromLeaf() throw() {
 
 Process::Interface* Leaf::Port::getConnectedPort() const throw() {
     return connected_port_;
+}
+
+void Leaf::Port::setConnection(Process::Interface* port) const throw() {
+    connected_port_ = port;
 }
 
 Leaf::Port* Leaf::Port::getConnectedLeafPort() const throw() {

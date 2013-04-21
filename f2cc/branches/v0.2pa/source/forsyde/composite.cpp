@@ -24,6 +24,7 @@
  */
 
 #include "composite.h"
+#include "leaf.h"
 #include "../tools/tools.h"
 #include <new>
 #include <map>
@@ -44,7 +45,7 @@ Composite::~Composite() throw() {
     destroyAllIOPorts(out_ports_);
 }
 
-Id* Composite::getName() throw() {
+const Id* Composite::getName() const throw() {
     return &composite_name_;
 }
 
@@ -66,10 +67,10 @@ bool Composite::addInIOPort(const Id& id) throw(OutOfMemoryException) {
     }
 }
 
-bool Leaf::deleteInPort(const Id& id) throw() {
-    list<Port*>::iterator it = findPort(id, in_ports_);
+bool Composite::deleteInIOPort(const Id& id) throw() {
+    list<IOPort*>::iterator it = findPort(id, in_ports_);
     if (it != in_ports_.end()) {
-        Port* removed_port = *it;
+    	IOPort* removed_port = *it;
         in_ports_.erase(it);
         delete removed_port;
         return true;
@@ -79,12 +80,12 @@ bool Leaf::deleteInPort(const Id& id) throw() {
     }
 }
 
-size_t Leaf::getNumInPorts() const throw() {
+size_t Composite::getNumInIOPorts() const throw() {
     return in_ports_.size();
 }
 
-Leaf::Port* Leaf::getInPort(const Id& id) throw() {
-    list<Port*>::iterator it = findPort(id, in_ports_);
+Composite::IOPort* Composite::getInIOPort(const Id& id) throw() {
+    list<IOPort*>::iterator it = findPort(id, in_ports_);
     if (it != in_ports_.end()) {
         return *it;
     }
@@ -93,15 +94,15 @@ Leaf::Port* Leaf::getInPort(const Id& id) throw() {
     }
 }
 
-list<Leaf::Port*> Leaf::getInPorts() throw() {
+list<Composite::IOPort*> Composite::getInIOPorts() throw() {
     return in_ports_;
 }
 
-bool Leaf::addOutPort(const Id& id) throw(OutOfMemoryException) {
+bool Composite::addOutIOPort(const Id& id) throw(OutOfMemoryException) {
     if (findPort(id, out_ports_) != out_ports_.end()) return false;
 
     try {
-        Port* new_port = new Port(id, this);
+        IOPort* new_port = new IOPort(id, this);
         out_ports_.push_back(new_port);
         return true;
     }
@@ -110,23 +111,10 @@ bool Leaf::addOutPort(const Id& id) throw(OutOfMemoryException) {
     }
 }
 
-bool Leaf::addOutPort(Port& port) throw(OutOfMemoryException) {
-    if (findPort(*port.getId(), out_ports_) != out_ports_.end()) return false;
-
-    try {
-        Port* new_port = new Port(port, this);
-        out_ports_.push_back(new_port);
-        return true;
-    }
-    catch (bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-bool Leaf::deleteOutPort(const Id& id) throw() {
-    list<Port*>::iterator it = findPort(id, out_ports_);
+bool Composite::deleteOutIOPort(const Id& id) throw() {
+    list<IOPort*>::iterator it = findPort(id, out_ports_);
     if (it != out_ports_.end()) {
-        Port* removed_port = *it;
+        IOPort* removed_port = *it;
         out_ports_.erase(it);
         delete removed_port;
         return true;
@@ -136,12 +124,12 @@ bool Leaf::deleteOutPort(const Id& id) throw() {
     }
 }
 
-size_t Leaf::getNumOutPorts() const throw() {
+size_t Composite::getNumOutIOPorts() const throw() {
     return out_ports_.size();
 }
 
-Leaf::Port* Leaf::getOutPort(const Id& id) throw() {
-    list<Port*>::iterator it = findPort(id, out_ports_);
+Composite::IOPort* Composite::getOutIOPort(const Id& id) throw() {
+    list<IOPort*>::iterator it = findPort(id, out_ports_);
     if (it != out_ports_.end()) {
         return *it;
     }
@@ -150,49 +138,105 @@ Leaf::Port* Leaf::getOutPort(const Id& id) throw() {
     }
 }
 
-list<Leaf::Port*> Leaf::getOutPorts() throw() {
+list<Composite::IOPort*> Composite::getOutIOPorts() throw() {
     return out_ports_;
 }
 
-string Leaf::toString() const throw() {
+string Composite::toString() const throw() {
     string str;
     str += "{\n";
-    str += " LeafID: ";
+    str += " Composite Process ID: ";
     str += getId()->getString();
     str += ",\n";
-    str += " LeafType: ";
-    str += type();
+    str += " Name: ";
+    str += getName()->getString();
     str += ",\n";
     str += " NumInPorts: ";
-    str += tools::toString(getNumInPorts());
+    str += tools::toString(getNumInIOPorts());
     str += ",\n";
     str += " InPorts = {";
     str += portsToString(in_ports_);
     str += "}";
     str += ",\n";
     str += " NumOutPorts: ";
-    str += tools::toString(getNumOutPorts());
+    str += tools::toString(getNumOutIOPorts());
     str += ",\n";
     str += " OutPorts = {";
     str += portsToString(out_ports_);
-    string additional_data(moreToString());
-    if (additional_data.length() > 0) {
-        str += "},\n";
-        additional_data.insert(0, 1, ' ');
-        tools::searchReplace(additional_data, "\n", "\n ");
-        str += additional_data;
-        str += "\n";
-    }
-    else {
-        str += "}\n";
-    }
     str += "}";
 
     return str;
 }
 
-bool Composite::operator==(const Process& rhs) const throw() {
-    if (!Process::operator==(rhs)) return false;
+list<Composite::IOPort*>::iterator Composite::findPort(
+		const Id& id, list<IOPort*>& ports) const throw() {
+    list<IOPort*>::iterator it;
+    for (it = ports.begin(); it != ports.end(); ++it) {
+        if (*(*it)->getId() == id) {
+            return it;
+        }
+    }
+
+    // No such port was found
+    return it;
+}
+
+string Composite::portsToString(const list<IOPort*> ports) const throw() {
+    string str;
+    if (ports.size() > 0) {
+        str += "\n";
+        bool first = true;
+        for (list<Composite::IOPort*>::const_iterator it = ports.begin();
+             it != ports.end(); ++it) {
+            if (!first) {
+                str += ",\n";
+            }
+            else {
+                first = false;
+            }
+
+            Composite::IOPort* port = *it;
+            str += "  ID: ";
+            str += port->getId()->getString();
+            str += ", ";
+            if (port->isConnectedInside()) {
+                str += "connected inside to ";
+                str += port->getConnectedPortInside()->getProcess()->getId()
+                    ->getString();
+                str += ":";
+                str += port->getConnectedPortInside()->getId()->getString();
+            }
+            else {
+                str += "not connected inside ";
+            }
+            if (port->isConnectedOutside()) {
+                str += "; and connected outside to ";
+                str += port->getConnectedPortOutside()->getProcess()->getId()
+                    ->getString();
+                str += ":";
+                str += port->getConnectedPortOutside()->getId()->getString();
+            }
+            else {
+                str += "and not connected outside ";
+            }
+        }
+        str += "\n ";
+    }
+    return str;
+}
+
+void Composite::destroyAllIOPorts(list<IOPort*>& ports) throw() {
+    while (ports.size() > 0) {
+    	IOPort* port = ports.front();
+        ports.pop_front();
+        delete port;
+    }
+}
+
+
+bool Composite::operator==(const Composite& rhs) const throw() {
+	if (getNumInIOPorts() != rhs.getNumInIOPorts()) return false;
+	if (getNumOutIOPorts() != rhs.getNumOutIOPorts()) return false;
 
     try {
         const Composite& other = dynamic_cast<const Composite&>(rhs);
@@ -204,33 +248,21 @@ bool Composite::operator==(const Process& rhs) const throw() {
     return true;
 }
 
+bool Composite::operator!=(const Composite& rhs) const throw() {
+    return !operator==(rhs);
+}
+
 string Composite::type() const throw() {
     return "composite";
 }
 
-string Composite::moreToString() const throw() {
-    string str;
-    str += "\n";
-
-    str += "\n";
-	for (std::map<const Id, Process*>::const_iterator it = processes_.begin(); it != processes_.end(); ++it) {
-		str+= " Contained process of type: \" ";
-		str += it->second->type();
-		str+= "  \"; ID = ";
-		str += it->second->getId()->getString();
-		str += "\n";
-	}
-    return str;
-}
-
-
 void Composite::moreChecks() throw(InvalidProcessException){
-    if (getInPorts().size() == 0) {
+    if (getInIOPorts().size() == 0) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have at least one (1) in port");
     }
-    if (getOutPorts().size() == 0) {
+    if (getOutIOPorts().size() == 0) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have at least one (1) out port");
@@ -244,63 +276,13 @@ void Composite::moreChecks() throw(InvalidProcessException){
 
 ///////////////
 
-Composite::IOPort::IOPort(const Id& id) throw()
-        : Port(id,CDataType()), connected_port_inside_(NULL)  {}
 
 Composite::IOPort::IOPort(const Id& id, Composite* process) throw(InvalidArgumentException)
-		:  Port(id,process,CDataType()), connected_port_inside_(NULL) {}
-
-Composite::IOPort::IOPort(Port& rhs) throw()
-		: Port(*rhs.getId(),CDataType()) , connected_port_inside_(NULL){
-
-	if (rhs.PortGetter()) {
-		Composite::IOPort* connected_ioport = dynamic_cast<Composite::IOPort*>(rhs.PortGetter());
-		if (connected_ioport) {
-			THROW_EXCEPTION(InvalidArgumentException, "IOPort to IOPort connections without hierarchy are "
-							"illegal");
-		}
-		Port* port = rhs.PortGetter();
-		rhs.PortSetter(NULL);
-		if (port != this) {
-			connected_port_inside_ = port;
-			port->PortSetter(this);
-		}
-    }
-}
-
-Composite::IOPort::IOPort(IOPort& rhs, Composite* process) throw(InvalidArgumentException)
-        : Port(*rhs.getId(),process,CDataType()), connected_port_inside_(NULL) {
-    if (!process) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
-                        "NULL");
-    }
-	if (rhs.connected_port_inside_) {
-		Composite::IOPort* connected_ioport = dynamic_cast<Composite::IOPort*>(rhs.connected_port_inside_);
-		if (connected_ioport) {
-			THROW_EXCEPTION(InvalidArgumentException, "This type of instantiation is still illegal  "
-							"in the hierarchical context");
-		}
-		Port* port = rhs.connected_port_inside_;
-		rhs.connected_port_inside_ = NULL;
-		connected_port_inside_ = port;
-		port->PortSetter(this);
-    }
-	else{
-		THROW_EXCEPTION(InvalidArgumentException, "This type of instantiation is still illegal  "
-						"in the hierarchical context");
-	}
-}
+		:  Interface(id,process), connected_port_inside_(NULL), connected_port_outside_(NULL){}
 
 Composite::IOPort::~IOPort() throw() {
     unconnectOutside();
     unconnectInside();
-}
-
-f2cc::CDataType Composite::IOPort::getDataType() throw() {return CDataType();}
-bool Composite::IOPort::setDataType(CDataType& datatype) throw(){return false;}
-
-bool Composite::IOPort::isConnected() const throw() {
-    return connected_port_inside_;
 }
 
 bool Composite::IOPort::isConnectedOutside() const throw() {
@@ -311,6 +293,190 @@ bool Composite::IOPort::isConnectedInside() const throw() {
     return connected_port_inside_;
 }
 
+void Composite::IOPort::connect(Process::Interface* port) throw(InvalidArgumentException) {
+    if (port == this) return;
+    if (!port) {
+        unconnectInside();
+        unconnectOutside();
+        return;
+    }
+
+    //outside guard
+	if (!getProcess()) {
+		THROW_EXCEPTION(IllegalStateException, string("Error in: ")
+					+ toString()
+					+ "! Finding relation without hierarchy is not possible");
+	}
+
+	Hierarchy::Relation relation = getProcess()->findRelation(port->getProcess());
+
+
+    // Checking if other end is IOPort
+	Composite::IOPort* ioport_to_connect = dynamic_cast<Composite::IOPort*>(port);
+	if (ioport_to_connect) {
+		if (relation == Hierarchy::Sibling){
+			connected_port_outside_ = ioport_to_connect;
+			ioport_to_connect->connected_port_outside_ = this;
+			return;
+		}
+		else if (relation == Hierarchy::FirstParent){
+			connected_port_outside_ = ioport_to_connect;
+			ioport_to_connect->connected_port_inside_ = this;
+			return;
+		}
+		else if (relation == Hierarchy::FirstChild){
+			connected_port_inside_ = ioport_to_connect;
+			ioport_to_connect->connected_port_outside_ = this;
+			return;
+		}
+		else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+	}
+
+
+	 // Checking if other end is Port
+	Leaf::Port* port_to_connect = dynamic_cast<Composite::IOPort*>(port);
+	if (port_to_connect) {
+		if (relation == Hierarchy::Sibling){
+			connected_port_outside_ = port_to_connect;
+			port_to_connect->setConnection(this);
+			return;
+		}
+		else if (relation == Hierarchy::FirstChild){
+			connected_port_inside_ = port_to_connect;
+			port_to_connect->setConnection(this);
+			return;
+		}
+		else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+	}
+
+	// It should never be here
+	THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+					+ toString()
+					+ "! Connected port is of unknown type");
+
+}
+
+
+void Composite::IOPort::unconnect(Process::Interface* port) throw(InvalidArgumentException) {
+	if (connected_port_inside_ == port) unconnectInside();
+	else if (connected_port_outside_ == port) unconnectOutside();
+	else THROW_EXCEPTION(InvalidArgumentException, "Connection should not have been possible");
+
+}
+
+void Composite::IOPort::unconnectOutside() throw(InvalidArgumentException) {
+    if (connected_port_outside_) {
+        //outside guard
+    	if (!getProcess()) {
+    		THROW_EXCEPTION(IllegalStateException, string("Error in: ")
+    					+ toString()
+    					+ "! Finding relation without hierarchy is not possible");
+    	}
+
+    	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
+
+
+        // Checking if other end is IOPort
+    	Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+    	if (ioport_to_unconnect) {
+    		if (relation == Hierarchy::Sibling){
+    			ioport_to_unconnect->connected_port_outside_ = NULL;
+    			connected_port_outside_ = NULL;
+    			return;
+    		}
+    		else if (relation == Hierarchy::FirstParent){
+    			ioport_to_unconnect->connected_port_inside_ = NULL;
+				connected_port_outside_ = NULL;
+    			return;
+    		}
+    		else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+    	}
+
+
+    	 // Checking if other end is Port
+    	Leaf::Port* port_to_unconnect = dynamic_cast<Leaf::Port*>(connected_port_outside_);
+    	if (port_to_unconnect) {
+    		if (relation == Hierarchy::Sibling){
+    			port_to_unconnect->setConnection(NULL);
+    			connected_port_outside_ = NULL;
+    			return;
+    		}
+    		else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+    	}
+
+    	// It should never be here
+    	THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+    					+ toString()
+    					+ "! Outside connection is of unknown type");
+    }
+}
+
+void Composite::IOPort::unconnectInside() throw(InvalidArgumentException) {
+	if (connected_port_inside_) {
+		//outside guard
+		if (!getProcess()) {
+			THROW_EXCEPTION(IllegalStateException, string("Error in: ")
+						+ toString()
+						+ "! Finding relation without hierarchy is not possible");
+		}
+
+		Hierarchy::Relation relation = getProcess()->findRelation(connected_port_inside_->getProcess());
+
+
+		// Checking if other end is IOPort
+		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_inside_);
+		if (ioport_to_unconnect) {
+			if (relation == Hierarchy::FirstChild){
+				ioport_to_unconnect->connected_port_outside_ = NULL;
+				connected_port_inside_ = NULL;
+				return;
+			}
+			else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+		}
+
+
+		 // Checking if other end is Port
+		Leaf::Port* port_to_unconnect = dynamic_cast<Leaf::Port*>(connected_port_inside_);
+		if (port_to_unconnect) {
+			if (relation == Hierarchy::FirstChild){
+				port_to_unconnect->setConnection(NULL);
+				connected_port_inside_ = NULL;
+				return;
+			}
+			else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+		}
+
+		// It should never be here
+		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+						+ toString()
+						+ "! Outside connection is of unknown type");
+	}
+}
+
+Process::Interface* Composite::IOPort::getConnectedPortOutside() const throw() {
+    return connected_port_outside_;
+}
+
+Process::Interface* Composite::IOPort::getConnectedPortInside() const throw() {
+    return connected_port_inside_;
+}
+
+
+bool Composite::IOPort::isConnectedToLeaf(Process::Interface* startpoit) const throw() {
+    if (startpoit == connected_port_outside_) {
+    	static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort*>(connected_port_outside_);
+    	if (ioport) return ioport->isConnectedToLeaf(this);
+    	else return true;
+    }
+    if (startpoit == connected_port_inside_) {
+    	static const Composite::IOPort* ioport = dynamic_cast<const Composite::IOPort*>(connected_port_inside_);
+    	if (ioport) return ioport->isConnectedToLeaf(this);
+    	else return true;
+    }
+    return false;
+}
+
+/*
 bool Composite::IOPort::isConnectedToLeafOutside() const throw() {
     if (connected_port_outside_){
     	static const Composite::IOPort* ioport_out = dynamic_cast<const Composite::IOPort*>(connected_port_outside_);
@@ -331,111 +497,59 @@ bool Composite::IOPort::isConnectedToLeafInside() const throw() {
     else return false;
 }
 
-void Composite::IOPort::connect(Port* port) throw(InvalidArgumentException) {
-    if (port == this) return;
-    if (!port) {
-        unconnect();
-        return;
+*/
+
+
+bool Composite::IOPort::unconnectFromLeafOutside() throw(InvalidArgumentException) {
+    if (isConnectedToLeafOutside()) {
+		// Checking if other end is IOPort
+		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+		if (ioport_to_unconnect) {
+			ioport_to_unconnect->unconnectFromLeafOutside();
+			unconnectOutside();
+			return;
+		}
+		 // Checking if other end is Port
+		Leaf::Port* port_to_unconnect = dynamic_cast<Leaf::Port*>(connected_port_outside_);
+		if (port_to_unconnect) {
+			unconnectOutside();
+			return;
+		}
+
+		// It should never be here
+		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+						+ toString()
+						+ "! Outside connection is of unknown type");
+
     }
-	Hierarchy::Relation relation = getProcess()->findRelation(port->getProcess());
-	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(port);
-	if (relation == Hierarchy::Sibling) {
-		connected_port_outside_ = port;
-		port->PortSetter(this);
-	}
-	else if (relation == Hierarchy::FirstParent) {
-		connected_port_outside_ = port;
-		if (!ioport) THROW_EXCEPTION(InvalidArgumentException, "Something");
-		ioport->connected_port_inside_ = this;
-	}
-	else if (relation == Hierarchy::FirstChild) {
-		connected_port_inside_ = port;
-		port->PortSetter(this);
-	}
-	else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+    else return false;
 }
 
-void Composite::IOPort::unconnect() throw() {
-	unconnectInside();
-
-}
-
-void Composite::IOPort::unconnect(Port* port) throw(InvalidArgumentException) {
-	if (connected_port_inside_ == port) unconnectInside();
-	else if (connected_port_outside_ == port) unconnectOutside();
-	else THROW_EXCEPTION(InvalidArgumentException, "Connection should not have been possible");
-
-}
-
-void Composite::IOPort::unconnectOutside() throw(InvalidArgumentException) {
-    if (connected_port_outside_) {
-    	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
-    	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
-    	if (relation == Hierarchy::Sibling) {
-    		connected_port_outside_->PortSetter(NULL);
-    		connected_port_outside_ = NULL;
-    	}
-    	else if (relation == Hierarchy::FirstParent) {
-    		ioport->connected_port_inside_ = NULL;
-    		connected_port_outside_ = NULL;
-    	}
-    	else THROW_EXCEPTION(InvalidArgumentException, "Connection should not have been possible");
-    }
-}
-
-void Composite::IOPort::unconnectInside() throw(InvalidArgumentException) {
+bool Composite::IOPort::unconnectFromLeafInside() throw(InvalidArgumentException) {
     if (connected_port_inside_) {
-    	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_inside_->getProcess());
-    	if (relation == Hierarchy::FirstChild) {
-    		connected_port_inside_->PortSetter(NULL);
-    		connected_port_inside_ = NULL;
-    	}
-    	else THROW_EXCEPTION(InvalidArgumentException, "Connection should not have been possible");
+		// Checking if other end is IOPort
+		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_inside_);
+		if (ioport_to_unconnect) {
+			ioport_to_unconnect->unconnectFromLeafInside();
+			unconnectInside();
+			return;
+		}
+		 // Checking if other end is Port
+		Leaf::Port* port_to_unconnect = dynamic_cast<Leaf::Port*>(connected_port_inside_);
+		if (port_to_unconnect) {
+			unconnectInside();
+			return;
+		}
+
+		// It should never be here
+		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+						+ toString()
+						+ "! Outside connection is of unknown type");
+
     }
 }
 
-void Composite::IOPort::unconnectFromLeafOutside() throw(InvalidArgumentException) {
-    if (connected_port_outside_) {
-    	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
-    	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
-    	if (relation == Hierarchy::Sibling) {
-    		if (ioport) ioport->unconnectFromLeafInside();
-    		else connected_port_outside_->PortSetter(NULL);
-    		connected_port_outside_ = NULL;
-    	}
-    	else if (relation == Hierarchy::FirstParent) {
-    		if (ioport) ioport->unconnectFromLeafOutside();
-    		else connected_port_outside_->PortSetter(NULL);
-    		connected_port_outside_ = NULL;
-    	}
-    	else THROW_EXCEPTION(InvalidArgumentException, "Connection should not have been possible");
-    }
-}
 
-void Composite::IOPort::unconnectFromLeafInside() throw(InvalidArgumentException) {
-    if (connected_port_inside_) {
-    	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
-    	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
-    	if (relation == Hierarchy::FirstChild) {
-    		if (ioport) ioport->unconnectFromLeafInside();
-    		else connected_port_inside_->PortSetter(NULL);
-    		connected_port_inside_ = NULL;
-    	}
-    	else THROW_EXCEPTION(InvalidArgumentException, "Connection should not have been possible");
-    }
-}
-
-Process::Port* Composite::IOPort::getConnectedPort() const throw() {
-	return connected_port_inside_;
-}
-
-Process::Port* Composite::IOPort::getConnectedPortOutside() const throw() {
-    return connected_port_outside_;
-}
-
-Process::Port* Composite::IOPort::getConnectedPortInside() const throw() {
-    return connected_port_inside_;
-}
 
 Process::Port* Composite::IOPort::getConnectedLeafPortOutside() const throw(InvalidArgumentException) {
 	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());

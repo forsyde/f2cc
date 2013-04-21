@@ -90,7 +90,7 @@ public:
      *
      * @returns Port data type.
      */
-    ForSyDe::Id* getName() throw();
+    const ForSyDe::Id* getName() const throw();
 
     void changeName(ForSyDe::Id* name) throw();
 
@@ -106,21 +106,6 @@ public:
       *         When a port cannot be added due to memory shortage.
       */
      bool addInIOPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
-
-     /**
-      * Creates a new port with the same ID and connections as another port and
-      * adds it as in port to this leaf. The connections at the other port are
-      * broken. Leafs are not allowed to have multiple in ports with the same
-      * ID.
-      *
-      * @param port
-      *        IOPort.
-      * @returns \c true if such an in port did not already exist and was
-      *          successfully copied and added.
-      * @throws OutOfMemoryException
-      *         When a port cannot be added due to memory shortage.
-      */
-     bool addInIOPort(IOPort& port) throw(OutOfMemoryException);
 
      /**
       * Deletes and destroys an in port to this leaf.
@@ -165,18 +150,6 @@ public:
       *         When a port cannot be added due to memory shortage.
       */
      bool addOutIOPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
-
-     /**
-      * Same as addInIOPort(IOPort&) but for out ports.
-      *
-      * @param port
-      *        IOPort.
-      * @returns \c true if such an out port did not already exist and was
-      *          successfully copied and added.
-      * @throws OutOfMemoryException
-      *         When a port cannot be added due to memory shortage.
-      */
-     bool addOutIOPort(IOPort& port) throw(OutOfMemoryException);
 
      /**
       * Same as deleteOutIOPort(const ForSyDe::Id&) but for out ports.
@@ -241,7 +214,7 @@ public:
       *        Leaf to compare with.
       * @returns \c true if both leafs are equal.
       */
-     bool operator==(const Leaf& rhs) const throw();
+     bool operator==(const Composite& rhs) const throw();
 
      /**
       * Same as operator==(Leaf&) but for inequality.
@@ -250,7 +223,7 @@ public:
       *        Leaf to compare with.
       * @returns \c true if both leafs are not equal.
       */
-     bool operator!=(const Leaf& rhs) const throw();
+     bool operator!=(const Composite& rhs) const throw();
 
      /**
       * Gets the type of this leaf as a string.
@@ -283,8 +256,8 @@ public:
       * @returns Iterator pointing either at the found port, or an iterator equal
       *          to the list's \c end() iterator.
       */
-     std::list<Port*>::iterator findPort(const ForSyDe::Id& id,
-                                         std::list<Port*>& ports) const throw();
+     std::list<IOPort*>::iterator findPort(const ForSyDe::Id& id,
+                                         std::list<IOPort*>& ports) const throw();
 
      /**
       * Takes a list of ports and converts it into a string representation. Each
@@ -298,7 +271,7 @@ public:
       *        Port list.
       * @returns String representation.
       */
-     std::string portsToString(const std::list<Port*> ports) const throw();
+     std::string portsToString(const std::list<IOPort*> ports) const throw();
 
      /**
       * Destroys all ports in a given list.
@@ -332,7 +305,7 @@ public:
      * The \c Port class defines a process port. A port is identified by an ID
      * and can be connected to another port.
      */
-    class IOPort : public Port{
+    class IOPort : public Interface{
       public:
 
         /**
@@ -385,6 +358,14 @@ public:
          * @returns \c true if connected.
 		 */
 
+		bool isConnectedToLeaf(Interface* startpoint) const throw();
+
+        /**
+         * Checks if this \c IOPort is connected to a port inside the composite process.
+         *
+         * @returns \c true if connected.
+		 */
+
 		bool isConnectedToLeafInside() const throw();
 
         /**
@@ -402,7 +383,7 @@ public:
          * @param port
          *        Port to connect.
          */
-		void connect(Port* port) throw(InvalidArgumentException);
+		void connect(Interface* port) throw(InvalidArgumentException);
 
 
         /**
@@ -410,7 +391,7 @@ public:
          * Breaks the connection that this port may have to another. If there is
          * no connection, nothing happens.
          */
-		void unconnect(Port* port) throw(InvalidArgumentException);
+		void unconnect(Interface* port) throw(InvalidArgumentException);
 
         /**
          * Breaks the connection that this port may have to another. If there is
@@ -440,7 +421,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		void unconnectFromLeafOutside() throw(InvalidArgumentException);
+		bool unconnectFromLeafOutside() throw(InvalidArgumentException);
 
         /**
          * Breaks the connection that this port may have to another. If there is
@@ -452,7 +433,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		void unconnectFromLeafInside() throw(InvalidArgumentException);
+		bool unconnectFromLeafInside() throw(InvalidArgumentException);
 
         /**
          * Searches recursively through composites and gets
@@ -464,7 +445,7 @@ public:
 		 *         When this method was called for a non-IO port
          */
 
-		Port* getConnectedPortOutside() const throw();
+		Interface* getConnectedPortOutside() const throw();
         /**
          * Searches recursively through composites and gets
          * the port at the other end of the connection, if any.
@@ -474,7 +455,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		Port* getConnectedPortInside() const throw();
+		Interface* getConnectedPortInside() const throw();
 
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
@@ -484,7 +465,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		Port* getConnectedLeafPortOutside() const throw(InvalidArgumentException);
+		Leaf::Port* getConnectedLeafPortOutside() const throw(InvalidArgumentException);
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
          *
@@ -493,7 +474,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		Port* getConnectedLeafPortInside() const throw(InvalidArgumentException);
+		Leaf::Port* getConnectedLeafPortInside() const throw(InvalidArgumentException);
 
 
         /**
@@ -526,9 +507,9 @@ public:
 		 * In case it is an IO Port, this will contain a connection inside the
 		 * composite process as well
 		 */
-        Process::Port* connected_port_inside_;
+        Process::Interface* connected_port_inside_;
 
-        Process::Port* connected_port_outside_;
+        Process::Interface* connected_port_outside_;
 
     };
 };

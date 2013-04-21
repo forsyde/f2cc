@@ -36,11 +36,10 @@ using std::list;
 using std::pair;
 using std::bad_alloc;
 
-ProcessNetwork::ProcessNetwork() throw() {}
+ProcessNetwork::ProcessNetwork() throw() :
+	Model() {}
 
-ProcessNetwork::~ProcessNetwork() throw() {
-    destroyAllProcesses();
-}
+ProcessNetwork::~ProcessNetwork() throw() {}
 
 bool ProcessNetwork::addInput(Leaf::Port* port)
     throw(InvalidArgumentException, IllegalStateException,
