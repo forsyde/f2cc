@@ -343,7 +343,7 @@ class Process{
          * @param id
          *        Port ID.
          */
-        Port(const ForSyDe::Id& id) throw();
+        //Port(const ForSyDe::Id& id) throw();
 
         /**
          * Creates a port belonging to a process.

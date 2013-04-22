@@ -268,10 +268,10 @@ bool Process::operator==(const Process& rhs) const throw() {
 bool Process::operator!=(const Process& rhs) const throw() {
     return !operator==(rhs);
 }
-
+/*
 Process::Port::Port(const Id& id) throw()
         : id_(id), process_(NULL), connected_port_(NULL) {}
-
+*/
 Process::Port::Port(const Id& id, Process* process)
         throw(InvalidArgumentException)
         : id_(id), process_(process), connected_port_(NULL) {
