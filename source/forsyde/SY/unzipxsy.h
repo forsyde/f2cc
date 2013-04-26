@@ -31,10 +31,10 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c unzipx process.
+ * @brief Implements the ForSyDe \c unzipx leaf.
  */
 
-#include "../process.h"
+#include "../leaf.h"
 #include "../../exceptions/notsupportedexception.h"
 #include <string>
 
@@ -43,33 +43,33 @@ namespace ForSyDe {
 namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c unzipx process.
+ * @brief Implements the ForSyDe \c unzipx leaf.
  */
-class unzipx : public Process {
+class unzipx : public Leaf {
   public:
     /**
-     * @copydoc Process(const Id&)
+     * @copydoc Leaf(const Id&)
      */
     unzipx(const Id& id) throw();
 
     /**
-     * @copydoc ~Process()
+     * @copydoc ~Leaf()
      */
     virtual ~unzipx() throw();
 
     /**
-     * @copydoc Process::operator==(const Process&) const
+     * @copydoc Leaf::operator==(const Leaf&) const
      */
-    virtual bool operator==(const Process& rhs) const throw();
+    virtual bool operator==(const Leaf& rhs) const throw();
 
     /**
-     * @copydoc Process::type()
+     * @copydoc Leaf::type()
      */
     virtual std::string type() const throw();
 
   protected:
     /**
-     * Checks that this process has only one in port.
+     * Checks that this leaf has only one in port.
      *
      * @throws InvalidProcessException
      *         When the check fails.

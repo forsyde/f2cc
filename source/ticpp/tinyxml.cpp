@@ -1003,7 +1003,7 @@ bool TiXmlDocument::LoadFile( FILE* file, TiXmlEncoding encoding )
 	// 2.11 End-of-Line Handling
 	// <snip>
 	// <quote>
-	// ...the XML processor MUST behave as if it normalized all line breaks in external
+	// ...the XML leafor MUST behave as if it normalized all line breaks in external
 	// parsed entities (including the document entity) on input, before parsing, by translating
 	// both the two-character sequence #xD #xA and any #xD that is not followed by #xA to
 	// a single #xA character.

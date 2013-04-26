@@ -6,17 +6,17 @@ href="http://www.ict.kth.se/forsyde/">ForSyDe</a> (Formal System Design)
 project. The name stands for "ForSyDe-2-CUDA C" and enables models to be
 synthesized into either C code or CUDA C code, the latter which can be compiled
 for parallel execution on a CUDA-enabled NVIDIA graphics card. Currently, the
-tool can handle models which contain the following process types:
+tool can handle models which contain the following leaf types:
    - \c f2cc::ForSyDe::SY::comb
    - \c f2cc::ForSyDe::SY::ParallelMap
    - \c f2cc::ForSyDe::SY::unzipx
    - \c f2cc::ForSyDe::SY::zipx
    - \c f2cc::ForSyDe::SY::delay
 
-The tool recognizes simple data parallel patterns in a model (an \c unzipx
-process, followed by a series of \c comb processes, which all connect to a \c
-zipx process) and generate correct CUDA code for such regions. Support for
-additional process types and data parallel model patterns will be added in the
+The tool recognizes simple data parallel patterns in a processnetwork (an \c unzipx
+leaf, followed by a series of \c comb leafs, which all connect to a \c
+zipx leaf) and generate correct CUDA code for such regions. Support for
+additional leaf types and data parallel processnetwork patterns will be added in the
 future.
 
 \b f2cc was originally developed by Gabriel Hjort Blindell as part of his Master

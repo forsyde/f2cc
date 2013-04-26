@@ -112,7 +112,7 @@ project "TiCPP"
 		defines					{ "_CRT_SECURE_NO_DEPRECATE" }
 
 	configuration( "vs2008 or vs2010" )
-		-- multi-process building
+		-- multi-leaf building
 		flags( "NoMinimalRebuild" )
 		buildoptions( "/MP" )
 

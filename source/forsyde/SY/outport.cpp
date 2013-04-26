@@ -31,12 +31,12 @@ using std::string;
 using std::bad_cast;
 
 OutPort::OutPort(const Id& id) throw()
-        : Process(id) {}
+        : Leaf(id) {}
 
 OutPort::~OutPort() throw() {}
 
-bool OutPort::operator==(const Process& rhs) const throw() {
-    if (Process::operator==(rhs)) return false;
+bool OutPort::operator==(const Leaf& rhs) const throw() {
+    if (Leaf::operator==(rhs)) return false;
 
     try {
         dynamic_cast<const OutPort&>(rhs);
@@ -53,7 +53,7 @@ string OutPort::type() const throw() {
 
 void OutPort::moreChecks() throw(InvalidProcessException) {
     if (getOutPorts().size() != 0) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" is not allowed to have any out ports");
     }

@@ -25,13 +25,14 @@
 
 #include "synthesizer.h"
 #include "schedulefinder.h"
+#include "../forsyde/SY/mapsy.h"
 #include "../forsyde/SY/coalescedmapsy.h"
 #include "../forsyde/SY/parallelmapsy.h"
 #include "../forsyde/SY/delaysy.h"
 #include "../forsyde/SY/zipxsy.h"
 #include "../forsyde/SY/unzipxsy.h"
 #include "../forsyde/SY/fanoutsy.h"
-#include "../forsyde/SY/combsy.h"
+#include "../forsyde/SY/zipwithnsy.h"
 #include "../language/cfunction.h"
 #include "../language/cdatatype.h"
 #include "../tools/tools.h"
@@ -50,16 +51,16 @@ using std::bad_alloc;
 using std::map;
 
 const string Synthesizer::kIndents = "    ";
-const string Synthesizer::kProcessnetworkInputParameterPrefix = "input";
-const string Synthesizer::kProcessnetworkOutputParameterPrefix = "output";
+const string Synthesizer::kProcessNetworkInputParameterPrefix = "input";
+const string Synthesizer::kProcessNetworkOutputParameterPrefix = "output";
 
-Synthesizer::Synthesizer(Processnetwork* processnetwork, Logger& logger, Config& config)
+Synthesizer::Synthesizer(ProcessNetwork* processnetwork, Logger& logger, Config& config)
         throw(InvalidArgumentException) : processnetwork_(processnetwork), logger_(logger),
                                           config_(config) {
     if (!processnetwork) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"model\" must not be NULL");
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
-                                          }
+}
 
 Synthesizer::~Synthesizer() throw() {
     set<Signal*>::iterator it;
@@ -69,86 +70,86 @@ Synthesizer::~Synthesizer() throw() {
 }
 
 Synthesizer::CodeSet Synthesizer::generateCCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     target_platform_ = Synthesizer::C;
     return generateCode();
 }
 
 Synthesizer::CodeSet Synthesizer::generateCudaCCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     target_platform_ = Synthesizer::CUDA;
     return generateCode();
 }
 
 Synthesizer::CodeSet Synthesizer::generateCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logInfoMessage("Checking that the internal model is "
-                           "valid for synthesis...");
-    checkProcessnetwork();
-    logger_.logInfoMessage("All checks passed");
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    logger_.logMessage(Logger::INFO, "Checking that the internal processnetwork is "
+                       "valid for synthesis...");
+    checkProcessNetwork();
+    logger_.logMessage(Logger::INFO, "All checks passed");
 
-    logger_.logInfoMessage("Generating process schedule...");
+    logger_.logMessage(Logger::INFO, "Generating leaf schedule...");
     findSchedule();
-    logger_.logInfoMessage(string("Process schedule:\n")
-                           + scheduleToString());
+    logger_.logMessage(Logger::INFO, string("Leaf schedule:\n")
+                       + scheduleToString());
 
-    logger_.logInfoMessage("Renaming process functions to avoid name "
-                           "clashes...");
-    renamecombFunctions();
-    logger_.logInfoMessage("Combining function duplicates through "
-                           "renaming...");
+    logger_.logMessage(Logger::INFO, "Renaming leaf functions to avoid name "
+                       "clashes...");
+    renameMapFunctions();
+    logger_.logMessage(Logger::INFO, "Combining function duplicates through "
+                       "renaming...");
     combineFunctionDuplicates();
 
-    logger_.logInfoMessage("Generating wrapper functions for "
-                           "coalesced processes...");
+    logger_.logMessage(Logger::INFO, "Generating wrapper functions for "
+                       "coalesced leafs...");
     generateCoalescedSyWrapperFunctions();
-    logger_.logInfoMessage("Combining function duplicates through "
-                           "renaming...");
+    logger_.logMessage(Logger::INFO, "Combining function duplicates through "
+                       "renaming...");
     combineFunctionDuplicates();
 
     if (target_platform_ == Synthesizer::CUDA) {
-        logger_.logInfoMessage("Generating CUDA kernel functions for "
-                               "parallel comb processes...");
+        logger_.logMessage(Logger::INFO, "Generating CUDA kernel functions for "
+                           "parallel Map leafs...");
         generateCudaKernelFunctions();
-        logger_.logInfoMessage("Combining function duplicates "
-                               "through renaming...");
+        logger_.logMessage(Logger::INFO, "Combining function duplicates "
+                           "through renaming...");
         combineFunctionDuplicates();
     }
     else {
-        logger_.logInfoMessage("Generating wrapper functions for "
-                               "parallel comb processes...");
+        logger_.logMessage(Logger::INFO, "Generating wrapper functions for "
+                           "parallel Map leafs...");
         generateParallelMapSyWrapperFunctions();
-        logger_.logInfoMessage("Combining function duplicates "
-                               "through renaming...");
+        logger_.logMessage(Logger::INFO, "Combining function duplicates "
+                           "through renaming...");
         combineFunctionDuplicates();
     }
 
-    logger_.logInfoMessage("Creating signal variables...");
+    logger_.logMessage(Logger::INFO, "Creating signal variables...");
     createSignals();
 
-    logger_.logInfoMessage("Discovering signal variable data "
-                           "types...");
+    logger_.logMessage(Logger::INFO, "Discovering signal variable data "
+                       "types...");
     discoverSignalDataTypes();
 
-    logger_.logInfoMessage("Propagating array sizes...");
+    logger_.logMessage(Logger::INFO, "Propagating array sizes...");
     propagateArraySizesBetweenSignals();
-    propagateSignalArraySizesToProcessFunctions();
+    propagateSignalArraySizesToLeafFunctions();
 
-    logger_.logInfoMessage("Setting data types of array input signal "
-                           "variables as 'const'...");
+    logger_.logMessage(Logger::INFO, "Setting data types of array input signal "
+                       "variables as 'const'...");
     setInputArraySignalVariableDataTypesAsConst();
 
-    logger_.logInfoMessage("Creating delay variables...");
-    createdelayVariables();
+    logger_.logMessage(Logger::INFO, "Creating delay variables...");
+    createDelayVariables();
 
     switch (target_platform_) {
         case C: {
-            logger_.logInfoMessage("Generating C code...");
+            logger_.logMessage(Logger::INFO, "Generating C code...");
             break;
         }
 
         case CUDA: {
-            logger_.logInfoMessage("Generating CUDA C code...");
+            logger_.logMessage(Logger::INFO, "Generating CUDA C code...");
             break;
         }
             
@@ -163,10 +164,12 @@ Synthesizer::CodeSet Synthesizer::generateCode()
         + "// AUTO-GENERATED BY F2CC " + config_.getVersion() + "\n"
         + "////////////////////////////////////////////////////////////\n";
     code.header = boiler_plate + "\n";
-    logger_.logDebugMessage("Generating model function description...");
-    code.header += generateProcessnetworkFunctionDescription() + "\n";
-    logger_.logDebugMessage("Generating model function prototype...");
-    code.header += generateProcessnetworkFunctionPrototypeCode() + ";\n";
+    logger_.logMessage(Logger::DEBUG, "Generating processnetwork function "
+                       "description...");
+    code.header += generateProcessNetworkFunctionDescription() + "\n";
+    logger_.logMessage(Logger::DEBUG, "Generating processnetwork function "
+                       "prototype...");
+    code.header += generateProcessNetworkFunctionPrototypeCode() + ";\n";
     code.implementation = boiler_plate
         + "\n"
         + "#include \"" + config_.getHeaderOutputFile() + "\"\n";
@@ -175,12 +178,12 @@ Synthesizer::CodeSet Synthesizer::generateCode()
             + "#include <stdio.h> // Remove when error handling and "
             + "reporting of too small input data is fixed\n"
             + "\n";
-        logger_.logDebugMessage("Generating kernel config struct "
-                                "definition...");
+        logger_.logMessage(Logger::DEBUG, "Generating kernel config struct "
+                           "definition...");
         code.implementation += generateKernelConfigStructDefinitionCode()
             + "\n";
-        logger_.logDebugMessage("Generating kernel config function "
-                                "definition...");
+        logger_.logMessage(Logger::DEBUG, "Generating kernel config function "
+                           "definition...");
         code.implementation += generateKernelConfigFunctionDefinitionCode()
             + "\n";
     }
@@ -188,16 +191,18 @@ Synthesizer::CodeSet Synthesizer::generateCode()
         code.implementation += "\n";
     }
 
-    logger_.logDebugMessage("Generating process function definitions...");
-    code.implementation += generateProcessFunctionDefinitionsCode() + "\n";
-    logger_.logDebugMessage("Generating model function definition...");
-    code.implementation += generateProcessnetworkFunctionDefinitionCode() + "\n";
+    logger_.logMessage(Logger::DEBUG, "Generating leaf function "
+                       "definitions...");
+    code.implementation += generateLeafFunctionDefinitionsCode() + "\n";
+    logger_.logMessage(Logger::DEBUG, "Generating processnetwork function "
+                       "definition...");
+    code.implementation += generateProcessNetworkFunctionDefinitionCode() + "\n";
 
     return code;
 }
 
-void Synthesizer::checkProcessnetwork()
-    throw(InvalidModelException, IOException, RuntimeException) {}
+void Synthesizer::checkProcessNetwork()
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {}
 
 void Synthesizer::findSchedule() throw (IOException, RuntimeException) {
     schedule_.clear();
@@ -218,8 +223,8 @@ Synthesizer::Signal* Synthesizer::registerSignal(Signal* signal)
         Signal* new_signal = new Signal(*signal);
         signals_.insert(new_signal);
 
-        logger_.logDebugMessage(string("Registred new signal ")
-                                + new_signal->toString());
+        logger_.logMessage(Logger::DEBUG, string("Registred new signal ")
+                           + new_signal->toString());
 
         return new_signal;
     } catch (bad_alloc&) {
@@ -227,110 +232,74 @@ Synthesizer::Signal* Synthesizer::registerSignal(Signal* signal)
     }
 }
 
-Synthesizer::Signal* Synthesizer::getSignal(Process::Port* out_port,
-                                            Process::Port* in_port)
+Synthesizer::Signal* Synthesizer::getSignal(Leaf::Port* out_port,
+                                           Leaf::Port* in_port)
     throw(InvalidArgumentException, IOException, RuntimeException) {
-    string out_port_str("out port ");
-    if (out_port) {
-        out_port_str += "\"" + out_port->toString() + "\"";
-    }
-    else {
-        out_port_str += "\"\"";
-    }
-    string in_port_str("in port ");
-    if (in_port) {
-        in_port_str += "\"" + in_port->toString() + "\"";
-    }
-    else {
-        in_port_str += "\"\"";
-    }
-    logger_.logDebugMessage(string("Getting signal for ") + out_port_str
-                            + " and " + in_port_str);
-
     if (!out_port && !in_port) {
         THROW_EXCEPTION(InvalidArgumentException, "Both ports cannot be NULL");
     }
     Signal signal(out_port, in_port);
-
-    logger_.logDebugMessage(string("Returned signal ") + signal.toString());
-
     return registerSignal(&signal);
 }
 
-Synthesizer::Signal* Synthesizer::getSignalByOutPort(Process::Port* out_port)
+Synthesizer::Signal* Synthesizer::getSignalByOutPort(Leaf::Port* out_port)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!out_port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"out_port\" must not be "
                         "NULL");
     }
-
-    logger_.logDebugMessage(string("Getting signal for out port \"")
-                            + out_port->toString() + "\"");
-
-    Process::Port* in_port = NULL;
+    Leaf::Port* in_port = NULL;
     if (out_port->isConnected()) {
-        in_port = out_port->getConnectedPort();
+        in_port = dynamic_cast<Leaf::Port*>(out_port->getConnectedPort());
     }
     return getSignal(out_port, in_port);
 }
 
-Synthesizer::Signal* Synthesizer::getSignalByInPort(Process::Port* in_port)
+Synthesizer::Signal* Synthesizer::getSignalByInPort(Leaf::Port* in_port)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     if (!in_port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"in_port\" must not be "
                         "NULL");
     }
-
-    logger_.logDebugMessage(string("Getting signal for in port \"")
-                            + in_port->toString() + "\"");
-
-    Process::Port* out_port = NULL;
+    Leaf::Port* out_port = NULL;
     if (in_port->isConnected()) {
-        out_port = in_port->getConnectedPort();
+        out_port = dynamic_cast<Leaf::Port*>(in_port->getConnectedPort());
     }
     return getSignal(out_port, in_port);
 }
 
-void Synthesizer::renamecombFunctions()
-    throw(InvalidModelException, IOException, RuntimeException) {
+void Synthesizer::renameMapFunctions()
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->getId()->getString()
-                                + "\"...");
+        logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
+                           + current_leaf->getId()->getString() + "\"...");
 
-        comb* mapsy = dynamic_cast<comb*>(current_process);
+        Map* mapsy = dynamic_cast<Map*>(current_leaf);
         if (mapsy) {
-            logger_.logDebugMessage("Is a map process");
-
             list<CFunction*> functions;
             CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(mapsy);
             if (cmapsy) {
-                logger_.logDebugMessage("Is a coalescedcomb process");
-
                 functions = cmapsy->getFunctions();
             }
             else {
                 functions.push_back(mapsy->getFunction());
             }
 
-            // Set new names to "f<process ID>_<function name><counter>"
+            // Set new names to "f<leaf ID>_<function name><counter>"
             list<CFunction*>::iterator func_it;
             int counter;
             for (func_it = functions.begin(), counter = 1;
                  func_it != functions.end(); ++func_it, ++counter) {
                 CFunction* function = *func_it;
-                string new_name = getGlobalProcessFunctionName(
+                string new_name = getGlobalLeafFunctionName(
                     *mapsy->getId(), function->getName()
                     + tools::toString(counter));
-                logger_.logDebugMessage(string("Renaming \"")
-                                        + function->getName() + "\" to \""
-                                        + new_name + "\"");
                 function->setName(new_name);
             }
         }
@@ -338,29 +307,25 @@ void Synthesizer::renamecombFunctions()
 }
 
 void Synthesizer::combineFunctionDuplicates()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     // The mapset below is used to store the unique functions found across the
-    // model. The body is used as key, and the name as body
+    // processnetwork. The body is used as key, and the name as body
     map<string, string> unique_functions;
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->getId()->getString()
-                                + "\"...");
+        logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
+                           + current_leaf->getId()->getString() + "\"...");
 
-        comb* mapsy = dynamic_cast<comb*>(current_process);
+        Map* mapsy = dynamic_cast<Map*>(current_leaf);
         if (mapsy) {
-            logger_.logDebugMessage("Is a map process");
-
             list<CFunction*> functions;
             CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(mapsy);
             if (cmapsy) {
-                logger_.logDebugMessage("Is a coalescedcomb process");
                 functions = cmapsy->getFunctions();
             }
             else {
@@ -368,15 +333,10 @@ void Synthesizer::combineFunctionDuplicates()
             }
 
             // Rename duplicate functions
-            logger_.logDebugMessage("Analyzing function names");
             list<CFunction*>::iterator func_it;
             for (func_it = functions.begin(); func_it != functions.end();
                  ++func_it) {
                 CFunction* function = *func_it;
-
-                logger_.logDebugMessage(string("Checking function \"")
-                                        + function->getName() + "\"");
-
                 pair<map<string, string>::iterator, bool> result =
                     unique_functions.insert(pair<string, string>(
                                                 function->getBody(),
@@ -384,10 +344,11 @@ void Synthesizer::combineFunctionDuplicates()
                 if (!result.second) {
                     string new_name = result.first->second;
                     if (function->getName() != new_name) {
-                        logger_.logDebugMessage(string("Duplicate ")
-                                                + "found. Renaming \""
-                                                + function->getName()
-                                                + "\" to \"" + new_name + "\"");
+                        logger_.logMessage(Logger::DEBUG, string("Duplicate ")
+                                           + "found. Function \""
+                                           + function->getName()
+                                           + "\" renamed to \"" + new_name
+                                           + "\"");
                         function->setName(new_name);
                     }
                 }
@@ -397,43 +358,28 @@ void Synthesizer::combineFunctionDuplicates()
 }
 
 void Synthesizer::generateCoalescedSyWrapperFunctions()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->getId()->getString()
-                                + "\"...");
+        logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
+                           + current_leaf->getId()->getString() + "\"...");
 
-        CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(current_process);
+        CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(current_leaf);
         if (cmapsy) {
-            logger_.logDebugMessage("Is a coalescedcomb process");
-
             list<CFunction*> functions = cmapsy->getFunctions();
             if (functions.size() > 1) {
-                logger_.logDebugMessage(string("Has ")
-                                        + tools::toString(functions.size())
-                                        + " functions. Coalescing...");
-
                 try {
                     CFunction wrapper_function =
                         generateCoalescedSyWrapperFunction(functions);
-                    logger_.logDebugMessage(string("Generated new function \"")
-                                            + wrapper_function.getName()
-                                            + "\"");
-                    logger_.logDebugMessage("Renaming function...");
-                    wrapper_function.setName(getGlobalProcessFunctionName(
+                    wrapper_function.setName(getGlobalLeafFunctionName(
                                                  *cmapsy->getId(),
                                                  wrapper_function.getName()));
-                    logger_.logDebugMessage(string("Renamed to \"")
-                                            + wrapper_function.getName()
-                                            + "\"");
                     cmapsy->insertFunctionFirst(wrapper_function);
-                    logger_.logDebugMessage("Function inserted");
                 }
                 catch (InvalidFormatException& ex) {
                     THROW_EXCEPTION(IllegalStateException,
@@ -447,9 +393,7 @@ void Synthesizer::generateCoalescedSyWrapperFunctions()
 
 CFunction Synthesizer::generateCoalescedSyWrapperFunction(
     list<CFunction*> functions)
-    throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logDebugMessage("Generating function header...");
-
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string new_name = "func_wrapper";
     CDataType new_return_type = *functions.back()->getReturnDataType();
     list<CVariable> new_input_parameters;
@@ -459,8 +403,6 @@ CFunction Synthesizer::generateCoalescedSyWrapperFunction(
         new_input_parameters.push_back(*functions.back()
                                        ->getInputParameters().back());
     }
-
-    logger_.logDebugMessage("Generating function body...");
 
     string new_body("{\n");
     list<CFunction*>::iterator it;
@@ -483,7 +425,7 @@ CFunction Synthesizer::generateCoalescedSyWrapperFunction(
             + destination_variable.getLocalVariableDeclarationString() + ";\n";
         list<CVariable> inputs;
         inputs.push_back(source_variable);
-        new_body += generateProcessFunctionExecutionCode(*it, inputs,
+        new_body += generateLeafFunctionExecutionCode(*it, inputs,
                                                          destination_variable);
         source_variable = destination_variable;
     }
@@ -497,23 +439,22 @@ CFunction Synthesizer::generateCoalescedSyWrapperFunction(
     return CFunction(new_name, new_return_type, new_input_parameters, new_body);
 }
 
-string Synthesizer::generateProcessFunctionDefinitionsCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateLeafFunctionDefinitionsCode()
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string code;
     set<string> unique_function_names;
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->getId()->getString()
-                                + "\"...");
+        logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
+                           + current_leaf->getId()->getString() + "\"...");
 
         list<CFunction*> functions;
-        if (comb* mapsy = dynamic_cast<comb*>(current_process)) {
+        if (Map* mapsy = dynamic_cast<Map*>(current_leaf)) {
             CoalescedMap* cmapsy = dynamic_cast<CoalescedMap*>(mapsy);
             if (cmapsy) {
                 functions = cmapsy->getFunctions();
@@ -521,8 +462,8 @@ string Synthesizer::generateProcessFunctionDefinitionsCode()
             else {
                 functions.push_back(mapsy->getFunction());
             }
-        } else if (comb* zipwithnsy =
-                   dynamic_cast<comb*>(current_process)) {
+        } else if (ZipWithNSY* zipwithnsy =
+                   dynamic_cast<ZipWithNSY*>(current_leaf)) {
             functions.push_back(zipwithnsy->getFunction());
         }
 
@@ -545,113 +486,113 @@ string Synthesizer::generateProcessFunctionDefinitionsCode()
     return code;
 }
 
-string Synthesizer::generateProcessnetworkFunctionPrototypeCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateProcessNetworkFunctionPrototypeCode()
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string code;
-    code += "void executeProcessnetwork("
-        + generateProcessnetworkFunctionParameterListCode()
+    code += "void executeProcessNetwork("
+        + generateProcessNetworkFunctionParameterListCode()
         + ")";
     return code;
 }
 
-string Synthesizer::generateProcessnetworkFunctionDefinitionCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateProcessNetworkFunctionDefinitionCode()
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string code;
-    code += generateProcessnetworkFunctionPrototypeCode() + " {\n";
+    code += generateProcessNetworkFunctionPrototypeCode() + " {\n";
     code += kIndents + "int i; // Can safely be removed if the compiler warns\n"
         + kIndents + "       // about it being unused\n";
     code += generateSignalVariableDeclarationsCode() + "\n";
-    code += generatedelayVariableDeclarationsCode() + "\n";
+    code += generateDelayVariableDeclarationsCode() + "\n";
     code += generateArrayInputOutputsToSignalsAliasingCode() + "\n";
-    code += generateInputsToSignalsfanoutingCode() + "\n";
-    code += kIndents + "// Execute processes\n";
+    code += generateInputsToSignalsCopyingCode() + "\n";
+    code += kIndents + "// Execute leafs\n";
 
-    // First, execute the first step of all delay processes
+    // First, execute the first step of all delay leafs
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        if (delay* delaysy = dynamic_cast<delay*>(current_process)) {
+        if (delay* delaysy = dynamic_cast<delay*>(current_leaf)) {
             try {
-                code += generateProcessExecutionCodeFordelayStep1(delaysy);
+                code += generateLeafExecutionCodeFordelayStep1(delaysy);
             }
-            catch (InvalidModelException& ex) {
-                THROW_EXCEPTION(InvalidModelException, "Error in process \""
-                                + current_process->getId()->getString() + "\": "
+            catch (InvalidProcessNetworkException& ex) {
+                THROW_EXCEPTION(InvalidProcessNetworkException, "Error in leaf \""
+                                + current_leaf->getId()->getString() + "\": "
                                 + ex.getMessage());
             }
         }
     }
 
-    // Then, execute all processes in order, but ignore all delay processes
+    // Then, execute all leafs in order, but ignore all delay leafs
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
         try {
-            code += generateProcessExecutionCode(current_process);
+            code += generateLeafExecutionCode(current_leaf);
         }
-        catch (InvalidModelException& ex) {
-            THROW_EXCEPTION(InvalidModelException, "Error in process \""
-                            + current_process->getId()->getString() + "\": "
+        catch (InvalidProcessNetworkException& ex) {
+            THROW_EXCEPTION(InvalidProcessNetworkException, "Error in leaf \""
+                            + current_leaf->getId()->getString() + "\": "
                             + ex.getMessage());
         }
     }
 
     // After the entire schedule has been executed, execute the second step
-    // of all delay processes
+    // of all delay leafs
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        if (delay* delaysy = dynamic_cast<delay*>(current_process)) {
+        if (delay* delaysy = dynamic_cast<delay*>(current_leaf)) {
             try {
-                code += generateProcessExecutionCodeFordelayStep2(delaysy);
+                code += generateLeafExecutionCodeFordelayStep2(delaysy);
             }
-            catch (InvalidModelException& ex) {
-                THROW_EXCEPTION(InvalidModelException, "Error in process \""
-                                + current_process->getId()->getString() + "\": "
+            catch (InvalidProcessNetworkException& ex) {
+                THROW_EXCEPTION(InvalidProcessNetworkException, "Error in leaf \""
+                                + current_leaf->getId()->getString() + "\": "
                                 + ex.getMessage());
             }
         }
     }
 
     code += "\n";
-    code += generateSignalsToOutputsfanoutingCode() + "\n";
+    code += generateSignalsToOutputsCopyingCode() + "\n";
     code += "\n";
     code += generateSignalVariableCleanupCode();
     code += "}";
     return code;
 }
 
-string Synthesizer::generateProcessnetworkFunctionDescription() 
-    throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateProcessNetworkFunctionDescription() 
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string desc;
     desc += string("/**\n")
-        + " * Executes the model.\n"
+        + " * Executes the processnetwork.\n"
         + " *\n";
 
     // Generate description for the function input parameters
-    list<Process::Port*> inputs = processnetwork_->getInputs();
-    list<Process::Port*>::iterator it;
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    list<Process::Interface*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort(dynamic_cast<Leaf::Port*>(*it));
         CDataType data_type = *signal->getDataType();
-        string param_name = kProcessnetworkInputParameterPrefix + tools::toString(id);
-        string process_name =
+        string param_name = kProcessNetworkInputParameterPrefix + tools::toString(id);
+        string leaf_name =
             signal->getInPort()->getProcess()->getId()->getString();
         desc += string(" * @param ") + param_name + "\n";
-        desc += string(" *        Input to process \"") + process_name
+        desc += string(" *        Input to leaf \"") + leaf_name
             + "\".\n";
         if (data_type.isArray()) {
             desc += string(" *        Expects an array of size ")
@@ -660,15 +601,15 @@ string Synthesizer::generateProcessnetworkFunctionDescription()
     }
 
     // Generate description for the function output parameters
-    list<Process::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Interface*> outputs = processnetwork_->getOutputs();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
+        Signal* signal = getSignalByOutPort(dynamic_cast<Leaf::Port*>(*it));
         CDataType data_type = *signal->getDataType();
-        string param_name = kProcessnetworkOutputParameterPrefix + tools::toString(id);
-        string process_name =
+        string param_name = kProcessNetworkOutputParameterPrefix + tools::toString(id);
+        string leaf_name =
             signal->getOutPort()->getProcess()->getId()->getString();
         desc += string(" * @param ") + param_name + "\n";
-        desc += string(" *        Output from process \"") + process_name
+        desc += string(" *        Output from leaf \"") + leaf_name
             + "\".\n";
         if (data_type.isArray()) {
             desc += string(" *        Expects an array of size ")
@@ -680,32 +621,32 @@ string Synthesizer::generateProcessnetworkFunctionDescription()
     return desc;
 }
 
-string Synthesizer::generateProcessnetworkFunctionParameterListCode()
-    throw(InvalidModelException, RuntimeException) {
+string Synthesizer::generateProcessNetworkFunctionParameterListCode()
+    throw(InvalidProcessNetworkException, RuntimeException) {
     string code;
 
     // Generate input parameters
     bool has_input_parameter = false;
-    list<Process::Port*> inputs = processnetwork_->getInputs();
-    list<Process::Port*>::iterator it;
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    list<Process::Interface*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
         if (it != inputs.begin()) code += ", ";
-        CDataType data_type = *getSignalByInPort(*it)->getDataType();
+        CDataType data_type = *getSignalByInPort(dynamic_cast<Leaf::Port*>(*it))->getDataType();
         data_type.setIsConst(true);
-        CVariable parameter(kProcessnetworkInputParameterPrefix + tools::toString(id),
+        CVariable parameter(kProcessNetworkInputParameterPrefix + tools::toString(id),
                             data_type);
         code += parameter.getInputParameterDeclarationString();
         has_input_parameter = true;
     }
 
     // Generate output parameters
-    list<Process::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Interface*> outputs = processnetwork_->getOutputs();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
         if (has_input_parameter || it != outputs.begin()) code += ", ";
-        CDataType data_type = *getSignalByOutPort(*it)->getDataType();
+        CDataType data_type = *getSignalByOutPort(dynamic_cast<Leaf::Port*>(*it))->getDataType();
         if (!data_type.isArray()) data_type.setIsPointer(true);
-        CVariable parameter(kProcessnetworkOutputParameterPrefix + tools::toString(id),
+        CVariable parameter(kProcessNetworkOutputParameterPrefix + tools::toString(id),
                             data_type);
         code += parameter.getInputParameterDeclarationString();
     }
@@ -713,106 +654,106 @@ string Synthesizer::generateProcessnetworkFunctionParameterListCode()
     return code;
 }
 
-string Synthesizer::generateInputsToSignalsfanoutingCode()
-    throw(InvalidModelException, RuntimeException) {
+string Synthesizer::generateInputsToSignalsCopyingCode()
+    throw(InvalidProcessNetworkException, RuntimeException) {
     string code;
 
-    list<Process::Port*> inputs = processnetwork_->getInputs();
-    list<Process::Port*>::iterator it;
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    list<Process::Interface*>::iterator it;
     int id;
     bool at_least_one = false;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByInPort(*it);
-        logger_.logDebugMessage(string("Analyzing signal ")
-                                + signal->toString() + "...");
+        Signal* signal = getSignalByInPort(dynamic_cast<Leaf::Port*>(*it));
+        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
+                           + signal->toString() + "...");
 
         CDataType data_type = *signal->getDataType();
         if (data_type.isArray()) continue;
         at_least_one = true;
         CVariable input_parameter(
-            kProcessnetworkInputParameterPrefix + tools::toString(id), data_type);
-        code += generateVariablefanoutingCode(signal->getVariable(),
+            kProcessNetworkInputParameterPrefix + tools::toString(id), data_type);
+        code += generateVariableCopyingCode(signal->getVariable(),
                                             input_parameter, false);
     }
 
     if (at_least_one) {
-        code = kIndents + "// fanout model inputs to signal variables\n" + code;
+        code = kIndents + "// Copy processnetwork inputs to signal variables\n" + code;
     }
 
     return code;
 }
 
-string Synthesizer::generateSignalsToOutputsfanoutingCode()
-    throw(InvalidModelException, RuntimeException) {
+string Synthesizer::generateSignalsToOutputsCopyingCode()
+    throw(InvalidProcessNetworkException, RuntimeException) {
     string code;
 
-    list<Process::Port*> outputs = processnetwork_->getOutputs();
-    list<Process::Port*>::iterator it;
+    list<Process::Interface*> outputs = processnetwork_->getOutputs();
+    list<Process::Interface*>::iterator it;
     int id;
     bool at_least_one = false;
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
-        logger_.logDebugMessage(string("Analyzing signal ")
-                                + signal->toString() + "...");
+        Signal* signal = getSignalByOutPort(dynamic_cast<Leaf::Port*>(*it));
+        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
+                           + signal->toString() + "...");
 
         CDataType data_type = *signal->getDataType();
         if (data_type.isArray()) continue;
         at_least_one = true;
         data_type.setIsPointer(true);
         CVariable output_parameter(
-            kProcessnetworkOutputParameterPrefix + tools::toString(id), data_type);
-        code += generateVariablefanoutingCode(output_parameter,
+            kProcessNetworkOutputParameterPrefix + tools::toString(id), data_type);
+        code += generateVariableCopyingCode(output_parameter,
                                             signal->getVariable(), false);
     }
 
     if (at_least_one) {
-        code = kIndents + "// fanout signal variables to model outputs\n" + code;
+        code = kIndents + "// Copy signal variables to processnetwork outputs\n" + code;
     }
 
     return code;
 }
 
 string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
-    throw(InvalidModelException, RuntimeException) {
+    throw(InvalidProcessNetworkException, RuntimeException) {
     string code;
     bool at_least_one = false;
 
     // Iterate over the input parameters
-    list<Process::Port*> inputs = processnetwork_->getInputs();
-    list<Process::Port*>::iterator it;
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    list<Process::Interface*>::iterator it;
     int id;
     for (it = inputs.begin(), id = 1; it != inputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByInPort(*it);
-        logger_.logDebugMessage(string("Analyzing signal ")
-                                + signal->toString() + "...");
+        Signal* signal = getSignalByInPort(dynamic_cast<Leaf::Port*>(*it));
+        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
+                           + signal->toString() + "...");
 
         CDataType data_type = *signal->getDataType();
         if (!data_type.isArray()) continue;
         at_least_one = true;
         CVariable input_parameter(
-            kProcessnetworkInputParameterPrefix + tools::toString(id), data_type);
-        code += generateVariablefanoutingCode(signal->getVariable(),
+            kProcessNetworkInputParameterPrefix + tools::toString(id), data_type);
+        code += generateVariableCopyingCode(signal->getVariable(),
                                             input_parameter, false);
     }
 
     // Iterate over the output parameters
-    list<Process::Port*> outputs = processnetwork_->getOutputs();
+    list<Process::Interface*> outputs = processnetwork_->getOutputs();
     for (it = outputs.begin(), id = 1; it != outputs.end(); ++it, ++id) {
-        Signal* signal = getSignalByOutPort(*it);
-        logger_.logDebugMessage(string("Analyzing signal ")
-                                + signal->toString() + "...");
+        Signal* signal = getSignalByOutPort(dynamic_cast<Leaf::Port*>(*it));
+        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
+                           + signal->toString() + "...");
 
         CDataType data_type = *signal->getDataType();
         if (!data_type.isArray()) continue;
         at_least_one = true;
         CVariable output_parameter(
-            kProcessnetworkOutputParameterPrefix + tools::toString(id), data_type);
-        code += generateVariablefanoutingCode(signal->getVariable(),
+            kProcessNetworkOutputParameterPrefix + tools::toString(id), data_type);
+        code += generateVariableCopyingCode(signal->getVariable(),
                                             output_parameter, false);
     }
 
     if (at_least_one) {
-        code = kIndents + "// Alias signal array variables with model "
+        code = kIndents + "// Alias signal array variables with processnetwork "
             "input/output arrays\n" + code;
     }
 
@@ -820,162 +761,139 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
 }
 
 void Synthesizer::createSignals()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     signals_.clear();
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->getId()->getString()
-                                + "\"...");
+        logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
+                           + current_leaf->getId()->getString() + "\"...");
 
-        list<Process::Port*> ports = current_process->getInPorts();
-        list<Process::Port*>::iterator port_it;
+        list<Leaf::Port*> ports = current_leaf->getInPorts();
+        list<Leaf::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
             getSignalByInPort(*port_it);
         }
-        ports = current_process->getOutPorts();
+        ports = current_leaf->getOutPorts();
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
             getSignalByOutPort(*port_it);
         }
     }
 
-    logger_.logInfoMessage(string("Created ")
-                           + tools::toString(signals_.size()) + " signal(s)");
+    logger_.logMessage(Logger::INFO, string("Created ")
+                       + tools::toString(signals_.size()) + " signal(s)");
 }
 
-void Synthesizer::createdelayVariables() throw(IOException, RuntimeException) {
+void Synthesizer::createDelayVariables() throw(IOException, RuntimeException) {
     delay_variables_.clear();
 
     list<Id>::iterator it;
     int counter;
     for (it = schedule_.begin(), counter = 1; it != schedule_.end(); ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->getId()->getString()
-                                + "\"...");
+        logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
+                           + current_leaf->getId()->getString() + "\"...");
 
-        delay* delay_process = dynamic_cast<delay*>(current_process);
-        if (delay_process) {
+        delay* delay_leaf = dynamic_cast<delay*>(current_leaf);
+        if (delay_leaf) {
             string name = string("v_delay_element") + tools::toString(counter);
             ++counter;
             CDataType data_type =
-                *getSignalByInPort(delay_process->getInPorts().front())
+                *getSignalByInPort(delay_leaf->getInPorts().front())
                 ->getDataType();
             CVariable variable(name, data_type);
             pair<CVariable, string> value(variable,
-                                          delay_process->getInitialValue());
-            pair< delay*, pair<CVariable, string> > key_value(delay_process,
+                                          delay_leaf->getInitialValue());
+            pair< delay*, pair<CVariable, string> > key_value(delay_leaf,
                                                                 value);
             pair<map< delay*, pair<CVariable, string> >::iterator, bool>
                 result = delay_variables_.insert(key_value);
             if (!result.second) {
-                THROW_EXCEPTION(IllegalStateException, string("delay variable ")
+                THROW_EXCEPTION(IllegalStateException, string("Delay variable ")
                                 + "\" " + name + "\" already exist");
             }
         }
     }
 
-    logger_.logInfoMessage(string("Created ")
-                           + tools::toString(delay_variables_.size())
-                           + " delay variable(s)");
+    logger_.logMessage(Logger::INFO, string("Created ")
+                       + tools::toString(delay_variables_.size())
+                       + " delay variable(s)");
 }
 
 void Synthesizer::setInputArraySignalVariableDataTypesAsConst()
     throw(IOException, RuntimeException) {
-    list<Process::Port*> inputs = processnetwork_->getInputs();
-    for (list<Process::Port*>::iterator it = inputs.begin(); it != inputs.end();
+    list<Process::Interface*> inputs = processnetwork_->getInputs();
+    for (list<Process::Interface*>::iterator it = inputs.begin(); it != inputs.end();
          ++it) {
-        Signal* signal = getSignalByInPort(*it);
+        Signal* signal = getSignalByInPort(dynamic_cast<Leaf::Port*>(*it));
         CDataType data_type = *signal->getDataType();
         if (!data_type.isArray()) continue;
-        logger_.logDebugMessage(string("Modifying data type for ")
-                                + "signal " + signal->toString() + "...");
+        logger_.logMessage(Logger::DEBUG, string("Modifying data type for ")
+                           + "signal " + signal->toString() + "...");
         data_type.setIsConst(true);
         signal->setDataType(data_type);
     }
 }
 
 void Synthesizer::discoverSignalDataTypes()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     for (set<Signal*>::iterator it = signals_.begin(); it != signals_.end();
          ++it) {
-        Signal* signal = *it;
-
-        logger_.logDebugMessage(string("Discovering signal data type for ")
-                                + "signal " + signal->toString());
         try {
-            logger_.logDebugMessage("Trying to searching in backward "
-                                    "direction...");
-            discoverSignalDataTypeBackwardSearch(signal);
+            discoverSignalDataTypeBackwardSearch(*it);
         }
-        catch (InvalidModelException&) {
+        catch (InvalidProcessNetworkException&) {
             // Data type was not found; do second attempt with forward search
-            logger_.logDebugMessage(string("Backward direction failed for ")
-                                    + "signal " + signal->toString());
-            logger_.logDebugMessage("Trying to searching in forward "
-                                    "direction...");
-            discoverSignalDataTypeForwardSearch(signal);
+            discoverSignalDataTypeForwardSearch(*it);
         }
     }
 }
 
 CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
-throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logDebugMessage(string("Searching data type for signal ")
-                            + signal->toString() + "...");
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    logger_.logMessage(Logger::DEBUG, string("Searching data type for signal ")
+                       + signal->toString() + "...");
 
     if (signal->hasDataType()) {
-        logger_.logDebugMessage(string("Signal already had data type \"")
-                                + signal->getVariable().getDataType()
-                                ->toString() + "\"");
+        logger_.logMessage(Logger::DEBUG, string("Found data type \"")
+                           + signal->getVariable().getDataType()->toString()
+                           + "\"");
         return *signal->getVariable().getDataType();
     }
 
     if (!signal->getInPort()) {
-        logger_.logDebugMessage("Reached end of network");
-        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
+        logger_.logMessage(Logger::DEBUG, "Reached end of network");
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port process is a comb or comb, and if so, get the
+    // Check if the in port leaf is a Map or ZipWithN, and if so, get the
     // data type from the function argument's corresponding input parameter;
     // if not, then the data type of a neighbouring signal is used
     CDataType data_type;
-    Process* process = signal->getInPort()->getProcess();
-    if (comb* mapsy = dynamic_cast<comb*>(process)) {
-        logger_.logDebugMessage(string("Found map process \"")
-                                + mapsy->getId()->getString() + "\"");
+    Leaf* leaf = dynamic_cast<Leaf*>(signal->getInPort()->getProcess());
+    if (Map* mapsy = dynamic_cast<Map*>(leaf)) {
         data_type =
             *mapsy->getFunction()->getInputParameters().front()->getDataType();
-        logger_.logDebugMessage(string("Found data type \"")
-                                + data_type.toString() + "\"");
-        if (data_type.isConst()) {
-            data_type.setIsConst(false);
-            logger_.logDebugMessage(string("Removed \"const\". Data type is ")
-                                    + "now \"" + data_type.toString() + "\"");
-        }
+        data_type.setIsConst(false);
     }
-    else if (comb* zipwithnsy = dynamic_cast<comb*>(process)) {
-        logger_.logDebugMessage(string("Found zipWithN process \"")
-                                + zipwithnsy->getId()->getString() + "\"");
-
-        Process::Port* sought_port = signal->getInPort();
-        list<Process::Port*> in_ports = zipwithnsy->getInPorts();
-        list<Process::Port*>::iterator port_it;
+    else if (ZipWithNSY* zipwithnsy = dynamic_cast<ZipWithNSY*>(leaf)) {
+        Leaf::Port* sought_port = signal->getInPort();
+        list<Leaf::Port*> in_ports = zipwithnsy->getInPorts();
+        list<Leaf::Port*>::iterator port_it;
         list<CVariable*> input_parameters =
             zipwithnsy->getFunction()->getInputParameters();
         list<CVariable*>::iterator param_it;
         if (in_ports.size() > input_parameters.size()) {
-            THROW_EXCEPTION(IllegalStateException, string("In process \"")
+            THROW_EXCEPTION(IllegalStateException, string("In leaf \"")
                             + zipwithnsy->getId()->getString() + "\": "
                             + "Number of in ports is greater than the number "
                             + "of input parameters");
@@ -993,95 +911,75 @@ throw(InvalidModelException, IOException, RuntimeException) {
         if (!port_found) {
             THROW_EXCEPTION(IllegalStateException, string("Port \"")
                             + sought_port->toString() + "\" was not found in "
-                            + "process \""
+                            + "leaf \""
                             + zipwithnsy->getId()->getString() + "\"");
-        }
-
-        logger_.logDebugMessage(string("Found data type \"")
-                                + data_type.toString() + "\"");
-        if (data_type.isConst()) {
-            data_type.setIsConst(false);
-            logger_.logDebugMessage(string("Removed \"const\". Data type is ")
-                                    + "now \"" + data_type.toString() + "\"");
         }
     }
     else {
         bool data_type_found = false;
-        list<Process::Port*> out_ports = process->getOutPorts();
-        for (list<Process::Port*>::iterator it = out_ports.begin(); 
+        list<Leaf::Port*> out_ports = leaf->getOutPorts();
+        for (list<Leaf::Port*>::iterator it = out_ports.begin(); 
              it != out_ports.end(); ++it) {
             Signal* next_signal = getSignalByOutPort(*it);
             try {
                 data_type = discoverSignalDataTypeForwardSearch(next_signal);
                 data_type_found = true;
             }
-            catch (InvalidModelException&) {
+            catch (InvalidProcessNetworkException&) {
                 // Ignore exception as it only indicates that no data type was
                 // found for next signal
             }
         }
         if (!data_type_found) {
-            THROW_EXCEPTION(InvalidModelException, string("No data type for ")
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
                             + "signal " + signal->toString()
                             + " could be found");
         }
 
-        if (dynamic_cast<unzipx*>(process)) {
-            logger_.logDebugMessage("Is an unzipx process");
-            logger_.logDebugMessage("Setting data type to \"array\"");
+        if (dynamic_cast<unzipx*>(leaf)) {
             data_type.setIsArray(true);
         }
     }
 
-    // If this process is a zipx and the data type is an array, then we cannot
+    // If this leaf is a zipx and the data type is an array, then we cannot
     // be sure of its array size at this point and therefore must make it
     // unknown
-    if (dynamic_cast<zipx*>(process) && data_type.isArray()) {
-        logger_.logDebugMessage("Is a zipx process");
-        logger_.logDebugMessage("Resetting array size");
+    if (dynamic_cast<zipx*>(leaf) && data_type.isArray()) {
         data_type.setIsArray(true);
     }
 
     signal->setDataType(data_type);
-    logger_.logDebugMessage(string("Found data type \"") + data_type.toString() 
-                            + "\" for signal " + signal->toString());
+    logger_.logMessage(Logger::DEBUG, string("Found data type \"")
+                       + data_type.toString() + "\"");
     return data_type;
 }
 
 CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
-throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logDebugMessage(string("Searching data type for signal ")
-                            + signal->toString() + "...");
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    logger_.logMessage(Logger::DEBUG, string("Searching data type for signal ")
+                       + signal->toString() + "...");
 
     if (signal->hasDataType()) {
-        logger_.logDebugMessage(string("Signal already had data type \"")
-                                + signal->getVariable().getDataType()
-                                ->toString() + "\"");
+        logger_.logMessage(Logger::DEBUG, string("Found data type \"")
+                           + signal->getVariable().getDataType()->toString()
+                           + "\"");
         return *signal->getVariable().getDataType();
     }
 
     if (!signal->getOutPort()) {
-        logger_.logDebugMessage("Reached end of network");
-        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
+        logger_.logMessage(Logger::DEBUG, "Reached end of network");
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the out port process is a comb or comb, and if so, get
+    // Check if the out port leaf is a Map or ZipWithNSY, and if so, get
     // the data type of either its function argument's return value or its
     // function argument's last input parameter; if not, then the data type of
     // a neighbouring signal is used
     CDataType data_type;
-    Process* process = signal->getOutPort()->getProcess();
-    if (comb* mapsy = dynamic_cast<comb*>(process)) {
-        logger_.logDebugMessage(string("Found map process \"")
-                                + mapsy->getId()->getString() + "\"");
-        logger_.logDebugMessage(string("Checking number of function ")
-                                + "arguments, expecting 1 or 2");
-
+    Leaf* leaf = dynamic_cast<Leaf*>(signal->getOutPort()->getProcess());
+    if (Map* mapsy = dynamic_cast<Map*>(leaf)) {
         CFunction* function = mapsy->getFunction();
-        logger_.logDebugMessage(string("Found ")
-                                + tools::toString(function
-                                                  ->getNumInputParameters()));
         if (function->getNumInputParameters() == 1) {
             data_type = *mapsy->getFunction()->getReturnDataType();
         }
@@ -1091,133 +989,97 @@ throw(InvalidModelException, IOException, RuntimeException) {
         }
         else {
             THROW_EXCEPTION(IllegalStateException, string("Function argument ")
-                            + "of comb process \""
+                            + "of Map leaf \""
                             + mapsy->getId()->getString() + "\" has too many "
                             + "input parameters");
         }
     }
-    else if (comb* zipwithnsy = dynamic_cast<comb*>(process)) {
-        logger_.logDebugMessage(string("Found zipWithN process \"")
-                                + zipwithnsy->getId()->getString() + "\"");
-        logger_.logDebugMessage(string("Checking number of function ")
-                                + "arguments, expecting "
-                                + tools::toString(zipwithnsy->getNumInPorts())
-                                + " or "
-                                + tools::toString(zipwithnsy->getNumInPorts()
-                                                  + 1));
-
+    else if (ZipWithNSY* zipwithnsy = dynamic_cast<ZipWithNSY*>(leaf)) {
         CFunction* function = zipwithnsy->getFunction();
-        logger_.logDebugMessage(string("Found ")
-                                + tools::toString(function
-                                                  ->getNumInputParameters()));
         if (function->getNumInputParameters() == zipwithnsy->getNumInPorts()) {
             data_type = *zipwithnsy->getFunction()->getReturnDataType();
         }
-        else if (function->getNumInputParameters()
-                 == zipwithnsy->getNumInPorts() + 1) {
+        else if (function->getNumInputParameters() + 1 
+                 == zipwithnsy->getNumInPorts()) {
             data_type = *zipwithnsy->getFunction()->getInputParameters().back()
                 ->getDataType();
         }
         else {
             THROW_EXCEPTION(IllegalStateException, string("Function argument ")
-                            + "of comb process \""
+                            + "of ZipWithNSY leaf \""
                             + zipwithnsy->getId()->getString() + "\" has an "
                             + "unexpected number of input parameters");
         }
     }
     else {
         bool data_type_found = false;
-        list<Process::Port*> in_ports = process->getInPorts();
-        for (list<Process::Port*>::iterator it = in_ports.begin(); 
+        list<Leaf::Port*> in_ports = leaf->getInPorts();
+        for (list<Leaf::Port*>::iterator it = in_ports.begin(); 
              it != in_ports.end(); ++it) {
             Signal* prev_signal = getSignalByInPort(*it);
             try {
                 data_type = discoverSignalDataTypeBackwardSearch(prev_signal);
                 data_type_found = true;
             }
-            catch (InvalidModelException&) {
+            catch (InvalidProcessNetworkException&) {
                 // Ignore exception as it only indicates that no data type was
                 // found for previous signal
             }
         }
         if (!data_type_found) {
-            THROW_EXCEPTION(InvalidModelException, string("No data type for ")
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
                             + "signal " + signal->toString()
                             + " could be found");
         }
 
-        if (dynamic_cast<zipx*>(process)) {
-            logger_.logDebugMessage("Is a zipx process");
-            logger_.logDebugMessage("Setting data type to \"array\"");
+        if (dynamic_cast<zipx*>(leaf)) {
             data_type.setIsArray(true);
         }
     }
 
-    // If this process is an unzipx and the data type is an array, then we
+    // If this leaf is an unzipx and the data type is an array, then we
     // cannot be sure of its array size at this point and therefore must make it
     // unknown
-    if (dynamic_cast<unzipx*>(process) && data_type.isArray()) {
-        logger_.logDebugMessage("Is an unzipx process");
-        logger_.logDebugMessage("Resetting array size");
+    if (dynamic_cast<unzipx*>(leaf) && data_type.isArray()) {
         data_type.setIsArray(true);
     }
 
     signal->setDataType(data_type);
-    logger_.logDebugMessage(string("Found data type \"") + data_type.toString() 
-                            + "\" for signal " + signal->toString());
+    logger_.logMessage(Logger::DEBUG, string("Found data type \"")
+                       + data_type.toString() + "\"");
     return data_type;
 }
 
 void Synthesizer::propagateArraySizesBetweenSignals()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->getId()->getString() + "\"");
 
-        list<Process::Port*> ports = current_process->getInPorts();
-        list<Process::Port*>::iterator port_it;
+        list<Leaf::Port*> ports = current_leaf->getInPorts();
+        list<Leaf::Port*>::iterator port_it;
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
             Signal* signal = getSignalByInPort(*port_it);
-
-            logger_.logDebugMessage(string("Discovering array size for ")
-                                    + "signal " + signal->toString());
             try {
-                logger_.logDebugMessage("Trying to searching in backward "
-                                        "direction...");
                 discoverSignalArraySizeBackwardSearch(signal);
             }
-            catch (InvalidModelException&) {
+            catch (InvalidProcessNetworkException&) {
                 // Do second attempt with forward search
-                logger_.logDebugMessage(string("Backward direction failed for ")
-                                        + "signal " + signal->toString());
-                logger_.logDebugMessage("Trying to searching in forward "
-                                        "direction...");
                 discoverSignalArraySizeForwardSearch(signal);
             }
         }
-        ports = current_process->getOutPorts();
+        ports = current_leaf->getOutPorts();
         for (port_it = ports.begin(); port_it != ports.end(); ++port_it) {
             Signal* signal = getSignalByOutPort(*port_it);
-
-            logger_.logDebugMessage(string("Discovering array size for ")
-                                    + "signal " + signal->toString());
             try {
-                logger_.logDebugMessage("Trying to searching in forward "
-                                        "direction...");
                 discoverSignalArraySizeForwardSearch(signal);
             }
-            catch (InvalidModelException&) {
+            catch (InvalidProcessNetworkException&) {
                 // Do second attempt with backward search
-                logger_.logDebugMessage(string("Forward direction failed for ")
-                                        + "signal " + signal->toString());
-                logger_.logDebugMessage("Trying to searching in backward "
-                                        "direction...");
                 discoverSignalArraySizeBackwardSearch(signal);
             }
         }
@@ -1225,50 +1087,42 @@ void Synthesizer::propagateArraySizesBetweenSignals()
 }
 
 size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
-throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logDebugMessage(string("Searching array size for signal ")
-                            + signal->toString() + "...");
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    logger_.logMessage(Logger::DEBUG, string("Searching array size for signal ")
+                       + signal->toString() + "...");
 
     CDataType data_type = *signal->getVariable().getDataType();
     if (data_type.hasArraySize()) {
-        logger_.logDebugMessage(string("Signal already had array size ")
-                                + tools::toString(data_type.getArraySize()));
+        logger_.logMessage(Logger::DEBUG, string("Found array size ")
+                           + tools::toString(data_type.getArraySize()));
         return data_type.getArraySize();
     }
 
     if (!signal->getInPort()) {
-        logger_.logDebugMessage("Reached end of network");        
-        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
+        logger_.logMessage(Logger::DEBUG, "Reached end of network");        
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("No array size for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port process is an unzipx, and if so, get its array
+    // Check if the in port leaf is an unzipx, and if so, get its array
     // size by summing up the array sizes of its out port signals; if it is not
     // an unzipx, get the array size from a neighbouring signal
     size_t array_size = 0;
-    Process* process = signal->getInPort()->getProcess();
-    list<Process::Port*> out_ports = process->getOutPorts();
+    Leaf* leaf = dynamic_cast<Leaf*>(signal->getInPort()->getProcess());
+    list<Leaf::Port*> out_ports = leaf->getOutPorts();
     if (out_ports.size() == 0) {
-        THROW_EXCEPTION(IllegalStateException, string("Process \"")
-                        + process->getId()->getString() + "\" does not "
+        THROW_EXCEPTION(IllegalStateException, string("Leaf \"")
+                        + leaf->getId()->getString() + "\" does not "
                         "have any out ports");
     }
     try {
-        if (dynamic_cast<unzipx*>(process)) {
-            logger_.logDebugMessage(string("Found unzipx process \"")
-                                    + process->getId()->getString()
-                                    + "\". Summing "
-                                    "up array sizes from its out ports...");
-            list<Process::Port*>::iterator it;
+        if (dynamic_cast<unzipx*>(leaf)) {
+            logger_.logMessage(Logger::DEBUG, "Found unzipx leaf. Summing "
+                               "up array sizes from its out ports...");
+            list<Leaf::Port*>::iterator it;
             for (it = out_ports.begin(); it != out_ports.end(); ++it) {
                 Signal* next_signal = getSignalByOutPort(*it);
-                size_t array_size_for_port =
-                    discoverSignalArraySizeForwardSearch(next_signal);
-                logger_.logDebugMessage(string("Found array size ")
-                                        + tools::toString(array_size_for_port)
-                                        + " for out port \""
-                                        + (*it)->toString() + "\"");
-                array_size += array_size_for_port;
+                array_size += discoverSignalArraySizeForwardSearch(next_signal);
             }
         }
         else {
@@ -1276,65 +1130,57 @@ throw(InvalidModelException, IOException, RuntimeException) {
             array_size = discoverSignalArraySizeForwardSearch(next_signal);
         }
     }
-    catch (InvalidModelException&) {
+    catch (InvalidProcessNetworkException&) {
         // Throw new exception but for this signal
-        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
                         + "signal " + signal->toString()
                         + " could be found");
     }
     data_type.setArraySize(array_size);
     signal->setDataType(data_type);
-    logger_.logDebugMessage(string("Signal ") + signal->toString() + " "
-                            + "now has data type \"" + data_type.toString()
-                            + "\"");
+    logger_.logMessage(Logger::DEBUG, string("Found array size ")
+                       + tools::toString(data_type.getArraySize()));
     return array_size;
 }
 
 size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
-throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logDebugMessage(string("Searching array size for signal ")
-                            + signal->toString() + "...");
+        throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    logger_.logMessage(Logger::DEBUG, string("Searching array size for signal ")
+                       + signal->toString() + "...");
 
     CDataType data_type = *signal->getVariable().getDataType();
     if (data_type.hasArraySize()) {
-        logger_.logDebugMessage(string("Found array size ")
-                                + tools::toString(data_type.getArraySize()));
+        logger_.logMessage(Logger::DEBUG, string("Found array size ")
+                           + tools::toString(data_type.getArraySize()));
         return data_type.getArraySize();
     }
 
     if (!signal->getOutPort()) {
-        logger_.logDebugMessage("Reached end of network");        
-        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
+        logger_.logMessage(Logger::DEBUG, "Reached end of network");        
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("No array size for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port process is a zipx, and if so, get its array
+    // Check if the in port leaf is a zipx, and if so, get its array
     // size by summing up the array sizes of its in port signals; if it is not
     // a zipx, get the array size from a neighbouring signal
     size_t array_size = 0;
-    Process* process = signal->getOutPort()->getProcess();
-    list<Process::Port*> in_ports = process->getInPorts();
+    Leaf* leaf = dynamic_cast<Leaf*>(signal->getOutPort()->getProcess());
+    list<Leaf::Port*> in_ports = leaf->getInPorts();
     if (in_ports.size() == 0) {
-        THROW_EXCEPTION(IllegalStateException, string("Process \"")
-                        + process->getId()->getString() + "\" does not "
+        THROW_EXCEPTION(IllegalStateException, string("Leaf \"")
+                        + leaf->getId()->getString() + "\" does not "
                         "have any in ports");
     }
     try {
-        if (dynamic_cast<zipx*>(process)) {
-            logger_.logDebugMessage(string("Found zipx process \"")
-                                    + process->getId()->getString()
-                                    + "\". Summing "
-                                    + "up array sizes from its in ports...");
-            list<Process::Port*>::iterator it;
+        if (dynamic_cast<zipx*>(leaf)) {
+            logger_.logMessage(Logger::DEBUG, "Found zipx leaf. Summing "
+                               "up array sizes from its in ports...");
+            list<Leaf::Port*>::iterator it;
             for (it = in_ports.begin(); it != in_ports.end(); ++it) {
                 Signal* next_signal = getSignalByInPort(*it);
-                size_t array_size_for_port =
+                array_size +=
                     discoverSignalArraySizeBackwardSearch(next_signal);
-                logger_.logDebugMessage(string("Found array size ")
-                                        + tools::toString(array_size_for_port)
-                                        + " for in port \""
-                                        + (*it)->toString() + "\"");
-                array_size += array_size_for_port;
             }
         }
         else {
@@ -1342,38 +1188,37 @@ throw(InvalidModelException, IOException, RuntimeException) {
             array_size = discoverSignalArraySizeBackwardSearch(next_signal);
         }
     }
-    catch (InvalidModelException&) {
+    catch (InvalidProcessNetworkException&) {
         // Throw new exception but for this signal
-        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
                         + "signal " + signal->toString()
                         + " could be found");
     }
     data_type.setArraySize(array_size);
     signal->setDataType(data_type);
-    logger_.logDebugMessage(string("Signal ") + signal->toString() + " "
-                            + "now has data type \"" + data_type.toString()
-                            + "\"");
+    logger_.logMessage(Logger::DEBUG, string("Found array size ")
+                       + tools::toString(data_type.getArraySize()));
     return array_size;
 }
 
-void Synthesizer::propagateSignalArraySizesToProcessFunctions()
+void Synthesizer::propagateSignalArraySizesToLeafFunctions()
     throw(IOException, RuntimeException) {
     // @todo implement
-    logger_.logWarningMessage("Signal-to-function array size "
-                              "propagation not implemented");
+    logger_.logMessage(Logger::WARNING, "Signal-to-function array size "
+                       "propagation not implemented");
 }
 
 string Synthesizer::generateSignalVariableDeclarationsCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     try {
         string code;
         code += kIndents + "// Declare signal variables\n";
         set<Signal*>::iterator it;
         for (it = signals_.begin(); it != signals_.end(); ++it) {
             Signal* signal = *it;
-            logger_.logDebugMessage(string("Generating variable ")
-                                    + "declaration for signal "
-                                    + signal->toString() + "...");
+            logger_.logMessage(Logger::DEBUG, string("Generating variable ")
+                               + "declaration for signal "
+                               + signal->toString() + "...");
 
             code += kIndents;
             if (signal->getVariable().getDataType()->isArray()) {
@@ -1395,12 +1240,12 @@ string Synthesizer::generateSignalVariableDeclarationsCode()
         return code;
     }
     catch (UnknownArraySizeException& ex) {
-        THROW_EXCEPTION(InvalidModelException, ex.getMessage());
+        THROW_EXCEPTION(InvalidProcessNetworkException, ex.getMessage());
     }
 }
 
-string Synthesizer::generatedelayVariableDeclarationsCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateDelayVariableDeclarationsCode()
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     try {
         string code;
         if (delay_variables_.size() > 0) {
@@ -1420,24 +1265,24 @@ string Synthesizer::generatedelayVariableDeclarationsCode()
         return code;
     }
     catch (UnknownArraySizeException& ex) {
-        THROW_EXCEPTION(InvalidModelException, ex.getMessage());
+        THROW_EXCEPTION(InvalidProcessNetworkException, ex.getMessage());
     }
 }
 
-pair<CVariable, string> Synthesizer::getdelayVariable(delay* process)
+pair<CVariable, string> Synthesizer::getDelayVariable(delay* leaf)
     throw(InvalidArgumentException, RuntimeException) {
-    if (!process) {
-        THROW_EXCEPTION(InvalidArgumentException, "process must not be NULL");
+    if (!leaf) {
+        THROW_EXCEPTION(InvalidArgumentException, "leaf must not be NULL");
     }
 
-    map< delay*, pair<CVariable, string> >::iterator it =
-        delay_variables_.find(process);
+    map< delay*, pair<CVariable, string> >::iterator it = 
+        delay_variables_.find(leaf);
     if (it != delay_variables_.end()) {
         return it->second;
     }
     else {
-        THROW_EXCEPTION(IllegalStateException, string("delay variable for ")
-                        + "process \"" + process->getId()->getString()
+        THROW_EXCEPTION(IllegalStateException, string("Delay variable for ")
+                        + "leaf \"" + leaf->getId()->getString()
                         + "\" not found");
     }
 }
@@ -1449,8 +1294,8 @@ string Synthesizer::generateSignalVariableCleanupCode()
     bool at_least_one = false;
     for (it = signals_.begin(); it != signals_.end(); ++it) {
         Signal* signal = *it;
-        logger_.logDebugMessage(string("Analyzing signal ") + signal->toString()
-                                + "...");
+        logger_.logMessage(Logger::DEBUG, string("Analyzing signal ")
+                           + signal->toString() + "...");
 
         if (dynamicallyAllocateMemoryForSignalVariable(signal)) {
             at_least_one = true;
@@ -1472,55 +1317,54 @@ string Synthesizer::scheduleToString() const throw() {
     return str;
 }
         
-string Synthesizer::generateProcessExecutionCode(Process* process)
-throw(InvalidModelException, IOException, RuntimeException) {
-    logger_.logDebugMessage(string("Generating execution code for ")
-                            + "process \"" + process->getId()->getString()
-                            + "\"...");
+string Synthesizer::generateLeafExecutionCode(Leaf* leaf)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    logger_.logMessage(Logger::DEBUG, string("Generating execution code for ")
+                       + "leaf \"" + leaf->getId()->getString()
+                       + "\"...");
 
     string code;
-    if (dynamic_cast<delay*>(process)) {
+    if (dynamic_cast<delay*>(leaf)) {
         // Do nothing
         return "";
     }
-    else if (comb* cast_process = dynamic_cast<comb*>(process)) {
-        return generateProcessExecutionCodeForcomb(cast_process);
+    else if (Map* cast_leaf = dynamic_cast<Map*>(leaf)) {
+        return generateLeafExecutionCodeForMap(cast_leaf);
     }
-    else if (comb* cast_process = dynamic_cast<comb*>(process)) {
-        return generateProcessExecutionCodeForcomb(cast_process);
+    else if (ZipWithNSY* cast_leaf = dynamic_cast<ZipWithNSY*>(leaf)) {
+        return generateLeafExecutionCodeForZipWithNSY(cast_leaf);
     }
-    else if (zipx* cast_process = dynamic_cast<zipx*>(process)) {
-        return generateProcessExecutionCodeForzipx(cast_process);
+    else if (zipx* cast_leaf = dynamic_cast<zipx*>(leaf)) {
+        return generateLeafExecutionCodeForzipx(cast_leaf);
     }
-    else if (unzipx* cast_process = dynamic_cast<unzipx*>(process)) {
-        return generateProcessExecutionCodeForunzipx(cast_process);
+    else if (unzipx* cast_leaf = dynamic_cast<unzipx*>(leaf)) {
+        return generateLeafExecutionCodeForunzipx(cast_leaf);
     }
-    else if (fanout* cast_process = dynamic_cast<fanout*>(process)) {
-        return generateProcessExecutionCodeForfanout(cast_process);
+    else if (fanout* cast_leaf = dynamic_cast<fanout*>(leaf)) {
+        return generateLeafExecutionCodeForfanout(cast_leaf);
     }
     else {
-        THROW_EXCEPTION(InvalidArgumentException, string("Process \"")
-                        + process->getId()->getString() + "\" is of "
-                        "unrecognized process type \"" + process->type()
+        THROW_EXCEPTION(InvalidArgumentException, string("Leaf \"")
+                        + leaf->getId()->getString() + "\" is of "
+                        "unrecognized leaf type \"" + leaf->type()
                         + "\"");
     }
     return code;
 }
 
 void Synthesizer::generateCudaKernelFunctions()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->getId()->getString()
-                                + "\"...");
+        logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
+                           + current_leaf->getId()->getString() + "\"...");
 
-        ParallelMap* parmapsy = dynamic_cast<ParallelMap*>(current_process);
+        ParallelMap* parmapsy = dynamic_cast<ParallelMap*>(current_leaf);
         if (parmapsy) {
             // Add "__device__" prefix to all existing functions
             list<CFunction*> functions = parmapsy->getFunctions();
@@ -1533,7 +1377,7 @@ void Synthesizer::generateCudaKernelFunctions()
                 CFunction kernel_function =
                     generateCudaKernelFunction(functions.front(),
                                                parmapsy->getNumProcesses());
-                kernel_function.setName(getGlobalProcessFunctionName(
+                kernel_function.setName(getGlobalLeafFunctionName(
                                             *parmapsy->getId(),
                                             kernel_function.getName()));
                 parmapsy->insertFunctionFirst(kernel_function);
@@ -1541,13 +1385,13 @@ void Synthesizer::generateCudaKernelFunctions()
                     generateCudaKernelWrapperFunction(
                         &kernel_function, parmapsy->getNumProcesses());
                 wrapper_function.setName(
-                    getGlobalProcessFunctionName(*parmapsy->getId(),
+                    getGlobalLeafFunctionName(*parmapsy->getId(),
                                                  wrapper_function.getName()));
                 parmapsy->insertFunctionFirst(wrapper_function);
             }
-            catch (InvalidModelException& ex) {
-                THROW_EXCEPTION(InvalidModelException, string("Error in ")
-                                + "process \"" + parmapsy->getId()->getString() 
+            catch (InvalidProcessNetworkException& ex) {
+                THROW_EXCEPTION(InvalidProcessNetworkException, string("Error in ")
+                                + "leaf \"" + parmapsy->getId()->getString() 
                                 + "\": " + ex.getMessage());
             }
         }
@@ -1555,8 +1399,8 @@ void Synthesizer::generateCudaKernelFunctions()
 }
 
 CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
-                                                  size_t num_processes)
-    throw(InvalidModelException, IOException, RuntimeException) {
+                                                  size_t num_leafs)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string new_name("kernel");
     string input_param_name("input");
     string output_param_name("output");
@@ -1575,25 +1419,25 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (old_input_param_data_type.isArray()) {
             if (!old_input_param_data_type.hasArraySize()) {
-                THROW_EXCEPTION(InvalidModelException, string("Data type of ")
+                THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
                                 + "first input parameter has no array size");
             }
-            input_data_size = num_processes * old_input_param_data_type
+            input_data_size = num_leafs * old_input_param_data_type
                 .getArraySize();
             new_input_param.getDataType()->setArraySize(input_data_size);
         }
         else {
             new_input_param.getDataType()->setIsConst(true);
             new_input_param.getDataType()->setIsArray(true);
-            new_input_param.getDataType()->setArraySize(num_processes);
+            new_input_param.getDataType()->setArraySize(num_leafs);
         }
 
         // Create output parameter
         CVariable new_output_param(output_param_name,
                                    *function->getReturnDataType());
-        output_data_size = num_processes;
+        output_data_size = num_leafs;
         new_output_param.getDataType()->setIsArray(true);
-        new_output_param.getDataType()->setArraySize(num_processes);
+        new_output_param.getDataType()->setArraySize(num_leafs);
         
         new_parameters.push_back(new_input_param);
         new_parameters.push_back(new_output_param);
@@ -1602,10 +1446,10 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         // Create input parameter
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (!old_input_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
                             + "first input parameter has no array size");
         }
-        input_data_size = num_processes * old_input_param_data_type
+        input_data_size = num_leafs * old_input_param_data_type
             .getArraySize();
         new_input_param.getDataType()->setArraySize(input_data_size);
 
@@ -1615,10 +1459,10 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         CVariable new_output_param(output_param_name,
                                    old_output_param_data_type);
         if (!old_output_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
                             + "second input parameter has no array size");
         }
-        output_data_size = num_processes * old_output_param_data_type
+        output_data_size = num_leafs * old_output_param_data_type
             .getArraySize();
         new_output_param.getDataType()->setArraySize(output_data_size);
         
@@ -1642,22 +1486,24 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         + "(blockIdx.x * blockDim.x + threadIdx.x) + " + offset_param_name
         + ";\n";
     if (config_.useSharedMemoryForInput()) {
-        logger_.logInfoMessage("USING SHARED MEMORY FOR INPUT DATA: YES");
+        logger_.logMessage(Logger::INFO, "USING SHARED MEMORY FOR INPUT DATA: "
+                           "YES");
         input_data_variable_name = "input_cached";
         new_body += kIndents + "extern __shared__ "
             + CDataType::typeToString(old_input_param_data_type.getType()) + " "
             + input_data_variable_name + "[];\n";
     }
     else {
-        logger_.logInfoMessage("USING SHARED MEMORY FOR INPUT DATA: NO");
+        logger_.logMessage(Logger::INFO, "USING SHARED MEMORY FOR INPUT DATA: "
+                           "NO");
         input_data_variable_name = input_param_name;
     }
 
     // If too many threads are generated, then we want to avoid them from
-    // doing any processing, and we do this with an IF statement checking if
+    // doing any leafing, and we do this with an IF statement checking if
     // the thread is out of range
     new_body += kIndents + "if (global_index < "
-        + tools::toString(num_processes) + ") {\n";
+        + tools::toString(num_leafs) + ") {\n";
     string input_index_variable_name = "input_index";
     string output_index_variable_name = "global_index";
     if (old_parameters.size() == 2) {
@@ -1718,8 +1564,8 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
 }
 
 CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
-                                                         size_t num_processes)
-    throw(InvalidModelException, IOException, RuntimeException) {
+    size_t num_leafs)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string new_name("kernel_wrapper");
     string input_param_name("input");
     string output_param_name("output");
@@ -1773,7 +1619,7 @@ CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
         + kIndents + "max_threads_per_block = prop.maxThreadsPerBlock;\n"
         + kIndents + "shared_memory_per_sm = (int) "
         + "prop.sharedMemPerBlock;\n"
-        + kIndents + "num_multicores = prop.multiProcessorCount;\n"
+        + kIndents + "num_multicores = prop.multiLeaforCount;\n"
         + kIndents + "is_timeout_activated = "
         + "prop.kernelExecTimeoutEnabled;\n"
         + kIndents + "full_utilization_thread_count = max_threads_per_block * "
@@ -1781,7 +1627,7 @@ CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
 
     // Generate code for checking whether the data input is enough for full
     // utilization of this device
-    new_body += kIndents + "if (" + tools::toString(num_processes)
+    new_body += kIndents + "if (" + tools::toString(num_leafs)
         + " < full_utilization_thread_count) {\n"
         + kIndents + kIndents + "// @todo Use some other way of reporting this "
         + "to the user (printf may not always be acceptable)\n"
@@ -1828,7 +1674,7 @@ CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
         + kIndents + kIndents + "// splitting up the work into smaller pieces\n"
         + kIndents + kIndents + "// through multiple kernel invokations\n"
         + kIndents + kIndents + "int num_threads_left_to_execute = "
-        + tools::toString(num_processes) + ";\n"
+        + tools::toString(num_leafs) + ";\n"
         + kIndents + kIndents + "int index_offset = 0;\n"
         + kIndents + kIndents + "while (num_threads_left_to_execute > 0) {\n";
     new_body += kIndents + kIndents + kIndents + "int num_executing_threads = "
@@ -1837,7 +1683,7 @@ CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
     new_body += kIndents + kIndents + kIndents + "struct KernelConfig config = "
         + "calculateBestKernelConfig(num_executing_threads, "
         + "max_threads_per_block, "
-        + tools::toString(input_data_size / num_processes) + " * sizeof("
+        + tools::toString(input_data_size / num_leafs) + " * sizeof("
         + CDataType::typeToString(input_data_type.getType())
         + "), shared_memory_per_sm);\n";
     new_body += kIndents + kIndents + kIndents + function->getName()
@@ -1854,9 +1700,9 @@ CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
     new_body += kIndents + "}\n";
     new_body += kIndents + "else {\n";
     new_body += kIndents + kIndents + "struct KernelConfig config = "
-        + "calculateBestKernelConfig(" + tools::toString(num_processes)
+        + "calculateBestKernelConfig(" + tools::toString(num_leafs)
         + ", max_threads_per_block, "
-        + tools::toString(input_data_size / num_processes) + " * sizeof("
+        + tools::toString(input_data_size / num_leafs) + " * sizeof("
         + CDataType::typeToString(input_data_type.getType())
         + "), shared_memory_per_sm);\n";
     new_body += kIndents + kIndents + function->getName()
@@ -1897,33 +1743,32 @@ CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
 }
 
 void Synthesizer::generateParallelMapSyWrapperFunctions()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
-        Process* current_process = processnetwork_->getProcess(*it);
-        if (!current_process) {
-            THROW_EXCEPTION(IllegalStateException, string("Process \"") +
+        Leaf* current_leaf = processnetwork_->getProcess(*it);
+        if (!current_leaf) {
+            THROW_EXCEPTION(IllegalStateException, string("Leaf \"") +
                             it->getString() + "\" not found");
         }
-        logger_.logDebugMessage(string("Analyzing process \"")
-                                + current_process->getId()->getString()
-                                + "\"...");
+        logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
+                           + current_leaf->getId()->getString() + "\"...");
 
-        ParallelMap* parmapsy = dynamic_cast<ParallelMap*>(current_process);
+        ParallelMap* parmapsy = dynamic_cast<ParallelMap*>(current_leaf);
         if (parmapsy) {
             try {
                 CFunction wrapper_function =
                     generateParallelMapSyWrapperFunction(
                         parmapsy->getFunctions().front(), 
                         parmapsy->getNumProcesses());
-                wrapper_function.setName(getGlobalProcessFunctionName(
+                wrapper_function.setName(getGlobalLeafFunctionName(
                                              *parmapsy->getId(),
                                              wrapper_function.getName()));
                 parmapsy->insertFunctionFirst(wrapper_function);
             }
-            catch (InvalidModelException& ex) {
-                THROW_EXCEPTION(InvalidModelException, string("Error in ")
-                                + "process \"" + parmapsy->getId()->getString() 
+            catch (InvalidProcessNetworkException& ex) {
+                THROW_EXCEPTION(InvalidProcessNetworkException, string("Error in ")
+                                + "leaf \"" + parmapsy->getId()->getString() 
                                 + "\": " + ex.getMessage());
             }
         }
@@ -1931,8 +1776,8 @@ void Synthesizer::generateParallelMapSyWrapperFunctions()
 }
 
 CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
-                                                            size_t num_processes)
-    throw(InvalidModelException, IOException, RuntimeException) {
+    size_t num_leafs)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string new_name("parallel_wrapper");
     string input_param_name("input");
     string output_param_name("output");
@@ -1948,24 +1793,24 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (old_input_param_data_type.isArray()) {
             if (!old_input_param_data_type.hasArraySize()) {
-                THROW_EXCEPTION(InvalidModelException, string("Data type of ")
+                THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
                                 + "first input parameter has no array size");
             }
-            int input_data_size = num_processes * old_input_param_data_type
+            int input_data_size = num_leafs * old_input_param_data_type
                 .getArraySize();
             new_input_param.getDataType()->setArraySize(input_data_size);
         }
         else {
             new_input_param.getDataType()->setIsConst(true);
             new_input_param.getDataType()->setIsArray(true);
-            new_input_param.getDataType()->setArraySize(num_processes);
+            new_input_param.getDataType()->setArraySize(num_leafs);
         }
 
         // Create output parameter
         CVariable new_output_param(output_param_name,
                                    *function->getReturnDataType());
         new_output_param.getDataType()->setIsArray(true);
-        new_output_param.getDataType()->setArraySize(num_processes);
+        new_output_param.getDataType()->setArraySize(num_leafs);
         
         new_parameters.push_back(new_input_param);
         new_parameters.push_back(new_output_param);
@@ -1974,10 +1819,10 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         // Create input parameter
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (!old_input_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
                             + "first input parameter has no array size");
         }
-        int input_data_size = num_processes * old_input_param_data_type
+        int input_data_size = num_leafs * old_input_param_data_type
             .getArraySize();
         new_input_param.getDataType()->setArraySize(input_data_size);
 
@@ -1987,10 +1832,10 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         CVariable new_output_param(output_param_name,
                                    old_output_param_data_type);
         if (!old_output_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
                             + "second input parameter has no array size");
         }
-        int output_data_size = num_processes * old_output_param_data_type
+        int output_data_size = num_leafs * old_output_param_data_type
             .getArraySize();
         new_output_param.getDataType()->setArraySize(output_data_size);
         
@@ -2005,7 +1850,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
     // Create body
     string new_body = string("{\n");
     new_body += kIndents + "int i;\n"
-        + kIndents + "for (i = 0; i < " + tools::toString(num_processes)
+        + kIndents + "for (i = 0; i < " + tools::toString(num_leafs)
         + "; ++i) {\n";
     if (old_parameters.size() == 1) {
         new_body += kIndents + kIndents + output_param_name + "[i] = "
@@ -2033,8 +1878,8 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         CDataType old_output_param_data_type =
             *old_parameters.back()->getDataType();
         new_body += ", &" + output_param_name + "[i * "
-            + tools::toString(old_output_param_data_type.getArraySize())
-            + "]);\n";
+                + tools::toString(old_output_param_data_type.getArraySize())
+                + "]);\n";
     }
     new_body += kIndents + "}\n"
         + "}";
@@ -2042,9 +1887,9 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
     return CFunction(new_name, new_return_type, new_parameters, new_body);
 }
 
-string Synthesizer::generateVariablefanoutingCode(CVariable to, CVariable from,
+string Synthesizer::generateVariableCopyingCode(CVariable to, CVariable from,
                                                 bool do_deep_copy) 
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     ensureVariableDataTypeCompatibilities(from, to);
     ensureVariableArrayCompatibilities(from, to);
 
@@ -2077,9 +1922,9 @@ string Synthesizer::generateVariablefanoutingCode(CVariable to, CVariable from,
     return code;
 }
 
-string Synthesizer::generateVariablefanoutingCode(CVariable to,
+string Synthesizer::generateVariableCopyingCode(CVariable to,
                                                 list<CVariable>& from) 
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     ensureVariableIsNotConst(to);
     ensureVariableIsArray(to);
     size_t num_from_elements = 0;
@@ -2090,8 +1935,8 @@ string Synthesizer::generateVariablefanoutingCode(CVariable to,
     try {
         ensureArraySizes(to.getDataType()->getArraySize(), num_from_elements);
     }
-    catch (InvalidModelException& ex) {
-        THROW_EXCEPTION(InvalidModelException, string("Error between ")
+    catch (InvalidProcessNetworkException& ex) {
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
                         + "list of variables and variable \""
                         + to.getReferenceString() + "\": " + ex.getMessage());
     }
@@ -2121,9 +1966,9 @@ string Synthesizer::generateVariablefanoutingCode(CVariable to,
     return code;
 }
 
-string Synthesizer::generateVariablefanoutingCode(list<CVariable>& to,
+string Synthesizer::generateVariableCopyingCode(list<CVariable>& to,
                                                 CVariable from)
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     size_t num_to_elements = 0;
     for (list<CVariable>::iterator it = to.begin(); it != to.end(); ++it) {
         ensureVariableIsNotConst(*it);
@@ -2134,8 +1979,8 @@ string Synthesizer::generateVariablefanoutingCode(list<CVariable>& to,
     try {
         ensureArraySizes(num_to_elements, from.getDataType()->getArraySize());
     }
-    catch (InvalidModelException& ex) {
-        THROW_EXCEPTION(InvalidModelException, string("Error between ")
+    catch (InvalidProcessNetworkException& ex) {
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
                         + "variable \"" + from.getReferenceString() + "\" and "
                         + "list of variables: " + ex.getMessage());
     }
@@ -2165,9 +2010,9 @@ string Synthesizer::generateVariablefanoutingCode(list<CVariable>& to,
     return code;
 }
 
-string Synthesizer::generateProcessFunctionExecutionCode(
+string Synthesizer::generateLeafFunctionExecutionCode(
     CFunction* function, list<CVariable> inputs, CVariable output)
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     ensureVariableIsNotConst(output);
 
     string code;
@@ -2179,8 +2024,8 @@ string Synthesizer::generateProcessFunctionExecutionCode(
             ensureVariableDataTypeCompatibilities(output, function_return);
             ensureVariableArrayCompatibilities(output, function_return);
         }
-        catch (InvalidModelException& ex) {
-            THROW_EXCEPTION(InvalidModelException, string("Error in function, ")
+        catch (InvalidProcessNetworkException& ex) {
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error in function, ")
                             + "return value: " + ex.getMessage());
         }
 
@@ -2193,8 +2038,8 @@ string Synthesizer::generateProcessFunctionExecutionCode(
             ensureVariableDataTypeCompatibilities(function_output, output);
             ensureVariableArrayCompatibilities(function_output, output);
         }
-        catch (InvalidModelException& ex) {
-            THROW_EXCEPTION(InvalidModelException, string("Error in function, ")
+        catch (InvalidProcessNetworkException& ex) {
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error in function, ")
                             + "last parameter: " + ex.getMessage());
         }
 
@@ -2228,42 +2073,42 @@ string Synthesizer::generateProcessFunctionExecutionCode(
 }
 
 void Synthesizer::ensureVariableIsNotConst(CVariable variable)
-    throw(InvalidModelException) {
+    throw(InvalidProcessNetworkException) {
     if (variable.getDataType()->isConst()) {
-        THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("Variable \"") +
                         variable.getReferenceString() + "\" is a const");
     }
 }
 
 void Synthesizer::ensureVariableDataTypeCompatibilities(CVariable lhs,
                                                         CVariable rhs)
-    throw(InvalidModelException) {
+    throw(InvalidProcessNetworkException) {
     CDataType lhs_data_type = *lhs.getDataType();
     CDataType rhs_data_type = *rhs.getDataType();
     if (lhs_data_type.getType() != rhs_data_type.getType()) {
-        THROW_EXCEPTION(InvalidModelException, string("Error between ")
-                        + "variables " + rhs.getReferenceString()
-                        + " and " + lhs.getReferenceString() + ": "
-                        + "mismatched data types (from \""
-                        + CDataType::typeToString(rhs_data_type.getType())
-                        + "\" to \""
-                        + CDataType::typeToString(lhs_data_type.getType())
-                        + "\")");
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
+                            + "variables " + rhs.getReferenceString()
+                            + " and " + lhs.getReferenceString() + ": "
+                            + "mismatched data types (from "
+                            + CDataType::typeToString(rhs_data_type.getType())
+                            + " to "
+                            + CDataType::typeToString(lhs_data_type.getType())
+                            + ")");
     }
 }
 
 void Synthesizer::ensureVariableIsArray(CVariable variable)
-    throw(InvalidModelException) {
+    throw(InvalidProcessNetworkException) {
     if (!variable.getDataType()->isArray()) {
-        THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("Variable \"") +
                         variable.getReferenceString() + "\" is not an array");
     }    
 }
 
 void Synthesizer::ensureArraySizes(size_t lhs, size_t rhs)
-    throw(InvalidModelException) {
+    throw(InvalidProcessNetworkException) {
     if (lhs != rhs) {
-        THROW_EXCEPTION(InvalidModelException, string("Mismatched array ")
+        THROW_EXCEPTION(InvalidProcessNetworkException, string("Mismatched array ")
                         + "sizes (from size " + tools::toString(rhs)
                         + " to size " + tools::toString(lhs) + ")");
     }
@@ -2271,23 +2116,23 @@ void Synthesizer::ensureArraySizes(size_t lhs, size_t rhs)
 
 void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
                                                      CVariable rhs)
-    throw(InvalidModelException) {
+    throw(InvalidProcessNetworkException) {
     CDataType lhs_data_type = *lhs.getDataType();
     CDataType rhs_data_type = *rhs.getDataType();
     if (lhs_data_type.isArray()) {
         if (!rhs_data_type.isArray()) {
-            THROW_EXCEPTION(InvalidModelException, string("Error between ")
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + "mismatched data types (from scalar to array)");
         }
         if (!lhs_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Variable \"") +
                             lhs.getReferenceString() + "\" has no array "
                             + "size");
         }
         if (!rhs_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Variable \"") +
                             rhs.getReferenceString() + "\" has no array "
                             + "size");
         }
@@ -2295,8 +2140,8 @@ void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
             ensureArraySizes(lhs_data_type.getArraySize(),
                              rhs_data_type.getArraySize());
         }
-        catch (InvalidModelException& ex) {
-            THROW_EXCEPTION(InvalidModelException, string("Error between ")
+        catch (InvalidProcessNetworkException& ex) {
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + ex.getMessage());
@@ -2304,7 +2149,7 @@ void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
     }
     else {
         if (rhs_data_type.isArray()) {
-            THROW_EXCEPTION(InvalidModelException, string("Error between ")
+            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + "mismatched data types (from array to scalar)");
@@ -2313,7 +2158,7 @@ void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
 }
 
 string Synthesizer::generateKernelConfigStructDefinitionCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string code;
     code += string("/**\n")
         + " * C struct for returning the calculated kernel configuration for \n"
@@ -2328,12 +2173,12 @@ string Synthesizer::generateKernelConfigStructDefinitionCode()
 }
 
 string Synthesizer::generateKernelConfigFunctionDefinitionCode()
-    throw(InvalidModelException, IOException, RuntimeException) {
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     string code;
     code += string("/**\n")
         + " * Calculate the best kernel configuration of grid and thread\n"
         + " * blocks for best performance. The aim is to maximize the number\n"
-        + " * of threads available for each CUDA multi-processor.\n"
+        + " * of threads available for each CUDA multi-leafor.\n"
         + " *\n"
         + " * When no shared memory is used:\n"
         + " * The configuration is calculated by using the maximum number of\n"
@@ -2360,7 +2205,7 @@ string Synthesizer::generateKernelConfigFunctionDefinitionCode()
         + " *        Amount of shared memory used per thread.\n"
         + " * @param shared_memory_per_sm\n"
         + " *        Amount of shared memory available per streaming \n"
-        + " *        multi-processor.\n"
+        + " *        multi-leafor.\n"
         + " */\n";
     code += string("struct KernelConfig calculateBestKernelConfig(")
         + "int num_threads, int max_threads_per_block, "
@@ -2389,7 +2234,7 @@ string Synthesizer::generateKernelConfigFunctionDefinitionCode()
             + kIndents + kIndents + kIndents + "unused_shared_memory_best = "
             + "unused_shared_memory;\n"
             + kIndents + kIndents + "}\n"
-            + kIndents + kIndents + "// Sprocessnetwork if this is optimal or as good as "
+            + kIndents + kIndents + "// Stop if this is optimal or as good as "
             "it gets\n"
             + kIndents + kIndents + "if (unused_shared_memory == 0 "
             "|| num_blocks_per_sm > 8) break;\n"
@@ -2420,97 +2265,108 @@ string Synthesizer::generateKernelConfigFunctionDefinitionCode()
     return code;
 }
 
-string Synthesizer::getGlobalProcessFunctionName(
-    ForSyDe::Id process_id, const string& function_name) const throw() {
-    return string("f") + process_id.getString() + "_" + function_name;
+string Synthesizer::getGlobalLeafFunctionName(
+    ForSyDe::Id leaf_id, const string& function_name) const throw() {
+    return string("f") + leaf_id.getString() + "_" + function_name;
 }
 
 bool Synthesizer::dynamicallyAllocateMemoryForSignalVariable(Signal* signal) {
     // If the signal has an in and out port, then the signal is not written to
-    // from any model input parameter nor read from for the model output
+    // from any processnetwork input parameter nor read from for the processnetwork output
     // parameters
     return signal->getOutPort() && signal->getInPort()
         && signal->getVariable().getDataType()->isArray();
 }
 
-string Synthesizer::generateProcessExecutionCodeFordelayStep1(
-    delay* process)
-throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateLeafExecutionCodeFordelayStep1(
+    delay* leaf)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     CVariable output =
-        getSignalByOutPort(process->getOutPorts().front())->getVariable();
-    CVariable delay_variable = getdelayVariable(process).first;
-    return generateVariablefanoutingCode(output, delay_variable);
+        getSignalByOutPort(leaf->getOutPorts().front())->getVariable();
+    CVariable delay_variable = getDelayVariable(leaf).first;
+    return generateVariableCopyingCode(output, delay_variable);
 }
 
-string Synthesizer::generateProcessExecutionCodeFordelayStep2(
-    delay* process)
-throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateLeafExecutionCodeFordelayStep2(
+    delay* leaf)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     CVariable input = 
-        getSignalByInPort(process->getInPorts().front())->getVariable();
-    CVariable delay_variable = getdelayVariable(process).first;
-    return generateVariablefanoutingCode(delay_variable, input);
+        getSignalByInPort(leaf->getInPorts().front())->getVariable();
+    CVariable delay_variable = getDelayVariable(leaf).first;
+    return generateVariableCopyingCode(delay_variable, input);
 }
 
-string Synthesizer::generateProcessExecutionCodeForcomb(
-    comb* process)
-throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateLeafExecutionCodeForMap(Map* leaf)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     list<CVariable> inputs;
-    list<Process::Port*> in_ports = process->getInPorts();
-    list<Process::Port*>::iterator it;
+    inputs.push_back(getSignalByInPort(leaf->getInPorts().front())
+                     ->getVariable());
+    CVariable output =
+        getSignalByOutPort(leaf->getOutPorts().front())->getVariable();
+    CFunction* function = leaf->getFunction();
+    return generateLeafFunctionExecutionCode(function, inputs, output);
+}
+
+string Synthesizer::generateLeafExecutionCodeForZipWithNSY(
+    ZipWithNSY* leaf)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    list<CVariable> inputs;
+    list<Leaf::Port*> in_ports = leaf->getInPorts();
+    list<Leaf::Port*>::iterator it;
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
         inputs.push_back(getSignalByInPort(*it)->getVariable());
     }
     CVariable output =
-        getSignalByOutPort(process->getOutPorts().front())->getVariable();
-    CFunction* function = process->getFunction();
-    return generateProcessFunctionExecutionCode(function, inputs, output);
+        getSignalByOutPort(leaf->getOutPorts().front())->getVariable();
+    CFunction* function = leaf->getFunction();
+    return generateLeafFunctionExecutionCode(function, inputs, output);
 }
 
-string Synthesizer::generateProcessExecutionCodeForunzipx(unzipx* process)
-throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateLeafExecutionCodeForunzipx(unzipx* leaf)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     CVariable input =
-        getSignalByInPort(process->getInPorts().front())->getVariable();
+        getSignalByInPort(leaf->getInPorts().front())->getVariable();
     list<CVariable> outputs;
-    list<Process::Port*> out_ports = process->getOutPorts();
-    list<Process::Port*>::iterator it;
+    list<Leaf::Port*> out_ports = leaf->getOutPorts();
+    list<Leaf::Port*>::iterator it;
     for (it = out_ports.begin(); it != out_ports.end(); ++it) {
         outputs.push_back(getSignalByOutPort(*it)->getVariable());
     }
-    return generateVariablefanoutingCode(outputs, input);
+    return generateVariableCopyingCode(outputs, input);
 }
 
-string Synthesizer::generateProcessExecutionCodeForzipx(zipx* process)
-throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateLeafExecutionCodeForzipx(zipx* leaf)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     CVariable output =
-        getSignalByOutPort(process->getOutPorts().front())->getVariable();
+        getSignalByOutPort(leaf->getOutPorts().front())->getVariable();
     list<CVariable> inputs;
-    list<Process::Port*> in_ports = process->getInPorts();
-    list<Process::Port*>::iterator it;
+    list<Leaf::Port*> in_ports = leaf->getInPorts();
+    list<Leaf::Port*>::iterator it;
 
     string code;
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
         inputs.push_back(getSignalByInPort(*it)->getVariable());
     }
-    code += generateVariablefanoutingCode(output, inputs);
+    code += generateVariableCopyingCode(output, inputs);
     return code;
 }
 
-string Synthesizer::generateProcessExecutionCodeForfanout(fanout* process)
-throw(InvalidModelException, IOException, RuntimeException) {
+string Synthesizer::generateLeafExecutionCodeForfanout(fanout* leaf)
+    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     CVariable input =
-        getSignalByInPort(process->getInPorts().front())->getVariable();
-    list<Process::Port*> out_ports = process->getOutPorts();
-    list<Process::Port*>::iterator it;
+        getSignalByInPort(leaf->getInPorts().front())->getVariable();
+    list<Leaf::Port*> out_ports = leaf->getOutPorts();
+    list<Leaf::Port*>::iterator it;
 
     string code;
     for (it = out_ports.begin(); it != out_ports.end(); ++it) {
         CVariable output = getSignalByOutPort(*it)->getVariable();
-        code += generateVariablefanoutingCode(output, input);
+        code += generateVariableCopyingCode(output, input);
     }
     return code;
 }
 
-Synthesizer::Signal::Signal(Process::Port* out_port, Process::Port* in_port)
+Synthesizer::Signal::Signal(Leaf::Port* out_port, Leaf::Port* in_port)
         throw(InvalidArgumentException)
         : out_port_(out_port), in_port_(in_port), has_data_type_(false) {
     if (!out_port_ && !in_port_) {
@@ -2593,11 +2449,11 @@ CVariable Synthesizer::Signal::getVariable() const
     return CVariable(getVariableName(), data_type_);
 }
 
-Process::Port* Synthesizer::Signal::getOutPort() const throw() {
+Leaf::Port* Synthesizer::Signal::getOutPort() const throw() {
     return out_port_;
 }
 
-Process::Port* Synthesizer::Signal::getInPort() const throw() {
+Leaf::Port* Synthesizer::Signal::getInPort() const throw() {
     return in_port_;
 }
 

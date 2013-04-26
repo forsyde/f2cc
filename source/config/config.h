@@ -52,18 +52,18 @@ namespace f2cc {
 class Config {
   public:
     /**
-     * Denotes the target platform to which the ForSyDe model is to be
+     * Denotes the target platform to which the ForSyDe processnetwork is to be
      * synthesized.
      */
     enum TargetPlatform {
         /**
-         * Sequential C code, where no processes are executed in parallel.
+         * Sequential C code, where no leafs are executed in parallel.
          */
         C,
 
         /**
          * Sequential C code annotaded with CUDA directives, where data parallel
-         * processes are executed in parallel.
+         * leafs are executed in parallel.
          */
         CUDA
     };
@@ -187,20 +187,20 @@ class Config {
     void setLogLevel(Logger::LogLevel level) throw();
 
     /**
-     * Gets whether data parallel processes in the model should be coalesced.
+     * Gets whether data parallel leafs in the processnetwork should be coalesced.
      * Default setting is \c true.
      *
      * @returns \c true if such action should be performed.
      */
-    bool doDataParallelProcessCoalesing() const throw();
+    bool doDataParallelLeafCoalesing() const throw();
 
     /**
-     * Sets whether data parallel processes in the model should be coalesced.
+     * Sets whether data parallel leafs in the processnetwork should be coalesced.
      *
      * @param setting
      *        New setting.
      */
-    void setDoDataParallelProcessCoalesing(bool setting) throw();
+    void setDoDataParallelLeafCoalesing(bool setting) throw();
 
     /**
      * Gets whether the shared memory on the device shall be used for input data
@@ -338,9 +338,9 @@ class Config {
     Logger::LogLevel log_level_;
 
     /**
-     * Specifies data parallel process coalescing setting.
+     * Specifies data parallel leaf coalescing setting.
      */
-    bool do_data_parallel_process_coalescing_;
+    bool do_data_parallel_leaf_coalescing_;
 
     /**
      * Specifies shared memory usage setting.

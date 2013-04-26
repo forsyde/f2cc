@@ -36,7 +36,7 @@
  */
 
 #include "id.h"
-#include "process.h"
+#include "leaf.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -72,14 +72,14 @@ class Model {
      *
      * @param process
      *        Process to add.
-     * @returns \c true if such a process did not already exist and was 
+     * @returns \c true if such a process did not already exist and was
      *          successfully added.
      * @throws InvalidArgumentException
      *         When \c process is \c NULL.
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
-    bool addProcess(Process* process)
+    bool addProcess(Leaf* process)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
@@ -90,7 +90,7 @@ class Model {
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
-    void addProcesses(std::map<const Id, Process*> processes)
+    void addProcesses(std::map<const Id, Leaf*> processes)
         throw(OutOfMemoryException);
 
     /**
@@ -100,7 +100,7 @@ class Model {
      *        Process ID.
      * @returns Process, if found; otherwise \c NULL.
      */
-    Process* getProcess(const Id& id) throw();
+    Leaf* getProcess(const Id& id) throw();
 
     /**
      * Gets the number of processes in this model.
@@ -114,7 +114,7 @@ class Model {
      *
      * @returns Process list.
      */
-    std::list<Process*> getProcesses() throw();
+    std::list<Leaf*> getProcesses() throw();
 
     /**
      * Removes and destroys a process by ID.
@@ -153,7 +153,7 @@ class Model {
      * @returns Iterator pointing either at the found process, or an iterator
      *          equal to mapset's \c end() iterator.
      */
-    std::map<const Id, Process*>::iterator findProcess(const Id& id) throw();
+    std::map<const Id, Leaf*>::iterator findProcess(const Id& id) throw();
 
     /**
      * Destroys all processes in this model.
@@ -164,7 +164,7 @@ class Model {
     /**
      * combset of processes.
      */
-    std::map<const Id, Process*> processes_;
+    std::map<const Id, Leaf*> leafs_;
 
 };
 

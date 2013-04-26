@@ -33,7 +33,7 @@ using std::bad_cast;
 
 delay::delay(const Id& id, const string& initial_value)
         throw(InvalidArgumentException)
-        : Process(id), initial_value_(initial_value) {
+        : Leaf(id), initial_value_(initial_value) {
     if (initial_value_.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"initial_value\" must not "
                         "be empty string");
@@ -46,8 +46,8 @@ string delay::getInitialValue() throw() {
     return initial_value_;
 }
 
-bool delay::operator==(const Process& rhs) const throw() {
-    if (!Process::operator==(rhs)) return false;
+bool delay::operator==(const Leaf& rhs) const throw() {
+    if (!Leaf::operator==(rhs)) return false;
 
     try {
         const delay& other = dynamic_cast<const delay&>(rhs);
@@ -65,12 +65,12 @@ string delay::type() const throw() {
 
 void delay::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have exactly one (1) in port");
     }
     if (getOutPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have exactly one (1) out port");
     }

@@ -92,7 +92,7 @@ REPEAT_BRIEF           = NO
 # This tag implements a quasi-intelligent brief description abbreviator
 # that is used to form the text in various listings. Each string
 # in this list, if found as the leading text of the brief description, will be
-# stripped from the text and the result after processing the whole list, is
+# stripped from the text and the result after leafing the whole list, is
 # used as the annotated text. Otherwise, the brief description is used as-is.
 # If left blank, the following values are used ("$name" is automatically
 # replaced with the name of the entity): "The $name class" "The $name widget"
@@ -338,8 +338,8 @@ EXTRACT_LOCAL_CLASSES  = YES
 
 # This flag is only useful for Objective-C code. When set to YES local
 # methods, which are defined in the implementation section but not in
-# the interface are included in the documentation.
-# If set to NO (the default) only methods in the interface are included.
+# the port are included in the documentation.
+# If set to NO (the default) only methods in the port are included.
 
 EXTRACT_LOCAL_METHODS  = NO
 
@@ -788,7 +788,7 @@ VERBATIM_HEADERS       = YES
 
 # If the ALPHABETICAL_INDEX tag is set to YES, an alphabetical index
 # of all compounds will be generated. Enable this if the project
-# contains a lot of classes, structs, unions or interfaces.
+# contains a lot of classes, structs, unions or ports.
 
 ALPHABETICAL_INDEX     = YES
 
@@ -1399,11 +1399,11 @@ PERLMOD_PRETTY         = YES
 PERLMOD_MAKEVAR_PREFIX =
 
 #---------------------------------------------------------------------------
-# Configuration options related to the preprocessor
+# Configuration options related to the preleafor
 #---------------------------------------------------------------------------
 
 # If the ENABLE_PREPROCESSING tag is set to YES (the default) Doxygen will
-# evaluate all C-preprocessor directives found in the sources and include
+# evaluate all C-preleafor directives found in the sources and include
 # files.
 
 ENABLE_PREPROCESSING   = YES
@@ -1427,8 +1427,8 @@ EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
 
 # The INCLUDE_PATH tag can be used to specify one or more directories that
-# contain include files that are not input files but should be processed by
-# the preprocessor.
+# contain include files that are not input files but should be leafed by
+# the preleafor.
 
 INCLUDE_PATH           =
 
@@ -1440,7 +1440,7 @@ INCLUDE_PATH           =
 INCLUDE_FILE_PATTERNS  =
 
 # The PREDEFINED tag can be used to specify one or more macro names that
-# are defined before the preprocessor is started (similar to the -D option of
+# are defined before the preleafor is started (similar to the -D option of
 # gcc). The argument of the tag is a list of macros of the form: name
 # or name=definition (no spaces). If the definition and the = are
 # omitted =1 is assumed. To prevent a macro definition from being
@@ -1458,7 +1458,7 @@ PREDEFINED             =
 EXPAND_AS_DEFINED      =
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
-# doxygen's preprocessor will remove all references to function-like macros
+# doxygen's preleafor will remove all references to function-like macros
 # that are alone on a line, have an all uppercase name, and do not end with a
 # semicolon, because these will confuse the parser if not removed.
 
@@ -1545,9 +1545,9 @@ HAVE_DOT               = YES
 
 # The DOT_NUM_THREADS specifies the number of dot invocations doxygen is
 # allowed to run in parallel. When set to 0 (the default) doxygen will
-# base this on the number of processors available in the system. You can set it
+# base this on the number of leafors available in the system. You can set it
 # explicitly to a value larger than 0 to get control over the balance
-# between CPU load and processing speed.
+# between CPU load and leafing speed.
 
 DOT_NUM_THREADS        = 0
 
@@ -1593,7 +1593,7 @@ COLLABORATION_GRAPH    = YES
 GROUP_GRAPHS           = YES
 
 # If the UML_LOOK tag is set to YES doxygen will generate inheritance and
-# collaboration diagrams in a style similar to the OMG's Unified Processnetworking
+# collaboration diagrams in a style similar to the OMG's Unified ProcessNetworking
 # Language.
 
 UML_LOOK               = YES

@@ -429,7 +429,7 @@ private:
 };
 
 
-/** The parent class for everything in the Document Object Processnetwork.
+/** The parent class for everything in the Document Object ProcessNetwork.
 	(Except for attributes).
 	Nodes have siblings, a parent, and children. A node can be
 	in a document, or stand on its own. The type of a TiXmlNode
@@ -602,7 +602,7 @@ public:
 		NOTE: the node to be added is passed by pointer, and will be
 		henceforth owned (and deleted) by tinyXml. This method is efficient
 		and avoids an extra copy, but should be used with care as it
-		uses a different memory model than the other insert functions.
+		uses a different memory processnetwork than the other insert functions.
 
 		@sa InsertEndChild
 	*/
@@ -733,13 +733,13 @@ public:
 
 	/** Accept a hierchical visit the nodes in the TinyXML DOM. Every node in the
 		XML tree will be conditionally visited and the host will be called back
-		via the TiXmlVisitor interface.
+		via the TiXmlVisitor port.
 
-		This is essentially a SAX interface for TinyXML. (Note however it doesn't re-parse
+		This is essentially a SAX port for TinyXML. (Note however it doesn't re-parse
 		the XML for the callbacks, so the performance of TinyXML is unchanged by using this
-		interface versus any other.)
+		port versus any other.)
 
-		The interface has been based on ideas from:
+		The port has been based on ideas from:
 
 		- http://www.saxproject.org/
 		- http://c2.com/cgi/wiki?HierarchicalVisitorPattern
@@ -791,7 +791,7 @@ private:
 	number of attributes, each with a unique name.
 
 	@note The attributes are not TiXmlNodes, since they are not
-		  part of the tinyXML document object model. There are other
+		  part of the tinyXML document object processnetwork. There are other
 		  suggested ways to look at this problem.
 */
 class TiXmlAttribute : public TiXmlBase
