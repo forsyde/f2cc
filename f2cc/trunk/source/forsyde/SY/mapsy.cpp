@@ -23,30 +23,28 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "combsy.h"
+#include "mapsy.h"
 #include <typeinfo>
-#include <list>
 
 using namespace f2cc;
 using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
-using std::list;
 
-comb::comb(const Id& id, const CFunction& function) throw()
+Map::Map(const Id& id, const CFunction& function) throw()
         : Leaf(id), function_(function) {}
 
-comb::~comb() throw() {}
+Map::~Map() throw() {}
 
-CFunction* comb::getFunction() throw() {
+CFunction* Map::getFunction() throw() {
     return &function_;
 }
 
-bool comb::operator==(const Leaf& rhs) const throw() {
+bool Map::operator==(const Leaf& rhs) const throw() {
     if (!Leaf::operator==(rhs)) return false;
 
     try {
-        const comb& other = dynamic_cast<const comb&>(rhs);
+        const Map& other = dynamic_cast<const Map&>(rhs);
         if (function_ != other.function_) return false;
     }
     catch (bad_cast&) {
@@ -55,31 +53,31 @@ bool comb::operator==(const Leaf& rhs) const throw() {
     return true;
 }
 
-string comb::type() const throw() {
-    return "comb";
+string Map::type() const throw() {
+    return "Map";
 }
 
-void comb::moreChecks() throw(InvalidProcessException) {
-    if (getInPorts().size() < 1) {
+void Map::moreChecks() throw(InvalidProcessException) {
+    if (getInPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have at least one (1) in port");
+                        + type() + "\" must have exactly one (1) in port");
     }
     if (getOutPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have exactly one (1) out port");
     }
-    checkFunction(function_, getNumInPorts());
+    checkFunction(function_);
 }
 
-string comb::moreToString() const throw() {
+string Map::moreToString() const throw() {
     return string("LeafFunction: ") + function_.toString();
 }
 
-void comb::checkFunction(CFunction& function, size_t num_in_ports) const
+void Map::checkFunction(CFunction& function) const
     throw(InvalidProcessException) {
-    if (function.getInputParameters().size() == num_in_ports) {
+    if (function.getInputParameters().size() == 1) {
         if (function.getReturnDataType()->getFunctionReturnDataTypeString()
             == "void") {
             THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
@@ -95,7 +93,7 @@ void comb::checkFunction(CFunction& function, size_t num_in_ports) const
                             "with one input parameter must not be an array");
         }
     }
-    else if (function.getInputParameters().size() == num_in_ports + 1) {
+    else if (function.getInputParameters().size() == 2) {
         if (function.getReturnDataType()->getFunctionReturnDataTypeString()
             != "void") {
             THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
@@ -112,18 +110,12 @@ void comb::checkFunction(CFunction& function, size_t num_in_ports) const
                         "one or two input parameters");
     }
 
-    size_t i;
-    list<CVariable*> input_parameters = function.getInputParameters();
-    list<CVariable*>::iterator it;
-    for (i = 0, it = input_parameters.begin(); i < num_in_ports; ++i, ++it) {
-        CVariable variable = **it;
-        CDataType input_data_type = *variable.getDataType();
-        if (input_data_type.isArray() && !input_data_type.isConst()) {
-            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
-                            + getId()->getString() + "\" of type \""
-                            + type() + "\": input parameter \""
-                            + variable.getReferenceString() + "\"is a "
-                            "reference or array but not declared const");
-        }
+    CDataType first_input_data_type =
+        *function.getInputParameters().front()->getDataType();
+    if (first_input_data_type.isArray() && !first_input_data_type.isConst()) {
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
+                        + getId()->getString() + "\" of type \""
+                        + type() + "\": first input parameter is a "
+                        "reference or array but not declared const");
     }
 }

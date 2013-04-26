@@ -36,13 +36,12 @@ using std::list;
 using std::pair;
 using std::bad_alloc;
 
-Processnetwork::Processnetwork() throw() {}
+ProcessNetwork::ProcessNetwork() throw() :
+	Model() {}
 
-Processnetwork::~Processnetwork() throw() {
-    destroyAllProcesses();
-}
+ProcessNetwork::~ProcessNetwork() throw() {}
 
-bool Processnetwork::addInput(Process::Port* port)
+bool ProcessNetwork::addInput(Process::Interface* port)
     throw(InvalidArgumentException, IllegalStateException,
           OutOfMemoryException) {
     if (!port) {
@@ -61,8 +60,8 @@ bool Processnetwork::addInput(Process::Port* port)
     }
 }
 
-bool Processnetwork::deleteInput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, inputs_);
+bool ProcessNetwork::deleteInput(Process::Interface* port) throw(InvalidArgumentException) {
+    list<Process::Interface*>::iterator it = findPort(port, inputs_);
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
     }
@@ -76,15 +75,15 @@ bool Processnetwork::deleteInput(Process::Port* port) throw(InvalidArgumentExcep
     }
 }
 
-int Processnetwork::getNumInputs() const throw() {
+int ProcessNetwork::getNumInputs() const throw() {
     return inputs_.size();
 }
 
-std::list<Process::Port*> Processnetwork::getInputs() throw() {
+std::list<Process::Interface*> ProcessNetwork::getInputs() throw() {
     return inputs_;
 }
 
-bool Processnetwork::addOutput(Process::Port* port)
+bool ProcessNetwork::addOutput(Process::Interface* port)
     throw(InvalidArgumentException, IllegalStateException,
           OutOfMemoryException) {
     if (!port) {
@@ -103,8 +102,8 @@ bool Processnetwork::addOutput(Process::Port* port)
     }
 }
 
-bool Processnetwork::deleteOutput(Process::Port* port) throw(InvalidArgumentException) {
-    list<Process::Port*>::iterator it = findPort(port, outputs_);
+bool ProcessNetwork::deleteOutput(Process::Interface* port) throw(InvalidArgumentException) {
+    list<Process::Interface*>::iterator it = findPort(port, outputs_);
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
     }
@@ -118,17 +117,17 @@ bool Processnetwork::deleteOutput(Process::Port* port) throw(InvalidArgumentExce
     }
 }
 
-int Processnetwork::getNumOutputs() const throw() {
+int ProcessNetwork::getNumOutputs() const throw() {
     return outputs_.size();
 }
 
-std::list<Process::Port*> Processnetwork::getOutputs() throw() {
+std::list<Process::Interface*> ProcessNetwork::getOutputs() throw() {
     return outputs_;
 }
 
-list<Process::Port*>::iterator Processnetwork::findPort(
-    const Id& id, list<Process::Port*>& ports) const throw() {
-    list<Process::Port*>::iterator it;
+list<Process::Interface*>::iterator ProcessNetwork::findPort(
+    const Id& id, list<Process::Interface*>& ports) const throw() {
+    list<Process::Interface*>::iterator it;
     for (it = ports.begin(); it != ports.end(); ++it) {
         if (*(*it)->getId() == id) {
             return it;
@@ -139,9 +138,9 @@ list<Process::Port*>::iterator Processnetwork::findPort(
     return it;
 }
 
-list<Process::Port*>::iterator Processnetwork::findPort(
-    Process::Port* port, std::list<Process::Port*>& ports) const throw() {
-    list<Process::Port*>::iterator it;
+list<Process::Interface*>::iterator ProcessNetwork::findPort(
+    Process::Interface* port, std::list<Process::Interface*>& ports) const throw() {
+    list<Process::Interface*>::iterator it;
     for (it = ports.begin(); it != ports.end(); ++it) {
         if (*it == port) {
             return it;
@@ -152,10 +151,10 @@ list<Process::Port*>::iterator Processnetwork::findPort(
     return it;
 }
 
-std::string Processnetwork::toString() const throw() {
+std::string ProcessNetwork::toString() const throw() {
     string str;
     str += "{\n";
-    str += " Processnetwork Module\n";
+    str += " ProcessNetwork Module\n";
     str += " NumInputs: ";
     str += tools::toString(getNumInputs());
     str += ",\n";
@@ -173,12 +172,12 @@ std::string Processnetwork::toString() const throw() {
     return str;
 }
 
-string Processnetwork::portsToString(const list<Process::Port*> ports) const throw() {
+string ProcessNetwork::portsToString(const list<Process::Interface*> ports) const throw() {
     string str;
     if (ports.size() > 0) {
         str += "\n";
         bool first = true;
-        for (list<Process::Port*>::const_iterator it = ports.begin();
+        for (list<Process::Interface*>::const_iterator it = ports.begin();
              it != ports.end(); ++it) {
             if (!first) {
                 str += ",\n";
@@ -187,7 +186,7 @@ string Processnetwork::portsToString(const list<Process::Port*> ports) const thr
                 first = false;
             }
 
-            Process::Port* port = *it;
+            Process::Interface* port = *it;
             str += "  ID: ";
             str += port->getId()->getString();
             str += ", ";

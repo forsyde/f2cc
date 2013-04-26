@@ -31,7 +31,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines exception for invalid process errors.
+ * @brief Defines exception for invalid leaf errors.
  */
 
 #include "exception.h"
@@ -40,7 +40,7 @@
 namespace f2cc {
 
 /**
- * @brief Used when a method was called with arguments of invalid process.
+ * @brief Used when a method was called with arguments of invalid leaf.
  */
 class InvalidProcessException : public Exception {
   public:

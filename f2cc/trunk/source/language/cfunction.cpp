@@ -183,7 +183,7 @@ void CFunction::copy(const CFunction& rhs) throw(OutOfMemoryException) {
     name_ = rhs.name_;
     return_data_type_ = rhs.return_data_type_;
     destroyInputParameters();
-    // fanout input parameters
+    // Copy input parameters
     list<CVariable*>::const_iterator it;
     for (it = rhs.input_parameters_.begin(); it != rhs.input_parameters_.end(); 
          ++it) {

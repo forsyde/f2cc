@@ -31,44 +31,44 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements a dummy process for network out ports.
+ * @brief Implements a dummy leaf for network out ports.
  */
 
-#include "process.h"
-#include "../exceptions/notsupportedexception.h"
+#include "../leaf.h"
+#include "../../exceptions/notsupportedexception.h"
 #include <string>
 
 namespace f2cc {
 namespace ForSyDe {
 
 /**
- * @brief Implements a dummy process for network inports.
+ * @brief Implements a dummy leaf for network inports.
  */
-class OutPort : public Process {
+class OutPort : public Leaf {
   public:
     /**
-     * @copydoc Process(const Id&)
+     * @copydoc Leaf(const Id&)
      */
     OutPort(const Id& id) throw();
 
     /**
-     * @copydoc ~Process()
+     * @copydoc ~Leaf()
      */
     virtual ~OutPort() throw();
 
     /**
-     * @copydoc Process::operator==(const Process&) const
+     * @copydoc Leaf::operator==(const Leaf&) const
      */
-    virtual bool operator==(const Process& rhs) const throw();
+    virtual bool operator==(const Leaf& rhs) const throw();
 
     /**
-     * @copydoc Process::type()
+     * @copydoc Leaf::type()
      */
     virtual std::string type() const throw();
 
   protected:
     /**
-     * Checks that this process has no out ports.
+     * Checks that this leaf has no out ports.
      *
      * @throws InvalidProcessException
      *         When the check fails.
