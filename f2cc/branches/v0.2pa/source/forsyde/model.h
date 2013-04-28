@@ -47,6 +47,8 @@
 namespace f2cc {
 namespace ForSyDe {
 
+class Composite;
+
 /**
  * @brief Contains the internal representation of a ForSyDe model.
  *
@@ -133,7 +135,7 @@ class Model {
     ForSyDe::Id getUniqueProcessId() const throw();
 
     /**
-     * Same as getUniqueProcessId() but allows an arbitrary string to be
+     * Same as getUniqueCompositeId() but allows an arbitrary string to be
      * prefixed to the ID.
      *
      * @param prefix
@@ -142,6 +144,82 @@ class Model {
      */
     ForSyDe::Id getUniqueProcessId(const std::string& prefix) const throw();
 
+    /**
+     * Adds a process to this model. Models are not allowed to have multiple
+     * processes with the same ID.
+     *
+     * @param process
+     *        Process to add.
+     * @returns \c true if such a process did not already exist and was
+     *          successfully added.
+     * @throws InvalidArgumentException
+     *         When \c process is \c NULL.
+     * @throws OutOfMemoryException
+     *         When a process cannot be added due to memory shortage.
+     */
+    bool addComposite(Composite* process)
+        throw(InvalidArgumentException, OutOfMemoryException);
+
+    /**
+     * Adds multiple processes to this model at the same time.
+     *
+     * @param processes
+     *        Combset of processes to add.
+     * @throws OutOfMemoryException
+     *         When a process cannot be added due to memory shortage.
+     */
+    void addComposites(std::map<const Id, Composite*> processes)
+        throw(OutOfMemoryException);
+
+    /**
+     * Gets a process by ID.
+     *
+     * @param id
+     *        Composite ID.
+     * @returns Composite, if found; otherwise \c NULL.
+     */
+    Composite* getComposite(const Id& id) throw();
+
+    /**
+     * Gets the number of processes in this model.
+     *
+     * @returns Composite count.
+     */
+    int getNumComposites() const throw();
+
+    /**
+     * Gets a list of all processes in this model.
+     *
+     * @returns Composite list.
+     */
+    std::list<Composite*> getComposites() throw();
+
+    /**
+     * Removes and destroys a process by ID.
+     *
+     * @param id
+     *        Composite ID.
+     * @returns \c true if such a process was found and successfully deleted.
+     */
+    bool deleteComposite(const Id& id) throw();
+
+    /**
+     * Gets a new process ID which is not currently in use within this model.
+     *
+     * @returns A unique process ID.
+     */
+    ForSyDe::Id getUniqueCompositeId() const throw();
+
+    /**
+     * Same as getUniqueCompositeId() but allows an arbitrary string to be
+     * prefixed to the ID.
+     *
+     * @param prefix
+     *        ID prefix.
+     * @returns A unique process ID.
+     */
+    ForSyDe::Id getUniqueCompositeId(const std::string& prefix) const throw();
+
   protected:
     /**
      * Attempts to find a process with a given ID. If the mapset of processes is
@@ -149,7 +227,7 @@ class Model {
      * is returned; otherwise the mapset's \c end() iterator is returned.
      *
      * @param id
-     *        Process ID.
+     *        Composite ID.
      * @returns Iterator pointing either at the found process, or an iterator
      *          equal to mapset's \c end() iterator.
      */
@@ -160,12 +238,33 @@ class Model {
      */
     void destroyAllProcesses() throw();
 
+    /**
+     * Attempts to find a process with a given ID. If the mapset of processes is
+     * not empty and such a process is found, an iterator pointing to that port
+     * is returned; otherwise the mapset's \c end() iterator is returned.
+     *
+     * @param id
+     *        Composite ID.
+     * @returns Iterator pointing either at the found process, or an iterator
+     *          equal to mapset's \c end() iterator.
+     */
+    std::map<const Id, Composite*>::iterator findComposite(const Id& id) throw();
+
+    /**
+     * Destroys all processes in this model.
+     */
+    void destroyAllComposites() throw();
+
   protected:
     /**
      * Combset of processes.
      */
     std::map<const Id, Leaf*> leafs_;
 
+    /**
+     * Combset of processes.
+     */
+    std::map<const Id, Composite*> composites_;
 };
 
 }

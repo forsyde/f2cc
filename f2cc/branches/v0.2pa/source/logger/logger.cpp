@@ -33,7 +33,7 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 
-const size_t Logger::kLogEntryLineWidthLimit = 80;
+const size_t Logger::kLogEntryLineWidthLimit = 100;
 
 Logger::Logger() throw() : file_path_(""), is_open_(false), level_(INFO) {}
 
