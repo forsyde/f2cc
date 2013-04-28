@@ -74,12 +74,55 @@ ProcessNetwork* XmlParser::createProcessNetwork(const string& file)
     ProcessNetwork* processnetwork = new (std::nothrow) ProcessNetwork();
     if (!processnetwork) THROW_EXCEPTION(OutOfMemoryException);
 
-    generateComposite(processnetwork, Id("f2cc0"), Hierarchy(), parseXmlFile(file));
+    Document xml_doc = (parseXmlFile(file));
+    Element* xml_root = dynamic_cast<Element*>(findXmlRootNode(&xml_doc, file));
+    if (!xml_root) THROW_EXCEPTION(CastException);
+
+    buildComposite(xml_root, processnetwork, Id("f2cc0"), Hierarchy());
 
     return processnetwork;
 }
 
-Element* XmlParser::parseXmlFile(const string& file)
+Composite* XmlParser::buildComposite(Element* xml, ProcessNetwork* processnetwork,
+		const Id id, Hierarchy hierarchy)
+    throw(InvalidArgumentException, ParseException, InvalidProcessNetworkException,
+          IOException, RuntimeException) {
+    if (!xml) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
+    }
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
+    }
+
+    Composite* curr_composite = new Composite(id, hierarchy, Id(getAttributeByTag(xml,string("name"))));
+    if (!curr_composite) THROW_EXCEPTION(OutOfMemoryException);
+
+    std::cout<<"AAAAAAAAAAAAAAAAAAAAAAAAA  "<<id.getString()<<"\n";
+    std::cout<<"AAAAAAAAAAAAAAAAAAAAAAAAA  "<<hierarchy.hierarchyToString()<<"\n";
+    std::cout<<"AAAAAAAAAAAAAAAAAAAAAAAAA  "<<Id(getAttributeByTag(xml,string("name"))).getString()<<"\n";
+
+    std::cout<<"AAAAAAAAAAAAAAAAAAAAAAAAA  "<<curr_composite->getId()->getString();
+
+    logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
+                           + "Parsing \"leaf_process\" elements..."));
+    parseXmlLeafs(xml, processnetwork, curr_composite);
+
+    logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
+                           + "Parsing \"composite_process\" elements..."));
+    parseXmlComposites(xml, processnetwork, curr_composite);
+
+    logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
+                           + "Parsing \"port\" elements..."));
+    parseXmlPorts(xml, curr_composite);
+
+    logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
+                           + "Parsing \"signal\" elements..."));
+    //parseXmlSignals(xml, processnetwork, curr_composite, curr_level_);
+
+    return curr_composite;
+}
+
+Document XmlParser::parseXmlFile(const string& file)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
 
@@ -123,9 +166,7 @@ Element* XmlParser::parseXmlFile(const string& file)
                            + file
                            + ": All checks passed"));
 
-    std::cout<<"\n\n\n OUTSIDE generateComposite() :" <<
-    		getAttributeByTag(findXmlRootElement(&xml_doc, file), "name")<<"\n\n\n";
-    return findXmlRootElement(&xml_doc, file);
+    return xml_doc;
 }
 
 void XmlParser::parseXmlLeafs(Element* xml, ProcessNetwork* processnetwork,
@@ -146,7 +187,7 @@ void XmlParser::parseXmlLeafs(Element* xml, ProcessNetwork* processnetwork,
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
-                                                 + "Analyzing line "
+                                                 + "Analyzing leaf line "
                                                  + tools::toString((*it)->Row())
                                                  + "..."));
         Leaf* process = generateLeaf(processnetwork, *it, parent);
@@ -159,6 +200,49 @@ void XmlParser::parseXmlLeafs(Element* xml, ProcessNetwork* processnetwork,
 								+ process->getId()->getString() + "\"");
 			}
             if (!processnetwork->addProcess(process)) {
+                THROW_EXCEPTION(ParseException, parent->getName().getString(),
+                		        (*it)->Row(),
+                                (*it)->Column(),
+                                string("Multiple processes with ID \"")
+                                + process->getId()->getString() + "\"");
+            }
+        } catch (bad_alloc&) {
+            THROW_EXCEPTION(OutOfMemoryException);
+        }
+    }
+}
+
+void XmlParser::parseXmlComposites(Element* xml, ProcessNetwork* processnetwork,
+		Composite* parent)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException) {
+    if (!xml) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
+    }
+    if (!processnetwork) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
+    }
+    if (!parent) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
+    }
+
+    list<Element*> elements = getElementsByName(xml, "composite_process");
+    list<Element*>::iterator it;
+    for (it = elements.begin(); it != elements.end(); ++it) {
+        logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
+                                                 + "Analyzing composite line "
+                                                 + tools::toString((*it)->Row())
+                                                 + "..."));
+        Composite* process = generateComposite(processnetwork, *it, parent);
+        try {
+            if (!parent->addComposite(process)) {
+				THROW_EXCEPTION(ParseException, parent->getName().getString(),
+						        (*it)->Row(),
+								(*it)->Column(),
+								string("Multiple processes with ID \"")
+								+ process->getId()->getString() + "\"");
+			}
+            if (!processnetwork->addComposite(process)) {
                 THROW_EXCEPTION(ParseException, parent->getName().getString(),
                 		        (*it)->Row(),
                                 (*it)->Column(),
@@ -205,43 +289,6 @@ void XmlParser::parseXmlPorts(Element* xml, Composite* parent)
       }*/
 }
 
-void XmlParser::generateComposite(ProcessNetwork* processnetwork, const Id id,
-		Hierarchy hierarchy, Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidProcessNetworkException,
-          IOException, RuntimeException) {
-    if (!xml) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
-    }
-    if (!processnetwork) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
-    }
-
-    level_++;
-
-    std::cout<<"\n\n\n INSIDE generateComposite() :" <<
-    		getAttributeByTag(xml, "name")<<"\n\n\n";
-    Composite* curr_composite = new Composite(id, hierarchy, Id(getAttributeByTag(xml,string("name"))));
-    if (!processnetwork) THROW_EXCEPTION(OutOfMemoryException);
-
-    logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
-                           + "Parsing \"leaf_process\" elements..."));
-    parseXmlLeafs(xml, processnetwork, curr_composite);
-
-    logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
-                           + "Parsing \"composite_process\" elements..."));
-    //parseXmlComposites(xml, processnetwork, curr_composite, curr_level_);
-
-    logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
-                           + "Parsing \"port\" elements..."));
-    parseXmlPorts(xml, curr_composite);
-
-    logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
-                           + "Parsing \"signal\" elements..."));
-    //parseXmlSignals(xml, processnetwork, curr_composite, curr_level_);
-
-    level_--;
-}
-
 Leaf* XmlParser::generateLeaf(ProcessNetwork* pn, Element* xml,
 		Composite* parent)
     throw(InvalidArgumentException, ParseException, IOException,
@@ -257,7 +304,6 @@ Leaf* XmlParser::generateLeaf(ProcessNetwork* pn, Element* xml,
     		getAttributeByTag(xml, "name"));
 
     Element* constructor_element = getUniqueElement(xml, "process_constructor");
-
     //Getting type and MoC data
     string process_type = getAttributeByTag(constructor_element, "name");
     tools::toLowerCase(tools::trim(process_type));
@@ -265,13 +311,11 @@ Leaf* XmlParser::generateLeaf(ProcessNetwork* pn, Element* xml,
     if (process_type.length() == 0) {
         THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(), "No process type");
     }
-
     string process_moc = getAttributeByTag(constructor_element, "moc");
     tools::toLowerCase(tools::trim(process_moc));
     if (process_moc.length() == 0) {
         THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(), "No process MoC");
     }
-
     try {
     	if ((process_type == "unzipx") && (process_moc == "sy")) {
     		leaf_process = new SY::Unzipx(Id(process_id), parent->getHierarchy(), 0);
@@ -288,7 +332,7 @@ Leaf* XmlParser::generateLeaf(ProcessNetwork* pn, Element* xml,
         }
         else if ((process_type == "comb") && (process_moc == "sy"))  {
         	leaf_process = new SY::Comb(Id(process_id), parent->getHierarchy(), 0,
-                                     generateProcessFunction(xml, pn, parent));
+        			generateLeafFunction(constructor_element, pn, parent));
         }
         else {
             THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(),
@@ -348,7 +392,94 @@ Leaf* XmlParser::generateLeaf(ProcessNetwork* pn, Element* xml,
     return leaf_process;
 }
 
-CFunction* XmlParser::generateProcessFunction(Element* xml, ProcessNetwork* pn,
+Composite* XmlParser::generateComposite(ProcessNetwork* pn, Element* xml,
+		Composite* parent)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException) {
+    if (!xml) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
+    }
+
+    level_++;
+    string previous_file = file_;
+
+    Composite* composite_process;
+
+    // Getting composite component name and file
+    string composite_name = string(parent->getId()->getString() +
+    		getAttributeByTag(xml, "component_name"));
+    tools::toLowerCase(tools::trim(composite_name));
+    if (composite_name.length() == 0) {
+        THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(),
+        		"No composite component name");
+    }
+    string composite_filename = string(composite_name + ".xml");
+    file_ = composite_filename;
+
+    // Generating Composite ID
+    string composite_id = string(parent->getId()->getString()
+    		+ parent->getUniqueCompositeId().getString());
+
+    //building XML data from its file
+    Document xml_doc = (parseXmlFile(composite_filename));
+    Element* xml_root = dynamic_cast<Element*>(findXmlRootNode(&xml_doc, composite_filename));
+    if (!xml_root) THROW_EXCEPTION(CastException);
+
+    composite_process = buildComposite(xml_root, pn, Id(composite_id),
+    		parent->getHierarchy());
+    if (!composite_process) THROW_EXCEPTION(OutOfMemoryException);
+
+    file_ = previous_file;
+    logger_.logMessage(Logger::DEBUG, string(tools::indent(level_))
+                       + "Generated " + composite_process->type()
+                       + " with ID: " + composite_process->getId()->getString()
+                       + " from \"" + composite_process->getName().getString() + "\"");
+
+    // Get ports
+    /*list<Element*> elements = getElementsByName(xml, "port");
+    list<Element*>::iterator it;
+    for (it = elements.begin(); it != elements.end(); ++it) {
+        logger_.logMessage(Logger::DEBUG,
+        		             string(tools::indent(level_)
+                                  + "Analyzing line "
+                                  + tools::toString((*it)->Row()) + "..."));
+
+        Leaf::Port* port = generateLeafPort((*it), leaf_process);
+		if (!port) THROW_EXCEPTION(OutOfMemoryException);
+		logger_.logMessage(Logger::DEBUG,
+				           string(tools::indent(level_)
+						   + "Generated port \"") + port->getId()->getString()
+						   + "\"");
+		string port_direction = getAttributeByTag((*it),"direction");
+		bool port_added;
+        if (port_direction == "in") port_added = leaf_process->addInPort(*port);
+        else if (port_direction == "out") port_added = leaf_process->addOutPort(*port);
+        else THROW_EXCEPTION(ParseException, parent->getName().getString(), (*it)->Row(),
+                (*it)->Column(), "Invalid port direction");
+
+        if (!(port_added)) {
+            THROW_EXCEPTION(ParseException, parent->getName().getString(),
+            				(*it)->Row(),
+                            (*it)->Column(), string("Multiple ")
+                            + ((port_direction == "in") ? "in ports" : "out ports")
+                            + " with the same ID \""
+                            + port->getId()->getString() + "\"");
+        }
+        logger_.logMessage(Logger::DEBUG, string()
+                           + tools::indent(level_)
+                           + ((port_direction == "in") ? "In" : "Out")
+                           + " port \"" + port->getId()->getString()
+                           + "\" added to process \""
+                           + leaf_process->getId()->getString() + "\"");
+        delete port;
+    }*/
+
+    level_--;
+
+    return composite_process;
+}
+
+CFunction* XmlParser::generateLeafFunction(Element* xml, ProcessNetwork* pn,
 		Composite* parent)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
@@ -359,7 +490,8 @@ CFunction* XmlParser::generateProcessFunction(Element* xml, ProcessNetwork* pn,
     Element* argument = getUniqueElement(xml, "argument");
     string function_name = getAttributeByTag(argument,"value");
     string name = getAttributeByTag(argument,"name");
-    string file_name = getAttributeByTag(argument,"value");
+    string file_name = function_name;
+    tools::searchReplace(file_name, name, "");
 
     CFunction* existing_function = pn->getFunction(Id(function_name));
 
@@ -416,7 +548,7 @@ Leaf::Port* XmlParser::generateLeafPort(Element* xml, Leaf* parent)
     return port;
 }
 
-Element* XmlParser::findXmlRootElement(Document* xml, const string& file)
+Node* XmlParser::findXmlRootNode(Document* xml, const string& file)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -435,10 +567,8 @@ Element* XmlParser::findXmlRootElement(Document* xml, const string& file)
                         string("Found \"process_network\" structure is not an "
                                "element"));
     }
-    Element* xml_root = dynamic_cast<Element*>(xml_root_node);
-    if (!xml_root) THROW_EXCEPTION(CastException);
 
-    return xml_root;
+    return xml_root_node;
 }
 
 list<Element*> XmlParser::getElementsByName(Node* xml, const string& name)
@@ -506,7 +636,7 @@ Element* XmlParser::getUniqueElement(Node* xml, const string& name)
                         "string");
     }
 
-    list<Element*> elements = getElementsByName(xml, "process_constructor");
+    list<Element*> elements = getElementsByName(xml, name);
     if (elements.size() != 1){
     	THROW_EXCEPTION(ParseException, file_,
     			xml->Row(),

@@ -88,6 +88,36 @@ class XmlParser : public Frontend {
               ParseException, InvalidProcessNetworkException, RuntimeException);
 
     /**
+     * Converts an \c graph XML element into an internal ForSyDe processnetwork. The
+     * method makes no checks on whether the resultant processnetwork appears sane or
+     * not.  It is the caller's responsibility to destroy the processnetwork when it is
+     * no longer used.
+     *
+     * @param xml
+     *        \c graph XML element containing the processnetwork.
+     * @returns Internal ForSyDe processnetwork object.
+     * @throws InvalidArgumentException
+     *         When \c xml is \c NULL.
+     * @throws ParseException
+     *         When some necessary element or attribute is missing.
+     * @throws InvalidProcessNetworkException
+     *         When the processnetwork is invalid (but was successfully parsed).
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     *
+     * @todo: reimplement model so that the hierarchy is passed as a reference (faster).
+     * @todo: reimplement model so that hierarchy is not needed for Composite constructor.
+     */
+    ForSyDe::Composite* buildComposite(ticpp::Element* xml,
+    		ForSyDe::ProcessNetwork* processnetwork,const ForSyDe::Id id,
+    		ForSyDe::Hierarchy hierarchy)
+    throw(InvalidArgumentException, ParseException, InvalidProcessNetworkException,
+          IOException, RuntimeException);
+
+    /**
      * Gets the ID of an XML element. The ID is specified in an XML attribute
      * named \c id. Any surrounding whitespace will be trimmed.
      *
@@ -104,7 +134,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ticpp::Element* parseXmlFile(const std::string& file)
+    ticpp::Document parseXmlFile(const std::string& file)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -152,38 +182,33 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlPorts(ticpp::Element* xml, ForSyDe::Composite* parent)
+    void parseXmlComposites(ticpp::Element* xml, ForSyDe::ProcessNetwork* processnetwork,
+    		ForSyDe::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
     /**
-     * Converts an \c graph XML element into an internal ForSyDe processnetwork. The
-     * method makes no checks on whether the resultant processnetwork appears sane or
-     * not.  It is the caller's responsibility to destroy the processnetwork when it is
-     * no longer used.
+     * Parses the \c node XML elements in a \c graph XML element and converts
+     * them into corresponding leafs, which are then added to the processnetwork.
+     * mapset.
      *
      * @param xml
-     *        \c graph XML element containing the processnetwork.
-     * @returns Internal ForSyDe processnetwork object.
+     *        \c graph XML element containing the \c node XML elements.
+     * @param processnetwork
+     *        ProcessNetwork object to add the leaf to.
      * @throws InvalidArgumentException
-     *         When \c xml is \c NULL.
+     *         When \c xml or \c processnetwork is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
-     * @throws InvalidProcessNetworkException
-     *         When the processnetwork is invalid (but was successfully parsed).
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
-     *
-     * @todo: reimplement model so that the hierarchy is passed as a reference (faster).
-     * @todo: reimplement model so that hierarchy is not needed for Composite constructor.
      */
-    void generateComposite(ForSyDe::ProcessNetwork* processnetwork,const ForSyDe::Id id,
-    		ForSyDe::Hierarchy hierarchy, ticpp::Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidProcessNetworkException,
-          IOException, RuntimeException);
+    void parseXmlPorts(ticpp::Element* xml, ForSyDe::Composite* parent)
+        throw(InvalidArgumentException, ParseException, IOException,
+              RuntimeException);
 
     /**
      * Converts an XML \c node element into an internal ForSyDe leaf of the
@@ -208,6 +233,28 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
+     * Converts an XML \c node element into an internal ForSyDe leaf of the
+     * same type along with its ports and function argument, if any.
+     *
+     * @param xml
+     *        \c node element containing the leaf.
+     * @returns Internal leaf object.
+     * @throws InvalidArgumentException
+     *         When \c xml is \c NULL.
+     * @throws ParseException
+     *         When some necessary element or attribute is missing.
+     * @throws IOException
+     *         When the file cannot be read or the log file cannot be written.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     */
+    ForSyDe::Composite* generateComposite(ForSyDe::ProcessNetwork* pn, ticpp::Element* xml,
+    		ForSyDe::Composite* parent)
+        throw(InvalidArgumentException, ParseException, IOException,
+              RuntimeException);
+
+    /**
      * Gets the leaf function argument from a XML \c node element. The
      * function argument is specified in an XML "data" child element.
      *
@@ -224,7 +271,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    CFunction* generateProcessFunction(ticpp::Element* xml, ForSyDe::ProcessNetwork* pn,
+    CFunction* generateLeafFunction(ticpp::Element* xml, ForSyDe::ProcessNetwork* pn,
     		ForSyDe::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
@@ -266,7 +313,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ticpp::Element* findXmlRootElement(ticpp::Document* xml,
+    ticpp::Node* findXmlRootNode(ticpp::Document* xml,
     		const std::string& file)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
