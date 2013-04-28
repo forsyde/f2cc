@@ -36,8 +36,8 @@ using std::list;
 using std::bad_alloc;
 using std::vector;
 
-Composite::Composite(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
-		ForSyDe::Id& name) throw() :
+Composite::Composite(const ForSyDe::Id& id, ForSyDe::Hierarchy& hierarchy,
+		ForSyDe::Id name) throw() :
 		Model(), Process(id, hierarchy), composite_name_(name){}
 
 Composite::~Composite() throw() {
@@ -621,10 +621,10 @@ bool Composite::IOPort::isConnectedToLeafInside() const throw() {
 
 */
 
-/*
-Process::Port* Composite::IOPort::getConnectedLeafPortOutside() const throw(InvalidArgumentException) {
+Leaf::Port* Composite::IOPort::getConnectedLeafPortOutside() const throw(InvalidArgumentException) {
 	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
 	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+	Leaf::Port* port = dynamic_cast<Leaf::Port*>(connected_port_outside_);
 	if (ioport){
 		if (relation == Hierarchy::Sibling) return ioport->getConnectedLeafPortInside();
 		else if (relation == Hierarchy::FirstParent) return ioport->getConnectedLeafPortOutside();
@@ -633,12 +633,19 @@ Process::Port* Composite::IOPort::getConnectedLeafPortOutside() const throw(Inva
 			return NULL;
 		}
 	}
-	else return connected_port_outside_;
+	else if (port) return port;
+	else{
+	// It should never be here
+	THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+					+ toString()
+					+ "! Outside connection is of unknown type");
+	}
 }
 
-Process::Port* Composite::IOPort::getConnectedLeafPortInside() const throw(InvalidArgumentException) {
+Leaf::Port* Composite::IOPort::getConnectedLeafPortInside() const throw(InvalidArgumentException) {
 	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_inside_->getProcess());
 	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_inside_);
+	Leaf::Port* port = dynamic_cast<Leaf::Port*>(connected_port_outside_);
 	if (ioport){
 		if (relation == Hierarchy::FirstChild) return ioport->getConnectedLeafPortInside();
 		else {
@@ -646,9 +653,14 @@ Process::Port* Composite::IOPort::getConnectedLeafPortInside() const throw(Inval
 			return NULL;
 		}
 	}
-	else return connected_port_inside_;
+	else if (port) return port;
+	else{
+	// It should never be here
+	THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+					+ toString()
+					+ "! Outside connection is of unknown type");
+	}
 }
-*/
 
 string Composite::IOPort::moretoString() const throw() {
     string str;

@@ -37,6 +37,7 @@
 #include "id.h"
 #include "model.h"
 #include "leaf.h"
+#include "../language/cfunction.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -158,6 +159,65 @@ class ProcessNetwork: public Model {
      */
     std::list<Process::Interface*> getOutputs() throw();
 
+    /**
+     * Adds a process to this model. Models are not allowed to have multiple
+     * processes with the same ID.
+     *
+     * @param process
+     *        Process to add.
+     * @returns \c true if such a process did not already exist and was
+     *          successfully added.
+     * @throws InvalidArgumentException
+     *         When \c process is \c NULL.
+     * @throws OutOfMemoryException
+     *         When a process cannot be added due to memory shortage.
+     */
+    bool addFunction(CFunction* function)
+        throw(InvalidArgumentException, OutOfMemoryException);
+
+    /**
+     * Adds multiple processes to this model at the same time.
+     *
+     * @param processes
+     *        Combset of processes to add.
+     * @throws OutOfMemoryException
+     *         When a process cannot be added due to memory shortage.
+     */
+    void addFunctions(std::map<const Id, CFunction*> functions)
+        throw(OutOfMemoryException);
+
+    /**
+     * Gets a process by ID.
+     *
+     * @param id
+     *        Process ID.
+     * @returns Process, if found; otherwise \c NULL.
+     */
+    CFunction* getFunction(const Id& id) throw();
+
+    /**
+     * Gets the number of processes in this model.
+     *
+     * @returns Process count.
+     */
+    int getNumFunctions() const throw();
+
+    /**
+     * Gets a list of all processes in this model.
+     *
+     * @returns Process list.
+     */
+    std::list<CFunction*> getFunctions() throw();
+
+    /**
+     * Removes and destroys a process by ID.
+     *
+     * @param id
+     *        Process ID.
+     * @returns \c true if such a process was found and successfully deleted.
+     */
+    bool deleteFunction(const Id& id) throw();
+
   private:
 
     /**
@@ -225,6 +285,23 @@ class ProcessNetwork: public Model {
      */
     std::string toString() const throw();
 
+    /**
+     * Attempts to find a process with a given ID. If the mapset of processes is
+     * not empty and such a process is found, an iterator pointing to that port
+     * is returned; otherwise the mapset's \c end() iterator is returned.
+     *
+     * @param id
+     *        Process ID.
+     * @returns Iterator pointing either at the found process, or an iterator
+     *          equal to mapset's \c end() iterator.
+     */
+    std::map<const Id, CFunction*>::iterator findFunction(const Id& id) throw();
+
+    /**
+     * Destroys all processes in this model.
+     */
+    void destroyAllFunctions() throw();
+
   private:
 
     /**
@@ -236,6 +313,11 @@ class ProcessNetwork: public Model {
      * List of outputs.
      */
     std::list<Process::Interface*> outputs_;
+
+    /**
+     * Combset of functions.
+     */
+    std::map<const Id, CFunction*> functions_;
 };
 
 }

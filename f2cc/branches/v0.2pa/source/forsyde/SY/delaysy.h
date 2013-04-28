@@ -61,6 +61,20 @@ class delay : public Leaf {
         throw(InvalidArgumentException);
 
     /**
+     * Creates a leaf.
+     *
+     * @param id
+     *        Leaf ID.
+     * @param initial_value
+     *        Initial delay value.
+     * @throws InvalidArgumentException
+     *         When the initial delay value is empty string.
+     */
+    delay(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+            		int cost, const std::string& initial_value)
+    	throw(InvalidArgumentException);
+
+    /**
      * @copydoc ~Leaf()
      */
     virtual ~delay() throw();

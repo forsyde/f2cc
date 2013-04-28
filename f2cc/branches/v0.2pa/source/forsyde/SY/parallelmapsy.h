@@ -50,8 +50,8 @@ namespace SY{
  *
  * This class implements a specialized leaf \c parallelmap which is not
  * part of the ForSyDe standard. Instead, it is used to replace data parallel
- * sections consisting of a \c unzipx leaf, a set of \c comb or \c
- * CoalescedMap leafs, followed by a \c zipx leaf, with a single \c
+ * sections consisting of a \c Unzipx leaf, a set of \c Comb or \c
+ * CoalescedMap leafs, followed by a \c Zipx leaf, with a single \c
  * ParallelMap leaf as it entails the same semantic meaning.
  */
 class ParallelMap : public CoalescedMap {
@@ -62,7 +62,7 @@ class ParallelMap : public CoalescedMap {
      * @param id
      *        Leaf ID.
      * @param num_leafs
-     *        Number of data parallel comb leafs that this leaf will
+     *        Number of data parallel Comb leafs that this leaf will
      *        represent.
      * @param function
      *        Leaf function argument.
@@ -79,7 +79,7 @@ class ParallelMap : public CoalescedMap {
      * @param id
      *        Leaf ID.
      * @param num_leafs
-     *        Number of data parallel comb leafs that this leaf will
+     *        Number of data parallel Comb leafs that this leaf will
      *        represent.
      * @param functions
      *        List of leaf function arguments.
@@ -99,12 +99,12 @@ class ParallelMap : public CoalescedMap {
     virtual ~ParallelMap() throw();
 
     /**
-     * @copydoc comb::operator==(const Leaf&) const
+     * @copydoc Comb::operator==(const Leaf&) const
      */
     virtual bool operator==(const Leaf& rhs) const throw();
 
     /**
-     * Gets the number of data parallel comb or CoalescedMap leafs that
+     * Gets the number of data parallel Comb or CoalescedMap leafs that
      * this leaf represents.
      *
      * @returns Number of leafs.

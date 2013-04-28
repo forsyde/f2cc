@@ -40,6 +40,16 @@ delay::delay(const Id& id, const string& initial_value)
     }
 }
 
+delay::delay(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+ 		int cost, const string& initial_value)
+        throw(InvalidArgumentException)
+        : Leaf(id, hierarchy, string("sy"), cost), initial_value_(initial_value) {
+    if (initial_value_.length() == 0) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"initial_value\" must not "
+                        "be empty string");
+    }
+}
+
 delay::~delay() throw() {}
 
 string delay::getInitialValue() throw() {

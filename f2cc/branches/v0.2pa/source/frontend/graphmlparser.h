@@ -213,7 +213,7 @@ class GraphmlParser : public Frontend {
      * @param processnetwork
      *        ProcessNetwork object.
      * @param copy_leafs
-     *        Mapset which contains the \c fanout leafs created during the
+     *        Mapset which contains the \c Fanout leafs created during the
      *        parsing leaf.
      * @throws InvalidArgumentException
      *         When \c xml or \c processnetwork is \c NULL.
@@ -534,7 +534,7 @@ class GraphmlParser : public Frontend {
      * @param processnetwork
      *        ProcessNetwork object to add the leaf to.
      * @param copy_leafs
-     *        Mapset which contains the \c fanout leafs created during the
+     *        Mapset which contains the \c Fanout leafs created during the
      *        parsing leaf.
      * @throws InvalidArgumentException
      *         When \c xml or \c processnetwork is \c NULL.

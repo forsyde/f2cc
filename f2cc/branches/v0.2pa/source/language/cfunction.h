@@ -59,6 +59,12 @@ class CFunction {
     CFunction() throw();
 
     /**
+     * Creates an unnamed function, with no return type, input parameters nor
+     * body.
+     */
+    CFunction(const std::string& name, const std::string& file) throw();
+
+    /**
      * Creates a function.
      *
      * @param name
@@ -263,6 +269,11 @@ class CFunction {
      * Function name.
      */
     std::string name_;
+
+    /**
+     * Function's filename.
+     */
+    std::string file_;
 
     /**
      * Return value data type.

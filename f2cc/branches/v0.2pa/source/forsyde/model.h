@@ -86,7 +86,7 @@ class Model {
      * Adds multiple processes to this model at the same time.
      *
      * @param processes
-     *        combset of processes to add.
+     *        Combset of processes to add.
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
@@ -162,7 +162,7 @@ class Model {
 
   protected:
     /**
-     * combset of processes.
+     * Combset of processes.
      */
     std::map<const Id, Leaf*> leafs_;
 

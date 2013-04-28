@@ -112,7 +112,7 @@ void Frontend::checkPort(Leaf::Port* port, ProcessNetwork* processnetwork)
                         + "\" in leaf \""
                         + port->getProcess()->getId()->getString()
                         + "\" is connected to its own processnetwork "
-                        + "(combinatorial looping)");
+                        + "(Combinatorial looping)");
     }
 
     // Check that the other port belongs to a leaf in the processnetwork

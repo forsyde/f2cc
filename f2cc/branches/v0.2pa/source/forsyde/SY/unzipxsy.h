@@ -31,7 +31,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c unzipx leaf.
+ * @brief Implements the ForSyDe \c Unzipx leaf.
  */
 
 #include "../leaf.h"
@@ -43,19 +43,25 @@ namespace ForSyDe {
 namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c unzipx leaf.
+ * @brief Implements the ForSyDe \c Unzipx leaf.
  */
-class unzipx : public Leaf {
+class Unzipx : public Leaf {
   public:
     /**
      * @copydoc Leaf(const Id&)
      */
-    unzipx(const Id& id) throw();
+    Unzipx(const Id& id) throw();
+
+    /**
+     * @copydoc Leaf(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy, const std::string moc, int cost)
+     */
+    Unzipx(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+        		int cost) throw();
 
     /**
      * @copydoc ~Leaf()
      */
-    virtual ~unzipx() throw();
+    virtual ~Unzipx() throw();
 
     /**
      * @copydoc Leaf::operator==(const Leaf&) const

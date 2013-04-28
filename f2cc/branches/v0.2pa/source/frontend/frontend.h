@@ -171,7 +171,7 @@ class Frontend {
      *     connected,
      *   - all ports are connected to leafs that reside within the processnetwork,
      *   - no output of any leaf is connected to the input of the
-     *     same leaf (i.e. avoiding combinatorial loops),
+     *     same leaf (i.e. avoiding Combinatorial loops),
      *   - all leaf type-related checks are passed.
      * 
      * @param processnetwork
@@ -195,7 +195,7 @@ class Frontend {
      *   - is connected,
      *   - is connected to a port belonging to leaf which is part of the
      *     given processnetwork,
-     *   - is not connected a port of its own leaf (combinatorial loops).
+     *   - is not connected a port of its own leaf (Combinatorial loops).
      * 
      * @param port
      *        Port to check.

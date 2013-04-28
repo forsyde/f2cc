@@ -129,6 +129,14 @@ static string& rtrim(string& str) throw() {
     return str;
 }
 
+string f2cc::tools::indent(int level) throw() {
+	string tabs;
+    for(int i = 0; i<level; i++){
+    	tabs += "\t";
+    }
+    return tabs;
+}
+
 string& f2cc::tools::trim(string& str) throw() {
     return ltrim(rtrim(str));
 }
@@ -204,6 +212,14 @@ string f2cc::tools::getFileName(string file) throw() {
     size_t last_dot_pos = file.find_last_of(".");
     int end_pos = last_dot_pos == string::npos ? file.length() : last_dot_pos;
     return file.substr(start_pos, end_pos - start_pos);
+}
+
+string f2cc::tools::getExtension(string file) throw() {
+    if (file.length() == 0) return "";
+
+    size_t last_dot_pos = file.find_last_of(".");
+    int start_pos = last_dot_pos == string::npos ? file.length() : last_dot_pos + 1;
+    return file.substr(start_pos, file.length() - start_pos);
 }
 
 vector<string> f2cc::tools::split(const string& str, char delim) throw() {

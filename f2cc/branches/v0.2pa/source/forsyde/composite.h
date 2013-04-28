@@ -77,8 +77,8 @@ public:
      *        the composite process' name. Initially it is the same as its filename, and it is enough
      *        to identify and compare a composite process' structure.
      */
-    Composite(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
-    		ForSyDe::Id& name) throw();
+    Composite(const ForSyDe::Id& id, ForSyDe::Hierarchy& hierarchy,
+    		ForSyDe::Id name) throw();
 
     /**
      * Destroys this composite process. This also destroys all contained processes
@@ -473,7 +473,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		//Leaf::Port* getConnectedLeafPortOutside() const throw(InvalidArgumentException);
+		Leaf::Port* getConnectedLeafPortOutside() const throw(InvalidArgumentException);
         /**
          * Gets the immediate adjacent port at the other end of the connection, if any.
          *
@@ -482,7 +482,7 @@ public:
 		 * @throws IllegalCallException
 		 *         When this method was called for a non-IO port
          */
-		//Leaf::Port* getConnectedLeafPortInside() const throw(InvalidArgumentException);
+		Leaf::Port* getConnectedLeafPortInside() const throw(InvalidArgumentException);
 
 
       private:

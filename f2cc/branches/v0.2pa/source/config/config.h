@@ -69,6 +69,23 @@ class Config {
     };
 
     /**
+     * Denotes the target platform to which the ForSyDe processnetwork is to be
+     * synthesized.
+     */
+    enum InputFormat {
+        /**
+         * Sequential C code, where no leafs are executed in parallel.
+         */
+        XML,
+
+        /**
+         * Sequential C code annotaded with CUDA directives, where data parallel
+         * leafs are executed in parallel.
+         */
+        GraphML
+    };
+
+    /**
      * Creates a configuration with default settings.
      */
     Config() throw();
@@ -249,6 +266,21 @@ class Config {
     void setTargetPlatform(TargetPlatform platform) throw();
 
     /**
+     * Gets the target platform. Default platform is Config::CUDA.
+     *
+     * @returns Target platform.
+     */
+    InputFormat getInputFormat() const throw();
+
+    /**
+     * Sets the target platform.
+     *
+     * @param platform
+     *        Target platform.
+     */
+    void setTargetPlatform(InputFormat format) throw();
+
+    /**
      * Parses the command line and sets its specified settings to this
      * configuration.
      *
@@ -356,6 +388,11 @@ class Config {
      * Specifies the target platform.
      */
     TargetPlatform target_platform_;
+
+    /**
+     * Specifies the target platform.
+     */
+    InputFormat format_;
 };
 
 }

@@ -48,8 +48,8 @@ CoalescedMap::CoalescedMap(const Id& id, const CFunction& function)
 CoalescedMap::CoalescedMap(const Id& id,
                                const list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException)
-        // comb requires a function, but can not be certain at this point that
-        // functions is not empty, so we provide comb with a dummy function
+        // Comb requires a function, but can not be certain at this point that
+        // functions is not empty, so we provide Comb with a dummy function
         // (we will never access it anyway)
         : Map(id, CFunction()) {
     if (functions.size() == 0) {
