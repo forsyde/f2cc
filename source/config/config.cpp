@@ -70,8 +70,8 @@ string Config::getHelpMenu() const throw() {
         "   * Map\n"
         "   * ParallelMap\n"
         "   * ZipWithNSY\n"
-        "   * unzipx\n"
-        "   * zipx\n"
+        "   * Unzipx\n"
+        "   * Zipx\n"
         "   * delay\n"
         "\n";
     str += part;
@@ -192,6 +192,7 @@ void Config::setDefaults() throw() {
     use_shared_memory_for_input_ = false;
     use_shared_memory_for_output_ = false;
     target_platform_ = Config::CUDA;
+    format_ = Config::XML;
 }
 
 void Config::setFromCommandLine(int argc, const char** argv)
@@ -363,6 +364,10 @@ void Config::setFromCommandLine(int argc, const char** argv)
                 }
             }
         }
+        std::string extension = tools::getExtension(input_file_);
+        if (extension == "xml") format_ = XML;
+        else if (extension == "graphml") format_ = GraphML;
+        else THROW_EXCEPTION(InvalidFormatException, "Input format not recognized");
     }
     catch(InvalidFormatException& ex) {
         THROW_EXCEPTION(InvalidFormatException, ex.getMessage()
@@ -400,6 +405,14 @@ Config::TargetPlatform Config::getTargetPlatform() const throw() {
 
 void Config::setTargetPlatform(Config::TargetPlatform platform) throw() {
     target_platform_ = platform;
+}
+
+Config::InputFormat Config::getInputFormat() const throw() {
+    return format_;
+}
+
+void Config::setTargetPlatform(Config::InputFormat format) throw() {
+	format_ = format;
 }
 
 bool Config::isOption(const string& str) const throw() {

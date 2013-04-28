@@ -45,7 +45,7 @@ namespace SY{
 /**
  * @brief Implements the generic ForSyDe \c zipWithN leaf.
  */
-class comb : public Leaf {
+class Comb : public Leaf {
   public:
     /**
      * Creates a leaf.
@@ -55,19 +55,20 @@ class comb : public Leaf {
      * @param function
      *        Leaf function argument.
      */
-    comb(const Id& id, const CFunction& function) throw();
+    Comb(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+    		int cost, CFunction* function) throw();
 
     /**
      * @copydoc ~Leaf()
      */
-    virtual ~comb() throw();
+    virtual ~Comb() throw();
 
     /**
      * Gets the function argument of this leaf.
      *
      * @returns Function argument.
      */
-    virtual CFunction* getFunction() throw();
+    CFunction* getFunction() throw();
 
     /**
      * Same as Leaf::operator==(const Leaf&) const but with the additional
@@ -116,7 +117,7 @@ class comb : public Leaf {
      * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void checkFunction(CFunction& function, size_t num_in_ports) const
+    virtual void checkFunction(CFunction* function, size_t num_in_ports) const
         throw(InvalidProcessException);
 
     /**
@@ -135,7 +136,7 @@ class comb : public Leaf {
     /**
      * Leaf function argument.
      */
-    CFunction function_;
+    CFunction* function_;
 };
 
 }

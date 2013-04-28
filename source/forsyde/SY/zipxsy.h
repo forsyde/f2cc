@@ -31,7 +31,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c zipx leaf.
+ * @brief Implements the ForSyDe \c Zipx leaf.
  */
 
 #include "../leaf.h"
@@ -43,19 +43,22 @@ namespace ForSyDe {
 namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c zipx leaf.
+ * @brief Implements the ForSyDe \c Zipx leaf.
  */
-class zipx : public Leaf {
+class Zipx : public Leaf {
   public:
     /**
      * @copydoc Leaf(const Id&)
      */
-    zipx(const Id& id) throw();
+    Zipx(const Id& id) throw();
+
+    Zipx(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+        		int cost) throw();
 
     /**
      * @copydoc ~Leaf()
      */
-    virtual ~zipx() throw();
+    virtual ~Zipx() throw();
 
     /**
      * @copydoc Leaf::operator==(const Leaf&) const

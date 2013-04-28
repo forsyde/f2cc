@@ -69,7 +69,7 @@ class Process{
      */
     Process(const ForSyDe::Id& id) throw();
 
-    Process(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy) throw();
+    Process(const ForSyDe::Id& id, ForSyDe::Hierarchy& hierarchy) throw();
 
     /**
      * Destroys this process. This also destroys all interfaces and breaks all

@@ -30,16 +30,20 @@ using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-zipx::zipx(const Id& id) throw()
+Zipx::Zipx(const Id& id) throw()
         : Leaf(id) {}
 
-zipx::~zipx() throw() {}
+Zipx::Zipx(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+ 		int cost) throw()
+        : Leaf(id, hierarchy, string("sy"), cost) {}
 
-bool zipx::operator==(const Leaf& rhs) const throw() {
+Zipx::~Zipx() throw() {}
+
+bool Zipx::operator==(const Leaf& rhs) const throw() {
     if (Leaf::operator==(rhs)) return false;
 
     try {
-        dynamic_cast<const zipx&>(rhs);
+        dynamic_cast<const Zipx&>(rhs);
     }
     catch (bad_cast&) {
         return false;
@@ -47,11 +51,11 @@ bool zipx::operator==(const Leaf& rhs) const throw() {
     return true;
 }
 
-string zipx::type() const throw() {
-    return "zipx";
+string Zipx::type() const throw() {
+    return "Zipx";
 }
 
-void zipx::moreChecks() throw(InvalidProcessException) {
+void Zipx::moreChecks() throw(InvalidProcessException) {
     if (getOutPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""

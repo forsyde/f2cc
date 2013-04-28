@@ -112,8 +112,8 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Splits data parallel segments by injecting a \c zipxSY followed by an
-     * \c unzipxSY leaf between each segment.
+     * Splits data parallel segments by injecting a \c ZipxSY followed by an
+     * \c UnzipxSY leaf between each segment.
      *
      * @throws IOException
      *         When access to the log file failed.
@@ -124,7 +124,7 @@ class ModelModifier {
     void splitDataParallelSegments() throw(IOException, RuntimeException);
 
     /**
-     * Fuses a segment of \c unzipxSY, \c mapSY, and \c zipxSY leafs into a
+     * Fuses a segment of \c UnzipxSY, \c mapSY, and \c ZipxSY leafs into a
      * single \c parallelmapSY leaf with the same leaf function argument
      * as the \c mapSY leafs.
      *
@@ -160,7 +160,7 @@ class ModelModifier {
     /**
      * Removes redundant leafs from the processnetwork. Redundant leafs are
      * instances which does not affect the semantic behaviour of the processnetwork when
-     * removed, such as \c UnzipxSy and \c ZipxSy leafs with only one in
+     * removed, such as \c UnZipxSy and \c ZipxSy leafs with only one in
      * and out port.
      *
      * @throws IOException
@@ -174,7 +174,7 @@ class ModelModifier {
 
   private:
     /**
-     * Injects a \c zipxSY followed by an \c unzipxSY leaf between each
+     * Injects a \c ZipxSY followed by an \c UnzipxSY leaf between each
      * segment (column of mapSY leafs) in a section. The section is given
      * as a vector of leaf chains (which is also given as a vector).
      *
@@ -208,8 +208,8 @@ class ModelModifier {
     /**
      * Searches for contained sections within the processnetwork. A contained section is
      * a part of the processnetwork which:
-     *   - start with a \c unzipxSY leaf, and
-     *   - ends with a \c zipxSY leaf, where
+     *   - start with a \c UnzipxSY leaf, and
+     *   - ends with a \c ZipxSY leaf, where
      *   - all data flow diverging from the starting point converges at the end
      *     point, and
      *   - all data flow converging to the end point diverges from the starting
@@ -248,19 +248,19 @@ class ModelModifier {
         throw(IOException, RuntimeException);
     
     /**
-     * Finds the nearest \c unzipx leaf that can be found from a given
+     * Finds the nearest \c Unzipx leaf that can be found from a given
      * starting point.
      *
      * @param begin
      *        Leaf to begin from.
-     * @returns A zipx leaf, if found; otherwise \c NULL.
+     * @returns A Zipx leaf, if found; otherwise \c NULL.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    ForSyDe::SY::unzipx* findNearestunzipxLeaf(ForSyDe::Leaf* begin)
+    ForSyDe::SY::Unzipx* findNearestUnzipxLeaf(ForSyDe::Leaf* begin)
     throw(IOException, RuntimeException);
 
     /**

@@ -156,7 +156,7 @@ TiXmlNode::~TiXmlNode()
 }
 
 
-void TiXmlNode::fanoutTo( TiXmlNode* target ) const
+void TiXmlNode::FanoutTo( TiXmlNode* target ) const
 {
 	target->SetValue (value.c_str() );
 	target->userData = userData;
@@ -522,14 +522,14 @@ TiXmlElement::TiXmlElement( const TiXmlElement& copy)
 	: TiXmlNode( TiXmlNode::ELEMENT )
 {
 	firstChild = lastChild = 0;
-	copy.fanoutTo( this );
+	copy.FanoutTo( this );
 }
 
 
 void TiXmlElement::operator=( const TiXmlElement& base )
 {
 	ClearThis();
-	base.fanoutTo( this );
+	base.FanoutTo( this );
 }
 
 
@@ -820,10 +820,10 @@ void TiXmlElement::Print( FILE* cfile, int depth ) const
 }
 
 
-void TiXmlElement::fanoutTo( TiXmlElement* target ) const
+void TiXmlElement::FanoutTo( TiXmlElement* target ) const
 {
 	// superclass:
-	TiXmlNode::fanoutTo( target );
+	TiXmlNode::FanoutTo( target );
 
 	// Element class:
 	// Clone the attributes, then clone the children.
@@ -862,7 +862,7 @@ TiXmlNode* TiXmlElement::Clone() const
 	if ( !clone )
 		return 0;
 
-	fanoutTo( clone );
+	FanoutTo( clone );
 	return clone;
 }
 
@@ -909,14 +909,14 @@ TiXmlDocument::TiXmlDocument( const std::string& documentName ) : TiXmlNode( TiX
 
 TiXmlDocument::TiXmlDocument( const TiXmlDocument& copy ) : TiXmlNode( TiXmlNode::DOCUMENT )
 {
-	copy.fanoutTo( this );
+	copy.FanoutTo( this );
 }
 
 
 void TiXmlDocument::operator=( const TiXmlDocument& copy )
 {
 	Clear();
-	copy.fanoutTo( this );
+	copy.FanoutTo( this );
 }
 
 
@@ -1115,9 +1115,9 @@ bool TiXmlDocument::SaveFile( FILE* fp ) const
 }
 
 
-void TiXmlDocument::fanoutTo( TiXmlDocument* target ) const
+void TiXmlDocument::FanoutTo( TiXmlDocument* target ) const
 {
-	TiXmlNode::fanoutTo( target );
+	TiXmlNode::FanoutTo( target );
 
 	target->error = error;
 	target->errorId = errorId;
@@ -1140,7 +1140,7 @@ TiXmlNode* TiXmlDocument::Clone() const
 	if ( !clone )
 		return 0;
 
-	fanoutTo( clone );
+	FanoutTo( clone );
 	return clone;
 }
 
@@ -1285,14 +1285,14 @@ double  TiXmlAttribute::DoubleValue() const
 
 TiXmlComment::TiXmlComment( const TiXmlComment& copy ) : TiXmlNode( TiXmlNode::COMMENT )
 {
-	copy.fanoutTo( this );
+	copy.FanoutTo( this );
 }
 
 
 void TiXmlComment::operator=( const TiXmlComment& base )
 {
 	Clear();
-	base.fanoutTo( this );
+	base.FanoutTo( this );
 }
 
 
@@ -1307,9 +1307,9 @@ void TiXmlComment::Print( FILE* cfile, int depth ) const
 }
 
 
-void TiXmlComment::fanoutTo( TiXmlComment* target ) const
+void TiXmlComment::FanoutTo( TiXmlComment* target ) const
 {
-	TiXmlNode::fanoutTo( target );
+	TiXmlNode::FanoutTo( target );
 }
 
 
@@ -1326,7 +1326,7 @@ TiXmlNode* TiXmlComment::Clone() const
 	if ( !clone )
 		return 0;
 
-	fanoutTo( clone );
+	FanoutTo( clone );
 	return clone;
 }
 
@@ -1352,9 +1352,9 @@ void TiXmlText::Print( FILE* cfile, int depth ) const
 }
 
 
-void TiXmlText::fanoutTo( TiXmlText* target ) const
+void TiXmlText::FanoutTo( TiXmlText* target ) const
 {
-	TiXmlNode::fanoutTo( target );
+	TiXmlNode::FanoutTo( target );
 	target->cdata = cdata;
 }
 
@@ -1373,7 +1373,7 @@ TiXmlNode* TiXmlText::Clone() const
 	if ( !clone )
 		return 0;
 
-	fanoutTo( clone );
+	FanoutTo( clone );
 	return clone;
 }
 
@@ -1405,14 +1405,14 @@ TiXmlDeclaration::TiXmlDeclaration(	const std::string& _version,
 TiXmlDeclaration::TiXmlDeclaration( const TiXmlDeclaration& copy )
 	: TiXmlNode( TiXmlNode::DECLARATION )
 {
-	copy.fanoutTo( this );
+	copy.FanoutTo( this );
 }
 
 
 void TiXmlDeclaration::operator=( const TiXmlDeclaration& copy )
 {
 	Clear();
-	copy.fanoutTo( this );
+	copy.FanoutTo( this );
 }
 
 
@@ -1438,9 +1438,9 @@ void TiXmlDeclaration::Print( FILE* cfile, int /*depth*/, TIXML_STRING* str ) co
 }
 
 
-void TiXmlDeclaration::fanoutTo( TiXmlDeclaration* target ) const
+void TiXmlDeclaration::FanoutTo( TiXmlDeclaration* target ) const
 {
-	TiXmlNode::fanoutTo( target );
+	TiXmlNode::FanoutTo( target );
 
 	target->version = version;
 	target->encoding = encoding;
@@ -1461,7 +1461,7 @@ TiXmlNode* TiXmlDeclaration::Clone() const
 	if ( !clone )
 		return 0;
 
-	fanoutTo( clone );
+	FanoutTo( clone );
 	return clone;
 }
 
@@ -1488,14 +1488,14 @@ TiXmlStylesheetReference::TiXmlStylesheetReference(	const std::string& _type,
 TiXmlStylesheetReference::TiXmlStylesheetReference( const TiXmlStylesheetReference& copy )
 	: TiXmlNode( TiXmlNode::STYLESHEETREFERENCE )
 {
-	copy.fanoutTo( this );
+	copy.FanoutTo( this );
 }
 
 
 void TiXmlStylesheetReference::operator=( const TiXmlStylesheetReference& copy )
 {
 	Clear();
-	copy.fanoutTo( this );
+	copy.FanoutTo( this );
 }
 
 
@@ -1516,9 +1516,9 @@ void TiXmlStylesheetReference::Print( FILE* cfile, int /*depth*/, TIXML_STRING* 
 	if ( str )	 (*str) += "?>";
 }
 
-void TiXmlStylesheetReference::fanoutTo( TiXmlStylesheetReference* target ) const
+void TiXmlStylesheetReference::FanoutTo( TiXmlStylesheetReference* target ) const
 {
-	TiXmlNode::fanoutTo( target );
+	TiXmlNode::FanoutTo( target );
 
 	target->type = type;
 	target->href = href;
@@ -1536,7 +1536,7 @@ TiXmlNode* TiXmlStylesheetReference::Clone() const
 	if ( !clone )
 		return 0;
 
-	fanoutTo( clone );
+	FanoutTo( clone );
 	return clone;
 }
 
@@ -1549,9 +1549,9 @@ void TiXmlUnknown::Print( FILE* cfile, int depth ) const
 }
 
 
-void TiXmlUnknown::fanoutTo( TiXmlUnknown* target ) const
+void TiXmlUnknown::FanoutTo( TiXmlUnknown* target ) const
 {
-	TiXmlNode::fanoutTo( target );
+	TiXmlNode::FanoutTo( target );
 }
 
 
@@ -1568,7 +1568,7 @@ TiXmlNode* TiXmlUnknown::Clone() const
 	if ( !clone )
 		return 0;
 
-	fanoutTo( clone );
+	FanoutTo( clone );
 	return clone;
 }
 

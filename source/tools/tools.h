@@ -83,6 +83,15 @@ std::string& searchReplace(std::string& str, const std::string& search,
  *        String to trim.
  * @returns Modified string.
  */
+std::string indent(int level) throw();
+
+/**
+ * Trims front and end of a string from whitespace.
+ *
+ * @param str
+ *        String to trim.
+ * @returns Modified string.
+ */
 std::string& trim(std::string& str) throw();
 
 /**
@@ -187,6 +196,16 @@ void writeFile(const std::string& file, const std::string& data)
  * @returns File name.
  */
 std::string getFileName(std::string file) throw();
+
+/**
+ * Gets the file name from a file path. If no file name is found, an empty
+ * string is returned.
+ *
+ * @param file
+ *        File path.
+ * @returns File name.
+ */
+std::string getExtension(std::string file) throw();
 
 /**
  * Copies and appends the content of one list to the end of another.

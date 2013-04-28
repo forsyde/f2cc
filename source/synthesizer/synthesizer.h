@@ -331,7 +331,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void combineFunctionDuplicates()
+    void CombineFunctionDuplicates()
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
     /**
@@ -1148,7 +1148,7 @@ class Synthesizer {
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute a given \c unzipx leaf. The generated
+     * Generates code which execute a given \c Unzipx leaf. The generated
      * code copies each value from its in signal (which is expected to be an
      * array) to all of its out signals. The index of the out port list is used
      * to decide which value it will receive from the input array.
@@ -1163,12 +1163,12 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForunzipx(
-        ForSyDe::SY::unzipx* leaf)
+    std::string generateLeafExecutionCodeForUnzipx(
+        ForSyDe::SY::Unzipx* leaf)
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute a given \c zipx leaf. The generated
+     * Generates code which execute a given \c Zipx leaf. The generated
      * code copies all values from its in signals to its out signal, which is
      * expected to be an array. The index of the in port list is used to decide
      * where an in value ends up in the output array.
@@ -1183,11 +1183,11 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForzipx(ForSyDe::SY::zipx* leaf)
+    std::string generateLeafExecutionCodeForZipx(ForSyDe::SY::Zipx* leaf)
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute a given \c fanout leaf. The generated
+     * Generates code which execute a given \c Fanout leaf. The generated
      * code copies the value from its in signal to all of its out signals.
      *
      * @param leaf
@@ -1200,7 +1200,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForfanout(ForSyDe::SY::fanout* leaf)
+    std::string generateLeafExecutionCodeForFanout(ForSyDe::SY::Fanout* leaf)
         throw(InvalidProcessNetworkException, IOException, RuntimeException);
 
   private:

@@ -30,16 +30,20 @@ using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-fanout::fanout(const Id& id) throw()
+Fanout::Fanout(const Id& id) throw()
         : Leaf(id) {}
 
-fanout::~fanout() throw() {}
+Fanout::Fanout(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+ 		int cost) throw()
+        : Leaf(id, hierarchy, string("sy"), cost) {}
 
-bool fanout::operator==(const Leaf& rhs) const throw() {
+Fanout::~Fanout() throw() {}
+
+bool Fanout::operator==(const Leaf& rhs) const throw() {
     if (Leaf::operator==(rhs)) return false;
 
     try {
-        dynamic_cast<const fanout&>(rhs);
+        dynamic_cast<const Fanout&>(rhs);
     }
     catch (bad_cast&) {
         return false;
@@ -47,11 +51,11 @@ bool fanout::operator==(const Leaf& rhs) const throw() {
     return true;
 }
 
-string fanout::type() const throw() {
+string Fanout::type() const throw() {
     return "copy";
 }
 
-void fanout::moreChecks() throw(InvalidProcessException) {
+void Fanout::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""

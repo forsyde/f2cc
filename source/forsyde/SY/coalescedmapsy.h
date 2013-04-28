@@ -48,11 +48,11 @@ namespace SY {
 /**
  * @brief Implements a synthesis-related \c coalescedmap leaf.
  *
- * This class implements a specialized leaf \c coalescedcomb which is not
- * part of the ForSyDe standard. It is used to replace coalesced \c comb
+ * This class implements a specialized leaf \c coalescedComb which is not
+ * part of the ForSyDe standard. It is used to replace coalesced \c Comb
  * leafs into a single leaf which contains all function arguments of the
  * leafs which it replaces. Thus, executing a single \c CoalescedMap
- * leaf produces the same result as executing a series of \c comb leafs.
+ * leaf produces the same result as executing a series of \c Comb leafs.
  */
 class CoalescedMap : public Map {
   public:

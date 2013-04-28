@@ -365,10 +365,10 @@ Leaf* GraphmlParser::generateLeaf(Element* xml)
                                         generateLeafFunction(xml));
         }
         else if (process_type == "unzipxsy") {
-            process = new unzipx(Id(process_id));
+            process = new Unzipx(Id(process_id));
         }
         else if (process_type == "zipxsy") {
-            process = new zipx(Id(process_id));
+            process = new Zipx(Id(process_id));
         }
         else if (process_type == "delaysy") {
             process = new delay(Id(process_id), getInitialDelayValue(xml));
@@ -967,15 +967,15 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
                            + target_port->toString() + "\"");
     }
     else {
-        // Source port already connected; use intermediate fanout process
+        // Source port already connected; use intermediate Fanout process
         logger_.logMessage(Logger::DEBUG,
                            string("Source port \"")
                            + source_port->toString() + "\" already connected "
                            + "to \""
                            + source_port->getConnectedPort()->toString()
-                           + "\". Using intermediate fanout process.");
+                           + "\". Using intermediate Fanout process.");
 
-        // Get fanout process
+        // Get Fanout process
         Leaf* copy_process;
         map<Leaf::Port*, Leaf*>::iterator it =
             copy_processs.find(source_port);
@@ -983,13 +983,13 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
             copy_process = it->second;
         }
         else {
-            // No such fanout process; create a new one
+            // No such Fanout process; create a new one
             copy_process = new (std::nothrow)
-                fanout(processnetwork->getUniqueProcessId("_copySY_"));
+                Fanout(processnetwork->getUniqueProcessId("_copySY_"));
             if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
             copy_processs.insert(pair<Leaf::Port*, Leaf*>(source_port,
                                                                  copy_process));
-            logger_.logMessage(Logger::DEBUG, string("New fanout process \"")
+            logger_.logMessage(Logger::DEBUG, string("New Fanout process \"")
                                + copy_process->getId()->getString()
                                + "\" created");
 
@@ -1005,7 +1005,7 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
                                + "\" added to the processnetwork");
 
             // Break the current connection and connect the source and previous
-            // target connection through the fanout process
+            // target connection through the Fanout process
             if(!copy_process->addInPort(Id("in"))) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "in port to process \""

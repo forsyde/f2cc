@@ -47,25 +47,28 @@ namespace SY {
  * @brief Implements the a leaf for copying a signal value to multiple output
  *        signals.
  *
- * The \c fanout leaf is a special leaf whose only purpose is to copy the
+ * The \c Fanout leaf is a special leaf whose only purpose is to copy the
  * value on the input signal to all of its output signals. The internal processnetwork
  * does no allow a port to be connected to multiple other ports. However,
  * ForSyDe itself does allow multiple signals to retrieve its values from the
  * same source. Thus, during parsing when encountering such instances, an
- * intermediate \c fanout leaf is created and the signals redirected to its
+ * intermediate \c Fanout leaf is created and the signals redirected to its
  * outputs.
  */
-class fanout : public Leaf {
+class Fanout : public Leaf {
   public:
     /**
      * @copydoc Leaf(const Id&)
      */
-    fanout(const Id& id) throw();
+    Fanout(const Id& id) throw();
+
+    Fanout(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+        		int cost) throw();
 
     /**
      * @copydoc ~Leaf()
      */
-    virtual ~fanout() throw();
+    virtual ~Fanout() throw();
 
     /**
      * @copydoc Leaf::operator==(const Leaf&) const

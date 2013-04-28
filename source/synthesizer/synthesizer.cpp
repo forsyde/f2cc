@@ -98,14 +98,14 @@ Synthesizer::CodeSet Synthesizer::generateCode()
     renameMapFunctions();
     logger_.logMessage(Logger::INFO, "Combining function duplicates through "
                        "renaming...");
-    combineFunctionDuplicates();
+    CombineFunctionDuplicates();
 
     logger_.logMessage(Logger::INFO, "Generating wrapper functions for "
                        "coalesced leafs...");
     generateCoalescedSyWrapperFunctions();
     logger_.logMessage(Logger::INFO, "Combining function duplicates through "
                        "renaming...");
-    combineFunctionDuplicates();
+    CombineFunctionDuplicates();
 
     if (target_platform_ == Synthesizer::CUDA) {
         logger_.logMessage(Logger::INFO, "Generating CUDA kernel functions for "
@@ -113,7 +113,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
         generateCudaKernelFunctions();
         logger_.logMessage(Logger::INFO, "Combining function duplicates "
                            "through renaming...");
-        combineFunctionDuplicates();
+        CombineFunctionDuplicates();
     }
     else {
         logger_.logMessage(Logger::INFO, "Generating wrapper functions for "
@@ -121,7 +121,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
         generateParallelMapSyWrapperFunctions();
         logger_.logMessage(Logger::INFO, "Combining function duplicates "
                            "through renaming...");
-        combineFunctionDuplicates();
+        CombineFunctionDuplicates();
     }
 
     logger_.logMessage(Logger::INFO, "Creating signal variables...");
@@ -306,7 +306,7 @@ void Synthesizer::renameMapFunctions()
     }
 }
 
-void Synthesizer::combineFunctionDuplicates()
+void Synthesizer::CombineFunctionDuplicates()
     throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     // The mapset below is used to store the unique functions found across the
     // processnetwork. The body is used as key, and the name as body
@@ -936,15 +936,15 @@ CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
                             + " could be found");
         }
 
-        if (dynamic_cast<unzipx*>(leaf)) {
+        if (dynamic_cast<Unzipx*>(leaf)) {
             data_type.setIsArray(true);
         }
     }
 
-    // If this leaf is a zipx and the data type is an array, then we cannot
+    // If this leaf is a Zipx and the data type is an array, then we cannot
     // be sure of its array size at this point and therefore must make it
     // unknown
-    if (dynamic_cast<zipx*>(leaf) && data_type.isArray()) {
+    if (dynamic_cast<Zipx*>(leaf) && data_type.isArray()) {
         data_type.setIsArray(true);
     }
 
@@ -1032,15 +1032,15 @@ CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
                             + " could be found");
         }
 
-        if (dynamic_cast<zipx*>(leaf)) {
+        if (dynamic_cast<Zipx*>(leaf)) {
             data_type.setIsArray(true);
         }
     }
 
-    // If this leaf is an unzipx and the data type is an array, then we
+    // If this leaf is an Unzipx and the data type is an array, then we
     // cannot be sure of its array size at this point and therefore must make it
     // unknown
-    if (dynamic_cast<unzipx*>(leaf) && data_type.isArray()) {
+    if (dynamic_cast<Unzipx*>(leaf) && data_type.isArray()) {
         data_type.setIsArray(true);
     }
 
@@ -1104,9 +1104,9 @@ size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port leaf is an unzipx, and if so, get its array
+    // Check if the in port leaf is an Unzipx, and if so, get its array
     // size by summing up the array sizes of its out port signals; if it is not
-    // an unzipx, get the array size from a neighbouring signal
+    // an Unzipx, get the array size from a neighbouring signal
     size_t array_size = 0;
     Leaf* leaf = dynamic_cast<Leaf*>(signal->getInPort()->getProcess());
     list<Leaf::Port*> out_ports = leaf->getOutPorts();
@@ -1116,8 +1116,8 @@ size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
                         "have any out ports");
     }
     try {
-        if (dynamic_cast<unzipx*>(leaf)) {
-            logger_.logMessage(Logger::DEBUG, "Found unzipx leaf. Summing "
+        if (dynamic_cast<Unzipx*>(leaf)) {
+            logger_.logMessage(Logger::DEBUG, "Found Unzipx leaf. Summing "
                                "up array sizes from its out ports...");
             list<Leaf::Port*>::iterator it;
             for (it = out_ports.begin(); it != out_ports.end(); ++it) {
@@ -1161,9 +1161,9 @@ size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port leaf is a zipx, and if so, get its array
+    // Check if the in port leaf is a Zipx, and if so, get its array
     // size by summing up the array sizes of its in port signals; if it is not
-    // a zipx, get the array size from a neighbouring signal
+    // a Zipx, get the array size from a neighbouring signal
     size_t array_size = 0;
     Leaf* leaf = dynamic_cast<Leaf*>(signal->getOutPort()->getProcess());
     list<Leaf::Port*> in_ports = leaf->getInPorts();
@@ -1173,8 +1173,8 @@ size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
                         "have any in ports");
     }
     try {
-        if (dynamic_cast<zipx*>(leaf)) {
-            logger_.logMessage(Logger::DEBUG, "Found zipx leaf. Summing "
+        if (dynamic_cast<Zipx*>(leaf)) {
+            logger_.logMessage(Logger::DEBUG, "Found Zipx leaf. Summing "
                                "up array sizes from its in ports...");
             list<Leaf::Port*>::iterator it;
             for (it = in_ports.begin(); it != in_ports.end(); ++it) {
@@ -1334,14 +1334,14 @@ string Synthesizer::generateLeafExecutionCode(Leaf* leaf)
     else if (ZipWithNSY* cast_leaf = dynamic_cast<ZipWithNSY*>(leaf)) {
         return generateLeafExecutionCodeForZipWithNSY(cast_leaf);
     }
-    else if (zipx* cast_leaf = dynamic_cast<zipx*>(leaf)) {
-        return generateLeafExecutionCodeForzipx(cast_leaf);
+    else if (Zipx* cast_leaf = dynamic_cast<Zipx*>(leaf)) {
+        return generateLeafExecutionCodeForZipx(cast_leaf);
     }
-    else if (unzipx* cast_leaf = dynamic_cast<unzipx*>(leaf)) {
-        return generateLeafExecutionCodeForunzipx(cast_leaf);
+    else if (Unzipx* cast_leaf = dynamic_cast<Unzipx*>(leaf)) {
+        return generateLeafExecutionCodeForUnzipx(cast_leaf);
     }
-    else if (fanout* cast_leaf = dynamic_cast<fanout*>(leaf)) {
-        return generateLeafExecutionCodeForfanout(cast_leaf);
+    else if (Fanout* cast_leaf = dynamic_cast<Fanout*>(leaf)) {
+        return generateLeafExecutionCodeForFanout(cast_leaf);
     }
     else {
         THROW_EXCEPTION(InvalidArgumentException, string("Leaf \"")
@@ -2322,7 +2322,7 @@ string Synthesizer::generateLeafExecutionCodeForZipWithNSY(
     return generateLeafFunctionExecutionCode(function, inputs, output);
 }
 
-string Synthesizer::generateLeafExecutionCodeForunzipx(unzipx* leaf)
+string Synthesizer::generateLeafExecutionCodeForUnzipx(Unzipx* leaf)
     throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(leaf->getInPorts().front())->getVariable();
@@ -2335,7 +2335,7 @@ string Synthesizer::generateLeafExecutionCodeForunzipx(unzipx* leaf)
     return generateVariableCopyingCode(outputs, input);
 }
 
-string Synthesizer::generateLeafExecutionCodeForzipx(zipx* leaf)
+string Synthesizer::generateLeafExecutionCodeForZipx(Zipx* leaf)
     throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     CVariable output =
         getSignalByOutPort(leaf->getOutPorts().front())->getVariable();
@@ -2351,7 +2351,7 @@ string Synthesizer::generateLeafExecutionCodeForzipx(zipx* leaf)
     return code;
 }
 
-string Synthesizer::generateLeafExecutionCodeForfanout(fanout* leaf)
+string Synthesizer::generateLeafExecutionCodeForFanout(Fanout* leaf)
     throw(InvalidProcessNetworkException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(leaf->getInPorts().front())->getVariable();
