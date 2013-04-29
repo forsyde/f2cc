@@ -111,7 +111,7 @@ Composite* XmlParser::buildComposite(Element* xml, ProcessNetwork* processnetwor
 
     logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
                            + "Parsing \"signal\" elements..."));
-    //parseXmlSignals(xml, processnetwork, curr_composite, curr_level_);
+    parseXmlSignals(xml, curr_composite);
 
     return curr_composite;
 }
@@ -270,6 +270,27 @@ void XmlParser::parseXmlPorts(Element* xml, Composite* parent)
       }
 }
 
+void XmlParser::parseXmlSignals(Element* xml, Composite* parent)
+	throw(InvalidArgumentException, ParseException, IOException,
+            RuntimeException){
+    if (!xml) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
+    }
+    if (!parent) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
+    }
+
+    list<Element*> elements = getElementsByName(xml, "signal");
+    list<Element*>::iterator it;
+    for (it = elements.begin(); it != elements.end(); ++it) {
+          logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
+                                                   + "Analyzing line "
+                                                   + tools::toString((*it)->Row())
+                                                   + "..."));
+          generateSignal(*it, parent);
+      }
+}
+
 Leaf* XmlParser::generateLeaf(ProcessNetwork* pn, Element* xml,
 		Composite* parent)
     throw(InvalidArgumentException, ParseException, IOException,
@@ -340,31 +361,7 @@ Leaf* XmlParser::generateLeaf(ProcessNetwork* pn, Element* xml,
                                   + "Analyzing line "
                                   + tools::toString((*it)->Row()) + "..."));
 
-        Leaf::Port* port = generateLeafPort((*it), leaf_process);
-		if (!port) THROW_EXCEPTION(OutOfMemoryException);
-
-		string port_direction = getAttributeByTag((*it),"direction");
-		bool port_added;
-        if (port_direction == "in") port_added = leaf_process->addInPort(*port);
-        else if (port_direction == "out") port_added = leaf_process->addOutPort(*port);
-        else THROW_EXCEPTION(ParseException, parent->getName().getString(), (*it)->Row(),
-                (*it)->Column(), "Invalid port direction");
-
-        if (!(port_added)) {
-            THROW_EXCEPTION(ParseException, parent->getName().getString(),
-            				(*it)->Row(),
-                            (*it)->Column(), string("Multiple ")
-                            + ((port_direction == "in") ? "in ports" : "out ports")
-                            + " with the same ID \""
-                            + port->getId()->getString() + "\"");
-        }
-        logger_.logMessage(Logger::DEBUG, string()
-                           + tools::indent(level_)
-                           + ((port_direction == "in") ? "In" : "Out")
-                           + " port \"" + port->getId()->getString()
-                           + "\" added to leaf process \""
-                           + leaf_process->getId()->getString() + "\"");
-        delete port;
+        generateLeafPort((*it), leaf_process);
     }
 
     return leaf_process;
@@ -461,7 +458,7 @@ CFunction* XmlParser::generateLeafFunction(Element* xml, ProcessNetwork* pn,
                     "No process function argument found");
 }
 
-Leaf::Port* XmlParser::generateLeafPort(Element* xml, Leaf* parent)
+void XmlParser::generateLeafPort(Element* xml, Leaf* parent)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
     if (!xml) {
@@ -469,16 +466,29 @@ Leaf::Port* XmlParser::generateLeafPort(Element* xml, Leaf* parent)
     }
     string port_name = getAttributeByTag(xml,"name");
     string port_datatype = getAttributeByTag(xml,"type");
+	string port_direction = getAttributeByTag(xml, "direction");
 
-    Leaf::Port* port = new (std::nothrow) Leaf::Port(Id(port_name),
-    		parent, CDataType());
-    // @todo: handle data type conversion
-    if (!port) THROW_EXCEPTION(OutOfMemoryException);
-    logger_.logMessage(Logger::DEBUG,
-                       string(tools::indent(level_)
-                       + "Generated port \"") + port->getId()->getString()
-                       + "\"");
-    return port;
+	//@todo: datatype conversion AGAIN!
+	bool port_added;
+    if (port_direction == "in") port_added = parent->addInPort(Id(port_name), CDataType());
+    else if (port_direction == "out") port_added = parent->addOutPort(Id(port_name), CDataType());
+    else THROW_EXCEPTION(ParseException, file_, xml->Row(),
+    		xml->Column(), "Invalid port direction");
+
+    if (!(port_added)) {
+        THROW_EXCEPTION(ParseException, file_,
+        				xml->Row(),
+        				xml->Column(), string("Multiple ")
+                        + ((port_direction == "in") ? "in ports" : "out ports")
+                        + " with the same ID \""
+                        + port_name + "\"");
+    }
+    logger_.logMessage(Logger::DEBUG, string()
+                       + tools::indent(level_)
+                       + ((port_direction == "in") ? "In" : "Out")
+                       + " port \"" + port_name
+                       + "\" added to leaf process \""
+                       + parent->getId()->getString() + "\"");
 }
 
 void XmlParser::generateIOPort(Element* xml, Composite* parent)
@@ -486,6 +496,9 @@ void XmlParser::generateIOPort(Element* xml, Composite* parent)
           RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
+    }
+    if (!parent) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
     string port_name = getAttributeByTag(xml,"name");
     string port_direction = getAttributeByTag(xml,"direction");
@@ -529,11 +542,11 @@ void XmlParser::generateIOPort(Element* xml, Composite* parent)
 	if (bound_leaf){
 		if (port_direction == "in"){
 			Leaf::Port* bound_ioport = bound_leaf->getInPort(Id(bound_port));
-			generateConnection(parent, this_ioport, bound_leaf, bound_ioport);
+			generateConnection(this_ioport, bound_ioport);
 		}
 		else{
 			Leaf::Port* bound_ioport = bound_leaf->getOutPort(Id(bound_port));
-			generateConnection(bound_leaf, bound_ioport, parent, this_ioport);
+			generateConnection( bound_ioport, this_ioport);
 		}
 	}
 	else {
@@ -549,37 +562,158 @@ void XmlParser::generateIOPort(Element* xml, Composite* parent)
 		}
 		if (port_direction == "in"){
 			Composite::IOPort* bound_ioport = bound_composite->getInIOPort(Id(bound_port));
-			generateConnection(parent, this_ioport, bound_composite, bound_ioport);
+			generateConnection(this_ioport, bound_ioport);
 		}
 		else{
 			Composite::IOPort* bound_ioport = bound_composite->getOutIOPort(Id(bound_port));
-			generateConnection(bound_composite, bound_ioport, parent, this_ioport);
+			generateConnection(bound_ioport, this_ioport);
 		}
 	}
 }
 
-void XmlParser::generateConnection(Process* source, Process::Interface* source_port,
-		Process* target, Process::Interface* target_port)
+void XmlParser::generateSignal(Element* xml, Composite* parent)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException) {
-    if (!source) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"source\" must not be NULL");
+    if (!xml) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
-    if (!target) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"target\" must not be NULL");
+    if (!parent) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
+    }
+    string source = getAttributeByTag(xml,"source");
+    string source_port = getAttributeByTag(xml,"source_port");
+    string target = getAttributeByTag(xml,"target");
+    string target_port = getAttributeByTag(xml,"target_port");
+
+    /* @todo: check whether the xml port data in the opened file corresponds to
+     * the xml port data in the caller file
+     */
+
+    Process::Interface* source_interface;
+	Leaf* source_leaf = parent->getProcess(Id(string(
+			parent->getId()->getString() + "_" + source)));
+	if (source_leaf){
+		source_interface = source_leaf->getOutPort(Id(source_port));
+	}
+	else {
+		Composite* source_composite = parent->getComposite(Id(string(
+				parent->getId()->getString() + "_" + source)));
+		if (source_composite){
+			source_interface = source_composite->getOutIOPort(Id(source_port));
+		}
+		else {
+			THROW_EXCEPTION(ParseException, file_,
+							xml->Row(),
+							xml->Column(), string("Cannot find \"")
+							+ source
+							+ "\" inside composite process\""
+							+ parent->getId()->getString() + "\"");
+		}
+	}
+
+    Process::Interface* target_interface;
+	Leaf* target_leaf = parent->getProcess(Id(string(
+			parent->getId()->getString() + "_" + target)));
+	if (target_leaf){
+		target_interface = target_leaf->getInPort(Id(target_port));
+	}
+	else {
+		Composite* target_composite = parent->getComposite(Id(string(
+				parent->getId()->getString() + "_" + target)));
+		if (target_composite){
+			target_interface = target_composite->getInIOPort(Id(target_port));
+		}
+		else {
+			THROW_EXCEPTION(ParseException, file_,
+							xml->Row(),
+							xml->Column(), string("Cannot find \"")
+							+ target
+							+ "\" inside composite process\""
+							+ parent->getId()->getString() + "\"");
+		}
+	}
+
+	generateConnection(source_interface, target_interface);
+
+}
+
+void XmlParser::generateConnection(Process::Interface* source_port,
+		Process::Interface* target_port)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException, CastException) {
+    if (!source_port) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"source_port\" must not be NULL");
+    }
+    if (!target_port) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"target_port\" must not be NULL");
     }
 
 	logger_.logMessage(Logger::DEBUG, string()
 					   + tools::indent(level_)
 					   + "Generating connection between \""
-					   + source->getId()->getString() + ":"
-					   + source_port->getId()->getString()
+					   + source_port->toString()
 					   + "\" and \""
-					   + target->getId()->getString() + ":"
-					   + target_port->getId()->getString() + "\"...");
+					   + target_port->toString() + "\"...");
 
 
 
+	Leaf::Port* source = dynamic_cast<Leaf::Port*>(source_port);
+	if(source){
+		if(!source->isConnected()){
+			source->connect(target_port);
+			logger_.logMessage(Logger::DEBUG, string()
+							   + tools::indent(level_)
+							   + "Generated connection for \""
+							   + source->toString()
+							   + "\"");
+		}
+		else {
+			SY::Fanout* fanout = dynamic_cast<SY::Fanout*>(source->getProcess());
+			if (fanout){
+				logger_.logMessage(Logger::DEBUG, string()
+								   + tools::indent(level_)
+								   + "Parent process for \""
+								   + source->toString()
+								   + "\" is a fanout. Generating a new port.");
+				Id new_id = Id(string(fanout->getOutPorts().back()->getId()->getString()
+						+ "_"));
+				fanout->addOutPort(new_id, source->getDataType());
+				fanout->getOutPort(new_id)->connect(target_port);
+				logger_.logMessage(Logger::DEBUG, string()
+								   + tools::indent(level_)
+								   + "Added new port \""
+								   + new_id.getString()
+								   + "\" to \""
+								   + source->getProcess()->getId()->getString()
+								   + "\" and generated connection");
+
+			}
+			else {
+				THROW_EXCEPTION(ParseException, file_,
+								string("The port ")
+								+ source->getId()->getString()
+								+ " has multiple connections. Automatic handling"
+								+ " is not yet available. Please make sure that all"
+								+ " multiple connections pass through a fanout.");
+			}
+		}
+	}
+	else{
+		Composite::IOPort* source_io = dynamic_cast<Composite::IOPort*>(source_port);
+		if (!source_io) THROW_EXCEPTION(CastException);
+		else {
+			logger_.logMessage(Logger::WARNING, string()
+					+ tools::indent(level_)
+					+ "Multiple connections are not treated for IO ports.");
+
+			source_io->connect(target_port);
+			logger_.logMessage(Logger::DEBUG, string()
+							   + tools::indent(level_)
+							   + "Generated connection for \""
+							   + source_io->toString()
+							   + "\"");
+		}
+	}
 }
 
 Node* XmlParser::findXmlRootNode(Document* xml, const string& file)
@@ -689,7 +823,9 @@ void XmlParser::checkXmlDocument(Document* xml)
     }
 
     // @todo implement
-    logger_.logMessage(Logger::WARNING, "XML document check not implemented");
+    logger_.logMessage(Logger::WARNING,string()
+			   + tools::indent(level_)
+    		   + "XML document check not implemented");
 }
 
 string XmlParser::getAttributeByTag(Element* xml, string tag)

@@ -72,6 +72,19 @@ bool Leaf::addInPort(const Id& id) throw(OutOfMemoryException) {
     }
 }
 
+bool Leaf::addInPort(const Id& id, CDataType datatype) throw(OutOfMemoryException) {
+    if (findPort(id, in_ports_) != in_ports_.end()) return false;
+
+    try {
+        Port* new_port = new Port(id, this, datatype);
+        in_ports_.push_back(new_port);
+        return true;
+    }
+    catch (bad_alloc&) {
+        THROW_EXCEPTION(OutOfMemoryException);
+    }
+}
+
 bool Leaf::addInPort(Port& port) throw(OutOfMemoryException) {
     if (findPort(*port.getId(), in_ports_) != in_ports_.end()) return false;
 
@@ -128,6 +141,20 @@ bool Leaf::addOutPort(const Id& id) throw(OutOfMemoryException) {
         THROW_EXCEPTION(OutOfMemoryException);
     }
 }
+
+bool Leaf::addOutPort(const Id& id, CDataType datatype) throw(OutOfMemoryException) {
+    if (findPort(id, out_ports_) != out_ports_.end()) return false;
+
+    try {
+        Port* new_port = new Port(id, this, datatype);
+        out_ports_.push_back(new_port);
+        return true;
+    }
+    catch (bad_alloc&) {
+        THROW_EXCEPTION(OutOfMemoryException);
+    }
+}
+
 
 bool Leaf::addOutPort(Port& port) throw(OutOfMemoryException) {
     if (findPort(*port.getId(), out_ports_) != out_ports_.end()) return false;

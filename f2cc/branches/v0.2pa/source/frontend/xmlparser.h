@@ -47,6 +47,7 @@
 #include "../exceptions/parseexception.h"
 #include "../exceptions/invalidmodelexception.h"
 #include "../exceptions/runtimeexception.h"
+#include "../exceptions/castexception.h"
 #include <string>
 #include <map>
 #include <list>
@@ -211,6 +212,29 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
+     * Parses the \c node XML elements in a \c graph XML element and converts
+     * them into corresponding leafs, which are then added to the processnetwork.
+     * mapset.
+     *
+     * @param xml
+     *        \c graph XML element containing the \c node XML elements.
+     * @param processnetwork
+     *        ProcessNetwork object to add the leaf to.
+     * @throws InvalidArgumentException
+     *         When \c xml or \c processnetwork is \c NULL.
+     * @throws ParseException
+     *         When some necessary element or attribute is missing.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     */
+    void parseXmlSignals(ticpp::Element* xml, ForSyDe::Composite* parent)
+        throw(InvalidArgumentException, ParseException, IOException,
+              RuntimeException);
+
+    /**
      * Converts an XML \c node element into an internal ForSyDe leaf of the
      * same type along with its ports and function argument, if any.
      *
@@ -292,7 +316,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::Leaf::Port* generateLeafPort(ticpp::Element* xml, ForSyDe::Leaf* parent)
+    void generateLeafPort(ticpp::Element* xml, ForSyDe::Leaf* parent)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException);
 
@@ -332,11 +356,31 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
+    void generateSignal(ticpp::Element* xml, ForSyDe::Composite* parent)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException);
+
+    /**
+     * Converts an XML \c port element into an internal ForSyDe port.
+     *
+     * @param xml
+     *        \c port element containing the port.
+     * @returns Internal leaf port object.
+     * @throws InvalidArgumentException
+     *         When \c xml is \c NULL.
+     * @throws ParseException
+     *         When some necessary element or attribute is missing.
+     * @throws IOException
+     *         When the file cannot be read or the log file cannot be written.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     */
     void generateConnection(
-    		ForSyDe::Process* source, ForSyDe::Process::Interface* source_port,
-    		ForSyDe::Process* target, ForSyDe::Process::Interface* target_port)
+    		ForSyDe::Process::Interface* source_port,
+    		ForSyDe::Process::Interface* target_port)
         throw(InvalidArgumentException, ParseException, IOException,
-              RuntimeException);
+              RuntimeException, CastException);
 
     /**
      * Locates the \c graph XML element in the XML document.
