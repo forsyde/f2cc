@@ -109,6 +109,19 @@ class Leaf : public Process{
     bool addInPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
 
     /**
+     * Adds an in port to this leaf. Leafs are not allowed to have
+     * multiple in ports with the same ID.
+     *
+     * @param id
+     *        Port ID.
+     * @returns \c true if such an in port did not already exist and was
+     *          successfully added.
+     * @throws OutOfMemoryException
+     *         When a port cannot be added due to memory shortage.
+     */
+    bool addInPort(const ForSyDe::Id& id, CDataType datatype) throw(OutOfMemoryException);
+
+    /**
      * Creates a new port with the same ID and connections as another port and
      * adds it as in port to this leaf. The connections at the other port are
      * broken. Leafs are not allowed to have multiple in ports with the same
@@ -166,6 +179,18 @@ class Leaf : public Process{
      *         When a port cannot be added due to memory shortage.
      */
     bool addOutPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
+
+    /**
+     * Same as addIn Port(const ForSyDe::Id&) but for out ports.
+     *
+     * @param id
+     *        Port ID.
+     * @returns \c true if such a port did not already exist and was
+     *          successfully added.
+     * @throws OutOfMemoryException
+     *         When a port cannot be added due to memory shortage.
+     */
+    bool addOutPort(const ForSyDe::Id& id, CDataType datatype) throw(OutOfMemoryException);
 
     /**
      * Same as addInPort(Port&) but for out ports.
