@@ -296,6 +296,47 @@ class XmlParser : public Frontend {
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException);
 
+    /**
+     * Converts an XML \c port element into an internal ForSyDe port.
+     *
+     * @param xml
+     *        \c port element containing the port.
+     * @returns Internal leaf port object.
+     * @throws InvalidArgumentException
+     *         When \c xml is \c NULL.
+     * @throws ParseException
+     *         When some necessary element or attribute is missing.
+     * @throws IOException
+     *         When the file cannot be read or the log file cannot be written.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     */
+    void generateIOPort(ticpp::Element* xml, ForSyDe::Composite* parent)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException);
+
+    /**
+     * Converts an XML \c port element into an internal ForSyDe port.
+     *
+     * @param xml
+     *        \c port element containing the port.
+     * @returns Internal leaf port object.
+     * @throws InvalidArgumentException
+     *         When \c xml is \c NULL.
+     * @throws ParseException
+     *         When some necessary element or attribute is missing.
+     * @throws IOException
+     *         When the file cannot be read or the log file cannot be written.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     */
+    void generateConnection(
+    		ForSyDe::Process* source, ForSyDe::Process::Interface* source_port,
+    		ForSyDe::Process* target, ForSyDe::Process::Interface* target_port)
+        throw(InvalidArgumentException, ParseException, IOException,
+              RuntimeException);
 
     /**
      * Locates the \c graph XML element in the XML document.
