@@ -22,7 +22,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 MODULE      = frontend
-SRCFILES    = frontend.cpp graphmlparser.cpp xmlparser.cpp
+SRCFILES    = frontend.cpp graphmlparser.cpp xmlparser.cpp dumper.cpp
 THISOBJPATH = $(OBJPATH)/$(MODULE)
 OBJECTS     = $(addprefix $(THISOBJPATH)/, \
                 $(addsuffix .o, $(basename $(SRCFILES))) \

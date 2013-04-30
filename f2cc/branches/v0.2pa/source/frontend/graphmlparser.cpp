@@ -65,7 +65,7 @@ GraphmlParser::~GraphmlParser() throw() {}
 
 ProcessNetwork* GraphmlParser::createProcessNetwork(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidProcessNetworkException, RuntimeException) {
+          ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
@@ -211,7 +211,7 @@ Element* GraphmlParser::findXmlGraphElement(Document* xml)
 }
 
 ProcessNetwork* GraphmlParser::generateProcessNetwork(Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidProcessNetworkException,
+    throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
@@ -1055,7 +1055,7 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
 }
 
 void GraphmlParser::checkProcessNetworkMore(ProcessNetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+    throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     bool found_in_port_process = false;
     bool found_out_port_process = false;
@@ -1074,7 +1074,7 @@ void GraphmlParser::checkProcessNetworkMore(ProcessNetwork* processnetwork)
                 found_in_port_process = true;
             }
             else {
-                THROW_EXCEPTION(InvalidProcessNetworkException,
+                THROW_EXCEPTION(InvalidModelException,
                                 "Only one \"InPort\" process is allowed");
             }
         }
@@ -1083,13 +1083,13 @@ void GraphmlParser::checkProcessNetworkMore(ProcessNetwork* processnetwork)
                 found_out_port_process = true;
             }
             else {
-                THROW_EXCEPTION(InvalidProcessNetworkException,
+                THROW_EXCEPTION(InvalidModelException,
                                 "Only one \"OutPort\" process is allowed");
             }
         }
     }
     if (!found_out_port_process) {
-        THROW_EXCEPTION(InvalidProcessNetworkException,
+        THROW_EXCEPTION(InvalidModelException,
                         "No \"OutPort\" process found");
     }
 }

@@ -61,7 +61,7 @@ XmlParser::~XmlParser() throw() {}
 
 ProcessNetwork* XmlParser::createProcessNetwork(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidProcessNetworkException, RuntimeException) {
+          ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
@@ -78,14 +78,29 @@ ProcessNetwork* XmlParser::createProcessNetwork(const string& file)
     Element* xml_root = dynamic_cast<Element*>(findXmlRootNode(&xml_doc, file));
     if (!xml_root) THROW_EXCEPTION(CastException);
 
-    buildComposite(xml_root, processnetwork, Id("f2cc0"), Hierarchy());
+    Composite* root_comp = buildComposite(xml_root, processnetwork,
+    		Id("f2cc0"), Hierarchy());
+
+    processnetwork->addComposite(root_comp);
+
+    list<Composite::IOPort*> input_ports = root_comp->getInIOPorts();
+    for (list<Composite::IOPort*>::iterator it = input_ports.begin();
+    		it != input_ports.end(); it++){
+    	processnetwork->addInput(*it);
+    }
+
+    list<Composite::IOPort*> output_ports = root_comp->getOutIOPorts();
+    for (list<Composite::IOPort*>::iterator it = output_ports.begin();
+    		it != output_ports.end(); it++){
+    	processnetwork->addOutput(*it);
+    }
 
     return processnetwork;
 }
 
 Composite* XmlParser::buildComposite(Element* xml, ProcessNetwork* processnetwork,
 		const Id id, Hierarchy hierarchy)
-    throw(InvalidArgumentException, ParseException, InvalidProcessNetworkException,
+    throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");

@@ -84,7 +84,7 @@ class GraphmlParser : public Frontend {
      */
     virtual ForSyDe::ProcessNetwork* createProcessNetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidProcessNetworkException, RuntimeException);
+              ParseException, InvalidModelException, RuntimeException);
 
     /**
      * Gets a list of elements with a particular name which are immediate
@@ -169,7 +169,7 @@ class GraphmlParser : public Frontend {
      *         When \c xml is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When the processnetwork is invalid (but was successfully parsed).
      * @throws IOException
      *         When access to the log file fails.
@@ -178,7 +178,7 @@ class GraphmlParser : public Frontend {
      *         bug.
      */
     ForSyDe::ProcessNetwork* generateProcessNetwork(ticpp::Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidProcessNetworkException,
+    throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException);
 
     /**
@@ -595,7 +595,7 @@ class GraphmlParser : public Frontend {
      *        ProcessNetwork to check.
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -604,7 +604,7 @@ class GraphmlParser : public Frontend {
      *         bug.
      */
     void checkProcessNetworkMore(ForSyDe::ProcessNetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+        throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
     /**
