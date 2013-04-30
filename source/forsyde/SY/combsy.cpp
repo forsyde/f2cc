@@ -57,7 +57,7 @@ bool Comb::operator==(const Leaf& rhs) const throw() {
 }
 
 string Comb::type() const throw() {
-    return "Comb";
+    return "comb";
 }
 
 void Comb::moreChecks() throw(InvalidProcessException) {

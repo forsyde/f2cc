@@ -91,7 +91,7 @@ class Frontend {
      *         When the file cannot be read or the log file cannot be written.
      * @throws ParseException
      *         When the file fails to be parsed.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When the processnetwork is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
@@ -99,7 +99,7 @@ class Frontend {
      */
     ForSyDe::ProcessNetwork* parse(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidProcessNetworkException, RuntimeException);
+              ParseException, InvalidModelException, RuntimeException);
 
   protected:
     /**
@@ -118,7 +118,7 @@ class Frontend {
      *         When the file cannot be read or the log file cannot be written.
      * @throws ParseException
      *         When the file fails to be parsed.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When the processnetwork is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
@@ -126,7 +126,7 @@ class Frontend {
      */
     virtual ForSyDe::ProcessNetwork* createProcessNetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidProcessNetworkException, RuntimeException) = 0;
+              ParseException, InvalidModelException, RuntimeException) = 0;
 
     /**
      * Performs more processnetwork checks. By default, this does nothing.
@@ -135,7 +135,7 @@ class Frontend {
      *        ProcessNetwork to check.
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -144,7 +144,7 @@ class Frontend {
      *         bug.
      */
     virtual void checkProcessNetworkMore(ForSyDe::ProcessNetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+        throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
     /**
@@ -178,7 +178,7 @@ class Frontend {
      *        ProcessNetwork to check.
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -187,7 +187,7 @@ class Frontend {
      *         bug.
      */
     void checkProcessNetwork(ForSyDe::ProcessNetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+        throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
     /**
@@ -203,7 +203,7 @@ class Frontend {
      *        ProcessNetwork that the leaf using the port should belong to.
      * @throws InvalidArgumentException
      *         When either \c port or \c processnetwork is \c NULL.     
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -212,7 +212,7 @@ class Frontend {
      *         bug.
      */
     void checkPort(ForSyDe::Leaf::Port* port, ForSyDe::ProcessNetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+        throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
   protected:

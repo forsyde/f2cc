@@ -52,7 +52,7 @@ bool Fanout::operator==(const Leaf& rhs) const throw() {
 }
 
 string Fanout::type() const throw() {
-    return "copy";
+    return "fanout";
 }
 
 void Fanout::moreChecks() throw(InvalidProcessException) {

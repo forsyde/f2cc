@@ -42,18 +42,18 @@ namespace f2cc {
 /**
  * @brief Used when a method was called with arguments of invalid processnetwork.
  */
-class InvalidProcessNetworkException : public Exception {
+class InvalidModelException : public Exception {
   public:
     /**
      * @copydoc Exception::Exception(const std::string&, int, const std::string&)
      */
-    InvalidProcessNetworkException(const std::string& source_file, int source_line,
+    InvalidModelException(const std::string& source_file, int source_line,
                           const std::string& message) throw();
 
     /**
      * @copydoc Exception::~Exception()
      */
-    virtual ~InvalidProcessNetworkException() throw();
+    virtual ~InvalidModelException() throw();
 
   protected:
     /**

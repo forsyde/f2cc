@@ -86,7 +86,7 @@ class XmlParser : public Frontend {
      */
     virtual ForSyDe::ProcessNetwork* createProcessNetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidProcessNetworkException, RuntimeException);
+              ParseException, InvalidModelException, RuntimeException);
 
     /**
      * Converts an \c graph XML element into an internal ForSyDe processnetwork. The
@@ -101,7 +101,7 @@ class XmlParser : public Frontend {
      *         When \c xml is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When the processnetwork is invalid (but was successfully parsed).
      * @throws IOException
      *         When access to the log file fails.
@@ -115,7 +115,7 @@ class XmlParser : public Frontend {
     ForSyDe::Composite* buildComposite(ticpp::Element* xml,
     		ForSyDe::ProcessNetwork* processnetwork,const ForSyDe::Id id,
     		ForSyDe::Hierarchy hierarchy)
-    throw(InvalidArgumentException, ParseException, InvalidProcessNetworkException,
+    throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException);
 
     /**
