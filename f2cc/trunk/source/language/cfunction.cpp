@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +37,9 @@ using std::vector;
 using std::bad_alloc;
 
 CFunction::CFunction() throw() : name_(""), body_("") {}
+
+CFunction::CFunction(const string& name, const string& file
+		) throw() : name_(name), file_(file),  body_("") {}
 
 CFunction::CFunction(const string& name, CDataType return_type,
                      const list<CVariable> input_parameters,
@@ -155,6 +160,21 @@ bool CFunction::deleteInputParameter(const CVariable& parameter) throw() {
     return false;
 }
 
+CVariable* CFunction::getOutputParameter() throw() {
+    return output_parameter_;
+}
+
+bool CFunction::setOutputParameter(const CVariable& parameter) throw() {
+    try {
+        CVariable* new_parameter = new CVariable(parameter);
+        output_parameter_ = new_parameter;
+        return true;
+    }
+    catch (bad_alloc&) {
+        THROW_EXCEPTION(OutOfMemoryException);
+    }
+}
+
 string CFunction::getBody() const throw() {
     return body_;
 }
@@ -183,7 +203,7 @@ void CFunction::copy(const CFunction& rhs) throw(OutOfMemoryException) {
     name_ = rhs.name_;
     return_data_type_ = rhs.return_data_type_;
     destroyInputParameters();
-    // fanout input parameters
+    // Copy input parameters
     list<CVariable*>::const_iterator it;
     for (it = rhs.input_parameters_.begin(); it != rhs.input_parameters_.end(); 
          ++it) {

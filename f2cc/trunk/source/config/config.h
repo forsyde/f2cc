@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -52,20 +54,36 @@ namespace f2cc {
 class Config {
   public:
     /**
-     * Denotes the target platform to which the ForSyDe model is to be
+     * Denotes the target platform to which the ForSyDe processnetwork is to be
      * synthesized.
      */
     enum TargetPlatform {
         /**
-         * Sequential C code, where no processes are executed in parallel.
+         * Sequential C code, where no leafs are executed in parallel.
          */
         C,
 
         /**
          * Sequential C code annotaded with CUDA directives, where data parallel
-         * processes are executed in parallel.
+         * leafs are executed in parallel.
          */
         CUDA
+    };
+
+    /**
+     * Denotes the input file format that will determine the execution path. \c .graphml
+     * files will follow the v0.1 execution path while \c .xml files will follow v0.2
+     */
+    enum InputFormat {
+        /**
+         * New ForSyDe-SystemC intermediate XML representation.
+         */
+        XML,
+
+        /**
+         * ForSyDe-Haskell intermediate GraphML representation.
+         */
+        GraphML
     };
 
     /**
@@ -96,17 +114,17 @@ class Config {
 
     /**
      * Gets whether the user requested the help menu be printed. Default value
-     * is \c false.
+     * is \b false.
      *
-     * @returns \c true if the help menu should be printed.
+     * @returns \b true if the help menu should be printed.
      */
     bool doPrintHelpMenu() const throw();
 
     /**
      * Gets whether the user requested the version be printed. Default value is
-     * \c false.
+     * \b false.
      *
-     * @returns \c true if the help menu should be printed.
+     * @returns \b true if the help menu should be printed.
      */
     bool doPrintVersion() const throw();
 
@@ -187,26 +205,26 @@ class Config {
     void setLogLevel(Logger::LogLevel level) throw();
 
     /**
-     * Gets whether data parallel processes in the model should be coalesced.
-     * Default setting is \c true.
+     * Gets whether data parallel leafs in the processnetwork should be coalesced.
+     * Default setting is \b true.
      *
-     * @returns \c true if such action should be performed.
+     * @returns \b true if such action should be performed.
      */
-    bool doDataParallelProcessCoalesing() const throw();
+    bool doDataParallelLeafCoalesing() const throw();
 
     /**
-     * Sets whether data parallel processes in the model should be coalesced.
+     * Sets whether data parallel leafs in the processnetwork should be coalesced.
      *
      * @param setting
      *        New setting.
      */
-    void setDoDataParallelProcessCoalesing(bool setting) throw();
+    void setDoDataParallelLeafCoalesing(bool setting) throw();
 
     /**
      * Gets whether the shared memory on the device shall be used for input data
-     * in the synthesized CUDA code. Default setting is \c false.
+     * in the synthesized CUDA code. Default setting is \b false.
      *
-     * @returns \c true if the shared memory is to be used.
+     * @returns \b true if the shared memory is to be used.
      */
     bool useSharedMemoryForInput() const throw();
 
@@ -221,7 +239,7 @@ class Config {
     /**
      * Same as useSharedMemoryForInput() but for output data.
      *
-     * @returns \c true if the shared memory is to be used.
+     * @returns \b true if the shared memory is to be used.
      */
     bool useSharedMemoryForOutput() const throw();
 
@@ -247,6 +265,21 @@ class Config {
      *        Target platform.
      */
     void setTargetPlatform(TargetPlatform platform) throw();
+
+    /**
+     * Gets the input file format, that determines the execution path.
+     *
+     * @returns Input format.
+     */
+    InputFormat getInputFormat() const throw();
+
+    /**
+     * Sets the input file format, that determines the execution path.
+     *
+     * @param format
+     *        Input format.
+     */
+    void setTargetPlatform(InputFormat format) throw();
 
     /**
      * Parses the command line and sets its specified settings to this
@@ -289,7 +322,7 @@ class Config {
      * 
      * @param str
      *        String to check.
-     * @returns \c true if the string starts with a '-'.
+     * @returns \b true if the string starts with a '-'.
      */
     bool isOption(const std::string& str) const throw();
 
@@ -300,7 +333,7 @@ class Config {
      * 
      * @param str
      *        String to check.
-     * @returns \c true if the string starts with a '--'.
+     * @returns \b true if the string starts with a '--'.
      * @see isOption(const std::string&)
      */
     bool isCompositeOption(const std::string& str) const throw();
@@ -338,9 +371,9 @@ class Config {
     Logger::LogLevel log_level_;
 
     /**
-     * Specifies data parallel process coalescing setting.
+     * Specifies data parallel leaf coalescing setting.
      */
-    bool do_data_parallel_process_coalescing_;
+    bool do_data_parallel_leaf_coalescing_;
 
     /**
      * Specifies shared memory usage setting.
@@ -356,6 +389,11 @@ class Config {
      * Specifies the target platform.
      */
     TargetPlatform target_platform_;
+
+    /**
+     * Specifies the input format, thus the execution path.
+     */
+    InputFormat format_;
 };
 
 }
