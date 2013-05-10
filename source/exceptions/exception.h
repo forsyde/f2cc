@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -145,7 +147,7 @@ class Exception : private std::exception {
  * Throws an exception.
  * 
  * All exceptions require that the name of the source file and the line from
- * which the exception is thrown. Although there are preprocessor macros for
+ * which the exception is thrown. Although there are preleafor macros for
  * getting the file name and line (\c __FILE__ and \c __LINE__), this would be
  * tedious if they would have to be inserted manually into the constructor
  * arguments of the exception (using the macros inside the constructor doesn't

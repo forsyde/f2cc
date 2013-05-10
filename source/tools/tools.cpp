@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -129,6 +131,14 @@ static string& rtrim(string& str) throw() {
     return str;
 }
 
+string f2cc::tools::indent(int level) throw() {
+	string tabs;
+    for(int i = 0; i<level; i++){
+    	tabs += "\t";
+    }
+    return tabs;
+}
+
 string& f2cc::tools::trim(string& str) throw() {
     return ltrim(rtrim(str));
 }
@@ -156,6 +166,24 @@ int f2cc::tools::toInt(const std::string& str) throw(InvalidArgumentException) {
     }
     return atoi(str.c_str());
 }
+
+int f2cc::tools::noElements(const int& size, const std::string& datatype)
+	throw(){
+
+	if (datatype == "char") return size / sizeof(char);
+	else if (datatype == "unsigned char") return size / sizeof(unsigned char);
+	else if (datatype == "short int") return size / sizeof(short int);
+	else if (datatype == "unsigned short int") return size / sizeof(unsigned short int);
+	else if (datatype == "int") return size / sizeof(int);
+	else if (datatype == "unsigned int") return size / sizeof(unsigned int);
+	else if (datatype == "long int") return size / sizeof(long int);
+	else if (datatype == "unsigned long int") return size / sizeof(unsigned long int);
+	else if (datatype == "float") return size / sizeof(float);
+	else if (datatype == "double") return size / sizeof(double);
+	else if (datatype == "long double") return size / sizeof(long double);
+	else return -1; // Should never happen
+}
+
 
 bool f2cc::tools::existsFile(const string& file) throw() {
     std::ifstream fs(file.c_str());
@@ -206,6 +234,14 @@ string f2cc::tools::getFileName(string file) throw() {
     return file.substr(start_pos, end_pos - start_pos);
 }
 
+string f2cc::tools::getExtension(string file) throw() {
+    if (file.length() == 0) return "";
+
+    size_t last_dot_pos = file.find_last_of(".");
+    int start_pos = last_dot_pos == string::npos ? file.length() : last_dot_pos + 1;
+    return file.substr(start_pos, file.length() - start_pos);
+}
+
 vector<string> f2cc::tools::split(const string& str, char delim) throw() {
     vector<string> elems;
     std::stringstream ss(str);
@@ -249,7 +285,7 @@ void f2cc::tools::breakLongLines(string& str, size_t maximum_length,
         }
         next_cut_pos = offset;
 
-        // fanout words until either line break, length limit or end of string is 
+        // Copy words until either line break, length limit or end of string is 
         // hit
         for (size_t i = offset; ; ++i) {
             ++current_length;
