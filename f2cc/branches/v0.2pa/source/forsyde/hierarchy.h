@@ -163,7 +163,11 @@ class Hierarchy {
     const Forsyde::Id* getFirstParent() const throw();
 
     /**
-     * Gets the ID of first child of this process.
+     * Gets the ID of first child after of the ID passed, from the
+     * same path.
+     *
+     * @param id
+     *        ID.
      *
      * @returns The first child's ID.
      */
@@ -180,9 +184,24 @@ class Hierarchy {
      */
     Relation findRelation(Hierarchy compare_hierarchy) const throw();
 
-
+    /**
+     * Gets the ID of first child of this process.
+     *
+     * @returns The first child's ID.
+     */
     std::string hierarchyToString() const throw();
 
+    /**
+     * Converts this hierarchy path into a string representation. The resultant string
+     * is as follows:
+     * @code
+     * {
+     *  <root>[ <- <parent_id> <- ... <- <first_parent_id>] <- <current_process_id>
+     * }
+     * @endcode
+     *
+     * @returns String representation.
+     */
   private:
     /**
      * Attempts to find an Id in the contained hierarchy list. If the list
@@ -198,13 +217,12 @@ class Hierarchy {
     std::list<Forsyde::Id*>::const_iterator findId(const Forsyde::Id& id) const throw();
 
     /**
-     * Converts this hierarchy path into a string representation. The resultant string
-     * is as follows:
-     * @code
-     * {
-     *  <root>[ <- <parent_id> <- ... <- <first_parent_id>] <- <current_process_id>
-     * }
-     * @endcode
+     * Internal method for creating the string representation.
+     *
+     * @see hierarchyToString()
+     *
+     * @param ids
+     *        List of IDs.
      *
      * @returns String representation.
      */

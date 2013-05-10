@@ -165,7 +165,7 @@ class Model {
     /**
      * Adds multiple composites to this model at the same time.
      *
-     * @param composite
+     * @param composites
      *        Combset of composites to add.
      * @throws OutOfMemoryException
      *         When a composite cannot be added due to memory shortage.

@@ -168,7 +168,7 @@ int f2cc::tools::toInt(const std::string& str) throw(InvalidArgumentException) {
 }
 
 int f2cc::tools::noElements(const int& size, const std::string& datatype)
-	throw(InvalidArgumentException){
+	throw(){
 
 	if (datatype == "char") return size / sizeof(char);
 	else if (datatype == "unsigned char") return size / sizeof(unsigned char);

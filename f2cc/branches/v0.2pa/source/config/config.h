@@ -71,18 +71,17 @@ class Config {
     };
 
     /**
-     * Denotes the target platform to which the ForSyDe processnetwork is to be
-     * synthesized.
+     * Denotes the input file format that will determine the execution path. \c .graphml
+     * files will follow the v0.1 execution path while \c .xml files will follow v0.2
      */
     enum InputFormat {
         /**
-         * Sequential C code, where no leafs are executed in parallel.
+         * New ForSyDe-SystemC intermediate XML representation.
          */
         XML,
 
         /**
-         * Sequential C code annotaded with CUDA directives, where data parallel
-         * leafs are executed in parallel.
+         * ForSyDe-Haskell intermediate GraphML representation.
          */
         GraphML
     };
@@ -268,17 +267,17 @@ class Config {
     void setTargetPlatform(TargetPlatform platform) throw();
 
     /**
-     * Gets the target platform. Default platform is Config::CUDA.
+     * Gets the input file format, that determines the execution path.
      *
-     * @returns Target platform.
+     * @returns Input format.
      */
     InputFormat getInputFormat() const throw();
 
     /**
-     * Sets the target platform.
+     * Sets the input file format, that determines the execution path.
      *
-     * @param platform
-     *        Target platform.
+     * @param format
+     *        Input format.
      */
     void setTargetPlatform(InputFormat format) throw();
 
@@ -392,7 +391,7 @@ class Config {
     TargetPlatform target_platform_;
 
     /**
-     * Specifies the target platform.
+     * Specifies the input format, thus the execution path.
      */
     InputFormat format_;
 };

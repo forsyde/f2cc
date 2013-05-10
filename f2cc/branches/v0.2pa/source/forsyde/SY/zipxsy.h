@@ -54,6 +54,16 @@ class Zipx : public Leaf {
      */
     Zipx(const Id& id) throw();
 
+    /**
+     * Creates a leaf.
+     *
+     * @param id
+     *        Leaf ID.
+     * @param hierarchy
+     *        Hierarchy path.
+     * @param cost
+     *        Cost parameter.
+     */
     Zipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
         		int cost) throw();
 

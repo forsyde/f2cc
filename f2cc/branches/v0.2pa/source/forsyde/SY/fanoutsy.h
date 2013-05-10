@@ -64,6 +64,16 @@ class Fanout : public Leaf {
      */
     Fanout(const Id& id) throw();
 
+    /**
+     * Creates a leaf.
+     *
+     * @param id
+     *        Leaf ID.
+     * @param hierarchy
+     *        Hierarchy path.
+     * @param cost
+     *        Cost parameter.
+     */
     Fanout(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
         		int cost) throw();
 

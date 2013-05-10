@@ -63,6 +63,11 @@ class CFunction {
     /**
      * Creates an unnamed function, with no return type, input parameters nor
      * body.
+     *
+     * @param name
+     *        Function name.
+     * @param file
+     *        \c .hpp file that initially contained the ForSyDe-SystemC function code.
      */
     CFunction(const std::string& name, const std::string& file) throw();
 

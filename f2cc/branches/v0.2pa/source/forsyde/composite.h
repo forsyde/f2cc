@@ -409,6 +409,9 @@ public:
         /**
          * Breaks the connection between this \c IOPort and the port passed as argument
          *
+         * @param interface
+         *        Port to unconnect from.
+         *
          * @throws InvalidArgumentException
          *         When the given interface is not actually connected to this \c IOPort.
          */
@@ -458,6 +461,7 @@ public:
          * Recursively unconnects this \c IOPort until it finds the first \c Leaf::Port,
          * outside its parent composite process.
          *
+         * @returns \b true if the connection was successfully broken.
          */
 		bool unconnectFromLeafOutside() throw();
 
@@ -465,11 +469,12 @@ public:
          * Recursively unconnects this \c IOPort until it finds the first \c Leaf::Port,
          * inside its parent composite process.
          *
+         * @returns \b true if the connection was successfully broken.
          */
 		bool unconnectFromLeafInside() throw();
 
         /**
-         * Gets the immediate adjacent \cProcess::Interface outside
+         * Gets the immediate adjacent \c Process::Interface outside
          * this \c IOPort's parent process.
          *
          * @returns Connected interface, if any; otherwise \c NULL.
@@ -477,7 +482,7 @@ public:
 		Interface* getConnectedPortOutside() const throw();
 
         /**
-         * Gets the immediate adjacent \cProcess::Interface inside
+         * Gets the immediate adjacent \c Process::Interface inside
          * this \c IOPort's parent process.
          *
          * @returns Connected interface, if any; otherwise \c NULL.
