@@ -26,7 +26,6 @@
  */
 
 #include "xmlparser.h"
-#include "cparser.h"
 #include "../ticpp/ticpp.h"
 #include "../ticpp/tinyxml.h"
 #include "../tools/tools.h"
