@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,27 +31,27 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c delay leaf.
+ * @brief Implements the ForSyDe \c delay process.
  */
 
-#include "../leaf.h"
+#include "../process.h"
 #include "../../exceptions/invalidargumentexception.h"
 #include <string>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
 namespace SY {
 
 /**
- * @brief Implements the ForSyDe \c delay leaf.
+ * @brief Implements the ForSyDe \c delay process.
  */
-class delay : public Leaf {
+class delay : public Process {
   public:
     /**
-     * Creates a leaf.
+     * Creates a process.
      *
      * @param id
-     *        Leaf ID.
+     *        Process ID.
      * @param initial_value
      *        Initial delay value.
      * @throws InvalidArgumentException
@@ -63,53 +61,35 @@ class delay : public Leaf {
         throw(InvalidArgumentException);
 
     /**
-     * Creates a leaf.
-     *
-     * @param id
-     *        Leaf ID.
-     * @param hierarchy
-     *        Hierarchy path.
-     * @param cost
-     *        Cost parameter.
-     * @param initial_value
-     *        Initial delay value.
-     * @throws InvalidArgumentException
-     *         When the initial delay value is empty string.
-     */
-    delay(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
-            		int cost, const std::string& initial_value)
-    	throw(InvalidArgumentException);
-
-    /**
-     * @copydoc ~Leaf()
+     * @copydoc ~Process()
      */
     virtual ~delay() throw();
 
     /**
-     * Gets the initial value for this leaf.
+     * Gets the initial value for this process.
      *
      * @returns Initial value.
      */
     std::string getInitialValue() throw();
 
     /**
-     * Same as Leaf::operator==(const Leaf&) const but with the additional
-     * check that the leafs' initial values must also be equal.
+     * Same as Process::operator==(const Process&) const but with the additional
+     * check that the processes' initial values must also be equal.
      *
      * @param rhs
-     *        Leaf to compare with.
-     * @returns \b true if both leafs are equal.
+     *        Process to compare with.
+     * @returns \c true if both processes are equal.
      */
-    virtual bool operator==(const Leaf& rhs) const throw();
+    virtual bool operator==(const Process& rhs) const throw();
 
     /**
-     * @copydoc Leaf::type()
+     * @copydoc Process::type()
      */
     virtual std::string type() const throw();
 
   protected:
     /**
-     * Checks that this leaf has only one in port and one out port.
+     * Checks that this process has only one in port and one out port.
      *
      * @throws InvalidProcessException
      *         When the check fails.
@@ -120,7 +100,7 @@ class delay : public Leaf {
      * Gets the function argument as string representation in the following
      * format:
      * @code
-     * LeafFunction: <function_argument>
+     * ProcessFunction: <function_argument>
      * @endcode
      *
      * @returns Additional string representation data.
@@ -130,7 +110,7 @@ class delay : public Leaf {
 
   protected:
     /**
-     * Leaf function argument.
+     * Process function argument.
      */
     std::string initial_value_;
 };

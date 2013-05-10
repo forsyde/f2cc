@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,13 +24,12 @@
  */
 
 #include "model.h"
-#include "composite.h"
 #include "../tools/tools.h"
 #include <map>
 #include <list>
 #include <new>
 
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe;
 using std::string;
 using std::map;
 using std::list;
@@ -43,21 +40,20 @@ Model::Model() throw() {}
 
 Model::~Model() throw() {
     destroyAllProcesses();
-    destroyAllComposites();
 }
 
-bool Model::addProcess(Leaf* leaf)
+bool Model::addProcess(Process* process)
     throw(InvalidArgumentException, OutOfMemoryException) {
-    if (!leaf) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"leaf\" must not be "
+    if (!process) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"process\" must not be "
                         "NULL");
     }
 
     try {
-        pair<map<const Id, Leaf*>::iterator, bool>
-            result = leafs_.insert(
-                pair<const Id, Leaf*>(
-                    *leaf->getId(), leaf));
+        pair<map<const Id, Process*>::iterator, bool>
+            result = processes_.insert(
+                pair<const Id, Process*>(
+                    *process->getId(), process));
         return result.second;
     }
     catch(bad_alloc&) {
@@ -65,40 +61,40 @@ bool Model::addProcess(Leaf* leaf)
     }
 }
 
-void Model::addProcesses(map<const Id, Leaf*> leafes)
+void Model::addProcesses(map<const Id, Process*> processes)
     throw(OutOfMemoryException) {
     try {
-        leafs_.insert(leafes.begin(), leafes.end());
+        processes_.insert(processes.begin(), processes.end());
     }
     catch(bad_alloc&) {
         THROW_EXCEPTION(OutOfMemoryException);
     }
 }
 
-Leaf* Model::getProcess(const Id& id) throw() {
-    map<const Id, Leaf*>::iterator it = findProcess(id);
-    return it != leafs_.end() ? it->second : NULL;
+Process* Model::getProcess(const Id& id) throw() {
+    map<const Id, Process*>::iterator it = findProcess(id);
+    return it != processes_.end() ? it->second : NULL;
 }
 
 int Model::getNumProcesses() const throw() {
-    return leafs_.size();
+    return processes_.size();
 }
 
-list<Leaf*> Model::getProcesses() throw() {
-    list<Leaf*> leafes;
-    map<const Id, Leaf*>::iterator it;
-    for (it = leafs_.begin(); it != leafs_.end(); ++it) {
-        leafes.push_back(it->second);
+list<Process*> Model::getProcesses() throw() {
+    list<Process*> processes;
+    map<const Id, Process*>::iterator it;
+    for (it = processes_.begin(); it != processes_.end(); ++it) {
+        processes.push_back(it->second);
     }
-    return leafes;
+    return processes;
 }
 
 bool Model::deleteProcess(const Id& id) throw() {
-    map<const Id, Leaf*>::iterator it = findProcess(id);
-    if (it != leafs_.end()) {
-    	Leaf* removed_leaf = it->second;
-        leafs_.erase(it);
-        delete removed_leaf;
+    map<const Id, Process*>::iterator it = findProcess(id);
+    if (it != processes_.end()) {
+        Process* removed_process = it->second;
+        processes_.erase(it);
+        delete removed_process;
         return true;
     }
     else {
@@ -114,105 +110,19 @@ Id Model::getUniqueProcessId() const throw() {
 Id Model::getUniqueProcessId(const string& prefix) const throw() {
     for (int i = 1; ; ++i) {
         Id new_id = Id(prefix + tools::toString(i));
-        if (leafs_.find(new_id) == leafs_.end()) return new_id;
+        if (processes_.find(new_id) == processes_.end()) return new_id;
     }
 }
 
 void Model::destroyAllProcesses() throw() {
-    map<const Id, Leaf*>::iterator it;
-    for (it=leafs_.begin(); it != leafs_.end(); ++it) {
+    map<const Id, Process*>::iterator it;
+    for (it=processes_.begin(); it != processes_.end(); ++it) {
         delete it->second;
     }
 }
 
-map<const Id, Leaf*>::iterator Model::findProcess(const Id& id) throw() {
-    return leafs_.find(id);
+map<const Id, Process*>::iterator Model::findProcess(const Id& id) throw() {
+    return processes_.find(id);
 }
-
-///////////////////////////////////////////
-
-bool Model::addComposite(Composite* composite)
-    throw(InvalidArgumentException, OutOfMemoryException) {
-    if (!composite) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"composite\" must not be "
-                        "NULL");
-    }
-
-    try {
-        pair<map<const Id, Composite*>::iterator, bool>
-            result = composites_.insert(
-                pair<const Id, Composite*>(
-                    *composite->getId(), composite));
-        return result.second;
-    }
-    catch(bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-void Model::addComposites(map<const Id, Composite*> compositees)
-    throw(OutOfMemoryException) {
-    try {
-        composites_.insert(compositees.begin(), compositees.end());
-    }
-    catch(bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-Composite* Model::getComposite(const Id& id) throw() {
-    map<const Id, Composite*>::iterator it = findComposite(id);
-    return it != composites_.end() ? it->second : NULL;
-}
-
-int Model::getNumComposites() const throw() {
-    return composites_.size();
-}
-
-list<Composite*> Model::getComposites() throw() {
-    list<Composite*> compositees;
-    map<const Id, Composite*>::iterator it;
-    for (it = composites_.begin(); it != composites_.end(); ++it) {
-        compositees.push_back(it->second);
-    }
-    return compositees;
-}
-
-bool Model::deleteComposite(const Id& id) throw() {
-    map<const Id, Composite*>::iterator it = findComposite(id);
-    if (it != composites_.end()) {
-    	Composite* removed_composite = it->second;
-        composites_.erase(it);
-        delete removed_composite;
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-
-Id Model::getUniqueCompositeId() const throw() {
-    return getUniqueCompositeId("");
-}
-
-Id Model::getUniqueCompositeId(const string& prefix) const throw() {
-    for (int i = 1; ; ++i) {
-        Id new_id = Id(prefix + tools::toString(i));
-        if (composites_.find(new_id) == composites_.end()) return new_id;
-    }
-}
-
-void Model::destroyAllComposites() throw() {
-    map<const Id, Composite*>::iterator it;
-    for (it=composites_.begin(); it != composites_.end(); ++it) {
-        delete it->second;
-    }
-}
-
-map<const Id, Composite*>::iterator Model::findComposite(const Id& id) throw() {
-    return composites_.find(id);
-}
-
 
 

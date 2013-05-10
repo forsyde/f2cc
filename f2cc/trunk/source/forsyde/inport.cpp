@@ -31,12 +31,12 @@ using std::string;
 using std::bad_cast;
 
 InPort::InPort(const Id& id) throw()
-        : Leaf(id) {}
+        : Process(id) {}
 
 InPort::~InPort() throw() {}
 
-bool InPort::operator==(const Leaf& rhs) const throw() {
-    if (Leaf::operator==(rhs)) return false;
+bool InPort::operator==(const Process& rhs) const throw() {
+    if (Process::operator==(rhs)) return false;
 
     try {
         dynamic_cast<const InPort&>(rhs);
@@ -53,7 +53,7 @@ string InPort::type() const throw() {
 
 void InPort::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 0) {
-        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" is not allowed to have in ports");
     }

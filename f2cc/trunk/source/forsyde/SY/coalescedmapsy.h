@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +31,10 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements a synthesis-related \c coalescedmap leaf.
+ * @brief Implements a synthesis-related \c coalescedmap process.
  */
 
-#include "mapsy.h"
+#include "combsy.h"
 #include "../../language/cfunction.h"
 #include "../../exceptions/invalidargumentexception.h"
 #include "../../exceptions/outofmemoryexception.h"
@@ -44,27 +42,27 @@
 #include <list>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
 namespace SY {
 
 /**
- * @brief Implements a synthesis-related \c coalescedmap leaf.
+ * @brief Implements a synthesis-related \c coalescedmap process.
  *
- * This class implements a specialized leaf \c coalescedComb which is not
- * part of the ForSyDe standard. It is used to replace coalesced \c Comb
- * leafs into a single leaf which contains all function arguments of the
- * leafs which it replaces. Thus, executing a single \c CoalescedMap
- * leaf produces the same result as executing a series of \c Comb leafs.
+ * This class implements a specialized process \c coalescedcomb which is not
+ * part of the ForSyDe standard. It is used to replace coalesced \c comb
+ * processes into a single process which contains all function arguments of the
+ * processes which it replaces. Thus, executing a single \c CoalescedMap
+ * process produces the same result as executing a series of \c comb processes.
  */
-class CoalescedMap : public Map {
+class CoalescedMap : public comb {
   public:
     /**
-     * Creates a leaf with a single function.
+     * Creates a process with a single function.
      *
      * @param id
-     *        Leaf ID.
+     *        Process ID.
      * @param function
-     *        Leaf function argument.
+     *        Process function argument.
      * @throws OutOfMemoryException
      *         When the function list could not be created due to memory
      *         shortage.
@@ -73,42 +71,42 @@ class CoalescedMap : public Map {
         throw(OutOfMemoryException);
 
     /**
-     * Creates a leaf with multiple functions. The list must contain at
+     * Creates a process with multiple functions. The list must contain at
      * least one element.
      *
      * @param id
-     *        Leaf ID.
+     *        Process ID.
      * @param functions
      *        List of functions.
      * @throws InvalidArgumentException
      *         When \c functions is an empty list.
      * @throws OutOfMemoryException
-     *         When the leaf could not be created due to memory shortage.
+     *         When the process could not be created due to memory shortage.
      */
     CoalescedMap(const Id& id, const std::list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
-     * @copydoc ~Leaf()
+     * @copydoc ~Process()
      */
     virtual ~CoalescedMap() throw();
 
     /**
-     * Gets the first function argument of this leaf.
+     * Gets the first function argument of this process.
      *
      * @returns First function argument.
      */
     virtual CFunction* getFunction() throw();
 
     /**
-     * Gets the list of function arguments of this leaf.
+     * Gets the list of function arguments of this process.
      *
      * @returns List of function arguments.
      */
     std::list<CFunction*> getFunctions() throw();
 
     /**
-     * Inserts a new function as first function of this leaf.
+     * Inserts a new function as first function of this process.
      *
      * @param function
      *        Function to insert.
@@ -119,7 +117,7 @@ class CoalescedMap : public Map {
         throw(OutOfMemoryException);
 
     /**
-     * Inserts a new function as last function of this leaf.
+     * Inserts a new function as last function of this process.
      *
      * @param function
      *        Function to insert.
@@ -130,23 +128,23 @@ class CoalescedMap : public Map {
         throw(OutOfMemoryException);
 
     /**
-     * Same as Leaf::operator==(const Leaf&) const but with the additional
-     * check that the leafs' function arguments must also be equal.
+     * Same as Process::operator==(const Process&) const but with the additional
+     * check that the processes' function arguments must also be equal.
      *
      * @param rhs
-     *        Leaf to compare with.
-     * @returns \b true if both leafs are equal.
+     *        Process to compare with.
+     * @returns \c true if both processes are equal.
      */
-    virtual bool operator==(const Leaf& rhs) const throw();
+    virtual bool operator==(const Process& rhs) const throw();
 
     /**
-     * @copydoc Leaf::type()
+     * @copydoc Process::type()
      */
     virtual std::string type() const throw();
 
   protected:
     /**
-     * Checks that this leaf has only one in port and one out port. It also
+     * Checks that this process has only one in port and one out port. It also
      * checks that all function arguments have one input parameter.
      *
      * @throws InvalidProcessException
@@ -158,8 +156,8 @@ class CoalescedMap : public Map {
      * Gets the function argument as string representation in the following
      * format:
      * @code
-     * LeafFunction: <function_argument>[,
-     * LeafFunction: <function_argument>...]
+     * ProcessFunction: <function_argument>[,
+     * ProcessFunction: <function_argument>...]
      * @endcode
      *
      * @returns Additional string representation data.
@@ -184,7 +182,7 @@ class CoalescedMap : public Map {
 
   protected:
     /**
-     * List of leaf function arguments.
+     * List of process function arguments.
      */
     std::list<CFunction*> functions_;
 };

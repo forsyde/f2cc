@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -120,7 +118,7 @@ class Logger {
     /**
      * Checks if this logger is open and associated with a log file.
      *
-     * @returns \b true if open and associated.
+     * @returns \c true if open and associated.
      */
     bool isOpen() const throw();
 

@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +31,7 @@
  * @brief Driver for the f2cc program.
  *
  * This file acts as the driver for f2cc. It performs necessary initializations,
- * invokes the parsing and synthesis leaf, and writes the generated code to
+ * invokes the parsing and synthesis process, and writes the generated code to
  * file. It also handles reporting of errors to the user by catching all
  * exceptions.
  */
@@ -43,9 +41,8 @@
 #include "logger/logger.h"
 #include "frontend/frontend.h"
 #include "frontend/graphmlparser.h"
-#include "frontend/xmlparser.h"
 #include "forsyde/processnetwork.h"
-#include "forsyde/leaf.h"
+#include "forsyde/process.h"
 #include "forsyde/modelmodifier.h"
 #include "synthesizer/synthesizer.h"
 #include "exceptions/exception.h"
@@ -60,23 +57,23 @@
 #include <set>
 
 using namespace f2cc;
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe;
 using std::string;
 using std::cout;
 using std::endl;
 using std::list;
 using std::set;
 
-string getProcessNetworkInfo(ProcessNetwork* processnetwork) {
+string getProcessnetworkInfo(Processnetwork* model) {
     string info;
-    info += "Number of leafs: ";
-    info += tools::toString(processnetwork->getNumProcesses());
+    info += "Number of processes: ";
+    info += tools::toString(model->getNumProcesses());
     info += "\n";
     info += "Number of inputs: ";
-    info += tools::toString(processnetwork->getNumInputs());
+    info += tools::toString(model->getNumInputs());
     info += "\n";
     info += "Number of outputs: ";
-    info += tools::toString(processnetwork->getNumOutputs());
+    info += tools::toString(model->getNumOutputs());
     return info;
 }
 
@@ -132,31 +129,16 @@ int main(int argc, const char* argv[]) {
     // Execute
     try {
         try {
-        	Frontend* parser;
-            switch (config.getInputFormat()) {
-                case Config::XML: {
-                	logger.logInfoMessage(string("New XML format assumed.")
-                			+ " The execution will follow the path from v0.2...");
-                	parser = new (std::nothrow) XmlParser(logger);
-                    break;
-                }
-
-                case Config::CUDA: {
-                	logger.logInfoMessage(string("Old GraphML format assumed.")
-                	        + " The execution will follow the path from v0.1...");
-                	parser = new (std::nothrow) GraphmlParser(logger);
-                    break;
-                }
-            }
+            Frontend* parser = new (std::nothrow) GraphmlParser(logger);
             if (!parser) THROW_EXCEPTION(OutOfMemoryException);
             logger.logInfoMessage(string("MODEL INPUT FILE: ")
                                   + config.getInputFile());
             logger.logInfoMessage("Parsing input file...");
-            ProcessNetwork* processnetwork = parser->parse(config.getInputFile());
+            Processnetwork* model = parser->parse(config.getInputFile());
             delete parser;
 
             string processnetwork_info_message("MODEL INFO:\n");
-            processnetwork_info_message += getProcessNetworkInfo(processnetwork);
+            processnetwork_info_message += getProcessnetworkInfo(model);
             logger.logInfoMessage(processnetwork_info_message);
 
             string target_platform_message("TARGET PLATFORM: ");
@@ -173,28 +155,28 @@ int main(int argc, const char* argv[]) {
             }
             logger.logInfoMessage(target_platform_message);
 
-            // Make processnetwork modifications, if necessary
-            ModelModifier modifier(processnetwork, logger);
-            logger.logInfoMessage("Removing redundant leafs...");
-            modifier.removeRedundantLeafs();
-            logger.logInfoMessage("Converting Comb leafs "
-                              "with one in port to Comb leafs...");
-            modifier.convertZipWith1ToMap();
+            // Make model modifications, if necessary
+            ModelModifier modifier(model, logger);
+            logger.logInfoMessage("Removing redundant processes...");
+            modifier.removeRedundantProcesses();
+            logger.logInfoMessage("Converting comb processes "
+                              "with one in port to comb processes...");
+            modifier.convertZipWith1Tocomb();
             if (config.getTargetPlatform() == Config::CUDA) {
-                string leaf_coalescing_message("DATA PARALLEL PROCESS "
+                string process_coalescing_message("DATA PARALLEL PROCESS "
                                                   "COALESCING: ");
-                if (config.doDataParallelLeafCoalesing()) {
-                    leaf_coalescing_message += "YES";
+                if (config.doDataParallelProcessCoalesing()) {
+                    process_coalescing_message += "YES";
                 }
                 else {
-                    leaf_coalescing_message += "NO";
+                    process_coalescing_message += "NO";
                 }
-                logger.logInfoMessage(leaf_coalescing_message);
-                if (config.doDataParallelLeafCoalesing()) {
+                logger.logInfoMessage(process_coalescing_message);
+                if (config.doDataParallelProcessCoalesing()) {
                     logger.logInfoMessage(""
-                                      "Performing data parallel Comb leaf "
+                                      "Performing data parallel comb process "
                                       "coalescing...");
-                    modifier.coalesceDataParallelLeafs();
+                    modifier.coalesceDataParallelProcesses();
                 }
 
                 logger.logInfoMessage(
@@ -202,23 +184,23 @@ int main(int argc, const char* argv[]) {
                 modifier.splitDataParallelSegments();
 
                 logger.logMessage(Logger::INFO,
-                                  "Fusing chains of Unzipx-map-Zipx "
-                                  "leafs...");
-                modifier.fuseUnzipMapZipLeafs();
+                                  "Fusing chains of unzipx-map-zipx "
+                                  "processes...");
+                modifier.fuseUnzipcombZipProcesses();
 
-                if (config.doDataParallelLeafCoalesing()) {
+                if (config.doDataParallelProcessCoalesing()) {
                     logger.logInfoMessage(""
-                                      "Performing ParallelMap leaf "
+                                      "Performing ParallelMap process "
                                       "coalescing...");
-                    modifier.coalesceParallelMapSyLeafs();
+                    modifier.coalesceParallelMapSyProcesses();
                 }
             }
             processnetwork_info_message = "NEW MODEL INFO:\n";
-            processnetwork_info_message += getProcessNetworkInfo(processnetwork);
+            processnetwork_info_message += getProcessnetworkInfo(model);
             logger.logInfoMessage(processnetwork_info_message);
 
             // Generate code and write to file
-            Synthesizer synthesizer(processnetwork, logger, config);
+            Synthesizer synthesizer(model, logger, config);
             Synthesizer::CodeSet code;
             switch (config.getTargetPlatform()) {
                 case Config::C: {
@@ -237,10 +219,10 @@ int main(int argc, const char* argv[]) {
             tools::writeFile(config.getImplementationOutputFile(),
                              code.implementation);
 
-            logger.logInfoMessage("MODEL SYNTHESIS COMPLETE");
+            logger.logInfoMessage("MODEL NTHESIS COMPLETE");
 
             // Clean up
-            delete processnetwork;
+            delete model;
             logger.logDebugMessage("Closing logger...");
             logger.close();
         } catch (FileNotFoundException& ex) {

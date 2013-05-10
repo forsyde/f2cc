@@ -8,7 +8,7 @@ integrated into other programs.
 <h2> What it does. </h2>
 	
 In brief, TinyXML parses an XML document, and builds from that a 
-Document Object ProcessNetwork (DOM) that can be read, modified, and saved.
+Document Object Processnetwork (DOM) that can be read, modified, and saved.
 
 XML stands for "eXtensible Markup Language." It allows you to create 
 your own document markups. Where HTML does a very good job of marking 
@@ -25,7 +25,7 @@ http://www.w3.org/TR/2004/REC-xml-20040204/</a>. An intro to XML
 <a href="http://skew.org/xml/tutorial/">http://skew.org/xml/tutorial</a>.
 
 There are different ways to access and interact with XML data.
-TinyXML uses a Document Object ProcessNetwork (DOM), meaning the XML data is parsed
+TinyXML uses a Document Object Processnetwork (DOM), meaning the XML data is parsed
 into a C++ objects that can be browsed and manipulated, and then 
 written to disk or another output stream. You can also construct an XML document 
 from scratch with C++ objects and write this to disk or another output
@@ -93,7 +93,7 @@ TinyXML projects you may find useful! (Descriptions provided by the projects.)
 <li> <b>TinyXPath</b> (http://tinyxpath.sourceforge.net). TinyXPath is a small footprint 
      XPath syntax decoder, written in C++.</li>
 <li> <b>@subpage ticpp</b> (http://code.google.com/p/ticpp/). TinyXML++ is a completely new 
-     port to TinyXML that uses MANY of the C++ strengths. Templates, 
+     interface to TinyXML that uses MANY of the C++ strengths. Templates, 
 	 exceptions, and much better error handling.</li>
 </ul>
 
