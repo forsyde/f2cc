@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_COMB_H_
-#define F2CC_SOURCE_FORSYDE_COMB_H_
+#ifndef F2CC_SOURCE_FORSYDE_ZIPWITHN_H_
+#define F2CC_SOURCE_FORSYDE_ZIPWITHN_H_
 
 /**
  * @file
@@ -42,39 +42,33 @@
 
 namespace f2cc {
 namespace Forsyde {
-namespace SY{
 
 /**
  * @brief Implements the generic ForSyDe \c zipWithN leaf.
  */
-class Comb : public Leaf {
+class ZipWithNSY : public Leaf {
   public:
     /**
      * Creates a leaf.
      *
      * @param id
      *        Leaf ID.
-     * @param hierarchy
-     *        Hierarchy path.
-     * @param cost
-     *        Cost parameter.
      * @param function
      *        Leaf function argument.
      */
-    Comb(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
-    		int cost, CFunction* function) throw();
+    ZipWithNSY(const Id& id, const CFunction& function) throw();
 
     /**
      * @copydoc ~Leaf()
      */
-    virtual ~Comb() throw();
+    virtual ~ZipWithNSY() throw();
 
     /**
      * Gets the function argument of this leaf.
      *
      * @returns Function argument.
      */
-    CFunction* getFunction() throw();
+    virtual CFunction* getFunction() throw();
 
     /**
      * Same as Leaf::operator==(const Leaf&) const but with the additional
@@ -123,7 +117,7 @@ class Comb : public Leaf {
      * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void checkFunction(CFunction* function, size_t num_in_ports) const
+    virtual void checkFunction(CFunction& function, size_t num_in_ports) const
         throw(InvalidProcessException);
 
     /**
@@ -142,10 +136,9 @@ class Comb : public Leaf {
     /**
      * Leaf function argument.
      */
-    CFunction* function_;
+    CFunction function_;
 };
 
-}
 }
 }
 

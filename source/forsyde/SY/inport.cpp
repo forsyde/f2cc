@@ -25,75 +25,38 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_UNZIPX_H_
-#define F2CC_SOURCE_FORSYDE_UNZIPX_H_
+#include "inport.h"
+#include <typeinfo>
 
-/**
- * @file
- * @author  Gabriel Hjort Blindell <ghb@kth.se>
- * @version 0.1
- *
- * @brief Implements the ForSyDe \c Unzipx leaf.
- */
+using namespace f2cc::Forsyde;
+using std::string;
+using std::bad_cast;
 
-#include "../leaf.h"
-#include "../../exceptions/notsupportedexception.h"
-#include <string>
+InPort::InPort(const Id& id) throw()
+        : Leaf(id) {}
 
-namespace f2cc {
-namespace Forsyde {
-namespace SY{
+InPort::~InPort() throw() {}
 
-/**
- * @brief Implements the ForSyDe \c Unzipx leaf.
- */
-class Unzipx : public Leaf {
-  public:
-    /**
-     * @copydoc Leaf(const Id&)
-     */
-    Unzipx(const Id& id) throw();
+bool InPort::operator==(const Leaf& rhs) const throw() {
+    if (Leaf::operator==(rhs)) return false;
 
-    /**
-     * Creates a leaf.
-     *
-     * @param id
-     *        Leaf ID.
-     * @param hierarchy
-     *        Hierarchy path.
-     * @param cost
-     *        Cost parameter.
-     */
-    Unzipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
-        		int cost) throw();
-
-    /**
-     * @copydoc ~Leaf()
-     */
-    virtual ~Unzipx() throw();
-
-    /**
-     * @copydoc Leaf::operator==(const Leaf&) const
-     */
-    virtual bool operator==(const Leaf& rhs) const throw();
-
-    /**
-     * @copydoc Leaf::type()
-     */
-    virtual std::string type() const throw();
-
-  protected:
-    /**
-     * Checks that this leaf has only one in port.
-     *
-     * @throws InvalidProcessException
-     *         When the check fails.
-     */
-    virtual void moreChecks() throw(InvalidProcessException);
-};
-
-}
-}
+    try {
+        dynamic_cast<const InPort&>(rhs);
+    }
+    catch (bad_cast&) {
+        return false;
+    }
+    return true;
 }
 
-#endif
+string InPort::type() const throw() {
+    return "InPort";
+}
+
+void InPort::moreChecks() throw(InvalidProcessException) {
+    if (getInPorts().size() != 0) {
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
+                        + getId()->getString() + "\" of type \""
+                        + type() + "\" is not allowed to have in ports");
+    }
+}

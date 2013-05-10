@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +33,13 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines a class for performing \c Processnetwork modifications.
+ * @brief Defines a class for performing \c ProcessNetwork modifications.
  */
 
 #include "id.h"
 #include "processnetwork.h"
-#include "process.h"
-#include "SY/combsy.h"
+#include "leaf.h"
+#include "SY/mapsy.h"
 #include "SY/parallelmapsy.h"
 #include "SY/unzipxsy.h"
 #include "SY/zipxsy.h"
@@ -50,15 +52,15 @@
 #include <vector>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 
 /**
- * @brief Performs semantic-preserving modifications on a \c Processnetwork
+ * @brief Performs semantic-preserving modifications on a \c ProcessNetwork
  *        object.
  *
- * The \c ModelModifier is a class which provides a set of model modification
+ * The \c ModelModifier is a class which provides a set of processnetwork modification
  * methods. The modifications are such that they preserve the semantics of the
- * model, and are used to simplify the latter synthesis process or affect the
+ * processnetwork, and are used to simplify the latter synthesis leaf or affect the
  * structure of the generated code (i.e. whether to generate sequential C code
  * or parallel CUDA C code).
  */
@@ -68,26 +70,26 @@ class ModelModifier {
 
   public:
     /**
-     * Creates a model modifier.
+     * Creates a processnetwork modifier.
      *
-     * @param model
-     *        ForSyDe model.
+     * @param processnetwork
+     *        ForSyDe processnetwork.
      * @param logger
      *        Reference to the logger.
      * @throws InvalidArgumentException
-     *         When \c model is \c NULL.
+     *         When \c processnetwork is \c NULL.
      */
-    ModelModifier(ForSyDe::Processnetwork* model, Logger& logger)
+    ModelModifier(Forsyde::ProcessNetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
-     * Destroys this model modifier. The logger remains open.
+     * Destroys this processnetwork modifier. The logger remains open.
      */
     ~ModelModifier() throw();
 
     /**
-     * Coalesces data parallel processes across different segments into a
-     * single data parallel process.
+     * Coalesces data parallel leafs across different segments into a
+     * single data parallel leaf.
      *
      * @throws IOException
      *         When access to the log file failed.
@@ -95,12 +97,12 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void coalesceDataParallelProcesses() 
+    void coalesceDataParallelLeafs() 
         throw(IOException, RuntimeException);
 
     /**
-     * Coalesces \c ParallelMap processes within the model into a single
-     * process.
+     * Coalesces \c ParallelMap leafs within the processnetwork into a single
+     * leaf.
      *
      * @throws IOException
      *         When access to the log file failed.
@@ -108,12 +110,12 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void coalesceParallelMapSyProcesses() 
+    void coalesceParallelMapSyLeafs() 
         throw(IOException, RuntimeException);
 
     /**
-     * Splits data parallel segments by injecting a \c zipx followed by an
-     * \c unzipx process between each segment.
+     * Splits data parallel segments by injecting a \c ZipxSY followed by an
+     * \c UnzipxSY leaf between each segment.
      *
      * @throws IOException
      *         When access to the log file failed.
@@ -124,9 +126,9 @@ class ModelModifier {
     void splitDataParallelSegments() throw(IOException, RuntimeException);
 
     /**
-     * Fuses a segment of \c unzipx, \c map, and \c zipx processes into a
-     * single \c parallelmap process with the same process function argument
-     * as the \c map processes.
+     * Fuses a segment of \c UnzipxSY, \c mapSY, and \c ZipxSY leafs into a
+     * single \c parallelmapSY leaf with the same leaf function argument
+     * as the \c mapSY leafs.
      *
      * All segments of all data parallel sections \em must have been split
      * prior to invoking this method!
@@ -137,16 +139,16 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void fuseUnzipcombZipProcesses()
+    void fuseUnzipMapZipLeafs()
         throw(IOException, RuntimeException);
 
     /**
-     * Converts processes of type \c comb which have only one in port to
-     * \c comb. This is because, in ForSyDe, they are actually the same
-     * process type (map is a special case of zipwithN), but in the internal
-     * representation they are separated. Converting the processes allows the
+     * Converts leafs of type \c ZipWithN which have only one in port to
+     * \c Map. This is because, in ForSyDe, they are actually the same
+     * leaf type (mapSY is a special case of zipwithN), but in the internal
+     * representation they are separated. Converting the leafs allows the
      * synthesizer to exploit potential data parallelism with is expressed
-     * using \c comb processes.
+     * using \c Map leafs.
      *
      * @throws IOException
      *         When access to the log file failed.
@@ -154,13 +156,13 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void convertZipWith1Tocomb()
+    void convertZipWith1ToMap()
         throw(IOException, RuntimeException);
 
     /**
-     * Removes redundant processes from the model. Redundant processes are
-     * instances which does not affect the semantic behaviour of the model when
-     * removed, such as \c unzipxSy and \c zipxSy processes with only one in
+     * Removes redundant leafs from the processnetwork. Redundant leafs are
+     * instances which does not affect the semantic behaviour of the processnetwork when
+     * removed, such as \c UnZipxSy and \c ZipxSy leafs with only one in
      * and out port.
      *
      * @throws IOException
@@ -169,17 +171,17 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void removeRedundantProcesses()
+    void removeRedundantLeafs()
         throw(IOException, RuntimeException);
 
   private:
     /**
-     * Injects a \c zipx followed by an \c unzipx process between each
-     * segment (column of map processes) in a section. The section is given
-     * as a vector of process chains (which is also given as a vector).
+     * Injects a \c ZipxSY followed by an \c UnzipxSY leaf between each
+     * segment (column of mapSY leafs) in a section. The section is given
+     * as a vector of leaf chains (which is also given as a vector).
      *
      * @param chains
-     *        Vector of process chains.
+     *        Vector of leaf chains.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
@@ -187,11 +189,11 @@ class ModelModifier {
      *         bug.
      */
     void splitDataParallelSegments(
-        std::vector< std::vector<ForSyDe::Process*> > chains)
+        std::vector< std::vector<Forsyde::Leaf*> > chains)
             throw(IOException, RuntimeException);
 
     /**
-     * Searches for data parallel sections within the model. A data parallel
+     * Searches for data parallel sections within the processnetwork. A data parallel
      * section is a section which is both contained and passes the check
      * performed in isContainedSectionDataParallel(const ContainedSection&).
      *
@@ -206,10 +208,10 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Searches for contained sections within the model. A contained section is
-     * a part of the model which:
-     *   - start with a \c unzipx process, and
-     *   - ends with a \c zipx process, where
+     * Searches for contained sections within the processnetwork. A contained section is
+     * a part of the processnetwork which:
+     *   - start with a \c UnzipxSY leaf, and
+     *   - ends with a \c ZipxSY leaf, where
      *   - all data flow diverging from the starting point converges at the end
      *     point, and
      *   - all data flow converging to the end point diverges from the starting
@@ -228,14 +230,14 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Same as findContainedSections() but accepts a process to start the
-     * search from and a set of visited processes to avoid redundant search and
+     * Same as findContainedSections() but accepts a leaf to start the
+     * search from and a set of visited leafs to avoid redundant search and
      * infinite loops.
      *
      * @param begin
-     *        Process to begin the search from.
+     *        Leaf to begin the search from.
      * @param visited
-     *        Set of visited processes.
+     *        Set of visited leafs.
      * @returns List of contained sections.
      * @throws IOException
      *         When access to the log file failed.
@@ -244,26 +246,23 @@ class ModelModifier {
      *         bug.
      */
     std::list<ContainedSection> findContainedSections(
-        ForSyDe::Process* begin, std::set<ForSyDe::Id>& visited)
+        Forsyde::Leaf* begin, std::set<Forsyde::Id> visited)
         throw(IOException, RuntimeException);
     
     /**
-     * Finds the nearest \c unzipx process that can be found from a given
+     * Finds the nearest \c Unzipx leaf that can be found from a given
      * starting point.
      *
      * @param begin
-     *        Process to begin from.
-     * @param visited
-     *        Set of visited processes.
-     * @returns A zipx process, if found; otherwise \c NULL.
+     *        Leaf to begin from.
+     * @returns A Zipx leaf, if found; otherwise \c NULL.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    ForSyDe::SY::unzipx* findNearestunzipxProcess(
-        ForSyDe::Process* begin, std::set<ForSyDe::Id>& visited)
+    Forsyde::SY::Unzipx* findNearestUnzipxLeaf(Forsyde::Leaf* begin)
     throw(IOException, RuntimeException);
 
     /**
@@ -274,7 +273,7 @@ class ModelModifier {
      *        Starting point.
      * @param end
      *        End point.
-     * @returns \c true if the paths are contained within the same start and 
+     * @returns \b true if the paths are contained within the same start and 
      *          end points.
      * @throws InvalidArgumentException
      *         When either \c start or \c end is \c NULL.
@@ -284,7 +283,7 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    bool isAContainedSection(Process* start, Process* end)
+    bool isAContainedSection(Leaf* start, Leaf* end)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
@@ -293,41 +292,35 @@ class ModelModifier {
      * direction.
      *
      * @param start
-     *        Process to start the check from.
+     *        Leaf to start the check from.
      * @param end
      *        Expected end point.
-     * @param visited
-     *        Set of visited processes.
      * @param forward
-     *        Set to \c true for forward data flow check (from start to end),
-     *        and \c false for backward data flow check (from end to start).
-     * @returns \c true if the check is passed.
+     *        Set to \b true for forward data flow check (from start to end),
+     *        and \b false for backward data flow check (from end to start).
+     * @returns \b true if the check is passed.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    bool checkDataFlowConvergence(
-        Process* start,
-        Process* end,
-        std::set<ForSyDe::Id>& visited,
-        bool forward)
+    bool checkDataFlowConvergence(Leaf* start, Leaf* end, bool forward)
         throw(IOException, RuntimeException);
 
     /**
      * Checks if a contained section is data parallel. A data parallel section
      * is a section:
-     *   - where there is at least one process between the start and the end
+     *   - where there is at least one leaf between the start and the end
      *     point,
      *   - where all its diverging paths are of equal lengths,
-     *   - which consist only of \c map processes, and
-     *   - where all processes at the same distance from the starting point are
+     *   - which consist only of \c mapSY leafs, and
+     *   - where all leafs at the same distance from the starting point are
      *     pairwise equal (i.e. has the same function argument).
      *
      * @param section
      *        A contained section.
-     * @returns \c true if the section is data parallel.
+     * @returns \b true if the section is data parallel.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
@@ -338,131 +331,106 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Checks whether the chain consists of only \c comb processes.
+     * Checks whether the chain consists of only \c Map leafs.
      * 
      * @param chain
-     *        Process chain.
-     * @returns \c true if the chain consists of only \c comb processes.
+     *        Leaf chain.
+     * @returns \b true if the chain consists of only \c Map leafs.
      */
-    bool hasOnlycombSys(std::list<ForSyDe::Process*> chain) const throw();
+    bool hasOnlyMapSys(std::list<Forsyde::Leaf*> chain) const throw();
 
     /**
-     * Checks if two process chains are of equal lengths and have the same order
-     * of process types which are pairwise equal.
+     * Checks if two leaf chains are of equal lengths and have the same order
+     * of leaf types which are pairwise equal.
      *
      * @param first
-     *        First process chain.
+     *        First leaf chain.
      * @param second
-     *        Second process chain.
-     * @returns \c true if the chains are equal.
+     *        Second leaf chain.
+     * @returns \b true if the chains are equal.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    bool areProcessChainsEqual(std::list<ForSyDe::Process*> first,
-                               std::list<ForSyDe::Process*> second)
+    bool areLeafChainsEqual(std::list<Forsyde::Leaf*> first,
+                               std::list<Forsyde::Leaf*> second)
         throw(IOException, RuntimeException);
 
     /**
-     * Gets the process chaining starting from the process connected at the
+     * Gets the leaf chaining starting from the leaf connected at the
      * other end of a given port and ends at an end point. The end point will
-     * not be included in the chain.
-     *
-     * The caller of this function must ensure that there is a path from the
-     * start to the end point. If the process chain contains loops or diverges
-     * then no guarantees are made on the order in which the processes will
-     * appear in the returned chain.
+     * not be included in the chain. If there are multiple chains, it will
+     * select the first out port of the leaf where the flow diverges.
      *
      * @param start
      *        Starting point.
      * @param end
      *        End point.
-     * @returns Process chain.
+     * @returns Leaf chain.
      * @throws OutOfMemoryException
      *         When the chain cannot be created due to memory shortage.
      */
-    std::list<ForSyDe::Process*> getProcessChain(
-        ForSyDe::Process::Port* start, ForSyDe::Process* end)
+    std::list<Forsyde::Leaf*> getProcessChain(
+        Forsyde::Leaf::Port* start, Forsyde::Leaf* end)
         throw(OutOfMemoryException);
 
     /**
-     * Help function for getProcessChain(ForSyDe::Process::Port*,
-     * ForSyDe::Process*) to allow recursive calls.
-     *
-     * @param start
-     *        Starting point.
-     * @param end
-     *        End point.
-     * @param visited
-     *        Set of visited processes.
-     * @returns Process chain.
-     * @throws OutOfMemoryException
-     *         When the chain cannot be created due to memory shortage.
-     * @see getProcessChain(ForSyDe::Process::Port*, ForSyDe::Process*)
-     */
-    std::list<ForSyDe::Process*> getProcessChainR(
-        ForSyDe::Process::Port* start,
-        ForSyDe::Process* end,
-        std::set<ForSyDe::Id>& visited)
-        throw(OutOfMemoryException);
-
-    /**
-     * Coalesces a process chain into a single new process. The process chain
-     * \em must be ordered such that the output of a process is consumed by the
-     * following process. The old processes will be removed from the model and
-     * replaced by the new process.
+     * Coalesces a leaf chain into a single new leaf. The leaf chain
+     * \em must be ordered such that the output of a leaf is consumed by the
+     * following leaf. The old leafs will be removed from the processnetwork and
+     * replaced by the new leaf.
      * 
      * @param chain
-     *        Process chain.
+     *        Leaf chain.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void coalesceProcessChain(std::list<ForSyDe::Process*> chain)
+    void coalesceLeafChain(std::list<Forsyde::Leaf*> chain)
         throw(RuntimeException);
 
     /**
      * Checks if a \c ParallelMap chain can be coalesced, which is possible if
-     * the chain is longer than 1 process, if all processes represent the same
-     * number of parallel processes, and if the output data type matches the
-     * input data type of the following process.
+     * the chain is longer than 1 leaf, if all leafs represent the same
+     * number of parallel leafs, and if the output data type matches the
+     * input data type of the following leaf.
      * 
      * @param chain
-     *        Process chain.
-     * @returns \c true if the chain can be coalesced.
+     *        Leaf chain.
+     * @returns \b true if the chain can be coalesced.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
     bool isParallelMapSyChainCoalescable(
-        std::list<ForSyDe::SY::ParallelMap*> chain) throw(RuntimeException);
+        std::list<Forsyde::SY::ParallelMap*> chain) throw(RuntimeException);
 
     /**
-     * Searches for chains for \c ParallelMap processes within the model.
+     * Searches for chains for \c ParallelMap leafs within the processnetwork.
      *
-     * @returns List of \c ParallelMap process chains.
+     * @returns List of \c ParallelMap leaf chains.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    std::list< std::list<ForSyDe::SY::ParallelMap*> > findParallelMapSyChains()
+    std::list< std::list<Forsyde::SY::ParallelMap*> > findParallelMapSyChains()
         throw(IOException, RuntimeException);
 
     
     /**
-     * Same as findParallelMapSyChains() but accepts a process to start the
-     * search from and a set of visited processes to avoid redundant search
+     * Same as findParallelMapSyChains() but accepts a leaf to start the
+     * search from and a set of visited leafs to avoid redundant search
      * and infinite loops.
      *
      * @param begin
-     *        Process to begin the search from.
+     *        Leaf to begin the search from.
      * @param visited
-     *        Set of visited processes.
-     * @returns List of \c ParallelMap process chains.
+     *        Set of visited leafs.
+     * @returns List of \c ParallelMap leaf chains.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
@@ -470,68 +438,68 @@ class ModelModifier {
      *         bug.
      */
     std::list< std::list<SY::ParallelMap*> > findParallelMapSyChains(
-        ForSyDe::Process* begin, std::set<ForSyDe::Id>& visited)
+        Forsyde::Leaf* begin, std::set<Forsyde::Id> visited)
         throw(IOException, RuntimeException);
 
     /**
-     * Coalesces a chain of \c ParallelMap processes into a single new
-     * process. The process chain \em must be ordered such that the output of a
-     * process is consumed by the following process. The old processes will be
-     * removed from the model and replaced by the new process.
+     * Coalesces a chain of \c ParallelMap leafs into a single new
+     * leaf. The leaf chain \em must be ordered such that the output of a
+     * leaf is consumed by the following leaf. The old leafs will be
+     * removed from the processnetwork and replaced by the new leaf.
      * 
      * @param chain
-     *        Process chain.
+     *        Leaf chain.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void coalesceParallelMapSyChain(std::list<ForSyDe::SY::ParallelMap*> chain)
+    void coalesceParallelMapSyChain(std::list<Forsyde::SY::ParallelMap*> chain)
         throw(RuntimeException);
 
     /**
-     * Converts a process chain into a string representation.
+     * Converts a leaf chain into a string representation.
      *
      * @param chain
-     *        Process chain.
+     *        Leaf chain.
      * @returns String representation.
      */
-    std::string processChainToString(std::list<ForSyDe::Process*> chain)
+    std::string leafChainToString(std::list<Forsyde::Leaf*> chain)
         const throw();
 
     /**
-     * @copydoc processChainToString(std::list<ForSyDe::Process*>) const
+     * @copydoc leafChainToString(std::list<Forsyde::Leaf*>) const
      */
-    std::string processChainToString(std::list<ForSyDe::SY::ParallelMap*> chain)
+    std::string leafChainToString(std::list<Forsyde::SY::ParallelMap*> chain)
         const throw();
 
     /**
-     * Removes and destroys a process and all its succeeding processes from the
-     * model.
+     * Removes and destroys a leaf and all its succeeding leafs from the
+     * processnetwork.
      *
      * @param start
-     *        Start of process chain to destroy.
+     *        Start of leaf chain to destroy.
      * @throws InvalidArgumentExceptionException
-     *         When \c process is \c NULL.
+     *         When \c leaf is \c NULL.
      */
-    void destroyProcessChain(ForSyDe::Process* start)
+    void destroyLeafChain(Forsyde::Leaf* start)
         throw(InvalidArgumentException);
 
     /**
-     * Redirects data flow between two processes \e A and \e B to another two
-     * processes \e C and \e D. The data flow is redirected by adding the in
+     * Redirects data flow between two leafs \e A and \e B to another two
+     * leafs \e C and \e D. The data flow is redirected by adding the in
      * ports of \e A to \e C, and the out ports of \e B to \e D. This will
      * break all connections to \e A and from \e B, thus unconnecting that
-     * segment from the model (but it does \em not delete it). Processes \e C
-     * and \e D can be the same process.
+     * segment from the processnetwork (but it does \em not delete it). Leafs \e C
+     * and \e D can be the same leaf.
      *
      * @param old_start
-     *        Process indicating the start of data flow.
+     *        Leaf indicating the start of data flow.
      * @param old_end
-     *        Process indicating the end of data flow.
+     *        Leaf indicating the end of data flow.
      * @param new_start
-     *        Process to which to direct the start of data flow.
+     *        Leaf to which to direct the start of data flow.
      * @param new_end
-     *        Process to which to direct the endof data flow.
+     *        Leaf to which to direct the endof data flow.
      * @throws InvalidArgumentException
      *         When either of \c old_start, \c old_end, \c new_start, or
      *         \c new_end is \c NULL.
@@ -541,12 +509,12 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void redirectDataFlow(Process* old_start, Process* old_end,
-                          Process* new_start, Process* new_end)
+    void redirectDataFlow(Leaf* old_start, Leaf* old_end,
+                          Leaf* new_start, Leaf* new_end)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Replaces the old port, if set as part of the inputs for the model, with
+     * Replaces the old port, if set as part of the inputs for the processnetwork, with
      * the new port.
      * 
      * @param old_port
@@ -557,11 +525,11 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void replaceProcessnetworkInput(Process::Port* old_port, Process::Port* new_port)
+    void replaceProcessNetworkInput(Leaf::Port* old_port, Leaf::Port* new_port)
         throw(RuntimeException);
 
     /**
-     * Same as replaceProcessnetworkInput(Process::Port*, Process::Port*) but for
+     * Same as replaceProcessNetworkInput(Leaf::Port*, Leaf::Port*) but for
      * outputs.
      * 
      * @param old_port
@@ -572,45 +540,27 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void replaceProcessnetworkOutput(Process::Port* old_port, Process::Port* new_port)
-        throw(RuntimeException);
-
-    /**
-     * Attempts to visit a process. If the process has not already been visited,
-     * the process will be added to the set and \c true is returned. Otherwise
-     * \c false is returned.
-     * 
-     * @param visited
-     *        Set of visited processes.
-     * @param process
-     *        Process to visit.
-     * @returns \c true if the process had not already been visited and was
-     *          successfully added to the set; otherwise \c false.
-     * @throws RuntimeException
-     *         When a program error has occurred. This most likely indicates a
-     *         bug.
-     */
-    bool visitProcess(std::set<ForSyDe::Id>& visited, Process* process)
+    void replaceProcessNetworkOutput(Leaf::Port* old_port, Leaf::Port* new_port)
         throw(RuntimeException);
 
   private:
     /**
      * @brief Defines a contained section.
      *
-     * A contained section is a part of the process network where all data
+     * A contained section is a part of the leaf network where all data
      * flow diverging from a single point converges at another single point,
      * and vice versa.
      */
     struct ContainedSection {
         /**
-         * First process in the chain.
+         * First leaf in the chain.
          */
-        ForSyDe::Process* start;
+        Forsyde::Leaf* start;
 
         /**
-         * Last process in the chain.
+         * Last leaf in the chain.
          */
-        ForSyDe::Process* end;
+        Forsyde::Leaf* end;
 
         /**
          * Creates a contained section.
@@ -622,7 +572,7 @@ class ModelModifier {
          * @throws InvalidArgumentException
          *         When either \c start or \c end is \c NULL.
          */
-        ContainedSection(ForSyDe::Process* start, ForSyDe::Process* end)
+        ContainedSection(Forsyde::Leaf* start, Forsyde::Leaf* end)
             throw(InvalidArgumentException);
 
         /**
@@ -635,9 +585,9 @@ class ModelModifier {
 
   private:
     /**
-     * ForSyDe model.
+     * ForSyDe processnetwork.
      */
-    ForSyDe::Processnetwork* const processnetwork_;
+    Forsyde::ProcessNetwork* const processnetwork_;
 
     /**
      * Logger.

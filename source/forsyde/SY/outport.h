@@ -25,15 +25,15 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_UNZIPX_H_
-#define F2CC_SOURCE_FORSYDE_UNZIPX_H_
+#ifndef F2CC_SOURCE_FORSYDE_OUTPORT_H_
+#define F2CC_SOURCE_FORSYDE_OUTPORT_H_
 
 /**
  * @file
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c Unzipx leaf.
+ * @brief Implements a dummy leaf for network out ports.
  */
 
 #include "../leaf.h"
@@ -42,35 +42,21 @@
 
 namespace f2cc {
 namespace Forsyde {
-namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c Unzipx leaf.
+ * @brief Implements a dummy leaf for network inports.
  */
-class Unzipx : public Leaf {
+class OutPort : public Leaf {
   public:
     /**
      * @copydoc Leaf(const Id&)
      */
-    Unzipx(const Id& id) throw();
-
-    /**
-     * Creates a leaf.
-     *
-     * @param id
-     *        Leaf ID.
-     * @param hierarchy
-     *        Hierarchy path.
-     * @param cost
-     *        Cost parameter.
-     */
-    Unzipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
-        		int cost) throw();
+    OutPort(const Id& id) throw();
 
     /**
      * @copydoc ~Leaf()
      */
-    virtual ~Unzipx() throw();
+    virtual ~OutPort() throw();
 
     /**
      * @copydoc Leaf::operator==(const Leaf&) const
@@ -84,7 +70,7 @@ class Unzipx : public Leaf {
 
   protected:
     /**
-     * Checks that this leaf has only one in port.
+     * Checks that this leaf has no out ports.
      *
      * @throws InvalidProcessException
      *         When the check fails.
@@ -92,7 +78,6 @@ class Unzipx : public Leaf {
     virtual void moreChecks() throw(InvalidProcessException);
 };
 
-}
 }
 }
 

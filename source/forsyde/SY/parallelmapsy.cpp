@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,30 +28,30 @@
 #include "parallelmapsy.h"
 #include <typeinfo>
 
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::list;
 using std::bad_cast;
 
-ParallelMap::ParallelMap(const Id& id, int num_processes,
+ParallelMap::ParallelMap(const Id& id, int num_leafs,
                              const CFunction& function)
         throw(OutOfMemoryException) : CoalescedMap(id, function),
-                                      num_parallel_processes_(num_processes) {}
+                                      num_parallel_leafs_(num_leafs) {}
 
-ParallelMap::ParallelMap(const Id& id, int num_processes,
+ParallelMap::ParallelMap(const Id& id, int num_leafs,
                              const list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException)
         : CoalescedMap(id, functions),
-          num_parallel_processes_(num_processes) {}
+          num_parallel_leafs_(num_leafs) {}
 
 ParallelMap::~ParallelMap() throw() {}
 
-bool ParallelMap::operator==(const Process& rhs) const throw() {
+bool ParallelMap::operator==(const Leaf& rhs) const throw() {
     if (CoalescedMap::operator==(rhs)) return false;
 
     try {
         const ParallelMap& other = dynamic_cast<const ParallelMap&>(rhs);
-        if (num_parallel_processes_ != other.num_parallel_processes_) {
+        if (num_parallel_leafs_ != other.num_parallel_leafs_) {
             return false;
         }
     }
@@ -60,7 +62,7 @@ bool ParallelMap::operator==(const Process& rhs) const throw() {
 }
 
 int ParallelMap::getNumProcesses() const throw() {
-    return num_parallel_processes_;
+    return num_parallel_leafs_;
 }
 
 string ParallelMap::type() const throw() {
