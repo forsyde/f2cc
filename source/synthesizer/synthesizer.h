@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -132,7 +134,7 @@ class Synthesizer {
          *        First signal.
          * @param rhs
          *        First signal.
-         * @returns \c true if \code *lhs < *rhs \endcode.
+         * @returns \b true if \code *lhs < *rhs \endcode.
          */
         bool operator() (const Signal* lhs, const Signal* rhs) const throw();
     };
@@ -150,7 +152,7 @@ class Synthesizer {
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
      */
-    Synthesizer(ForSyDe::ProcessNetwork* processnetwork, Logger& logger, Config& config)
+    Synthesizer(Forsyde::ProcessNetwork* processnetwork, Logger& logger, Config& config)
         throw(InvalidArgumentException);
 
     /**
@@ -260,15 +262,15 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignal(ForSyDe::Leaf::Port* out_port,
-                     ForSyDe::Leaf::Port* in_port)
+    Signal* getSignal(Forsyde::Leaf::Port* out_port,
+                     Forsyde::Leaf::Port* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const ForSyDe::Leaf::Port*, const
-     * ForSyDe::Leaf::Port*) but only requires the out port. The method takes
+     * Same as getSignal(const Forsyde::Leaf::Port*, const
+     * Forsyde::Leaf::Port*) but only requires the out port. The method takes
      * care of finding the in port and invokes getSignal(const
-     * ForSyDe::Leaf::Port*, const ForSyDe::Leaf::Port*) with the correct
+     * Forsyde::Leaf::Port*, const Forsyde::Leaf::Port*) with the correct
      * parameters.
      *
      * @param out_port
@@ -281,14 +283,14 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignalByOutPort(ForSyDe::Leaf::Port* out_port)
+    Signal* getSignalByOutPort(Forsyde::Leaf::Port* out_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const ForSyDe::Leaf::Port*, const
-     * ForSyDe::Leaf::Port*) but only requires the in port. The method takes
+     * Same as getSignal(const Forsyde::Leaf::Port*, const
+     * Forsyde::Leaf::Port*) but only requires the in port. The method takes
      * care of finding the out port and invokes getSignal(const
-     * ForSyDe::Leaf::Port*, const ForSyDe::Leaf::Port*) with the correct
+     * Forsyde::Leaf::Port*, const Forsyde::Leaf::Port*) with the correct
      * parameters.
      *
      * @param in_port
@@ -301,7 +303,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignalByInPort(ForSyDe::Leaf::Port* in_port)
+    Signal* getSignalByInPort(Forsyde::Leaf::Port* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
@@ -636,7 +638,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::pair<CVariable, std::string> getDelayVariable(
-        ForSyDe::SY::delay* leaf)
+        Forsyde::SY::delay* leaf)
         throw(InvalidArgumentException, RuntimeException);
 
     /**
@@ -842,7 +844,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCode(ForSyDe::Leaf* leaf)
+    std::string generateLeafExecutionCode(Forsyde::Leaf* leaf)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1057,7 +1059,7 @@ class Synthesizer {
      *        Name of the function.
      * @returns Global function name.
      */
-    std::string getGlobalLeafFunctionName(ForSyDe::Id leaf_id,
+    std::string getGlobalLeafFunctionName(Forsyde::Id leaf_id,
                                              const std::string& function_name)
         const throw();
 
@@ -1066,7 +1068,7 @@ class Synthesizer {
      * 
      * @param signal
      *        Signal whose variable to check.
-     * @returns \c true if the data type is an array and it is not written to by
+     * @returns \b true if the data type is an array and it is not written to by
      *          the processnetwork input parameters or read from for the processnetwork output
      *          parameters.
      */
@@ -1088,7 +1090,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateLeafExecutionCodeFordelayStep1(
-        ForSyDe::SY::delay* leaf)
+        Forsyde::SY::delay* leaf)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1107,7 +1109,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateLeafExecutionCodeFordelayStep2(
-        ForSyDe::SY::delay* leaf)
+        Forsyde::SY::delay* leaf)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1125,7 +1127,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForMap(ForSyDe::SY::Map* leaf)
+    std::string generateLeafExecutionCodeForMap(Forsyde::SY::Map* leaf)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1144,7 +1146,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateLeafExecutionCodeForZipWithNSY(
-        ForSyDe::ZipWithNSY* leaf)
+        Forsyde::ZipWithNSY* leaf)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1164,7 +1166,7 @@ class Synthesizer {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateLeafExecutionCodeForUnzipx(
-        ForSyDe::SY::Unzipx* leaf)
+        Forsyde::SY::Unzipx* leaf)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1183,7 +1185,7 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForZipx(ForSyDe::SY::Zipx* leaf)
+    std::string generateLeafExecutionCodeForZipx(Forsyde::SY::Zipx* leaf)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1200,14 +1202,14 @@ class Synthesizer {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForFanout(ForSyDe::SY::Fanout* leaf)
+    std::string generateLeafExecutionCodeForFanout(Forsyde::SY::Fanout* leaf)
         throw(InvalidModelException, IOException, RuntimeException);
 
   private:
     /**
      * ForSyDe processnetwork.
      */
-    ForSyDe::ProcessNetwork* const processnetwork_;
+    Forsyde::ProcessNetwork* const processnetwork_;
 
     /**
      * Logger.
@@ -1222,7 +1224,7 @@ class Synthesizer {
     /**
      * Leaf schedule.
      */
-    std::list<ForSyDe::Id> schedule_;
+    std::list<Forsyde::Id> schedule_;
 
     /**
      * Set of processnetwork signals.
@@ -1238,7 +1240,7 @@ class Synthesizer {
      * Mapset of delay variables. The delay leaf is used as key, and the
      * value is a pair of a \c CVariable and its initial value.
      */
-    std::map< ForSyDe::SY::delay*, std::pair<CVariable, std::string> >
+    std::map< Forsyde::SY::delay*, std::pair<CVariable, std::string> >
     delay_variables_;
 
   private:
@@ -1263,8 +1265,8 @@ class Synthesizer {
          * @throws InvalidArgumentException
          *         When \c out_port and \c in_port are \c NULL.
          */
-        Signal(ForSyDe::Leaf::Port* out_port,
-               ForSyDe::Leaf::Port* in_port)
+        Signal(Forsyde::Leaf::Port* out_port,
+               Forsyde::Leaf::Port* in_port)
             throw(InvalidArgumentException);
         
         /**
@@ -1286,7 +1288,7 @@ class Synthesizer {
         /**
          * Checks whether this signal has a data type set.
          * 
-         * @returns \c true if the does.
+         * @returns \b true if the does.
          */
         bool hasDataType() const throw();
 
@@ -1312,21 +1314,21 @@ class Synthesizer {
          *
          * @returns Out port, if any; otherwise \c NULL.
          */
-        ForSyDe::Leaf::Port* getOutPort() const throw();
+        Forsyde::Leaf::Port* getOutPort() const throw();
 
         /**
          * Gets the in port of this signal.
          *
          * @returns In port, if any; otherwise \c NULL.
          */
-        ForSyDe::Leaf::Port* getInPort() const throw();
+        Forsyde::Leaf::Port* getInPort() const throw();
 
         /**
          * Checks equality between this signal and another
          *
          * @param rhs
          *        Other signal to compare with.
-         * @returns \c true if both signals have the same out and in ports.
+         * @returns \b true if both signals have the same out and in ports.
          */
         bool operator==(const Signal& rhs) const throw();
 
@@ -1335,7 +1337,7 @@ class Synthesizer {
          *
          * @param rhs
          *        Other signal to compare with.
-         * @returns \c true if both signals have the different out or in ports.
+         * @returns \b true if both signals have the different out or in ports.
          */
         bool operator!=(const Signal& rhs) const throw();
 
@@ -1345,7 +1347,7 @@ class Synthesizer {
          *
          * @param rhs
          *        Other signal to compare with.
-         * @returns \c true if 
+         * @returns \b true if 
          */
         bool operator<(const Signal& rhs) const throw();
 
@@ -1368,12 +1370,12 @@ class Synthesizer {
         /**
          * Out port of one signal.
          */
-        ForSyDe::Leaf::Port* out_port_;
+        Forsyde::Leaf::Port* out_port_;
 
         /**
          * In port of another signal.
          */
-        ForSyDe::Leaf::Port* in_port_;
+        Forsyde::Leaf::Port* in_port_;
 
         /**
          * Flag for checking if the signal has a data type set.

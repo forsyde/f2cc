@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +30,10 @@
 
 /**
  * @file
- * @author  Gabriel Hjort Blindell <ghb@kth.se>
+ * @author George Ungureanu <ugeorge@kth.se> & Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines the base class for process nodes in the internal
+ * @brief Defines the base class for all the processes in the internal
  *        representation of ForSyDe models.
  */
 
@@ -46,15 +48,15 @@
 #include <list>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 
 /**
- * @brief Base class for process nodes in the internal representation of ForSyDe
+ * @brief Base class for all processes in the internal representation of ForSyDe
  * models.
  *
- * The \c Process is a base class for process nodes in internal representation
- * of ForSyDe models. It provides functionality common for all processs such as
- * in and out interface definition and signal management.
+ * The \c Process is a base class for all processes in internal representation
+ * of ForSyDe models. It provides functionality common for all processes such as
+ * ID and hierarchy management.
  */
 class Process{
   public:
@@ -67,13 +69,20 @@ class Process{
      * @param id
      *        Process ID.
      */
-    Process(const ForSyDe::Id& id) throw();
-
-    Process(const ForSyDe::Id& id, ForSyDe::Hierarchy& hierarchy) throw();
+    Process(const Forsyde::Id& id) throw();
 
     /**
-     * Destroys this process. This also destroys all interfaces and breaks all
-     * interface connections.
+     * Creates a process node with a hierarchy.
+     *
+     * @param id
+     *        Process ID.
+     * @param hierarchy
+     *        Process hierarchy.
+     */
+    Process(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy) throw();
+
+    /**
+     * Destroys this process.
      */
     virtual ~Process() throw();
 
@@ -82,28 +91,29 @@ class Process{
      *
      * @returns Process ID.
      */
-    const ForSyDe::Id* getId() const throw();
+    const Forsyde::Id* getId() const throw();
 
     /**
-     * Gets the ID of this process.
+     * Gets the hierarchy of this process.
      *
-     * @returns Process ID.
+     * @returns Process hierarchy.
      */
-    ForSyDe::Hierarchy getHierarchy() const throw();
+    Forsyde::Hierarchy getHierarchy() const throw();
 
     /**
-     * Gets the parent of this process.
-     *
-     * @returns The parent process.
+     * Finds the status of the process passed as argument relative to this process.
+     * @param rhs
+     *        Process that needs to be localized.
+     * @returns The relation between the two processes.
      */
     Hierarchy::Relation findRelation(const Process* rhs) const throw(RuntimeException);
 
     /**
-	 * Gets the ID of this process.
+	 * Sets the hierarchy for this process.
 	 *
 	 * @returns Process ID.
 	 */
-	void setHierarchy(ForSyDe::Hierarchy) throw();
+	void setHierarchy(Forsyde::Hierarchy) throw();
 
     /**
      * Checks that this process is valid. This does nothing except invoke the
@@ -133,19 +143,20 @@ class Process{
     virtual void moreChecks() throw(InvalidProcessException) = 0;
 
   protected:
-    ForSyDe::Id id_;
     /**
 	 * Hierarchy list
 	 */
-	ForSyDe::Hierarchy hierarchy_;
+	Forsyde::Hierarchy hierarchy_;
 
 
   public:
     /**
-     * @brief Class used for in- and out interfaces by the \c Process class.
+     * @brief Base class for all types of interfaces.
      *
-     * The \c Port class defines a process interface. A interface is identified by an ID
-     * and can be connected to another interface.
+     * The \c Interface class defines a process interface.
+     *
+     * @see \c Leaf::Port
+     * @see \c Composite::IOPort
      */
     class Interface {
       public:
@@ -155,7 +166,7 @@ class Process{
          * @param id
          *        Port ID.
          */
-    	Interface(const ForSyDe::Id& id) throw();
+    	Interface(const Forsyde::Id& id) throw();
 
         /**
          * Creates a interface belonging to a process.
@@ -167,7 +178,7 @@ class Process{
          * @throws InvalidArgumentException
          *         When \c process is \c NULL.
          */
-    	Interface(const ForSyDe::Id& id, Process* process)
+    	Interface(const Forsyde::Id& id, Process* process)
             throw(InvalidArgumentException);
 
 
@@ -185,7 +196,7 @@ class Process{
          *
          * @returns Port ID.
          */
-        const ForSyDe::Id* getId() const throw();
+        const Forsyde::Id* getId() const throw();
 
 
         /**
@@ -221,7 +232,7 @@ class Process{
         /**
          * Port ID.
          */
-        const ForSyDe::Id id_;
+        const Forsyde::Id id_;
 
         /**
          * Port name.

@@ -18,7 +18,7 @@
 # that follow. The default is UTF-8 which is also the encoding used for all
 # text before the first occurrence of this tag. Doxygen uses libiconv (or the
 # iconv built into libc) for the transcoding. See
-# http://www.gnu.org/software/libiconv for the list of possible encodings.
+# http://www.gnu.org/software/libiconv for the list of possible encodings
 
 DOXYFILE_ENCODING      = UTF-8
 
@@ -1596,7 +1596,7 @@ GROUP_GRAPHS           = YES
 # collaboration diagrams in a style similar to the OMG's Unified ProcessNetworking
 # Language.
 
-UML_LOOK               = YES
+UML_LOOK               = NO
 
 # If set to YES, the inheritance and collaboration graphs will show the
 # relations between templates and their instances.

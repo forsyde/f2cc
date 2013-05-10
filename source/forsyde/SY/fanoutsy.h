@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +42,7 @@
 #include <string>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 namespace SY {
 
 /**
@@ -62,7 +64,7 @@ class Fanout : public Leaf {
      */
     Fanout(const Id& id) throw();
 
-    Fanout(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+    Fanout(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
         		int cost) throw();
 
     /**

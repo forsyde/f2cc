@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +30,8 @@
 
 /**
  * @file
- * @author  Gabriel Hjort Blindell <ghb@kth.se>
- * @version 0.1
+ * @author  George Ungureanu <ugeorge@kth.se> & Gabriel Hjort Blindell <ghb@kth.se>
+ * @version 0.2
  *
  * @brief Defines the base class for leaf nodes in the internal
  *        representation of ForSyDe models.
@@ -39,6 +41,7 @@
 #include "hierarchy.h"
 #include "process.h"
 #include "../language/cdatatype.h"
+#include "../language/cvariable.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/notsupportedexception.h"
 #include "../exceptions/invalidprocessexception.h"
@@ -47,14 +50,14 @@
 #include <list>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 
 /**
- * @brief Base class for leaf nodes in the internal representation of ForSyDe
+ * @brief Base class for leaf process nodes in the internal representation of ForSyDe
  * models.
  *
- * The \c Leaf is a base class for leaf nodes in internal representation
- * of ForSyDe models. It provides functionality common for all leafs such as
+ * The \c Leaf is a base class for leaf process nodes in internal representation
+ * of ForSyDe models. It provides functionality common for all leaf processes such as
  * in and out port definition and signal management.
  */
 class Leaf : public Process{
@@ -68,9 +71,21 @@ class Leaf : public Process{
      * @param id
      *        Leaf ID.
      */
-    Leaf(const ForSyDe::Id& id) throw();
+    Leaf(const Forsyde::Id& id) throw();
 
-    Leaf(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+    /**
+     * Creates a leaf node, with the information containers initialized.
+     *
+     * @param id
+     *        Leaf ID.
+     * @param hierarchy
+     *        Leaf hierarchy.
+     * @param moc
+     *        Leaf MoC.
+     * @param cost
+     *        Leaf cost parameter.
+     */
+    Leaf(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
     		const std::string moc, int cost) throw();
 
     /**
@@ -87,12 +102,18 @@ class Leaf : public Process{
     const std::string getMoc() const throw();
 
     /**
-     * Gets the MoC of this process.
+     * Gets the cost for this process.
      *
-     * @returns The MoC.
+     * @returns The cost parameter.
      */
     int getCost() const throw();
 
+    /**
+     * Sets the cost for this process.
+     *
+     * @param cost
+     *        The cost parameter.
+     */
     void setCost(int& cost) throw();
 
     /**
@@ -101,25 +122,28 @@ class Leaf : public Process{
      *
      * @param id
      *        Port ID.
-     * @returns \c true if such an in port did not already exist and was
+     * @returns \b true if such an in port did not already exist and was
      *          successfully added.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
+    bool addInPort(const Forsyde::Id& id) throw(OutOfMemoryException);
 
     /**
-     * Adds an in port to this leaf. Leafs are not allowed to have
-     * multiple in ports with the same ID.
+     * Adds an in port to this leaf, with a CDataType container. Leafs are not
+     * allowed to have multiple in ports with the same ID.
      *
      * @param id
      *        Port ID.
-     * @returns \c true if such an in port did not already exist and was
+     * @param datatype
+     *        Data type associated with this port.
+     *
+     * @returns \b true if such an in port did not already exist and was
      *          successfully added.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInPort(const ForSyDe::Id& id, CDataType datatype) throw(OutOfMemoryException);
+    bool addInPort(const Forsyde::Id& id, CDataType datatype) throw(OutOfMemoryException);
 
     /**
      * Creates a new port with the same ID and connections as another port and
@@ -127,9 +151,14 @@ class Leaf : public Process{
      * broken. Leafs are not allowed to have multiple in ports with the same
      * ID.
      *
+     * \b WARNING: it is not advisable to use this constructor in the v0.2 execution path
+     * since the port connections cannot be maintained. A port can be connected to another
+     * only in its scope of vision, fact determined only in the presence of a process that
+     * has a hierarchy.
+     *
      * @param port
      *        Port.
-     * @returns \c true if such an in port did not already exist and was
+     * @returns \b true if such an in port did not already exist and was
      *          successfully copied and added.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
@@ -141,9 +170,9 @@ class Leaf : public Process{
      *
      * @param id
      *        Port ID.
-     * @returns \c true if such a port was found and successfully deleted.
+     * @returns \b true if such a port was found and successfully deleted.
      */
-    bool deleteInPort(const ForSyDe::Id& id) throw();
+    bool deleteInPort(const Forsyde::Id& id) throw();
 
     /**
      * Gets the number of in ports of this leaf.
@@ -159,7 +188,7 @@ class Leaf : public Process{
      *        Port id.
      * @returns Port, if found; otherwise \c NULL.
      */
-    Port* getInPort(const ForSyDe::Id& id) throw();
+    Port* getInPort(const Forsyde::Id& id) throw();
 
     /**
      * Gets a list of in ports belonging to this this leaf.
@@ -169,35 +198,39 @@ class Leaf : public Process{
     std::list<Port*> getInPorts() throw();
 
     /**
-     * Same as addIn Port(const ForSyDe::Id&) but for out ports.
+     * Same as addIn Port(const Forsyde::Id&) but for out ports.
      *
      * @param id
      *        Port ID.
-     * @returns \c true if such a port did not already exist and was
+     * @returns \b true if such a port did not already exist and was
      *          successfully added.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutPort(const ForSyDe::Id& id) throw(OutOfMemoryException);
+    bool addOutPort(const Forsyde::Id& id) throw(OutOfMemoryException);
 
     /**
-     * Same as addIn Port(const ForSyDe::Id&) but for out ports.
+     * Adds an out port to this leaf, with a CDataType container. Leafs are not
+     * allowed to have multiple in ports with the same ID.
      *
      * @param id
      *        Port ID.
-     * @returns \c true if such a port did not already exist and was
+     * @param datatype
+     *        Data type associated with this port.
+     *
+     * @returns \b true if such an in port did not already exist and was
      *          successfully added.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutPort(const ForSyDe::Id& id, CDataType datatype) throw(OutOfMemoryException);
+    bool addOutPort(const Forsyde::Id& id, CDataType datatype) throw(OutOfMemoryException);
 
     /**
      * Same as addInPort(Port&) but for out ports.
      *
      * @param port
      *        Port.
-     * @returns \c true if such an out port did not already exist and was
+     * @returns \b true if such an out port did not already exist and was
      *          successfully copied and added.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
@@ -205,13 +238,13 @@ class Leaf : public Process{
     bool addOutPort(Port& port) throw(OutOfMemoryException);
 
     /**
-     * Same as deleteOutPort(const ForSyDe::Id&) but for out ports.
+     * Same as deleteOutPort(const Forsyde::Id&) but for out ports.
      *
      * @param id
      *        Port ID.
-     * @returns \c true if such a port was found and successfully deleted.
+     * @returns \b true if such a port was found and successfully deleted.
      */
-    bool deleteOutPort(const ForSyDe::Id& id) throw();
+    bool deleteOutPort(const Forsyde::Id& id) throw();
 
     /**
      * Same as getNumInPorts() but for out ports.
@@ -221,13 +254,13 @@ class Leaf : public Process{
     size_t getNumOutPorts() const throw();
 
     /**
-     * Same as getOutPort(const ForSyDe::Id&) but for out ports.
+     * Same as getOutPort(const Forsyde::Id&) but for out ports.
      *
      * @param id
      *        Port ID.
      * @returns Port, if found; otherwise \c NULL.
      */
-    Port* getOutPort(const ForSyDe::Id& id) throw();
+    Port* getOutPort(const Forsyde::Id& id) throw();
 
     /**
      * Same as getInPorts() but for out ports.
@@ -266,7 +299,7 @@ class Leaf : public Process{
      *
      * @param rhs
      *        Leaf to compare with.
-     * @returns \c true if both leafs are equal.
+     * @returns \b true if both leafs are equal.
      */
     virtual bool operator==(const Leaf& rhs) const throw();
 
@@ -275,7 +308,7 @@ class Leaf : public Process{
      *
      * @param rhs
      *        Leaf to compare with.
-     * @returns \c true if both leafs are not equal.
+     * @returns \b true if both leafs are not equal.
      */
     virtual bool operator!=(const Leaf& rhs) const throw();
 
@@ -319,7 +352,7 @@ class Leaf : public Process{
      * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Port*>::iterator findPort(const ForSyDe::Id& id,
+    std::list<Port*>::iterator findPort(const Forsyde::Id& id,
                                         std::list<Port*>& ports) const throw();
 
     /**
@@ -360,6 +393,9 @@ class Leaf : public Process{
 	 */
 	const std::string moc_;
 
+    /**
+	 * Process cost parameter.
+	 */
 	int cost_;
 
   public:
@@ -374,10 +410,14 @@ class Leaf : public Process{
         /**
          * Creates a port belonging to no leaf.
          *
+         * \b WARNING: using this constructor is not advised in v0.2 execution path.
+         * A newly created port without process cannot be used in a hierarchical process
+         * network.
+         *
          * @param id
          *        Port ID.
          */
-        Port(const ForSyDe::Id& id) throw();
+        Port(const Forsyde::Id& id) throw();
 
         /**
          * Creates a port belonging to a leaf.
@@ -385,31 +425,38 @@ class Leaf : public Process{
          * @param id
          *        Port ID.
          * @param leaf
-         *        Pointer to the leaf to which this port belongs.
+         *        Pointer to the leaf which this port belongs to.
          * @throws InvalidArgumentException
          *         When \c leaf is \c NULL.
          */
-        Port(const ForSyDe::Id& id, Leaf* leaf)
+        Port(const Forsyde::Id& id, Leaf* leaf)
             throw(InvalidArgumentException);
 
 
         /**
-         * Creates a port belonging to a leaf.
+         * Creates a port belonging to a leaf, and having an associated data type.
          *
          * @param id
          *        Port ID.
+         * @param data_type
+         *        Associated data type.
          * @param leaf
          *        Pointer to the leaf to which this port belongs.
          * @throws InvalidArgumentException
          *         When \c leaf is \c NULL.
          */
-        Port(const ForSyDe::Id& id, Leaf* leaf, CDataType data_type)
+        Port(const Forsyde::Id& id, Leaf* leaf, CDataType data_type)
             throw(InvalidArgumentException);
 
         /**
          * Creates a port belonging to no leaf with the same ID and
          * connections as another port. The connection at the other port is
          * broken.
+         *
+         * \b WARNING: it is not advisable to use this constructor in the v0.2 execution path
+		 * since the port connections cannot be maintained. A port can be connected to another
+		 * only in its scope of vision, fact determined only in the presence of a process that
+		 * has a hierarchy.
          *
          * @param rhs
          *        Port to copy.
@@ -421,10 +468,11 @@ class Leaf : public Process{
          * connections as another port. The connection at the other port is
          * broken.
          *
+         *
          * @param rhs
          *        Port to copy.
          * @param leaf
-         *        Pointer to the leaf to which this port belongs.
+         *        Pointer to the leaf which this port belongs to.
          * @throws InvalidArgumentException
          *         When \c leaf is \c NULL.
          */
@@ -437,10 +485,9 @@ class Leaf : public Process{
         virtual ~Port() throw();
         
         /**
-		 * Sets the data type of this port.
+		 * Gets the data type of this port.
 		 *
-		 * @param datatype
-		 *        The new data type that has to be set.
+		 * @return the associated data type.
 		 */
         CDataType getDataType() throw();
 
@@ -453,22 +500,41 @@ class Leaf : public Process{
         void setDataType(CDataType datatype) throw();
 
         /**
-         * Checks if this port is connected to any other port.
+		 * Gets the link to the variable in the \c CFunction which this port
+		 * represents.
+		 *
+		 * @return pointer to associated variable.
+		 */
+        CVariable* getVariable() throw();
+
+        /**
+		 * Sets the link to the variable in the \c CFunction which this port
+		 * represents.
+		 *
+		 * @param variable
+		 *        A valid variable in a \c CFunction.
+		 */
+        void setVariable(CVariable* variable) throw();
+
+        /**
+         * Checks if this port is connected to any other interface.
          *
-         * @returns \c true if connected.
+         * @returns \b true if connected.
          */
         bool isConnected() const throw();
 
         /**
-         * Checks if this port is connected to any other port.
+         * Recursively checks whether this ports eventually connects to another
+         * \c Leaf::Port.
          *
-         * @returns \c true if connected.
+         * @returns \b true if connected.
          */
         bool isConnectedToLeaf() const throw(IllegalStateException);
 
         /**
-         * Connects this port to another. This also sets the other port as
-         * connected to this port. If there already is a connection it will
+         * Connects this port to a interface in the process' scope.
+         * This also sets the interface port as connected to this port (either
+         * inside or outside). If there already is a connection it will
          * automatically be broken. 
          *
          * Setting the port parameter to \c NULL is equivalent to breaking the
@@ -476,7 +542,9 @@ class Leaf : public Process{
          * method call is effectively ignored.
          *
          * @param port
-         *        Port to connect.
+         *        Interface to connect.
+         *
+         * @returns \b true if connection was successful.
          */
         void connect(Process::Interface* port) throw(InvalidArgumentException);
 
@@ -486,6 +554,9 @@ class Leaf : public Process{
          */
         void unconnect() throw();
 
+        /**
+         * Recursively breaks all connections until it reaches a \c Leaf::Port.
+         */
         void unconnectFromLeaf() throw();
 
         /**
@@ -495,6 +566,14 @@ class Leaf : public Process{
          */
         Process::Interface* getConnectedPort() const throw();
 
+        /**
+         * Sets the connected port. Unlike the connect(Process::Interface*) method,
+         * this one does not check for the validity of the given port. It is not advisable
+         * to use this method from outside f2cc::Forsyde namespace.
+         *
+         * @param port
+         *        Interface to connect.
+         */
         void setConnection(Process::Interface* port) throw();
 
         //Leaf::Port* getConnectedLeafPort() const throw();
@@ -504,7 +583,7 @@ class Leaf : public Process{
          *
          * @param rhs
          *        Port to compare.
-         * @returns \c true if both belong to the same leaf and if their IDs
+         * @returns \b true if both belong to the same leaf and if their IDs
          *          are identical.
          */
         bool operator==(const Leaf::Port& rhs) const throw();
@@ -514,7 +593,7 @@ class Leaf : public Process{
          *
          * @param rhs
          *        Port to compare.
-         * @returns \c true if the ports belong to different leafs or if
+         * @returns \b true if the ports belong to different leafs or if
          *          their IDs are not identical.
          */
         bool operator!=(const Leaf::Port& rhs) const throw();
@@ -544,10 +623,16 @@ class Leaf : public Process{
          * Pointer to the other end of a connection.
          */
         Process::Interface* connected_port_;
+
         /**
 		 * Port data type.
 		 */
 		CDataType data_type_;
+
+        /**
+		 * Pointer to a variable inside a \c CFunction.
+		 */
+		CVariable* variable_;
 
     };
 

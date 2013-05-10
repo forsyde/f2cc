@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -158,11 +160,11 @@ class CFunction {
     /**
      * Adds an input parameter to this function. The new parameter will be added
      * as the last parameter to the function. If the parameter already exists
-     * then it will not be added and \c false is returned.
+     * then it will not be added and \b false is returned.
      *
      * @param parameter
      *        Variable to add as input parameter.
-     * @returns \c true if the parameter was successfully added.
+     * @returns \b true if the parameter was successfully added.
      * @throws OutOfMemoryException
      *         When the parameter fails to be added due to memory shortage.
      */
@@ -174,7 +176,7 @@ class CFunction {
      *
      * @param parameter
      *        Variable to delete from the input parameters.
-     * @returns \c true if such a parameter was found and successfully deleted.
+     * @returns \b true if such a parameter was found and successfully deleted.
      */
     bool deleteInputParameter(const CVariable& parameter) throw();
 
@@ -185,6 +187,30 @@ class CFunction {
      * @returns List of input parameters.
      */
     std::list<CVariable*> getInputParameters() throw();
+
+
+    /**
+     * Adds an input parameter to this function. The new parameter will be added
+     * as the last parameter to the function. If the parameter already exists
+     * then it will not be added and \b false is returned.
+     *
+     * @param parameter
+     *        Variable to add as input parameter.
+     * @returns \b true if the parameter was successfully added.
+     * @throws OutOfMemoryException
+     *         When the parameter fails to be added due to memory shortage.
+     */
+    bool setOutputParameter(const CVariable& parameter)
+        throw();
+
+
+    /**
+     * Gets a list of the input parameters to this function. The list will be
+     * in the order as they were added to the function.
+     *
+     * @returns List of input parameters.
+     */
+    CVariable* getOutputParameter() throw();
 
     /**
      * Gets the body of this function. Initial block declaration is
@@ -225,7 +251,7 @@ class CFunction {
      *
      * @param rhs
      *        Function to compare.
-     * @returns \c true if the bodies of both funtions are exactly identical,
+     * @returns \b true if the bodies of both funtions are exactly identical,
      *          character by character.
      */
     bool operator==(const CFunction& rhs) const throw();
@@ -235,7 +261,7 @@ class CFunction {
      *
      * @param rhs
      *        Function to compare.
-     * @returns \c true if the string representation of both are not
+     * @returns \b true if the string representation of both are not
      *          identical.
      */
     bool operator!=(const CFunction& rhs) const throw();
@@ -284,6 +310,11 @@ class CFunction {
      * Input parameters.
      */
     std::list<CVariable*> input_parameters_;
+
+    /**
+     * Input parameters.
+     */
+    CVariable* output_parameter_;
 
     /**
      * Function body.

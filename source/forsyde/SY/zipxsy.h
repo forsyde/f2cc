@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +41,7 @@
 #include <string>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 namespace SY{
 
 /**
@@ -52,7 +54,7 @@ class Zipx : public Leaf {
      */
     Zipx(const Id& id) throw();
 
-    Zipx(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+    Zipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
         		int cost) throw();
 
     /**

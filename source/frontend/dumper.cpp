@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +46,7 @@
 #include <list>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using ticpp::Document;
 using ticpp::Node;
 using ticpp::Element;
@@ -228,8 +230,10 @@ void XmlDumper::dumpLeaf(Leaf* leaf, Element* parent)
     	Element* port_element = new Element( "port" );
     	port_element->SetAttribute("name", (*it)->getId()->getString());
     	port_element->SetAttribute("type",
-    			(*it)->getDataType().getVariableDataTypeString());
+    			(*it)->getDataType().toString());
     	port_element->SetAttribute("direction", "in");
+    	if (comb_leaf) port_element->SetAttribute("associated_variable",
+    			(*it)->getVariable()->getReferenceString());
     	leaf_element->LinkEndChild(port_element);
     	if (!isVisitedPort(*it)){
     		dumpSignal((*it), parent);
@@ -243,6 +247,8 @@ void XmlDumper::dumpLeaf(Leaf* leaf, Element* parent)
     	port_element->SetAttribute("type",
     			(*it)->getDataType().getVariableDataTypeString());
     	port_element->SetAttribute("direction", "out");
+    	if (comb_leaf) port_element->SetAttribute("associated_variable",
+    	    			(*it)->getVariable()->getReferenceString());
     	leaf_element->LinkEndChild(port_element);
     	if (!isVisitedPort(*it)){
     		dumpSignal((*it), parent);

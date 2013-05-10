@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -133,7 +135,7 @@ std::string toString(const T& e) throw() {
  *
  * @param str
  *        String to check.
- * @returns \c true if the string consists only of numbers.
+ * @returns \b true if the string consists only of numbers.
  */
 bool isNumeric(const std::string& str) throw();
 
@@ -149,11 +151,22 @@ bool isNumeric(const std::string& str) throw();
 int toInt(const std::string& str) throw(InvalidArgumentException);
 
 /**
+ * Converts a string into an int.
+ *
+ * @param str
+ *        Numeric string to convert.
+ * @returns Int.
+ * @throws InvalidArgumentException
+ *         When \c str is not an int.
+ */
+int noElements(const int& size, const std::string& datatype) throw(InvalidArgumentException);
+
+/**
  * Checks if a file exists.
  *
  * @param file
  *        File.
- * @returns \c true if the file exists.
+ * @returns \b true if the file exists.
  */
 bool existsFile(const std::string& file) throw();
 

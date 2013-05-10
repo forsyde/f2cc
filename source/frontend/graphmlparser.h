@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +84,7 @@ class GraphmlParser : public Frontend {
     /**
      * @copydoc Frontend::createProcessNetwork(const std::string&)
      */
-    virtual ForSyDe::ProcessNetwork* createProcessNetwork(const std::string& file)
+    virtual Forsyde::ProcessNetwork* createProcessNetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
               ParseException, InvalidModelException, RuntimeException);
 
@@ -177,7 +179,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::ProcessNetwork* generateProcessNetwork(ticpp::Element* xml)
+    Forsyde::ProcessNetwork* generateProcessNetwork(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException);
 
@@ -200,7 +202,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlNodes(ticpp::Element* xml, ForSyDe::ProcessNetwork* processnetwork)
+    void parseXmlNodes(ticpp::Element* xml, Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -225,8 +227,8 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlEdges(ticpp::Element* xml, ForSyDe::ProcessNetwork* processnetwork,
-                       std::map<ForSyDe::Leaf::Port*, ForSyDe::Leaf*>&
+    void parseXmlEdges(ticpp::Element* xml, Forsyde::ProcessNetwork* processnetwork,
+                       std::map<Forsyde::Leaf::Port*, Forsyde::Leaf*>&
                        copy_leafs)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
@@ -248,7 +250,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void verifyLeafConnections(ForSyDe::ProcessNetwork* processnetwork)
+    void verifyLeafConnections(Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -267,7 +269,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void fixProcessNetworkInputsOutputs(ForSyDe::ProcessNetwork* processnetwork)
+    void fixProcessNetworkInputsOutputs(Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
@@ -287,7 +289,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::Leaf* generateLeaf(ticpp::Element* xml)
+    Forsyde::Leaf* generateLeaf(ticpp::Element* xml)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -522,7 +524,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::Leaf::Port* generatePort(ticpp::Element* xml)
+    Forsyde::Leaf::Port* generatePort(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException);
 
@@ -546,9 +548,9 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void generateConnection(ticpp::Element* xml, ForSyDe::ProcessNetwork* processnetwork,
-                            std::map<ForSyDe::Leaf::Port*,
-                                     ForSyDe::Leaf*>& copy_leafs)
+    void generateConnection(ticpp::Element* xml, Forsyde::ProcessNetwork* processnetwork,
+                            std::map<Forsyde::Leaf::Port*,
+                                     Forsyde::Leaf*>& copy_leafs)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -557,7 +559,7 @@ class GraphmlParser : public Frontend {
      *
      * @param id
      *        Port id.
-     * @returns \c true if the ID denotes an in port.
+     * @returns \b true if the ID denotes an in port.
      */
     bool isInPort(const std::string& id) const throw();
 
@@ -566,7 +568,7 @@ class GraphmlParser : public Frontend {
      *
      * @param id
      *        Port id.
-     * @returns \c true if the ID denotes an out port.
+     * @returns \b true if the ID denotes an out port.
      */
     bool isOutPort(const std::string& id) const throw();
 
@@ -582,7 +584,7 @@ class GraphmlParser : public Frontend {
      *        Port id.
      * @param direction
      *        \c "in" or \c "out".
-     * @returns \c true if the port ID is valid.
+     * @returns \b true if the port ID is valid.
      */
     bool isValidPortId(const std::string& id, const std::string direction) const
         throw();
@@ -603,7 +605,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkProcessNetworkMore(ForSyDe::ProcessNetwork* processnetwork)
+    void checkProcessNetworkMore(Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
@@ -622,7 +624,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void postCheckFixes(ForSyDe::ProcessNetwork* processnetwork)
+    void postCheckFixes(Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
   private:

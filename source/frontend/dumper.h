@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,7 +102,7 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void dump(ForSyDe::ProcessNetwork* pn, const std::string& file)
+    void dump(Forsyde::ProcessNetwork* pn, const std::string& file)
         throw(InvalidArgumentException, IOException,
               InvalidModelException, RuntimeException);
 
@@ -108,7 +110,7 @@ class XmlDumper {
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -127,7 +129,7 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void dumpProcessNetwork(ForSyDe::ProcessNetwork* pn,
+    void dumpProcessNetwork(Forsyde::ProcessNetwork* pn,
     		ticpp::Document doc)
         throw(InvalidArgumentException, FileNotFoundException,
               InvalidModelException, RuntimeException);
@@ -135,7 +137,7 @@ class XmlDumper {
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -154,14 +156,14 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void dumpComposite(ForSyDe::Composite* composite, ticpp::Element* parent)
+    void dumpComposite(Forsyde::Composite* composite, ticpp::Element* parent)
         throw(InvalidArgumentException,
               InvalidModelException, RuntimeException);
 
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -180,13 +182,13 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void dumpLeaf(ForSyDe::Leaf* leaf, ticpp::Element* parent)
+    void dumpLeaf(Forsyde::Leaf* leaf, ticpp::Element* parent)
         throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -205,14 +207,14 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void dumpPort(ForSyDe::Composite::IOPort* port, ticpp::Element* composite,
+    void dumpPort(Forsyde::Composite::IOPort* port, ticpp::Element* composite,
     		const char* direction)
         throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -231,13 +233,13 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void dumpSignal(ForSyDe::Leaf::Port* port, ticpp::Element* composite)
+    void dumpSignal(Forsyde::Leaf::Port* port, ticpp::Element* composite)
         throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -256,14 +258,14 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void dumpIOSignal(ForSyDe::Composite::IOPort* port, ticpp::Element* composite)
+    void dumpIOSignal(Forsyde::Composite::IOPort* port, ticpp::Element* composite)
         throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
 
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -282,12 +284,12 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    bool isVisitedProcess(ForSyDe::Process* process) throw(InvalidArgumentException);
+    bool isVisitedProcess(Forsyde::Process* process) throw(InvalidArgumentException);
 
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -306,7 +308,7 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    bool isVisitedPort(ForSyDe::Process::Interface* port) throw(
+    bool isVisitedPort(Forsyde::Process::Interface* port) throw(
     		InvalidArgumentException);
 
   private:
@@ -318,12 +320,12 @@ class XmlDumper {
     /**
      * Logger.
      */
-    std::list<ForSyDe::Process*> visited_processes_;
+    std::list<Forsyde::Process*> visited_processes_;
 
     /**
      * Logger.
      */
-    std::list<ForSyDe::Process::Interface*> visited_ports_;
+    std::list<Forsyde::Process::Interface*> visited_ports_;
 };
 
 }

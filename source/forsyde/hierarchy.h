@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
- *                          George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,54 +41,58 @@
 #include <list>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 
 /**
- * @brief A class used for storing and manipulating a leaf' hierarchy in the processnetwork.
+ * @brief A class used for storing and manipulating a process' hierarchy in the
+ * process network.
  *
- * The \c Hierarchy class is used to represent and manipulate the hierarchy of a leaf
- * in the internal representation of ForSyDe leaf networks. It is basically a list of
- * IDs.
+ * The \c Hierarchy class is used to represent and manipulate the hierarchy of a process
+ * in the internal representation of ForSyDe process networks. It is basically a list of
+ * IDs that determine the path to a process in the network's hierarchy tree.
+ *
+ * Also, please notice that, unlike in version 0.1, a process does not contain an Id,
+ * rather a Hierarchy. The process' unique ID is contained in the Hierarchy.
  */
 class Hierarchy {
   public:
     /**
      * Denotes the relationship between leafs in a hierarchical
-     * leaf network.
+     * process network.
      */
     enum Relation {
         /**
-         * A leaf which resides lower in the hierarchy chain.
+         * A process which resides lower in the hierarchy chain.
          */
         Child,
 
         /**
-		 * A leaf which is directly contained by the current composite.
+		 * A process which is directly contained by the current composite.
 		 */
 		FirstChild,
 
         /**
-         * A leaf which resides higher in the hierarchy chain.
+         * A process which resides higher in the hierarchy chain.
          */
         Parent,
 
         /**
-         * The composite which directly includes this leaf.
+         * The composite which directly includes this process.
          */
         FirstParent,
 
         /**
-         * A leaf which has the same FirstParent as the current one.
+         * A process which has the same FirstParent as the current one.
          */
         Sibling,
 
         /**
-         * A child leaf for one of the current leaf' siblings (nephew)
+         * A child process for one of the current process' siblings (nephew)
          */
         SiblingsChild,
 
         /**
-         * A leaf which resides in a different hierarchical branch than the
+         * A process which resides in a different hierarchical branch than the
          * current one
          */
         Other
@@ -95,50 +100,83 @@ class Hierarchy {
 
   public:
 
+    /**
+     * Creates an empty hierarchy object.
+     */
     Hierarchy() throw();
+
     /**
      * Creates a Hierarchy object.
      *
-     * @param id
-     *        ID string.
+     * @param hierarchy
+     *        list of IDs, denoting the path to this Process.
      */
-    Hierarchy(std::list<ForSyDe::Id*> hierarchy) throw();
+    Hierarchy(std::list<Forsyde::Id*> hierarchy) throw();
 
+    /**
+     * Destroys the hierarchy object from a list of IDs.
+     */
     ~Hierarchy() throw();
 
-    std::list<ForSyDe::Id*>  getHierarchy() throw();
+    /**
+     * Gets the hierarchical path represented as a list of IDs.
+     *
+     * @return list of IDs, denoting the path to this Process.
+     */
+    std::list<Forsyde::Id*>  getHierarchy() throw();
 
-    void setHierarchy(std::list<ForSyDe::Id*> hierarchy) throw();
+    /**
+     * Sets the internal hierarchical path represented as a list of IDs.
+     *
+     * @param hierarchy
+     *        list of IDs, denoting the path to this Process.
+     */
+    void setHierarchy(std::list<Forsyde::Id*> hierarchy) throw();
 
-    void lowerLevel(const ForSyDe::Id& id) throw();
+    /**
+     * Introduces an ID at the end of the hierarchical list, thus lowering
+     * the level of the process.
+     *
+     * @param id
+     *        new ID.
+     */
+    void lowerLevel(const Forsyde::Id& id) throw();
 
+    /**
+     * Erases the last entrance in the hierarchy list, thus raising the level of
+     * the process.
+     */
     void raiseLevel() throw();
 
     /**
-     * Gets the parent of this leaf.
+     * Gets the ID of this process.
      *
-     * @returns The parent leaf.
+     * @returns The ID of this process.
      */
-    const ForSyDe::Id* getId() const throw();
+    const Forsyde::Id* getId() const throw();
 
     /**
-     * Gets the parent of this leaf.
+     * Gets the ID of first parent of this process.
      *
-     * @returns The parent leaf.
+     * @returns The first parent's ID.
      */
-    const ForSyDe::Id* getFirstParent() const throw();
+    const Forsyde::Id* getFirstParent() const throw();
 
     /**
-     * Gets the parent of this leaf.
+     * Gets the ID of first child of this process.
      *
-     * @returns The parent leaf.
+     * @returns The first child's ID.
      */
-    const ForSyDe::Id* getFirstChildAfter(const ForSyDe::Id& id) const throw();
+    const Forsyde::Id* getFirstChildAfter(const Forsyde::Id& id) const throw();
 
     /**
-     * Gets the parent of this leaf.
+     * Finds the relation between the process having the current hierarchy and another
+     * process's hierarchical path.
      *
-     * @returns The parent leaf.
+     * @param compare_hierarchy
+     *        The hierarchy of the process that needs to be localized.
+     *
+     * @returns The position of the given process related to this one.
      */
     Relation findRelation(Hierarchy compare_hierarchy) const throw();
 
@@ -147,24 +185,38 @@ class Hierarchy {
 
   private:
     /**
-     * Attempts to find a port with a given ID from a list of ports. If the list
-     * is not empty and such a port is found, an iterator pointing to that port
+     * Attempts to find an Id in the contained hierarchy list. If the list
+     * is not empty and such a port is found, an iterator pointing to that Id
      * is returned; otherwise the list's \c end() iterator is returned.
      *
      * @param id
-     *        Port ID.
-     * @param ports
-     *        List of ports.
-     * @returns Iterator pointing either at the found port, or an iterator equal
+     *        ID.
+     *
+     * @returns Iterator pointing either at the found Id, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<ForSyDe::Id*>::const_iterator findId(const ForSyDe::Id& id) const throw();
+    std::list<Forsyde::Id*>::const_iterator findId(const Forsyde::Id& id) const throw();
 
-    std::string toString(std::list<ForSyDe::Id*> ids) const throw();
+    /**
+     * Converts this hierarchy path into a string representation. The resultant string
+     * is as follows:
+     * @code
+     * {
+     *  <root>[ <- <parent_id> <- ... <- <first_parent_id>] <- <current_process_id>
+     * }
+     * @endcode
+     *
+     * @returns String representation.
+     */
+    std::string toString(std::list<Forsyde::Id*> ids) const throw();
 
   private:
 
-    std::list<ForSyDe::Id*> hierarchy_;
+    /**
+     * The hierarchical path in the process network tree to this process, as a list of IDs
+     * It includes the Id of the current process.
+     */
+    std::list<Forsyde::Id*> hierarchy_;
 
 };
 

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -164,6 +166,24 @@ int f2cc::tools::toInt(const std::string& str) throw(InvalidArgumentException) {
     }
     return atoi(str.c_str());
 }
+
+int f2cc::tools::noElements(const int& size, const std::string& datatype)
+	throw(InvalidArgumentException){
+
+	if (datatype == "char") return size / sizeof(char);
+	else if (datatype == "unsigned char") return size / sizeof(unsigned char);
+	else if (datatype == "short int") return size / sizeof(short int);
+	else if (datatype == "unsigned short int") return size / sizeof(unsigned short int);
+	else if (datatype == "int") return size / sizeof(int);
+	else if (datatype == "unsigned int") return size / sizeof(unsigned int);
+	else if (datatype == "long int") return size / sizeof(long int);
+	else if (datatype == "unsigned long int") return size / sizeof(unsigned long int);
+	else if (datatype == "float") return size / sizeof(float);
+	else if (datatype == "double") return size / sizeof(double);
+	else if (datatype == "long double") return size / sizeof(long double);
+	else return -1; // Should never happen
+}
+
 
 bool f2cc::tools::existsFile(const string& file) throw() {
     std::ifstream fs(file.c_str());

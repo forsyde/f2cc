@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +30,12 @@
 #include <list>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::bad_cast;
 using std::list;
 
-Comb::Comb(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+Comb::Comb(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
  		int cost, CFunction* function) throw()
         : Leaf(id, hierarchy, string("sy"), cost),  function_(function) {}
 

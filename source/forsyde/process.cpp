@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +30,20 @@
 #include <new>
 #include <vector>
 
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using std::string;
 using std::list;
 using std::bad_alloc;
 using std::vector;
 
 Process::Process(const Id& id) throw()
-		: id_(id) {
-	hierarchy_.lowerLevel(id_);
+		: hierarchy_(Hierarchy()) {
+	hierarchy_.lowerLevel(id);
 }
 
 Process::Process(const Id& id, Hierarchy& hierarchy) throw() :
-		id_(id), hierarchy_(hierarchy){
-	hierarchy_.lowerLevel(id_);
+		hierarchy_(hierarchy){
+	hierarchy_.lowerLevel(id);
 }
 
 Process::~Process() throw() {
@@ -56,8 +58,9 @@ Hierarchy Process::getHierarchy() const throw() {
 }
 
 void Process::setHierarchy(Hierarchy hierarchy) throw() {
+	Id id_copy = Id(getId()->getString());
 	hierarchy_.setHierarchy(hierarchy.getHierarchy());
-    hierarchy_.lowerLevel(id_);
+    hierarchy_.lowerLevel(id_copy);
 }
 
 Hierarchy::Relation Process::findRelation(const Process* rhs) const throw(RuntimeException){
