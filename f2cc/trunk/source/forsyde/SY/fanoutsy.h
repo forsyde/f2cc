@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -31,55 +33,68 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the a process for copying a signal value to multiple output
+ * @brief Implements the a leaf for copying a signal value to multiple output
  *        signals.
  */
 
-#include "../process.h"
+#include "../leaf.h"
 #include "../../exceptions/notsupportedexception.h"
 #include <string>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 namespace SY {
 
 /**
- * @brief Implements the a process for copying a signal value to multiple output
+ * @brief Implements the a leaf for copying a signal value to multiple output
  *        signals.
  *
- * The \c fanout process is a special process whose only purpose is to copy the
- * value on the input signal to all of its output signals. The internal model
+ * The \c Fanout leaf is a special leaf whose only purpose is to copy the
+ * value on the input signal to all of its output signals. The internal processnetwork
  * does no allow a port to be connected to multiple other ports. However,
  * ForSyDe itself does allow multiple signals to retrieve its values from the
  * same source. Thus, during parsing when encountering such instances, an
- * intermediate \c fanout process is created and the signals redirected to its
+ * intermediate \c Fanout leaf is created and the signals redirected to its
  * outputs.
  */
-class fanout : public Process {
+class Fanout : public Leaf {
   public:
     /**
-     * @copydoc Process(const Id&)
+     * @copydoc Leaf(const Id&)
      */
-    fanout(const Id& id) throw();
+    Fanout(const Id& id) throw();
 
     /**
-     * @copydoc ~Process()
+     * Creates a leaf.
+     *
+     * @param id
+     *        Leaf ID.
+     * @param hierarchy
+     *        Hierarchy path.
+     * @param cost
+     *        Cost parameter.
      */
-    virtual ~fanout() throw();
+    Fanout(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
+        		int cost) throw();
 
     /**
-     * @copydoc Process::operator==(const Process&) const
+     * @copydoc ~Leaf()
      */
-    virtual bool operator==(const Process& rhs) const throw();
+    virtual ~Fanout() throw();
 
     /**
-     * @copydoc Process::type()
+     * @copydoc Leaf::operator==(const Leaf&) const
+     */
+    virtual bool operator==(const Leaf& rhs) const throw();
+
+    /**
+     * @copydoc Leaf::type()
      */
     virtual std::string type() const throw();
 
   protected:
     /**
-     * Checks that this process has only one in port.
+     * Checks that this leaf has only one in port.
      *
      * @throws InvalidProcessException
      *         When the check fails.

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +30,14 @@
 #include <new>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::list;
 using std::bad_alloc;
 using std::bad_cast;
 
 CoalescedMap::CoalescedMap(const Id& id, const CFunction& function) 
-        throw(OutOfMemoryException) : comb(id, function) {
+        throw(OutOfMemoryException) : Map(id, function) {
     try {
         CFunction* new_function = new CFunction(function);
         functions_.push_back(new_function);
@@ -48,10 +50,10 @@ CoalescedMap::CoalescedMap(const Id& id, const CFunction& function)
 CoalescedMap::CoalescedMap(const Id& id,
                                const list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException)
-        // comb requires a function, but can not be certain at this point that
-        // functions is not empty, so we provide comb with a dummy function
+        // Comb requires a function, but can not be certain at this point that
+        // functions is not empty, so we provide Comb with a dummy function
         // (we will never access it anyway)
-        : comb(id, CFunction()) {
+        : Map(id, CFunction()) {
     if (functions.size() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"functions\" must not be "
                         "an empty list");
@@ -105,8 +107,8 @@ void CoalescedMap::insertFunctionLast(const CFunction& function)
     }
 }
 
-bool CoalescedMap::operator==(const Process& rhs) const throw() {
-    if (!Process::operator==(rhs)) return false;
+bool CoalescedMap::operator==(const Leaf& rhs) const throw() {
+    if (!Leaf::operator==(rhs)) return false;
 
     try {
         const CoalescedMap& other = dynamic_cast<const CoalescedMap&>(rhs);
@@ -130,18 +132,18 @@ string CoalescedMap::type() const throw() {
 
 void CoalescedMap::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have exactly one (1) in port");
     }
     if (getOutPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have exactly one (1) out port");
     }
     list<CFunction*>::const_iterator it;
     for (it = functions_.begin(); it != functions_.end(); ++it) {
-        checkFunction(**it,1);
+        checkFunction(**it);
     }
 }
 
@@ -150,7 +152,7 @@ string CoalescedMap::moreToString() const throw() {
     list<CFunction*>::const_iterator it;
     for (it = functions_.begin(); it != functions_.end(); ++it) {
         if (it != functions_.begin()) str += ",\n";
-        str += string("ProcessFunction: ") + (*it)->toString();
+        str += string("LeafFunction: ") + (*it)->toString();
     }
     return str;
 }

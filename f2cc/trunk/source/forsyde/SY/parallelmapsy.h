@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +33,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements a synthesis-related \c parallelmap process.
+ * @brief Implements a synthesis-related \c parallelmap leaf.
  */
 
 #include "coalescedmapsy.h"
@@ -42,85 +44,85 @@
 #include <list>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 namespace SY{
 
 /**
- * @brief Implements a synthesis-related \c parallelmap process.
+ * @brief Implements a synthesis-related \c parallelmap leaf.
  *
- * This class implements a specialized process \c parallelmap which is not
+ * This class implements a specialized leaf \c parallelmap which is not
  * part of the ForSyDe standard. Instead, it is used to replace data parallel
- * sections consisting of a \c unzipx process, a set of \c comb or \c
- * CoalescedMap processes, followed by a \c zipx process, with a single \c
- * ParallelMap process as it entails the same semantic meaning.
+ * sections consisting of a \c Unzipx leaf, a set of \c Comb or \c
+ * CoalescedMap leafs, followed by a \c Zipx leaf, with a single \c
+ * ParallelMap leaf as it entails the same semantic meaning.
  */
 class ParallelMap : public CoalescedMap {
   public:
     /**
-     * Creates a process with a single function argument.
+     * Creates a leaf with a single function argument.
      *
      * @param id
-     *        Process ID.
-     * @param num_processes
-     *        Number of data parallel comb processes that this process will
+     *        Leaf ID.
+     * @param num_leafs
+     *        Number of data parallel Comb leafs that this leaf will
      *        represent.
      * @param function
-     *        Process function argument.
+     *        Leaf function argument.
      * @throws OutOfMemoryException
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    ParallelMap(const Id& id, int num_processes, const CFunction& function)
+    ParallelMap(const Id& id, int num_leafs, const CFunction& function)
         throw(OutOfMemoryException);
 
     /**
-     * Creates a process with multiple function arguments.
+     * Creates a leaf with multiple function arguments.
      *
      * @param id
-     *        Process ID.
-     * @param num_processes
-     *        Number of data parallel comb processes that this process will
+     *        Leaf ID.
+     * @param num_leafs
+     *        Number of data parallel Comb leafs that this leaf will
      *        represent.
      * @param functions
-     *        List of process function arguments.
+     *        List of leaf function arguments.
      * @throws InvalidArgumentException
      *         When \c functions is an empty list.
      * @throws OutOfMemoryException
      *         When the function list could not be created due to memory
      *         shortage.
      */
-    ParallelMap(const Id& id, int num_processes,
+    ParallelMap(const Id& id, int num_leafs,
                   const std::list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
-     * @copydoc ~Process()
+     * @copydoc ~Leaf()
      */
     virtual ~ParallelMap() throw();
 
     /**
-     * @copydoc comb::operator==(const Process&) const
+     * @copydoc Comb::operator==(const Leaf&) const
      */
-    virtual bool operator==(const Process& rhs) const throw();
+    virtual bool operator==(const Leaf& rhs) const throw();
 
     /**
-     * Gets the number of data parallel comb or CoalescedMap processes that
-     * this process represents.
+     * Gets the number of data parallel Comb or CoalescedMap leafs that
+     * this leaf represents.
      *
-     * @returns Number of processes.
+     * @returns Number of leafs.
      */
     int getNumProcesses() const throw();
 
     /**
-     * @copydoc Process::type()
+     * @copydoc Leaf::type()
      */
     virtual std::string type() const throw();
 
   private:
     /**
-     * Number of parallel processes.
+     * Number of parallel leafs.
      */
-    const int num_parallel_processes_;
+    const int num_parallel_leafs_;
 };
 
 }

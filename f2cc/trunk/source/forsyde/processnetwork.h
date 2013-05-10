@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +38,8 @@
 
 #include "id.h"
 #include "model.h"
+#include "process.h"
+#include "../language/cfunction.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -44,45 +48,45 @@
 #include <list>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 
 /**
- * @brief Contains the internal representation of a ForSyDe model.
+ * @brief Contains the internal representation of a ForSyDe process network.
  *
- * The \c Processnetwork embodies a complete ForSyDe network of connected \c Process
+ * The \c ProcessNetwork embodies a complete ForSyDe network of connected \c Process
  * objects. The class also provides inputs and outputs to the network, which
  * actually are inports and outports, respectively, to one or more of the
  * processes within the network.
  */
-class Processnetwork: public Model {
+class ProcessNetwork: public Model {
   public:
     /**
      * Creates a process network.
      */
-	Processnetwork() throw();
+	ProcessNetwork() throw();
 
     /**
-     * Destroys this process network. This also destroys all processes.
+     * Destroys this process network. This also destroys all processs.
      */
-    virtual ~Processnetwork() throw();
+    virtual ~ProcessNetwork() throw();
 
     /**
      * Adds an input to this process network. The input must such that it is an inport to
      * a process already existing in the process network. If the input is \c NULL, nothing
-     * happens and \c false is returned.
+     * happens and \b false is returned.
      *
      * @param port
      *        Inport of a process.
-     * @returns \c true if the port did not already exist as input and was
+     * @returns \b true if the port did not already exist as input and was
      *          successfully added.
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      * @throws IllegalStateException
-     *         When the port belongs to a process not residing in the model.
+     *         When the port belongs to a process not residing in the processnetwork.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInput(Process::Port* port)
+    bool addInput(Process::Interface* port)
         throw(InvalidArgumentException, IllegalStateException,
               OutOfMemoryException);
 
@@ -90,13 +94,13 @@ class Processnetwork: public Model {
      * Deletes an input port of this process network.
      *
      * @param port
-     *        Port.
-     * @returns \c true if such an input port was found and successfully
+     *        Interface.
+     * @returns \b true if such an input port was found and successfully
      *          deleted.
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      */
-    bool deleteInput(Process::Port* port) throw(InvalidArgumentException);
+    bool deleteInput(Process::Interface* port) throw(InvalidArgumentException);
 
     /**
      * Gets the number of inputs of this process network.
@@ -110,41 +114,41 @@ class Processnetwork: public Model {
      *
      * @returns List of inputs.
      */
-    std::list<Process::Port*> getInputs() throw();
+    std::list<Process::Interface*> getInputs() throw();
 
     /**
-     * Same as addInput(const Process::Port*) but for outputs.
+     * Same as addInput(const Process::Interface*) but for outputs.
      *
      * @param port
      *        Outport of a process.
-     * @returns \c true if the port did not already exist as output and was
+     * @returns \b true if the port did not already exist as output and was
      *          successfully added.
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      * @throws IllegalStateException
-     *         When the port belongs to a process not residing in the model.
+     *         When the port belongs to a process not residing in the processnetwork.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutput(Process::Port* port)
+    bool addOutput(Process::Interface* port)
         throw(InvalidArgumentException, IllegalStateException,
               OutOfMemoryException);
 
     /**
-     * Same as deleteInput(Process::Port*) but for outputs.
+     * Same as deleteInput(Process::Interface*) but for outputs.
      *
      * @param port
      *        Port.
-     * @returns \c true if such an output port was found and successfully
+     * @returns \b true if such an output port was found and successfully
      *          deleted.
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      */
-    bool deleteOutput(Process::Port* port) throw(InvalidArgumentException);
+    bool deleteOutput(Process::Interface* port) throw(InvalidArgumentException);
 
     /**
-     * Same as addInput(const Process::Port*) but for outputs.
-     * Gets the number of inputs of this model.
+     * Same as addInput(const Process::Interface*) but for outputs.
+     * Gets the number of inputs of this processnetwork.
      *
      * @returns Number of inputs.
      */
@@ -155,7 +159,66 @@ class Processnetwork: public Model {
      *
      * @returns List of outputs.
      */
-    std::list<Process::Port*> getOutputs() throw();
+    std::list<Process::Interface*> getOutputs() throw();
+
+    /**
+     * Adds a function to this model. Models are not allowed to have multiple
+     * functions with the same name.
+     *
+     * @param function
+     *        Process to add.
+     * @returns \b true if such a function did not already exist and was
+     *          successfully added.
+     * @throws InvalidArgumentException
+     *         When \c function is \c NULL.
+     * @throws OutOfMemoryException
+     *         When a function cannot be added due to memory shortage.
+     */
+    bool addFunction(CFunction* function)
+        throw(InvalidArgumentException, OutOfMemoryException);
+
+    /**
+     * Adds multiple functions to this model at the same time.
+     *
+     * @param functions
+     *        Combset of functions to add.
+     * @throws OutOfMemoryException
+     *         When a function cannot be added due to memory shortage.
+     */
+    void addFunctions(std::map<const Id, CFunction*> functions)
+        throw(OutOfMemoryException);
+
+    /**
+     * Gets a function by name.
+     *
+     * @param id
+     *        function name.
+     * @returns function, if found; otherwise \c NULL.
+     */
+    CFunction* getFunction(const Id& id) throw();
+
+    /**
+     * Gets the number of functions in this model.
+     *
+     * @returns function count.
+     */
+    int getNumFunctions() const throw();
+
+    /**
+     * Gets a list of all functions in this model.
+     *
+     * @returns function list.
+     */
+    std::list<CFunction*> getFunctions() throw();
+
+    /**
+     * Removes and destroys a function by ID.
+     *
+     * @param id
+     *        function name.
+     * @returns \b true if such a function was found and successfully deleted.
+     */
+    bool deleteFunction(const Id& id) throw();
 
   private:
 
@@ -171,8 +234,8 @@ class Processnetwork: public Model {
      * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Process::Port*>::iterator findPort(
-        const Id& id, std::list<Process::Port*>& ports) const throw();
+    std::list<Process::Interface*>::iterator findPort(
+        const Id& id, std::list<Process::Interface*>& ports) const throw();
 
     /**
      * Attempts to find a given port from a list of ports. If the list
@@ -186,8 +249,8 @@ class Processnetwork: public Model {
      * @returns Iterator pointing either at the found port, or an iterator equal
      *          to the list's \c end() iterator.
      */
-    std::list<Process::Port*>::iterator findPort(
-        Process::Port* port, std::list<Process::Port*>& ports)  const throw();
+    std::list<Process::Interface*>::iterator findPort(
+        Process::Interface* port, std::list<Process::Interface*>& ports)  const throw();
 
 
 
@@ -195,7 +258,7 @@ class Processnetwork: public Model {
      * Takes a list of ports and converts it into a string representation. Each
      * port is converted into
      * @code
-     *  PortID: <port_id>, belonging to <process>,
+     *  PortID: <port_id>: [additional information],
      *  ...
      * @endcode
      *
@@ -203,7 +266,7 @@ class Processnetwork: public Model {
      *        Port list.
      * @returns String representation.
      */
-    std::string portsToString(const std::list<Process::Port*> ports) const
+    std::string portsToString(const std::list<Process::Interface*> ports) const
         throw();
 
     /**
@@ -211,12 +274,12 @@ class Processnetwork: public Model {
      * is as follows:
      * @code
      * {
-     *  Processnetwork,
+     *  ProcessNetwork Module,
      *  NumInputs: <num_inputs>,
      *  Inputs = { ... },
      *  NumOututs: <num_outports>,
      *  Outputs = { ... },
-     *  NumProcesses: <num_processes>
+     *  NumFunctions: <num_functions>
      * }
      * @endcode
      *
@@ -224,17 +287,39 @@ class Processnetwork: public Model {
      */
     std::string toString() const throw();
 
+    /**
+     * Attempts to find a function with a given ID. If the mapset of functions is
+     * not empty and such a function is found, an iterator pointing to that port
+     * is returned; otherwise the mapset's \c end() iterator is returned.
+     *
+     * @param id
+     *        function name.
+     * @returns Iterator pointing either at the found function, or an iterator
+     *          equal to mapset's \c end() iterator.
+     */
+    std::map<const Id, CFunction*>::iterator findFunction(const Id& id) throw();
+
+    /**
+     * Destroys all functions in this model.
+     */
+    void destroyAllFunctions() throw();
+
   private:
 
     /**
      * List of inputs.
      */
-    std::list<Process::Port*> inputs_;
+    std::list<Process::Interface*> inputs_;
 
     /**
      * List of outputs.
      */
-    std::list<Process::Port*> outputs_;
+    std::list<Process::Interface*> outputs_;
+
+    /**
+     * Combset of functions.
+     */
+    std::map<const Id, CFunction*> functions_;
 };
 
 }
