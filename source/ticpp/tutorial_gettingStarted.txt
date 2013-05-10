@@ -388,7 +388,7 @@ Start off with some basic classes like these:
 #include <map>
 using namespace std;
 
-typedef std::map<std::string,std::string> Messagecomb;
+typedef std::map<std::string,std::string> MessageComb;
 
 // a basic window abstraction - demo purposes only
 class WindowSettings
@@ -423,7 +423,7 @@ class AppSettings
 {
 public:
 	string m_name;
-	Messagecomb m_messages;
+	MessageComb m_messages;
 	list<WindowSettings> m_windows;
 	ConnectionSettings m_connection;
 
@@ -529,7 +529,7 @@ void AppSettings::save(const char* pFilename)
 
 	// block: messages
 	{
-		Messagecomb::iterator iter;
+		MessageComb::iterator iter;
 
 		TiXmlElement * msgs = new TiXmlElement( "Messages" );  
 		root->LinkEndChild( msgs );  

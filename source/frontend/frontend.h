@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -91,21 +93,21 @@ class Frontend {
      *         When the file cannot be read or the log file cannot be written.
      * @throws ParseException
      *         When the file fails to be parsed.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When the processnetwork is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::ProcessNetwork* parse(const std::string& file)
+    Forsyde::ProcessNetwork* parse(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidProcessNetworkException, RuntimeException);
+              ParseException, InvalidModelException, RuntimeException);
 
   protected:
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -118,15 +120,15 @@ class Frontend {
      *         When the file cannot be read or the log file cannot be written.
      * @throws ParseException
      *         When the file fails to be parsed.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When the processnetwork is invalid (but was successfully parsed).
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual ForSyDe::ProcessNetwork* createProcessNetwork(const std::string& file)
+    virtual Forsyde::ProcessNetwork* createProcessNetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
-              ParseException, InvalidProcessNetworkException, RuntimeException) = 0;
+              ParseException, InvalidModelException, RuntimeException) = 0;
 
     /**
      * Performs more processnetwork checks. By default, this does nothing.
@@ -135,7 +137,7 @@ class Frontend {
      *        ProcessNetwork to check.
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -143,8 +145,8 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual void checkProcessNetworkMore(ForSyDe::ProcessNetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+    virtual void checkProcessNetworkMore(Forsyde::ProcessNetwork* processnetwork)
+        throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
     /**
@@ -161,7 +163,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual void postCheckFixes(ForSyDe::ProcessNetwork* processnetwork)
+    virtual void postCheckFixes(Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
   private:
@@ -171,14 +173,14 @@ class Frontend {
      *     connected,
      *   - all ports are connected to leafs that reside within the processnetwork,
      *   - no output of any leaf is connected to the input of the
-     *     same leaf (i.e. avoiding combinatorial loops),
+     *     same leaf (i.e. avoiding Combinatorial loops),
      *   - all leaf type-related checks are passed.
      * 
      * @param processnetwork
      *        ProcessNetwork to check.
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -186,8 +188,8 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkProcessNetwork(ForSyDe::ProcessNetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+    void checkProcessNetwork(Forsyde::ProcessNetwork* processnetwork)
+        throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
     /**
@@ -195,7 +197,7 @@ class Frontend {
      *   - is connected,
      *   - is connected to a port belonging to leaf which is part of the
      *     given processnetwork,
-     *   - is not connected a port of its own leaf (combinatorial loops).
+     *   - is not connected a port of its own leaf (Combinatorial loops).
      * 
      * @param port
      *        Port to check.
@@ -203,7 +205,7 @@ class Frontend {
      *        ProcessNetwork that the leaf using the port should belong to.
      * @throws InvalidArgumentException
      *         When either \c port or \c processnetwork is \c NULL.     
-     * @throws InvalidProcessNetworkException
+     * @throws InvalidModelException
      *         When any of the checks fails.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
@@ -211,8 +213,8 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkPort(ForSyDe::Leaf::Port* port, ForSyDe::ProcessNetwork* processnetwork)
-        throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+    void checkPort(Forsyde::Leaf::Port* port, Forsyde::ProcessNetwork* processnetwork)
+        throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
   protected:

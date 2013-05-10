@@ -758,9 +758,9 @@ public:
 protected:
 	TiXmlNode( NodeType _type );
 
-	// fanout to the allocated object. Shared functionality between Clone, fanout constructor,
+	// Fanout to the allocated object. Shared functionality between Clone, Fanout constructor,
 	// and the assignment operator.
-	void fanoutTo( TiXmlNode* target ) const;
+	void FanoutTo( TiXmlNode* target ) const;
 
 	#ifdef TIXML_USE_STL
 	    // The real work of the input operator.
@@ -1147,7 +1147,7 @@ public:
 
 protected:
 
-	void fanoutTo( TiXmlElement* target ) const;
+	void FanoutTo( TiXmlElement* target ) const;
 	void ClearThis();	// like clear, but initializes 'this' object as well
 
 	// Used to be public [internal use]
@@ -1200,7 +1200,7 @@ public:
 	virtual bool Accept( TiXmlVisitor* visitor ) const;
 
 protected:
-	void fanoutTo( TiXmlComment* target ) const;
+	void FanoutTo( TiXmlComment* target ) const;
 
 	// used to be public
 	#ifdef TIXML_USE_STL
@@ -1242,8 +1242,8 @@ public:
 	}
 	#endif
 
-	TiXmlText( const TiXmlText& copy ) : TiXmlNode( TiXmlNode::TEXT )	{ copy.fanoutTo( this ); }
-	void operator=( const TiXmlText& base )							 	{ base.fanoutTo( this ); }
+	TiXmlText( const TiXmlText& copy ) : TiXmlNode( TiXmlNode::TEXT )	{ copy.FanoutTo( this ); }
+	void operator=( const TiXmlText& base )							 	{ base.FanoutTo( this ); }
 
 	// Write this text object to a FILE stream.
 	virtual void Print( FILE* cfile, int depth ) const;
@@ -1265,7 +1265,7 @@ public:
 protected :
 	///  [internal use] Creates a new Element and returns it.
 	virtual TiXmlNode* Clone() const;
-	void fanoutTo( TiXmlText* target ) const;
+	void FanoutTo( TiXmlText* target ) const;
 
 	bool Blank() const;	// returns true if all white space and new lines
 	// [internal use]
@@ -1339,7 +1339,7 @@ public:
 	virtual bool Accept( TiXmlVisitor* visitor ) const;
 
 protected:
-	void fanoutTo( TiXmlDeclaration* target ) const;
+	void FanoutTo( TiXmlDeclaration* target ) const;
 	// used to be public
 	#ifdef TIXML_USE_STL
 	virtual void StreamIn( std::istream * in, TIXML_STRING * tag );
@@ -1405,7 +1405,7 @@ public:
 	virtual bool Accept( TiXmlVisitor* visitor ) const;
 
 protected:
-	void fanoutTo( TiXmlStylesheetReference* target ) const;
+	void FanoutTo( TiXmlStylesheetReference* target ) const;
 	// used to be public
 	#ifdef TIXML_USE_STL
 	virtual void StreamIn( std::istream * in, TIXML_STRING * tag );
@@ -1430,8 +1430,8 @@ public:
 	TiXmlUnknown() : TiXmlNode( TiXmlNode::UNKNOWN )	{}
 	virtual ~TiXmlUnknown() {}
 
-	TiXmlUnknown( const TiXmlUnknown& copy ) : TiXmlNode( TiXmlNode::UNKNOWN )		{ copy.fanoutTo( this ); }
-	void operator=( const TiXmlUnknown& copy )										{ copy.fanoutTo( this ); }
+	TiXmlUnknown( const TiXmlUnknown& copy ) : TiXmlNode( TiXmlNode::UNKNOWN )		{ copy.FanoutTo( this ); }
+	void operator=( const TiXmlUnknown& copy )										{ copy.FanoutTo( this ); }
 
 	/// Creates a copy of this Unknown and returns it.
 	virtual TiXmlNode* Clone() const;
@@ -1448,7 +1448,7 @@ public:
 	virtual bool Accept( TiXmlVisitor* content ) const;
 
 protected:
-	void fanoutTo( TiXmlUnknown* target ) const;
+	void FanoutTo( TiXmlUnknown* target ) const;
 
 	#ifdef TIXML_USE_STL
 	virtual void StreamIn( std::istream * in, TIXML_STRING * tag );
@@ -1621,7 +1621,7 @@ protected :
 	#endif
 
 private:
-	void fanoutTo( TiXmlDocument* target ) const;
+	void FanoutTo( TiXmlDocument* target ) const;
 
 	bool error;
 	int  errorId;
@@ -1682,7 +1682,7 @@ private:
 
 	It is also safe to copy handles - internally they are nothing more than node pointers.
 	@verbatim
-	TiXmlHandle handlefanout = handle;
+	TiXmlHandle handleFanout = handle;
 	@endverbatim
 
 	What they should not be used for is iteration:
@@ -1717,7 +1717,7 @@ class TiXmlHandle
 public:
 	/// Create a handle from any node (at any depth of the tree.) This can be a null pointer.
 	TiXmlHandle( TiXmlNode* _node )					{ this->node = _node; }
-	/// fanout constructor
+	/// Fanout constructor
 	TiXmlHandle( const TiXmlHandle& ref )			{ this->node = ref.node; }
 	TiXmlHandle operator=( const TiXmlHandle& ref ) { this->node = ref.node; return *this; }
 

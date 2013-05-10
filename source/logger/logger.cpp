@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +35,7 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 
-const size_t Logger::kLogEntryLineWidthLimit = 80;
+const size_t Logger::kLogEntryLineWidthLimit = 100;
 
 Logger::Logger() throw() : file_path_(""), is_open_(false), level_(INFO) {}
 
