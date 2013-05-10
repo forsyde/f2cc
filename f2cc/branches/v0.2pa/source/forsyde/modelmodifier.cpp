@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +42,8 @@
 #include <stdexcept>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -499,7 +501,7 @@ bool ModelModifier::checkDataFlowConvergence(Leaf* start, Leaf* end,
     return true;
 }
 
-Unzipx* ModelModifier::findNearestUnzipxLeaf(ForSyDe::Leaf* begin)
+Unzipx* ModelModifier::findNearestUnzipxLeaf(Forsyde::Leaf* begin)
     throw(IOException, RuntimeException) {
     if (!begin) return NULL;
 
@@ -560,7 +562,7 @@ bool ModelModifier::isContainedSectionDataParallel(
     return true;
 }
 
-bool ModelModifier::hasOnlyMapSys(std::list<ForSyDe::Leaf*> chain) const
+bool ModelModifier::hasOnlyMapSys(std::list<Forsyde::Leaf*> chain) const
     throw() {
     list<Leaf*>::const_iterator it;
     for (it = chain.begin(); it != chain.end(); ++it) {
@@ -846,7 +848,7 @@ string ModelModifier::leafChainToString(list<ParallelMap*> chain)
     return leafChainToString(new_list);
 }
 
-void ModelModifier::destroyLeafChain(ForSyDe::Leaf* start)
+void ModelModifier::destroyLeafChain(Forsyde::Leaf* start)
     throw(InvalidArgumentException) {
     if (!start) {
         THROW_EXCEPTION(InvalidArgumentException, "\"start\" must not be NULL");
@@ -863,7 +865,7 @@ void ModelModifier::destroyLeafChain(ForSyDe::Leaf* start)
 }
 
 void ModelModifier::splitDataParallelSegments(
-    vector< vector<ForSyDe::Leaf*> > chains)
+    vector< vector<Forsyde::Leaf*> > chains)
     throw(IOException, RuntimeException) {
     try {
         size_t num_segments = chains.front().size();

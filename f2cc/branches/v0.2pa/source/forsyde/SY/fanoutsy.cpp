@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,14 +28,14 @@
 #include "fanoutsy.h"
 #include <typeinfo>
 
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::bad_cast;
 
 Fanout::Fanout(const Id& id) throw()
         : Leaf(id) {}
 
-Fanout::Fanout(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+Fanout::Fanout(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
  		int cost) throw()
         : Leaf(id, hierarchy, string("sy"), cost) {}
 

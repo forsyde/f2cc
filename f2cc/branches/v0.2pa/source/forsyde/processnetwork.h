@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +33,12 @@
  * @author  George Ungureanu <ugeorge@kth.se>
  * @version 0.2
  *
- * @brief Defines the leaf network, which is the top module.
+ * @brief Defines the process network, which is the top module.
  */
 
 #include "id.h"
 #include "model.h"
-#include "leaf.h"
+#include "process.h"
 #include "../language/cfunction.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
@@ -46,41 +48,41 @@
 #include <list>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 
 /**
- * @brief Contains the internal representation of a ForSyDe processnetwork.
+ * @brief Contains the internal representation of a ForSyDe process network.
  *
- * The \c ProcessNetwork embodies a complete ForSyDe network of connected \c Leaf
+ * The \c ProcessNetwork embodies a complete ForSyDe network of connected \c Process
  * objects. The class also provides inputs and outputs to the network, which
  * actually are inports and outports, respectively, to one or more of the
- * leafs within the network.
+ * processes within the network.
  */
 class ProcessNetwork: public Model {
   public:
     /**
-     * Creates a leaf network.
+     * Creates a process network.
      */
 	ProcessNetwork() throw();
 
     /**
-     * Destroys this leaf network. This also destroys all leafs.
+     * Destroys this process network. This also destroys all processs.
      */
     virtual ~ProcessNetwork() throw();
 
     /**
-     * Adds an input to this leaf network. The input must such that it is an inport to
-     * a leaf already existing in the leaf network. If the input is \c NULL, nothing
-     * happens and \c false is returned.
+     * Adds an input to this process network. The input must such that it is an inport to
+     * a process already existing in the process network. If the input is \c NULL, nothing
+     * happens and \b false is returned.
      *
      * @param port
-     *        Inport of a leaf.
-     * @returns \c true if the port did not already exist as input and was
+     *        Inport of a process.
+     * @returns \b true if the port did not already exist as input and was
      *          successfully added.
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      * @throws IllegalStateException
-     *         When the port belongs to a leaf not residing in the processnetwork.
+     *         When the port belongs to a process not residing in the processnetwork.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
@@ -89,11 +91,11 @@ class ProcessNetwork: public Model {
               OutOfMemoryException);
 
     /**
-     * Deletes an input port of this leaf network.
+     * Deletes an input port of this process network.
      *
      * @param port
-     *        Port.
-     * @returns \c true if such an input port was found and successfully
+     *        Interface.
+     * @returns \b true if such an input port was found and successfully
      *          deleted.
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
@@ -101,14 +103,14 @@ class ProcessNetwork: public Model {
     bool deleteInput(Process::Interface* port) throw(InvalidArgumentException);
 
     /**
-     * Gets the number of inputs of this leaf network.
+     * Gets the number of inputs of this process network.
      *
      * @returns Number of inputs.
      */
     int getNumInputs() const throw();
 
     /**
-     * Gets a list of inputs belonging to this leaf network.
+     * Gets a list of inputs belonging to this process network.
      *
      * @returns List of inputs.
      */
@@ -118,13 +120,13 @@ class ProcessNetwork: public Model {
      * Same as addInput(const Process::Interface*) but for outputs.
      *
      * @param port
-     *        Outport of a leaf.
-     * @returns \c true if the port did not already exist as output and was
+     *        Outport of a process.
+     * @returns \b true if the port did not already exist as output and was
      *          successfully added.
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
      * @throws IllegalStateException
-     *         When the port belongs to a leaf not residing in the processnetwork.
+     *         When the port belongs to a process not residing in the processnetwork.
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
@@ -137,7 +139,7 @@ class ProcessNetwork: public Model {
      *
      * @param port
      *        Port.
-     * @returns \c true if such an output port was found and successfully
+     * @returns \b true if such an output port was found and successfully
      *          deleted.
      * @throws InvalidArgumentException
      *         When \c port is \c NULL.
@@ -160,61 +162,61 @@ class ProcessNetwork: public Model {
     std::list<Process::Interface*> getOutputs() throw();
 
     /**
-     * Adds a process to this model. Models are not allowed to have multiple
-     * processes with the same ID.
+     * Adds a function to this model. Models are not allowed to have multiple
+     * functions with the same name.
      *
-     * @param process
+     * @param function
      *        Process to add.
-     * @returns \c true if such a process did not already exist and was
+     * @returns \b true if such a function did not already exist and was
      *          successfully added.
      * @throws InvalidArgumentException
-     *         When \c process is \c NULL.
+     *         When \c function is \c NULL.
      * @throws OutOfMemoryException
-     *         When a process cannot be added due to memory shortage.
+     *         When a function cannot be added due to memory shortage.
      */
     bool addFunction(CFunction* function)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
-     * Adds multiple processes to this model at the same time.
+     * Adds multiple functions to this model at the same time.
      *
-     * @param processes
-     *        Combset of processes to add.
+     * @param functions
+     *        Combset of functions to add.
      * @throws OutOfMemoryException
-     *         When a process cannot be added due to memory shortage.
+     *         When a function cannot be added due to memory shortage.
      */
     void addFunctions(std::map<const Id, CFunction*> functions)
         throw(OutOfMemoryException);
 
     /**
-     * Gets a process by ID.
+     * Gets a function by name.
      *
      * @param id
-     *        Process ID.
-     * @returns Process, if found; otherwise \c NULL.
+     *        function name.
+     * @returns function, if found; otherwise \c NULL.
      */
     CFunction* getFunction(const Id& id) throw();
 
     /**
-     * Gets the number of processes in this model.
+     * Gets the number of functions in this model.
      *
-     * @returns Process count.
+     * @returns function count.
      */
     int getNumFunctions() const throw();
 
     /**
-     * Gets a list of all processes in this model.
+     * Gets a list of all functions in this model.
      *
-     * @returns Process list.
+     * @returns function list.
      */
     std::list<CFunction*> getFunctions() throw();
 
     /**
-     * Removes and destroys a process by ID.
+     * Removes and destroys a function by ID.
      *
      * @param id
-     *        Process ID.
-     * @returns \c true if such a process was found and successfully deleted.
+     *        function name.
+     * @returns \b true if such a function was found and successfully deleted.
      */
     bool deleteFunction(const Id& id) throw();
 
@@ -256,7 +258,7 @@ class ProcessNetwork: public Model {
      * Takes a list of ports and converts it into a string representation. Each
      * port is converted into
      * @code
-     *  PortID: <port_id>, belonging to <leaf>,
+     *  PortID: <port_id>: [additional information],
      *  ...
      * @endcode
      *
@@ -268,16 +270,16 @@ class ProcessNetwork: public Model {
         throw();
 
     /**
-     * Converts this leaf network into a string representation. The resultant string
+     * Converts this process network into a string representation. The resultant string
      * is as follows:
      * @code
      * {
-     *  ProcessNetwork,
+     *  ProcessNetwork Module,
      *  NumInputs: <num_inputs>,
      *  Inputs = { ... },
      *  NumOututs: <num_outports>,
      *  Outputs = { ... },
-     *  NumLeafs: <num_leafs>
+     *  NumFunctions: <num_functions>
      * }
      * @endcode
      *
@@ -286,19 +288,19 @@ class ProcessNetwork: public Model {
     std::string toString() const throw();
 
     /**
-     * Attempts to find a process with a given ID. If the mapset of processes is
-     * not empty and such a process is found, an iterator pointing to that port
+     * Attempts to find a function with a given ID. If the mapset of functions is
+     * not empty and such a function is found, an iterator pointing to that port
      * is returned; otherwise the mapset's \c end() iterator is returned.
      *
      * @param id
-     *        Process ID.
-     * @returns Iterator pointing either at the found process, or an iterator
+     *        function name.
+     * @returns Iterator pointing either at the found function, or an iterator
      *          equal to mapset's \c end() iterator.
      */
     std::map<const Id, CFunction*>::iterator findFunction(const Id& id) throw();
 
     /**
-     * Destroys all processes in this model.
+     * Destroys all functions in this model.
      */
     void destroyAllFunctions() throw();
 

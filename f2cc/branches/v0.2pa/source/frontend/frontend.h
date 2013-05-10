@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -97,7 +99,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::ProcessNetwork* parse(const std::string& file)
+    Forsyde::ProcessNetwork* parse(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
               ParseException, InvalidModelException, RuntimeException);
 
@@ -105,7 +107,7 @@ class Frontend {
     /**
      * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
      * responsible of dynamically allocating and returning a new \c
-     * ForSyDe::ProcessNetwork object.
+     * Forsyde::ProcessNetwork object.
      *
      * @param file
      *        Input file.
@@ -124,7 +126,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual ForSyDe::ProcessNetwork* createProcessNetwork(const std::string& file)
+    virtual Forsyde::ProcessNetwork* createProcessNetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
               ParseException, InvalidModelException, RuntimeException) = 0;
 
@@ -143,7 +145,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual void checkProcessNetworkMore(ForSyDe::ProcessNetwork* processnetwork)
+    virtual void checkProcessNetworkMore(Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
@@ -161,7 +163,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    virtual void postCheckFixes(ForSyDe::ProcessNetwork* processnetwork)
+    virtual void postCheckFixes(Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
   private:
@@ -186,7 +188,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkProcessNetwork(ForSyDe::ProcessNetwork* processnetwork)
+    void checkProcessNetwork(Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
@@ -211,7 +213,7 @@ class Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkPort(ForSyDe::Leaf::Port* port, ForSyDe::ProcessNetwork* processnetwork)
+    void checkPort(Forsyde::Leaf::Port* port, Forsyde::ProcessNetwork* processnetwork)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 

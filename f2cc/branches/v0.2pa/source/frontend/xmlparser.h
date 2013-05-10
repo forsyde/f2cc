@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +42,7 @@
 #include "../forsyde/processnetwork.h"
 #include "../forsyde/composite.h"
 #include "../forsyde/leaf.h"
+#include "../forsyde/SY/combsy.h"
 #include "../language/cfunction.h"
 #include "../language/cdatatype.h"
 #include "../ticpp/ticpp.h"
@@ -84,7 +87,7 @@ class XmlParser : public Frontend {
     /**
      * @copydoc Frontend::createProcessNetwork(const std::string&)
      */
-    virtual ForSyDe::ProcessNetwork* createProcessNetwork(const std::string& file)
+    virtual Forsyde::ProcessNetwork* createProcessNetwork(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
               ParseException, InvalidModelException, RuntimeException);
 
@@ -112,9 +115,9 @@ class XmlParser : public Frontend {
      * @todo: reimplement model so that the hierarchy is passed as a reference (faster).
      * @todo: reimplement model so that hierarchy is not needed for Composite constructor.
      */
-    ForSyDe::Composite* buildComposite(ticpp::Element* xml,
-    		ForSyDe::ProcessNetwork* processnetwork,const ForSyDe::Id id,
-    		ForSyDe::Hierarchy hierarchy)
+    Forsyde::Composite* buildComposite(ticpp::Element* xml,
+    		Forsyde::ProcessNetwork* processnetwork,const Forsyde::Id id,
+    		Forsyde::Hierarchy hierarchy)
     throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException);
 
@@ -159,8 +162,8 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlLeafs(ticpp::Element* xml, ForSyDe::ProcessNetwork* processnetwork,
-    		ForSyDe::Composite* parent)
+    void parseXmlLeafs(ticpp::Element* xml, Forsyde::ProcessNetwork* processnetwork,
+    		Forsyde::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -183,8 +186,8 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlComposites(ticpp::Element* xml, ForSyDe::ProcessNetwork* processnetwork,
-    		ForSyDe::Composite* parent)
+    void parseXmlComposites(ticpp::Element* xml, Forsyde::ProcessNetwork* processnetwork,
+    		Forsyde::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -207,7 +210,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlPorts(ticpp::Element* xml, ForSyDe::Composite* parent)
+    void parseXmlPorts(ticpp::Element* xml, Forsyde::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -230,7 +233,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlSignals(ticpp::Element* xml, ForSyDe::Composite* parent)
+    void parseXmlSignals(ticpp::Element* xml, Forsyde::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -251,8 +254,8 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::Leaf* generateLeaf(ForSyDe::ProcessNetwork* pn, ticpp::Element* xml,
-    		ForSyDe::Composite* parent)
+    Forsyde::Leaf* generateLeaf(Forsyde::ProcessNetwork* pn, ticpp::Element* xml,
+    		Forsyde::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -273,8 +276,8 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    ForSyDe::Composite* generateComposite(ForSyDe::ProcessNetwork* pn, ticpp::Element* xml,
-    		ForSyDe::Composite* parent)
+    Forsyde::Composite* generateComposite(Forsyde::ProcessNetwork* pn, ticpp::Element* xml,
+    		Forsyde::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -295,8 +298,8 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    CFunction* generateLeafFunction(ticpp::Element* xml, ForSyDe::ProcessNetwork* pn,
-    		ForSyDe::Composite* parent)
+    CFunction* generateLeafFunction(ticpp::Element* xml, Forsyde::ProcessNetwork* pn,
+    		Forsyde::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -316,7 +319,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void generateLeafPort(ticpp::Element* xml, ForSyDe::Leaf* parent)
+    void generateLeafPort(ticpp::Element* xml, Forsyde::Leaf* parent)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException);
 
@@ -336,7 +339,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void generateIOPort(ticpp::Element* xml, ForSyDe::Composite* parent)
+    void generateIOPort(ticpp::Element* xml, Forsyde::Composite* parent)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException);
 
@@ -356,7 +359,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void generateSignal(ticpp::Element* xml, ForSyDe::Composite* parent)
+    void generateSignal(ticpp::Element* xml, Forsyde::Composite* parent)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException);
 
@@ -377,10 +380,53 @@ class XmlParser : public Frontend {
      *         bug.
      */
     void generateConnection(
-    		ForSyDe::Process::Interface* source_port,
-    		ForSyDe::Process::Interface* target_port)
+    		Forsyde::Process::Interface* source_port,
+    		Forsyde::Process::Interface* target_port)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException, CastException);
+
+
+    /**
+     * Converts an XML \c port element into an internal ForSyDe port.
+     *
+     * @param xml
+     *        \c port element containing the port.
+     * @returns Internal leaf port object.
+     * @throws InvalidArgumentException
+     *         When \c xml is \c NULL.
+     * @throws ParseException
+     *         When some necessary element or attribute is missing.
+     * @throws IOException
+     *         When the file cannot be read or the log file cannot be written.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     */
+    CDataType getDataType(const std::string& port_datatype,const int &port_size)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException);
+
+    /**
+     * Converts an XML \c port element into an internal ForSyDe port.
+     *
+     * @param xml
+     *        \c port element containing the port.
+     * @returns Internal leaf port object.
+     * @throws InvalidArgumentException
+     *         When \c xml is \c NULL.
+     * @throws ParseException
+     *         When some necessary element or attribute is missing.
+     * @throws IOException
+     *         When the file cannot be read or the log file cannot be written.
+     * @throws RuntimeException
+     *         When something unexpected occurs. This is most likely due to a
+     *         bug.
+     */
+    void associatePortWithVariable(Forsyde::SY::Comb* comb, std::string direction,
+    		std::string name)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException);
+
 
     /**
      * Locates the \c graph XML element in the XML document.
@@ -512,7 +558,7 @@ class XmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    std::string getInitialDelayValue(ticpp::Element* xml, ForSyDe::Composite* parent)
+    std::string getInitialDelayValue(ticpp::Element* xml, Forsyde::Composite* parent)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 

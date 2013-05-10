@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2011-2013 Gabriel Hjort Blindell <ghb@kth.se>
- *                          George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +28,7 @@
 #include "hierarchy.h"
 #include <new>
 
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using std::string;
 using std::list;
 
@@ -103,7 +104,7 @@ string Hierarchy::toString(list<Id*> ids) const throw() {
         bool first = true;
         for (list<Id*>::const_iterator it = ids.begin(); it != ids.end(); ++it) {
             if (!first) {
-                str += " -> ";
+                str += " <- ";
             }
             else {
                 first = false;

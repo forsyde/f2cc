@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +47,7 @@
 #include <list>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 
 class Composite;
 
@@ -74,7 +76,7 @@ class Model {
      *
      * @param process
      *        Process to add.
-     * @returns \c true if such a process did not already exist and was
+     * @returns \b true if such a process did not already exist and was
      *          successfully added.
      * @throws InvalidArgumentException
      *         When \c process is \c NULL.
@@ -123,7 +125,7 @@ class Model {
      *
      * @param id
      *        Process ID.
-     * @returns \c true if such a process was found and successfully deleted.
+     * @returns \b true if such a process was found and successfully deleted.
      */
     bool deleteProcess(const Id& id) throw();
 
@@ -132,7 +134,7 @@ class Model {
      *
      * @returns A unique process ID.
      */
-    ForSyDe::Id getUniqueProcessId() const throw();
+    Forsyde::Id getUniqueProcessId() const throw();
 
     /**
      * Same as getUniqueCompositeId() but allows an arbitrary string to be
@@ -142,37 +144,37 @@ class Model {
      *        ID prefix.
      * @returns A unique process ID.
      */
-    ForSyDe::Id getUniqueProcessId(const std::string& prefix) const throw();
+    Forsyde::Id getUniqueProcessId(const std::string& prefix) const throw();
 
     /**
-     * Adds a process to this model. Models are not allowed to have multiple
-     * processes with the same ID.
+     * Adds a composite to this model. Models are not allowed to have multiple
+     * composites with the same ID.
      *
-     * @param process
-     *        Process to add.
-     * @returns \c true if such a process did not already exist and was
+     * @param composite
+     *        Compoiste to add.
+     * @returns \b true if such a process did not already exist and was
      *          successfully added.
      * @throws InvalidArgumentException
-     *         When \c process is \c NULL.
+     *         When \c composite is \c NULL.
      * @throws OutOfMemoryException
-     *         When a process cannot be added due to memory shortage.
+     *         When a composite cannot be added due to memory shortage.
      */
-    bool addComposite(Composite* process)
+    bool addComposite(Composite* composite)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
-     * Adds multiple processes to this model at the same time.
+     * Adds multiple composites to this model at the same time.
      *
-     * @param processes
-     *        Combset of processes to add.
+     * @param composite
+     *        Combset of composites to add.
      * @throws OutOfMemoryException
-     *         When a process cannot be added due to memory shortage.
+     *         When a composite cannot be added due to memory shortage.
      */
-    void addComposites(std::map<const Id, Composite*> processes)
+    void addComposites(std::map<const Id, Composite*> composites)
         throw(OutOfMemoryException);
 
     /**
-     * Gets a process by ID.
+     * Gets a composite by ID.
      *
      * @param id
      *        Composite ID.
@@ -181,34 +183,34 @@ class Model {
     Composite* getComposite(const Id& id) throw();
 
     /**
-     * Gets the number of processes in this model.
+     * Gets the number of composites in this model.
      *
      * @returns Composite count.
      */
     int getNumComposites() const throw();
 
     /**
-     * Gets a list of all processes in this model.
+     * Gets a list of all composites in this model.
      *
      * @returns Composite list.
      */
     std::list<Composite*> getComposites() throw();
 
     /**
-     * Removes and destroys a process by ID.
+     * Removes and destroys a composite by ID.
      *
      * @param id
      *        Composite ID.
-     * @returns \c true if such a process was found and successfully deleted.
+     * @returns \b true if such a composite was found and successfully deleted.
      */
     bool deleteComposite(const Id& id) throw();
 
     /**
-     * Gets a new process ID which is not currently in use within this model.
+     * Gets a new composite ID which is not currently in use within this model.
      *
-     * @returns A unique process ID.
+     * @returns A unique composite ID.
      */
-    ForSyDe::Id getUniqueCompositeId() const throw();
+    Forsyde::Id getUniqueCompositeId() const throw();
 
     /**
      * Same as getUniqueCompositeId() but allows an arbitrary string to be
@@ -216,9 +218,9 @@ class Model {
      *
      * @param prefix
      *        ID prefix.
-     * @returns A unique process ID.
+     * @returns A unique composite ID.
      */
-    ForSyDe::Id getUniqueCompositeId(const std::string& prefix) const throw();
+    Forsyde::Id getUniqueCompositeId(const std::string& prefix) const throw();
 
   protected:
     /**
@@ -262,7 +264,7 @@ class Model {
     std::map<const Id, Leaf*> leafs_;
 
     /**
-     * Combset of processes.
+     * Combset of composites.
      */
     std::map<const Id, Composite*> composites_;
 };

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +31,7 @@
 #include <list>
 #include <new>
 
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using namespace f2cc;
 using std::string;
 using std::map;
@@ -136,8 +138,7 @@ bool ProcessNetwork::addFunction(CFunction* function)
     }
     try {
         pair<map<const Id, CFunction*>::iterator, bool>
-            result = functions_.insert(
-                pair<const Id, CFunction*>(
+            result = functions_.insert(pair<const Id, CFunction*>(
                     Id(function->getName()), function));
         return result.second;
     }
@@ -230,6 +231,9 @@ std::string ProcessNetwork::toString() const throw() {
     str += " Outputs = {";
     str += portsToString(outputs_);
     str += "}\n";
+    str += " NumFunctions: ";
+    str += tools::toString(getNumFunctions());
+    str += ",\n";
     str += "}";
     return str;
 }
@@ -251,9 +255,8 @@ string ProcessNetwork::portsToString(const list<Process::Interface*> ports) cons
             Process::Interface* port = *it;
             str += "  ID: ";
             str += port->getId()->getString();
-            str += ", ";
-            str += "belonging to ";
-            str += port->getProcess()->getId()->getString();
+            str += ": ";
+            str += port->toString();
         }
         str += "\n ";
     }

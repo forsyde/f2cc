@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,6 +26,7 @@
  */
 
 #include "xmlparser.h"
+#include "cparser.h"
 #include "../ticpp/ticpp.h"
 #include "../ticpp/tinyxml.h"
 #include "../tools/tools.h"
@@ -44,7 +47,7 @@
 #include <new>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using ticpp::Document;
 using ticpp::Node;
 using ticpp::Element;
@@ -432,10 +435,11 @@ CFunction* XmlParser::generateLeafFunction(Element* xml, ProcessNetwork* pn,
     }
 
     Element* argument = getUniqueElement(xml, "argument");
-    string function_name = getAttributeByTag(argument,"value");
+    string file_name = getAttributeByTag(argument,"value");
     string name = getAttributeByTag(argument,"name");
-    string file_name = function_name;
-    tools::searchReplace(file_name, name, "");
+    string function_name = file_name;
+    tools::searchReplace(function_name, name, "");
+    file_name += ".hpp";
 
     CFunction* existing_function = pn->getFunction(Id(function_name));
 
@@ -453,7 +457,8 @@ CFunction* XmlParser::generateLeafFunction(Element* xml, ProcessNetwork* pn,
                       + "Function \""
                       + function_name
                       + "\" is being added to the process network... "));
-        CFunction* new_function = new CFunction(function_name, file_name);
+        CParser* code_parser = new CParser(logger_, level_);
+        CFunction* new_function = code_parser->parseCFunction(file_name, function_name);
         try {
             if (!pn->addFunction(new_function)) {
 				THROW_EXCEPTION(ParseException, parent->getName().getString(),
@@ -465,6 +470,7 @@ CFunction* XmlParser::generateLeafFunction(Element* xml, ProcessNetwork* pn,
         } catch (bad_alloc&) {
             THROW_EXCEPTION(OutOfMemoryException);
         }
+        delete code_parser;
         return new_function;
     }
 
@@ -481,12 +487,15 @@ void XmlParser::generateLeafPort(Element* xml, Leaf* parent)
     }
     string port_name = getAttributeByTag(xml,"name");
     string port_datatype = getAttributeByTag(xml,"type");
+    int port_size = tools::toInt(getAttributeByTag(xml, "size"));
 	string port_direction = getAttributeByTag(xml, "direction");
 
-	//@todo: datatype conversion AGAIN!
+	//datatype conversion
+	CDataType data_type = getDataType(port_datatype, port_size);
+
 	bool port_added;
-    if (port_direction == "in") port_added = parent->addInPort(Id(port_name), CDataType());
-    else if (port_direction == "out") port_added = parent->addOutPort(Id(port_name), CDataType());
+    if (port_direction == "in") port_added = parent->addInPort(Id(port_name), data_type);
+    else if (port_direction == "out") port_added = parent->addOutPort(Id(port_name), data_type);
     else THROW_EXCEPTION(ParseException, file_, xml->Row(),
     		xml->Column(), "Invalid port direction");
 
@@ -504,6 +513,11 @@ void XmlParser::generateLeafPort(Element* xml, Leaf* parent)
                        + " port \"" + port_name
                        + "\" added to leaf process \""
                        + parent->getId()->getString() + "\"");
+
+    SY::Comb* comb = dynamic_cast<SY::Comb*>(parent);
+    if (comb){
+    	associatePortWithVariable(comb, port_direction, port_name);
+    }
 }
 
 void XmlParser::generateIOPort(Element* xml, Composite* parent)
@@ -649,6 +663,113 @@ void XmlParser::generateSignal(Element* xml, Composite* parent)
 	}
 
 	generateConnection(source_interface, target_interface);
+
+}
+
+CDataType XmlParser::getDataType(const string& port_datatype,
+		const int &port_size)
+    throw(InvalidArgumentException, ParseException, IOException,
+          RuntimeException){
+
+	CDataType* data_type;
+
+	if (string::npos != port_datatype.find("array")){
+		unsigned type_begin = port_datatype.find_last_of("<") + 1;
+		unsigned type_end = port_datatype.find_first_of(">");
+		string base_datatype = port_datatype.substr(type_begin, type_end - type_begin);
+		tools::trim(base_datatype);
+
+		int size = tools::noElements(port_size, base_datatype);
+		if (size == -1){
+			THROW_EXCEPTION(InvalidArgumentException, "\"port_datatype\" carries the wrong type");
+		}
+
+		data_type = new CDataType(CDataType::stringToType(base_datatype),
+					true, true, size, false, false);
+
+		return *data_type;
+	}
+	else{
+		string base_datatype = port_datatype;
+		tools::trim(base_datatype);
+		data_type = new CDataType(CDataType::stringToType(base_datatype),
+					false, false, 0, false, false);
+		return *data_type;
+	}
+
+}
+
+void XmlParser::associatePortWithVariable(SY::Comb* comb, string direction,
+		string port_name)
+throw(InvalidArgumentException, ParseException, IOException,
+      RuntimeException){
+    if (!comb) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"comb\" must not be NULL");
+    }
+
+    CVariable* assoc_param;
+    Leaf::Port* assoc_port;
+    CDataType* param_type;
+    CDataType port_type ;
+    if (direction == "in"){
+    	list<CVariable*> inputs = comb->getFunction()->getInputParameters();
+
+    	size_t last_index = port_name.find_last_not_of("0123456789");
+    	string numeral = port_name.substr(last_index + 1);
+		unsigned int number = tools::toInt(numeral);
+		if (number < 1){
+			THROW_EXCEPTION(InvalidArgumentException, string("\"port_name\" ")
+					+"does not have a valid order: "
+					+ port_name);
+		}
+		if (inputs.size() > number - 1){
+			list<CVariable*>::iterator it = inputs.begin();
+			std::advance(it, number - 1);
+			assoc_param = *it;
+		}
+		else{
+			THROW_EXCEPTION(InvalidArgumentException, string("\"port_name\" ")
+					+"(" + port_name + ") "
+					+"has higher numeral (" + tools::toString(number - 1)
+					+ ") than the number of ports available: "
+					+ tools::toString(inputs.size()));
+		}
+		assoc_port = comb->getInPort(Id(port_name));
+    }
+    else{
+    	assoc_param = comb->getFunction()->getOutputParameter();
+    	assoc_port = comb->getOutPort(Id(port_name));
+    }
+    param_type = assoc_param->getDataType();
+    port_type = assoc_port->getDataType();
+
+	//double check
+	bool match_is_array = param_type->isArray() == port_type.isArray();
+	bool match_data_type = param_type->getType() == port_type.getType();
+	if ((!match_is_array) || (!match_data_type)){
+		THROW_EXCEPTION(RuntimeException, "Function and port data types do not match.");
+	}
+
+	//set the array size in variable declaration
+	if (port_type.hasArraySize() && (!param_type->hasArraySize())){
+		param_type->setArraySize(port_type.getArraySize());
+		logger_.logMessage(Logger::DEBUG, string()
+							   + tools::indent(level_)
+							   + "Added array size to input parameter \""
+							   + assoc_param->getReferenceString()
+							   + "\" : "
+							   + tools::toString(param_type->getArraySize()) );
+	}
+
+	//associate port with variable
+	assoc_port->setVariable(assoc_param);
+
+	logger_.logMessage(Logger::DEBUG, string()
+					   + tools::indent(level_)
+					   + "Associated port \"" + assoc_port->getId()->getString()
+					   + "\" with variable \"" + assoc_param->getReferenceString()
+					   + "\" in function \"" + comb->getFunction()->getName()
+					   + "\"");
 
 }
 

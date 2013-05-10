@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +41,7 @@
 #include <string>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 namespace SY{
 
 /**
@@ -55,7 +57,7 @@ class Comb : public Leaf {
      * @param function
      *        Leaf function argument.
      */
-    Comb(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+    Comb(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
     		int cost, CFunction* function) throw();
 
     /**
@@ -76,7 +78,7 @@ class Comb : public Leaf {
      *
      * @param rhs
      *        Leaf to compare with.
-     * @returns \c true if both leafs are equal.
+     * @returns \b true if both leafs are equal.
      */
     virtual bool operator==(const Leaf& rhs) const throw();
 

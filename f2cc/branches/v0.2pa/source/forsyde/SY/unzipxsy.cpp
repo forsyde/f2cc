@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,14 +28,14 @@
 #include "unzipxsy.h"
 #include <typeinfo>
 
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::bad_cast;
 
 Unzipx::Unzipx(const Id& id) throw()
         : Leaf(id) {}
 
-Unzipx::Unzipx(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+Unzipx::Unzipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
  		int cost) throw()
         : Leaf(id, hierarchy, string("sy"), cost) {}
 
@@ -52,7 +54,7 @@ bool Unzipx::operator==(const Leaf& rhs) const throw() {
 }
 
 string Unzipx::type() const throw() {
-    return "Unzipx";
+    return "unzipX";
 }
 
 void Unzipx::moreChecks() throw(InvalidProcessException) {

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +30,7 @@
 #include <list>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using std::string;
 using std::list;
 
@@ -131,10 +133,10 @@ void Frontend::checkPort(Leaf::Port* port, ProcessNetwork* processnetwork)
     }
 }
 
-void Frontend::checkProcessNetworkMore(ForSyDe::ProcessNetwork* processnetwork)
+void Frontend::checkProcessNetworkMore(Forsyde::ProcessNetwork* processnetwork)
     throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {}
 
 
-void Frontend::postCheckFixes(ForSyDe::ProcessNetwork* processnetwork)
+void Frontend::postCheckFixes(Forsyde::ProcessNetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {}

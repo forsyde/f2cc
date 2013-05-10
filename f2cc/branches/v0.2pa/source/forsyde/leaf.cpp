@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +31,7 @@
 #include <new>
 #include <vector>
 
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using std::string;
 using std::list;
 using std::bad_alloc;
@@ -37,7 +39,7 @@ using std::vector;
 
 Leaf::Leaf(const Id& id) throw() : Process(id) {}
 
-Leaf::Leaf(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
+Leaf::Leaf(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
  		const std::string moc, int cost) throw() :
 		Process(id, hierarchy), moc_(moc), cost_(cost){}
 
@@ -84,6 +86,7 @@ bool Leaf::addInPort(const Id& id, CDataType datatype) throw(OutOfMemoryExceptio
         THROW_EXCEPTION(OutOfMemoryException);
     }
 }
+
 
 bool Leaf::addInPort(Port& port) throw(OutOfMemoryException) {
     if (findPort(*port.getId(), in_ports_) != in_ports_.end()) return false;
@@ -307,24 +310,28 @@ bool Leaf::operator!=(const Leaf& rhs) const throw() {
 }
 
 Leaf::Port::Port(const Id& id) throw()
-        : Interface(id), connected_port_(NULL), data_type_(CDataType()) {}
+        : Interface(id), connected_port_(NULL), data_type_(CDataType()),
+          variable_(NULL){}
 
 Leaf::Port::Port(const Id& id, Leaf* leaf) throw(InvalidArgumentException)
-        : Interface(id, leaf), connected_port_(NULL), data_type_(CDataType()) {
+        : Interface(id, leaf), connected_port_(NULL), data_type_(CDataType()),
+          variable_(NULL){
     if (!leaf) {
         THROW_EXCEPTION(InvalidArgumentException, "leaf must not be NULL");
     }
 }
 
 Leaf::Port::Port(const Id& id, Leaf* leaf, CDataType data_type) throw(InvalidArgumentException)
-        : Interface(id, leaf), connected_port_(NULL), data_type_(data_type) {
+        : Interface(id, leaf), connected_port_(NULL), data_type_(data_type),
+          variable_(NULL){
     if (!leaf) {
         THROW_EXCEPTION(InvalidArgumentException, "leaf must not be NULL");
     }
 }
 
 Leaf::Port::Port(Port& rhs) throw()
-        : Interface(rhs.id_), connected_port_(NULL), data_type_(CDataType()) {
+        : Interface(rhs.id_), connected_port_(NULL), data_type_(CDataType()),
+          variable_(NULL){
     if (rhs.isConnected()) {
     	Process::Interface* port = rhs.connected_port_;
         rhs.unconnect();
@@ -333,7 +340,8 @@ Leaf::Port::Port(Port& rhs) throw()
 }
 
 Leaf::Port::Port(Port& rhs, Leaf* leaf) throw(InvalidArgumentException)
-        : Interface(rhs.id_, leaf), connected_port_(NULL), data_type_(CDataType()) {
+        : Interface(rhs.id_, leaf), connected_port_(NULL), data_type_(CDataType()),
+          variable_(NULL){
     if (!leaf) {
         THROW_EXCEPTION(InvalidArgumentException, "\"leaf\" must not be "
                         "NULL");
@@ -356,6 +364,14 @@ f2cc::CDataType Leaf::Port::getDataType() throw() {
 
 void Leaf::Port::setDataType(CDataType datatype) throw() {
 	data_type_ = datatype;
+}
+
+f2cc::CVariable* Leaf::Port::getVariable() throw() {
+    return variable_;
+}
+
+void Leaf::Port::setVariable(CVariable* variable) throw() {
+	variable_ = variable;
 }
 
 

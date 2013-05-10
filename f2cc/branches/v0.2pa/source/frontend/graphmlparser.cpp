@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -47,8 +49,8 @@
 #include <new>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde;
+using namespace f2cc::Forsyde::SY;
 using ticpp::Document;
 using ticpp::Node;
 using ticpp::Element;
@@ -1094,7 +1096,7 @@ void GraphmlParser::checkProcessNetworkMore(ProcessNetwork* processnetwork)
     }
 }
 
-void GraphmlParser::postCheckFixes(ForSyDe::ProcessNetwork* processnetwork)
+void GraphmlParser::postCheckFixes(Forsyde::ProcessNetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     fixProcessNetworkInputsOutputs(processnetwork);
 }

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -75,6 +77,13 @@ class CVariable {
     ~CVariable() throw();
 
     /**
+	 * Gets the data type of this variable.
+	 *
+	 * @returns Data type.
+	 */
+	void changeReferenceString(std::string name) throw();
+
+    /**
      * Gets the data type of this variable.
      *
      * @returns Data type.
@@ -146,7 +155,7 @@ class CVariable {
      *
      * @param rhs
      *        Variable to compare.
-     * @returns \c true if the data types and names are equal.
+     * @returns \b true if the data types and names are equal.
      */
     bool operator==(const CVariable& rhs) const throw();
 
@@ -155,7 +164,7 @@ class CVariable {
      *
      * @param rhs
      *        Variable to compare.
-     * @returns \c true if either the data types or names are not equal.
+     * @returns \b true if either the data types or names are not equal.
      */
     bool operator!=(const CVariable& rhs) const throw();
 

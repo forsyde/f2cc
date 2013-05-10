@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +43,8 @@
 #include <map>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -2266,7 +2268,7 @@ string Synthesizer::generateKernelConfigFunctionDefinitionCode()
 }
 
 string Synthesizer::getGlobalLeafFunctionName(
-    ForSyDe::Id leaf_id, const string& function_name) const throw() {
+    Forsyde::Id leaf_id, const string& function_name) const throw() {
     return string("f") + leaf_id.getString() + "_" + function_name;
 }
 
