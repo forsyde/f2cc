@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +26,20 @@
 #include "unzipxsy.h"
 #include <typeinfo>
 
-using namespace f2cc::Forsyde::SY;
+using namespace f2cc::ForSyDe::SY;
 using std::string;
 using std::bad_cast;
 
-Unzipx::Unzipx(const Id& id) throw()
-        : Leaf(id) {}
+unzipx::unzipx(const Id& id) throw()
+        : Process(id) {}
 
-Unzipx::Unzipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
- 		int cost) throw()
-        : Leaf(id, hierarchy, string("sy"), cost) {}
+unzipx::~unzipx() throw() {}
 
-Unzipx::~Unzipx() throw() {}
-
-bool Unzipx::operator==(const Leaf& rhs) const throw() {
-    if (Leaf::operator==(rhs)) return false;
+bool unzipx::operator==(const Process& rhs) const throw() {
+    if (Process::operator==(rhs)) return false;
 
     try {
-        dynamic_cast<const Unzipx&>(rhs);
+        dynamic_cast<const unzipx&>(rhs);
     }
     catch (bad_cast&) {
         return false;
@@ -53,13 +47,13 @@ bool Unzipx::operator==(const Leaf& rhs) const throw() {
     return true;
 }
 
-string Unzipx::type() const throw() {
-    return "unzipX";
+string unzipx::type() const throw() {
+    return "unzipx";
 }
 
-void Unzipx::moreChecks() throw(InvalidProcessException) {
+void unzipx::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() != 1) {
-        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
+        THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have exactly one (1) in port");
     }

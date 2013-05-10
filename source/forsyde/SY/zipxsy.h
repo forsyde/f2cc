@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,58 +31,45 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c Zipx leaf.
+ * @brief Implements the ForSyDe \c zipx process.
  */
 
-#include "../leaf.h"
+#include "../process.h"
 #include "../../exceptions/notsupportedexception.h"
 #include <string>
 
 namespace f2cc {
-namespace Forsyde {
+namespace ForSyDe {
 namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c Zipx leaf.
+ * @brief Implements the ForSyDe \c zipx process.
  */
-class Zipx : public Leaf {
+class zipx : public Process {
   public:
     /**
-     * @copydoc Leaf(const Id&)
+     * @copydoc Process(const Id&)
      */
-    Zipx(const Id& id) throw();
+    zipx(const Id& id) throw();
 
     /**
-     * Creates a leaf.
-     *
-     * @param id
-     *        Leaf ID.
-     * @param hierarchy
-     *        Hierarchy path.
-     * @param cost
-     *        Cost parameter.
+     * @copydoc ~Process()
      */
-    Zipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
-        		int cost) throw();
+    virtual ~zipx() throw();
 
     /**
-     * @copydoc ~Leaf()
+     * @copydoc Process::operator==(const Process&) const
      */
-    virtual ~Zipx() throw();
+    virtual bool operator==(const Process& rhs) const throw();
 
     /**
-     * @copydoc Leaf::operator==(const Leaf&) const
-     */
-    virtual bool operator==(const Leaf& rhs) const throw();
-
-    /**
-     * @copydoc Leaf::type()
+     * @copydoc Process::type()
      */
     virtual std::string type() const throw();
 
   protected:
     /**
-     * Checks that this leaf has only one out port.
+     * Checks that this process has only one out port.
      *
      * @throws InvalidProcessException
      *         When the check fails.

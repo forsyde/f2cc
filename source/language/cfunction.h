@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -59,17 +57,6 @@ class CFunction {
      * body.
      */
     CFunction() throw();
-
-    /**
-     * Creates an unnamed function, with no return type, input parameters nor
-     * body.
-     *
-     * @param name
-     *        Function name.
-     * @param file
-     *        \c .hpp file that initially contained the ForSyDe-SystemC function code.
-     */
-    CFunction(const std::string& name, const std::string& file) throw();
 
     /**
      * Creates a function.
@@ -165,11 +152,11 @@ class CFunction {
     /**
      * Adds an input parameter to this function. The new parameter will be added
      * as the last parameter to the function. If the parameter already exists
-     * then it will not be added and \b false is returned.
+     * then it will not be added and \c false is returned.
      *
      * @param parameter
      *        Variable to add as input parameter.
-     * @returns \b true if the parameter was successfully added.
+     * @returns \c true if the parameter was successfully added.
      * @throws OutOfMemoryException
      *         When the parameter fails to be added due to memory shortage.
      */
@@ -181,7 +168,7 @@ class CFunction {
      *
      * @param parameter
      *        Variable to delete from the input parameters.
-     * @returns \b true if such a parameter was found and successfully deleted.
+     * @returns \c true if such a parameter was found and successfully deleted.
      */
     bool deleteInputParameter(const CVariable& parameter) throw();
 
@@ -192,30 +179,6 @@ class CFunction {
      * @returns List of input parameters.
      */
     std::list<CVariable*> getInputParameters() throw();
-
-
-    /**
-     * Adds an input parameter to this function. The new parameter will be added
-     * as the last parameter to the function. If the parameter already exists
-     * then it will not be added and \b false is returned.
-     *
-     * @param parameter
-     *        Variable to add as input parameter.
-     * @returns \b true if the parameter was successfully added.
-     * @throws OutOfMemoryException
-     *         When the parameter fails to be added due to memory shortage.
-     */
-    bool setOutputParameter(const CVariable& parameter)
-        throw();
-
-
-    /**
-     * Gets a list of the input parameters to this function. The list will be
-     * in the order as they were added to the function.
-     *
-     * @returns List of input parameters.
-     */
-    CVariable* getOutputParameter() throw();
 
     /**
      * Gets the body of this function. Initial block declaration is
@@ -256,7 +219,7 @@ class CFunction {
      *
      * @param rhs
      *        Function to compare.
-     * @returns \b true if the bodies of both funtions are exactly identical,
+     * @returns \c true if the bodies of both funtions are exactly identical,
      *          character by character.
      */
     bool operator==(const CFunction& rhs) const throw();
@@ -266,7 +229,7 @@ class CFunction {
      *
      * @param rhs
      *        Function to compare.
-     * @returns \b true if the string representation of both are not
+     * @returns \c true if the string representation of both are not
      *          identical.
      */
     bool operator!=(const CFunction& rhs) const throw();
@@ -302,11 +265,6 @@ class CFunction {
     std::string name_;
 
     /**
-     * Function's filename.
-     */
-    std::string file_;
-
-    /**
      * Return value data type.
      */
     CDataType return_data_type_;
@@ -315,11 +273,6 @@ class CFunction {
      * Input parameters.
      */
     std::list<CVariable*> input_parameters_;
-
-    /**
-     * Input parameters.
-     */
-    CVariable* output_parameter_;
 
     /**
      * Function body.

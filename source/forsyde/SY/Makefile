@@ -1,6 +1,4 @@
-# Copyright (c) 2011-2013
-#     Gabriel Hjort Blindell <ghb@kth.se>
-#     George Ungureanu <ugeorge@kth.se>
+# Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -25,9 +23,9 @@
 
 MODULE      = forsyde
 MOC			= SY
-SRCFILES    = zipxsy.cpp unzipxsy.cpp inport.cpp outport.cpp\
+SRCFILES    = zipxsy.cpp unzipxsy.cpp \
               coalescedmapsy.cpp parallelmapsy.cpp delaysy.cpp fanoutsy.cpp \
-              mapsy.cpp combsy.cpp zipwithnsy.cpp
+              combsy.cpp
 MOCOBJPATH	= $(OBJPATH)/$(MODULE)/$(MOC)
 OBJECTS     = $(addprefix $(MOCOBJPATH)/, \
                 $(addsuffix .o, $(basename $(SRCFILES))) \

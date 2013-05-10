@@ -15,7 +15,7 @@ to use @p new to create TinyXML++ objects, you will @b always need to use @p del
 Basically, TinyXML++ objects are just wrappers around TinyXML pointers.
 
 <h2> Goals </h2>
-- Simplify the use and port of TinyXml, using C++ concepts.
+- Simplify the use and interface of TinyXml, using C++ concepts.
 	- Use exceptions for error handling, so there are no return codes to check
 	- Use templates for automatic type conversion
 	- Use STL style iterators to move through nodes and attributes

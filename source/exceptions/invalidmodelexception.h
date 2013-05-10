@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +31,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Defines exception for invalid processnetwork errors.
+ * @brief Defines exception for invalid model errors.
  */
 
 #include "exception.h"
@@ -42,20 +40,20 @@
 namespace f2cc {
 
 /**
- * @brief Used when a method was called with arguments of invalid processnetwork.
+ * @brief Used when a method was called with arguments of invalid model.
  */
-class InvalidProcessNetworkException : public Exception {
+class InvalidModelException : public Exception {
   public:
     /**
      * @copydoc Exception::Exception(const std::string&, int, const std::string&)
      */
-    InvalidProcessNetworkException(const std::string& source_file, int source_line,
+    InvalidModelException(const std::string& source_file, int source_line,
                           const std::string& message) throw();
 
     /**
      * @copydoc Exception::~Exception()
      */
-    virtual ~InvalidProcessNetworkException() throw();
+    virtual ~InvalidModelException() throw();
 
   protected:
     /**

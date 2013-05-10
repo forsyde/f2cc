@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +25,7 @@
 
 #include "id.h"
 
-using namespace f2cc::Forsyde;
+using namespace f2cc::ForSyDe;
 using std::string;
 
 Id::Id(const string& id) throw() : id_(id) {}
@@ -50,7 +48,7 @@ bool Id::operator<(const Id& rhs) const throw() {
     return id_.compare(rhs.id_) < 0;
 }
 
-std::ostream& f2cc::Forsyde::operator<<(std::ostream& stream, const Id& id) {
+std::ostream& f2cc::ForSyDe::operator<<(std::ostream& stream, const Id& id) {
     stream << id.getString();
     return stream;
 }

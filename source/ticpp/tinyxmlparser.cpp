@@ -1371,7 +1371,7 @@ const char* TiXmlComment::Parse( const char* p, TiXmlParsingData* data, TiXmlEnc
 	/*
 	 [Definition: Comments may appear anywhere in a document outside other markup; in addition,
 	              they may appear within the document type declaration at places allowed by the grammar.
-				  They are not part of the document's character data; an XML leafor MAY, but need not,
+				  They are not part of the document's character data; an XML processor MAY, but need not,
 				  make it possible for an application to retrieve the text of comments. For compatibility,
 				  the string "--" (double-hyphen) MUST NOT occur within comments.] Parameter entity
 				  references MUST NOT be recognized within comments.

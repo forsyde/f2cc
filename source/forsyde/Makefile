@@ -1,6 +1,4 @@
-# Copyright (c) 2011-2013
-#     Gabriel Hjort Blindell <ghb@kth.se>
-#     George Ungureanu <ugeorge@kth.se>
+# Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -24,8 +22,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 MODULE      = forsyde
-SRCFILES    = id.cpp hierarchy.cpp model.cpp process.cpp leaf.cpp composite.cpp \
-              processnetwork.cpp modelmodifier.cpp
+SRCFILES    = id.cpp processnetwork.cpp composite.cpp process.cpp model.cpp modelmodifier.cpp \
+              inport.cpp outport.cpp
 THISOBJPATH = $(OBJPATH)/$(MODULE)
 OBJECTS     = $(addprefix $(THISOBJPATH)/, \
                 $(addsuffix .o, $(basename $(SRCFILES))) \

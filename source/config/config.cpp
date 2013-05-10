@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -60,20 +58,20 @@ string Config::getHelpMenu() const throw() {
         + "\n";
 
     part = "This tool is part of the ForSyDe framework for synthesizing "
-        "programs processnetworked at a high level of abstraction into compilable C or "
-        "CUDA C code. The synthesis leaf is semantic-preserving which means "
-        "that a processnetwork which is proven to be correct will also yield correct C "
+        "programs modeled at a high level of abstraction into compilable C or "
+        "CUDA C code. The synthesis process is semantic-preserving which means "
+        "that a model which is proven to be correct will also yield correct C "
         "or CUDA C code.\n"
         "\n"
-        "The tool expects the processnetwork to be represented as a GraphML file. "
-        "Currently, the tool supports the following leafs:\n";
+        "The tool expects the model to be represented as a GraphML file. "
+        "Currently, the tool supports the following processes:\n";
     tools::breakLongLines(part, maximum_line_length, 0);
     part += ""
-        "   * Map\n"
+        "   * comb\n"
         "   * ParallelMap\n"
-        "   * ZipWithNSY\n"
-        "   * Unzipx\n"
-        "   * Zipx\n"
+        "   * comb\n"
+        "   * unzipx\n"
+        "   * zipx\n"
         "   * delay\n"
         "\n";
     str += part;
@@ -97,10 +95,10 @@ string Config::getHelpMenu() const throw() {
     tools::breakLongLines(part, maximum_line_length, indents);
     str += part;
 
-    part = "   -no-pc, --no-leaf-coalescing\n"
+    part = "   -no-pc, --no-process-coalescing\n"
         "      CUDA ONLY. Specifies that the tool should not coalesce "
-        "leafs, even "
-        "when it is possible to do so for the given input processnetwork."
+        "processes, even "
+        "when it is possible to do so for the given input model."
         "\n\n";
     tools::breakLongLines(part, maximum_line_length, indents);
     str += part;
@@ -190,11 +188,10 @@ void Config::setDefaults() throw() {
     do_print_version_ = false;
     log_file_ = "output.log";
     log_level_ = Logger::INFO;
-    do_data_parallel_leaf_coalescing_ = true;
+    do_data_parallel_process_coalescing_ = true;
     use_shared_memory_for_input_ = false;
     use_shared_memory_for_output_ = false;
     target_platform_ = Config::CUDA;
-    format_ = Config::XML;
 }
 
 void Config::setFromCommandLine(int argc, const char** argv)
@@ -328,8 +325,8 @@ void Config::setFromCommandLine(int argc, const char** argv)
                     is_output_file_set = true;
                 }
                 else if (option == "-no-pc" 
-                         || option == "--no-leaf-coalescing") {
-                    do_data_parallel_leaf_coalescing_ = false;
+                         || option == "--no-process-coalescing") {
+                    do_data_parallel_process_coalescing_ = false;
                 }
                 else if (option == "-use-sm-i" 
                          || option == "--use-shared-memory-for-input") {
@@ -366,10 +363,6 @@ void Config::setFromCommandLine(int argc, const char** argv)
                 }
             }
         }
-        std::string extension = tools::getExtension(input_file_);
-        if (extension == "xml") format_ = XML;
-        else if (extension == "graphml") format_ = GraphML;
-        else THROW_EXCEPTION(InvalidFormatException, "Input format not recognized");
     }
     catch(InvalidFormatException& ex) {
         THROW_EXCEPTION(InvalidFormatException, ex.getMessage()
@@ -377,12 +370,12 @@ void Config::setFromCommandLine(int argc, const char** argv)
     }
 }
 
-bool Config::doDataParallelLeafCoalesing() const throw() {
-    return do_data_parallel_leaf_coalescing_;
+bool Config::doDataParallelProcessCoalesing() const throw() {
+    return do_data_parallel_process_coalescing_;
 }
 
-void Config::setDoDataParallelLeafCoalesing(bool setting) throw() {
-    do_data_parallel_leaf_coalescing_ = setting;
+void Config::setDoDataParallelProcessCoalesing(bool setting) throw() {
+    do_data_parallel_process_coalescing_ = setting;
 }
 
 bool Config::useSharedMemoryForInput() const throw() {
@@ -409,14 +402,6 @@ void Config::setTargetPlatform(Config::TargetPlatform platform) throw() {
     target_platform_ = platform;
 }
 
-Config::InputFormat Config::getInputFormat() const throw() {
-    return format_;
-}
-
-void Config::setTargetPlatform(Config::InputFormat format) throw() {
-	format_ = format;
-}
-
 bool Config::isOption(const string& str) const throw() {
     return str.substr(0, 1) == "-";
 }
@@ -427,7 +412,7 @@ bool Config::isCompositeOption(const string& str) const throw() {
 }
 
 string Config::getVersion() throw() {
-    return "0.1";
+    return "0.1.1";
 }
 
 string Config::getSvnRevision() throw() {
