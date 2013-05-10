@@ -79,10 +79,11 @@ std::string& searchReplace(std::string& str, const std::string& search,
                            const std::string& replace) throw();
 
 /**
- * Trims front and end of a string from whitespace.
+ * Creates a tabbed indentation corresponding to the current parser
+ * level.
  *
- * @param str
- *        String to trim.
+ * @param level
+ *        Parsing level.
  * @returns Modified string.
  */
 std::string indent(int level) throw();
@@ -151,15 +152,19 @@ bool isNumeric(const std::string& str) throw();
 int toInt(const std::string& str) throw(InvalidArgumentException);
 
 /**
- * Converts a string into an int.
+ * Gets the number of elements (i.e. array length) from the extracted
+ * runtime data size. It is assumed that the ForSyDe-SystemC model was
+ * extracted on the same machine type (x86 or x64).
  *
- * @param str
- *        Numeric string to convert.
- * @returns Int.
- * @throws InvalidArgumentException
- *         When \c str is not an int.
+ * @param size
+ *        The datatype size as extracted by ForSyDe INTROSPECTION.
+ * @param datatype
+ *        Base data type, passed as a string.
+ *
+ * @returns Number of elements in array.
+ *          -1 if data type is not recognized.
  */
-int noElements(const int& size, const std::string& datatype) throw(InvalidArgumentException);
+int noElements(const int& size, const std::string& datatype) throw();
 
 /**
  * Checks if a file exists.

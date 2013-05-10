@@ -55,7 +55,14 @@ class Unzipx : public Leaf {
     Unzipx(const Id& id) throw();
 
     /**
-     * @copydoc Leaf(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy, const std::string moc, int cost)
+     * Creates a leaf.
+     *
+     * @param id
+     *        Leaf ID.
+     * @param hierarchy
+     *        Hierarchy path.
+     * @param cost
+     *        Cost parameter.
      */
     Unzipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
         		int cost) throw();

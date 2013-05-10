@@ -44,6 +44,7 @@
 #include "../forsyde/leaf.h"
 #include "../forsyde/SY/combsy.h"
 #include "../language/cfunction.h"
+#include "../language/cvariable.h"
 #include "../language/cdatatype.h"
 #include "../ticpp/ticpp.h"
 #include "../exceptions/filenotfoundexception.h"
@@ -58,11 +59,11 @@
 namespace f2cc {
 
 /**
- * @brief A class for parsing a GraphML file into an internal ForSyDe processnetwork
+ * @brief A class for parsing a XML file into an internal ForSyDe process network
  *        representation.
  *
- * The \c GraphmlParser is a frontend to the \c f2cc which parses a GraphML
- * representation of a ForSyDe processnetwork and converts it into an internal
+ * The \c XmlParser is a frontend to the \c f2cc which parses a XML
+ * representation of a ForSyDe process network and converts it into an internal
  * equivalent. Any unrecognized elements in the XML file will be ignored.
  *
  * The class uses <a href="http://code.google.com/p/ticpp/">TinyXML++</a> for
@@ -71,7 +72,7 @@ namespace f2cc {
 class XmlParser : public Frontend {
   public:
     /**
-     * Creates a GraphML parser.
+     * Creates a XML parser.
      *
      * @param logger
      *        Reference to the logger.
@@ -92,14 +93,22 @@ class XmlParser : public Frontend {
               ParseException, InvalidModelException, RuntimeException);
 
     /**
-     * Converts an \c graph XML element into an internal ForSyDe processnetwork. The
-     * method makes no checks on whether the resultant processnetwork appears sane or
-     * not.  It is the caller's responsibility to destroy the processnetwork when it is
+     * Converts an \c XML element into an internal \c Forsyde::Composite process. The
+     * method makes no checks on whether the resultant composite process appears sane or
+     * not.  It is the caller's responsibility to destroy the process network when it is
      * no longer used.
      *
      * @param xml
-     *        \c graph XML element containing the processnetwork.
-     * @returns Internal ForSyDe processnetwork object.
+     *        \c XML element containing the \c Composite process.
+     * @param processnetwork
+     *        \c The \c Forsyde::ProcessNetwork that will contain this Composite.
+     * @param id
+     *        \c The \c Forsyde::Composite process ID.
+     * @param hierarchy
+     *        \c The \c Forsyde::Composite process hierarchy path.
+     *
+     * @returns The Composite process in the internal ForSyDe ProcessNetwork.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -122,14 +131,14 @@ class XmlParser : public Frontend {
           IOException, RuntimeException);
 
     /**
-     * Gets the ID of an XML element. The ID is specified in an XML attribute
-     * named \c id. Any surrounding whitespace will be trimmed.
+     * Reads an \c .xml file and returns the \c XML document built after parsing.
      *
-     * @param xml
-     *        XML element.
-     * @returns Its ID.
+     * @param file
+     *        File to be parsed.
+     * @returns \c XML document.
+     *
      * @throws InvalidArgumentException
-     *         When \c xml is \c NULL.
+     *         When \c file is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
      * @throws IOException
@@ -144,14 +153,20 @@ class XmlParser : public Frontend {
 
 
     /**
-     * Parses the \c node XML elements in a \c graph XML element and converts
-     * them into corresponding leafs, which are then added to the processnetwork.
+     * Parses the \c leaf XML elements in a \c process_network XML element and passes them
+     * to generateLeaf(Forsyde::ProcessNetwork*,ticpp::Element*,Forsyde::Composite* )
+     * which converts
+     * them into corresponding leafs, which are then added to the \c Forsyde::ProcessNetwork.
      * mapset.
      *
      * @param xml
-     *        \c graph XML element containing the \c node XML elements.
+     *        \c process_network XML element containing the containing \c leaf_process XML
+     *        elements.
      * @param processnetwork
-     *        ProcessNetwork object to add the leaf to.
+     *        \c Forsyde::ProcessNetwork object to add the leaf to.
+     * @param parent
+     *        The parent \c Forsyde::Composite process object in the \c Forsyde::ProcessNetwork.
+     *
      * @throws InvalidArgumentException
      *         When \c xml or \c processnetwork is \c NULL.
      * @throws ParseException
@@ -168,14 +183,20 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Parses the \c node XML elements in a \c graph XML element and converts
-     * them into corresponding leafs, which are then added to the processnetwork.
-     * mapset.
+     * Parses the \c composite_process XML elements in a \c process_network XML
+     * element and converts
+     * them into corresponding \c Forsyde::Composite processes, which are then
+     * added to the \c Forsyde::ProcessNetwork mapset.
+     *
+     * This method invokes generateComposite(Forsyde::ProcessNetwork*, ticpp::Element*,Forsyde::Composite*)
+     * which opens a new \c .xml file for parsing, for each composite process.
      *
      * @param xml
-     *        \c graph XML element containing the \c node XML elements.
+     *        \c process_network XML element containing the \c composite_process XML elements.
      * @param processnetwork
-     *        ProcessNetwork object to add the leaf to.
+     *        \c Forsyde::ProcessNetwork object to add the composite to.
+     * @param parent
+     *        \c Forsyde::Composite object that acts as a parent for this one.
      * @throws InvalidArgumentException
      *         When \c xml or \c processnetwork is \c NULL.
      * @throws ParseException
@@ -192,14 +213,15 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Parses the \c node XML elements in a \c graph XML element and converts
-     * them into corresponding leafs, which are then added to the processnetwork.
-     * mapset.
+     * Parses the \c port XML elements in a \c process_network XML element and passes them
+     * to generateIOPort(ticpp::Element*,Forsyde::Composite*) which converts
+     * them into corresponding \c Forsyde::Composite::IOPort, which are then added to the parent
+     * \c Forsyde::Composite port list.
      *
      * @param xml
-     *        \c graph XML element containing the \c node XML elements.
-     * @param processnetwork
-     *        ProcessNetwork object to add the leaf to.
+     *        \c process_network XML element containing the \c port XML elements.
+     * @param parent
+     *        \c Forsyde::Composite object that contains this IOPort.
      * @throws InvalidArgumentException
      *         When \c xml or \c processnetwork is \c NULL.
      * @throws ParseException
@@ -215,14 +237,16 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Parses the \c node XML elements in a \c graph XML element and converts
-     * them into corresponding leafs, which are then added to the processnetwork.
-     * mapset.
+     * Parses the \c signal XML elements in a \c process_network XML element and passes them
+     * to generateSignal(ticpp::Element*,Forsyde::Composite*) which generates connections between two
+     * \c Forsyde::Process::Interface objects.
      *
      * @param xml
-     *        \c graph XML element containing the \c node XML elements.
-     * @param processnetwork
-     *        ProcessNetwork object to add the leaf to.
+     *        \c process_network XML element containing the \c signnal XML elements.
+     * @param parent
+     *        \c Forsyde::Composite object that contains the processes that have to be
+     *        connected.
+     *
      * @throws InvalidArgumentException
      *         When \c xml or \c processnetwork is \c NULL.
      * @throws ParseException
@@ -238,12 +262,17 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Converts an XML \c node element into an internal ForSyDe leaf of the
-     * same type along with its ports and function argument, if any.
+     * Generates a \c Forsyde::Leaf object from a \c leaf_process XML element.
      *
+     * @param pn
+     *        \c Forsyde::ProcessNetwork object to add the leaf to.
      * @param xml
-     *        \c node element containing the leaf.
-     * @returns Internal leaf object.
+     *        \c leaf_process XML element containing data for creating this object.
+     * @param parent
+     *        \c Forsyde::Composite object that acts as a parent for this one.
+     *
+     * @returns Internal leaf process object.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -260,12 +289,17 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Converts an XML \c node element into an internal ForSyDe leaf of the
-     * same type along with its ports and function argument, if any.
+     * Generates a \c Forsyde::Leaf object from a \c leaf_process XML element.
      *
+     * @param pn
+     *        \c Forsyde::ProcessNetwork object to add the leaf to.
      * @param xml
-     *        \c node element containing the leaf.
-     * @returns Internal leaf object.
+     *        \c leaf_process XML element containing data for creating this object.
+     * @param parent
+     *        \c Forsyde::Composite object that acts as a parent for this one.
+     *
+     * @returns Internal composite process object.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -282,16 +316,27 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Gets the leaf function argument from a XML \c node element. The
-     * function argument is specified in an XML "data" child element.
+     * Provides a link for the caller leaf process to a \c CFunction contained by the
+     * process network.
      *
+     * If this function does not exist, it invokes a \c CParser object and parses
+     * the \c ForSyDe-SystemC file to extract the
+     * process' C code. The \c Cparser returns a \c CFunction object which is added to the
+     * process network and a link from the caller leaf process is provided.
+     *
+     * @param pn
+     *        \c Forsyde::ProcessNetwork object to add the leaf to.
      * @param xml
-     *        \c node element.
-     * @returns Leaf function argument.
+     *        \c leaf_process XML element containing data for creating this object.
+     * @param parent
+     *        \c Forsyde::Composite object that acts as a parent for this one.
+     *
+     * @returns Pointer to a \c CFunction object in the process network.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
-     *         When a leaf function argument cannot be found or is invalid.
+     *         When some necessary element or attribute is missing.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
@@ -304,11 +349,15 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Converts an XML \c port element into an internal ForSyDe port.
+     * Generates a \c Forsyde::Leaf::Port object from a \c port XML element, and adds it
+     * to the desired leaf process.
      *
      * @param xml
-     *        \c port element containing the port.
-     * @returns Internal leaf port object.
+     *        \c port XML element containing data for creating this object.
+     * @param parent
+     *        \c Forsyde::Leaf object that should contain this port.
+     *
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -324,11 +373,14 @@ class XmlParser : public Frontend {
           RuntimeException);
 
     /**
-     * Converts an XML \c port element into an internal ForSyDe port.
+     * Generates a \c Forsyde::Composite::IOPort object from a \c port XML element,
+     * and adds it to the desired leaf process.
      *
      * @param xml
-     *        \c port element containing the port.
-     * @returns Internal leaf port object.
+     *        \c port XML element containing data for creating this object.
+     * @param parent
+     *        \c Forsyde::Composite object that should contain this io-port.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -344,11 +396,14 @@ class XmlParser : public Frontend {
           RuntimeException);
 
     /**
-     * Converts an XML \c port element into an internal ForSyDe port.
+     * Gathers the information for generating a connection between two ForSyDe interfaces.
      *
      * @param xml
-     *        \c port element containing the port.
-     * @returns Internal leaf port object.
+     *        \c signal XML element containing data for creating the connection.
+     * @param parent
+     *        \c Forsyde::Parent object that should contain the processes that are to be
+     *        connected.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -364,11 +419,19 @@ class XmlParser : public Frontend {
           RuntimeException);
 
     /**
-     * Converts an XML \c port element into an internal ForSyDe port.
+     * Generates a connection between two ForSyDe interfaces.
      *
-     * @param xml
-     *        \c port element containing the port.
-     * @returns Internal leaf port object.
+     * \b WARNING: it takes care whether the source process is a fanout and generates
+     * a new port accordingly. It does not add a fanout process, though, like in v0.1. It
+     * is the designer's responsibility to provide fanouts when a signal is split.
+     *
+     * @todo: Implement a method that automatically generates fanout processes when needed.
+     *
+     * @param source_port
+     *        Source interface.
+     * @param target_port
+     *        Target interface.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -387,11 +450,20 @@ class XmlParser : public Frontend {
 
 
     /**
-     * Converts an XML \c port element into an internal ForSyDe port.
+     * Translates a complex \c type string attribute into a ANSI C-compatible \c CDataType
+     * object.
      *
-     * @param xml
-     *        \c port element containing the port.
-     * @returns Internal leaf port object.
+     * \b OBS: the type attribute is extracted from the ForSyDe model exactly as the
+     * designer defined it. One should take care that the type deffinitions correspond
+     * to the ones in the f2cc tool.
+     *
+     * @param port_datatype
+     *        \c complex ForSyDe data type string, as defined in the ForSyDe model.
+     * @param port_size
+     *        \c Size of the data type, as extracted by ForSyDe instrospection.
+     *
+     * @returns The \c CDataType object created.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -407,11 +479,16 @@ class XmlParser : public Frontend {
           RuntimeException);
 
     /**
-     * Converts an XML \c port element into an internal ForSyDe port.
+     * Links a \c Forsyde::Leaf::Port to a \c CVariable object contained by the leaf
+     * process' function. Only \c Fotsyde::SY::Comb processes have functions.
      *
-     * @param xml
-     *        \c port element containing the port.
-     * @returns Internal leaf port object.
+     * @param comb
+     *        Comb process that contains the function.
+     * @param direction
+     *        the direction of the port.
+     * @param name
+     *        the name of the port.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -429,11 +506,15 @@ class XmlParser : public Frontend {
 
 
     /**
-     * Locates the \c graph XML element in the XML document.
+     * Locates the \c process_nertwork XML element in the XML document.
      *
      * @param xml
      *        XML document.
-     * @returns graph element.
+     * @param file
+     *        \c .xml file.
+     *
+     * @returns \c process_network element.
+     *
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -457,7 +538,7 @@ class XmlParser : public Frontend {
      *        XML object to search.
      * @param name
      *        Name of the elements to search for.
-     * @returns List of
+     * @returns List of elements with that name.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL or when \c name is an empty string.
      * @throws IOException
@@ -471,14 +552,19 @@ class XmlParser : public Frontend {
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Gets a list of elements with a particular name which are immediate
-     * children to a XML object. If none are found, an empty list is returned.
+     * Gets a particular element which is an unique immediate child to an XML
+     * object.
+     *
+     * If is more than one element with the same name, an exception is
+     * thrown.
+     *
+     * If none was found, an empty pointer is returned.
      *
      * @param xml
      *        XML object to search.
      * @param name
      *        Name of the elements to search for.
-     * @returns List of
+     * @returns Searched element.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL or when \c name is an empty string.
      * @throws IOException
@@ -495,12 +581,12 @@ class XmlParser : public Frontend {
      * Scans the entire XML structure and checks that all needed elements and
      * attributes are there and also removes all elements and attributes which
      * are not needed for the latter parsing stages. This primarily means data
-     * not included in the GraphML specification, but also data which actually
+     * not included in the ForSyDe-XML specification, but also data which actually
      * is part of the specification but not used by the synthesis component.
      *
-     * Each pruned data which belongs to the GraphML specification generates an
+     * Each pruned data which belongs to the  ForSyDe-XML specification generates an
      * entry of type \c Logger::LogLevel::INFO in the log file. Each pruned data
-     * which does not belongs to the GraphML specification generates an entry of
+     * which does not belongs to the ForSyDe-XML specification generates an entry of
      * type \c Logger::LogLevel::WARNING in the log file.
      *
      * @param xml
@@ -521,12 +607,14 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Gets the ID of an XML element. The ID is specified in an XML attribute
-     * named \c id. Any surrounding whitespace will be trimmed.
+     * Gets the attribute of an XML element. The attribute is passed as a string
+     * argument. Any surrounding whitespace will be trimmed.
      *
      * @param xml
      *        XML element.
-     * @returns Its ID.
+     * @param name
+     *        Attribute name.
+     * @returns Attribute value.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -542,11 +630,13 @@ class XmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Gets the initial delay value from a XML \c node element. The value is
-     * specified in an XML "data" child element.
+     * Gets the initial delay value from a XML \c leaf_process element of type \c delay.
      *
      * @param xml
-     *        \c node element.
+     *        \c process_constructor element.
+     * @param parent
+     *        Parent delay process object.
+     *
      * @returns Initial delay value.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
@@ -566,11 +656,211 @@ class XmlParser : public Frontend {
 
   private:
 
+    /**
+     * Logger indentation level. It describes the level of the parsed XML file.
+     */
     int level_;
 
+    /**
+     * The ForSyDe-SystemC code file being parsed.
+     */
     std::string file_;
 
+  private:
+
+    /**
+     * @brief A class for parsing a ForSyDe-SystemC file into a pure C code.
+     *
+     * The \c CParser is a text parser that identifies ForSyDe-SystemC annotations and
+     * complex data types and converts them into C-compatible code.
+     */
+    class CParser {
+      public:
+        /**
+         * Creates a C parser.
+         *
+         * @param logger
+         *        Reference to the logger.
+         * @param indent
+         *        Indentation level corresponding to the current XML file parsed.
+         */
+    	CParser(Logger& logger, int indent) throw();
+
+        /**
+         * Destroys this parser. The logger remains open.
+         */
+        ~CParser() throw();
+
+       /**
+    	* Converts a ForSyDe-SystemC function from a \c ".hpp" function file into a
+    	* \c CFunction object. This object contains pure C code and it is compatible with
+    	* f2cc v0.1.
+    	*
+    	* @param file
+    	*        the function file that has to be parsed.
+    	* @param name
+    	*        the name of the function.
+    	* @returns CFunction object containing the parsed C code.
+    	* @throws InvalidArgumentException
+    	*         When either \c file or \c name is \c NULL.
+    	* @throws ParseException
+    	*         When some necessary element is missing.
+    	* @throws IOException
+    	*         When access to the log file fails.
+    	* @throws RuntimeException
+    	*         When something unexpected occurs. This is most likely due to a
+    	*         bug.
+    	*/
+        CFunction* parseCFunction(const std::string& file, const std::string& name)
+            throw(InvalidArgumentException, IOException, ParseException, RuntimeException);
+
+      private:
+
+       /**
+    	* Parses the function declaration. It identifies the declaration section; identifies
+    	* individual variables as input or output parameters; identifies and converts complex
+    	* STL data types into basic ANSI C data types. Based on this information, it builds
+    	* \c CVariable objects and adds them to the function.
+    	*
+    	* @param function
+    	*        the function that will contain the new CVariables.
+    	*
+    	* @throws InvalidArgumentException
+    	*         When \c function is \c NULL.
+    	* @throws ParseException
+    	*         When some necessary element or attribute is missing.
+    	*
+    	*/
+        void parseDeclaration(CFunction* function)
+            throw(InvalidArgumentException, ParseException);
+
+       /**
+    	* Extracts the function body from the ForSyDe-SystemC function code between:
+    	* @code
+    	* #pragma ForSyDe begin <function_name>
+    	* ...
+    	* #pragma ForSyDe end
+    	* @endcode
+    	* It is assumed that the code is written in a pure ANSI C format, since no modifications
+    	* are made to this part.
+    	*
+    	* @param function
+    	*        the function that will contain the new body.
+    	*
+    	* @throws InvalidArgumentException
+    	*         When \c function is \c NULL.
+    	* @throws ParseException
+    	*         When some necessary element or attribute is missing.
+    	*/
+        void extractBody(CFunction* function)
+            throw(InvalidArgumentException, IOException);
+
+       /**
+    	* Associates function parameters which are wrapped into ForSyDe signal data types, with
+    	* the unwrapped C variables inside the ForSyDe pragmas. Based on this associations, a
+    	* recursive search is made and the function variables are renamed to match those in
+    	* the function body.
+    	*
+    	* @param function
+    	*        the function analyzed.
+    	* @throws InvalidArgumentException
+    	*         When \c function is \c NULL.
+    	* @throws ParseException
+    	*         When some necessary element or attribute is missing.
+    	*/
+        void renameWrappedVariables(CFunction* function)
+            throw(InvalidArgumentException, ParseException);
+
+        /**
+    	* Creates a CVariable object from an analysis string having the format
+    	* @code
+    	* <base_data_type>[*&] <variable_name>
+    	* @endcode
+    	* and adds it to the CFunction.
+    	*
+    	* @param function
+    	*        the function that contains the variables
+    	* @param analysis_string
+    	*        the string for analysis
+    	* @param is_output
+    	*        determines whether it is an input or output parameter
+    	*
+    	* @throws InvalidArgumentException
+    	*         When \c function is \c NULL.
+    	* @throws ParseException
+    	*         When some necessary element or attribute is missing.
+    	* @throws OutOfMemoryException
+    	*         When the the variable could not be added due to memory shortage.
+    	*/
+        void createFunctionParameter(CFunction* function, std::string analysis_string,
+        		bool is_output) throw(InvalidArgumentException, ParseException,
+        				OutOfMemoryException);
+
+        /**
+    	* Gets the base data type inside a \c std::array template, and passes it to the
+    	* caller.
+    	*
+    	* @param analysis_string
+    	*        the string for analysis.
+    	* @param data_type
+    	*        pointer to the data type string which has to be filled by this function.
+    	*
+    	* @returns Position in the string where the template ends.
+    	*
+    	* @throws InvalidArgumentException
+    	*         When \c xml is \c NULL.
+    	* @throws ParseException
+    	*         When some necessary element or attribute is missing.
+    	*/
+        unsigned getArrayDataType(const std::string& analysis_string,
+        		std::string* data_type) throw(InvalidArgumentException, ParseException);
+
+        /**
+    	* Gets the base data type inside a C++ template, and passes it to the
+    	* caller.
+    	*
+    	* @param analysis_string
+    	*        the string for analysis.
+    	* @param data_type
+    	*        pointer to the data type string which has to be filled by this function.
+    	*
+    	* @returns Position in the string where the template ends.
+    	*
+    	* @throws InvalidArgumentException
+    	*         When \c xml is \c NULL.
+    	* @throws ParseException
+    	*         When some necessary element or attribute is missing.
+    	*/
+        unsigned getTemplateBaseDataType(const std::string& analysis_string,
+        		std::string* data_type) throw(InvalidArgumentException, ParseException);
+
+      private:
+
+        /**
+         * Logger indentation level. It describes the level of the parsed XML file.
+         */
+        int level_;
+
+        /**
+         * The ForSyDe-SystemC code file being parsed.
+         */
+        std::string file_;
+
+        /**
+         * Local storage of the file's text.
+         */
+        std::string cdata_;
+
+        /**
+         * Logger.
+         */
+        Logger& logger_;
+
+    };
+
 };
+
+
 
 }
 

@@ -67,6 +67,10 @@ class delay : public Leaf {
      *
      * @param id
      *        Leaf ID.
+     * @param hierarchy
+     *        Hierarchy path.
+     * @param cost
+     *        Cost parameter.
      * @param initial_value
      *        Initial delay value.
      * @throws InvalidArgumentException

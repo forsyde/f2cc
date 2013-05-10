@@ -54,6 +54,10 @@ class Comb : public Leaf {
      *
      * @param id
      *        Leaf ID.
+     * @param hierarchy
+     *        Hierarchy path.
+     * @param cost
+     *        Cost parameter.
      * @param function
      *        Leaf function argument.
      */

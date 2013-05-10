@@ -89,8 +89,7 @@ void XmlDumper::dump(ProcessNetwork* pn, const string& file)
 }
 
 void XmlDumper::dumpProcessNetwork(ProcessNetwork* pn, Document doc)
-    throw(InvalidArgumentException, FileNotFoundException,
-            InvalidModelException, RuntimeException){
+    throw(InvalidArgumentException, InvalidModelException, RuntimeException){
     if (!pn) {
         THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }

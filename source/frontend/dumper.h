@@ -50,22 +50,17 @@
 namespace f2cc {
 
 /**
- * @brief An port for defining a frontend. The frontend parses a file of
- *        expected input and converts it into an internal ForSyDe processnetwork
- *        representation.
+ * @brief An XML dumper for the internam \c Forsyde model.
  *
- * The \c Frontend port specifies the methods required by all frontend
- * implementations. A frontend takes a file as input, and parses the content
- * into an internal ForSyDe processnetwork representation, which can be handled by the
- * later stages of the software synthesis leaf.
- *
- * The port is actually an abstract base class as it provides some method
- * implementations, but it should really be viewed as an port.
+ * The \c XmlDumper class parses the internal representation of the ForSyDe model in a
+ * \c Forsyde::ProcessNetwork and dumps it into a single \c XML file. It is useful for debugging
+ * purposes and plotting the intermediate stages in the \c ModelModifier and
+ * \c SyscModelModifier.
  */
 class XmlDumper {
   public:
     /**
-     * Creates a frontend.
+     * Creates a dumper.
      *
      * @param logger
      *        Reference to the logger.
@@ -73,31 +68,26 @@ class XmlDumper {
 	XmlDumper(Logger& logger) throw();
 
     /**
-     * Destroys this frontend. The logger remains open.
+     * Destroys this dumper. The logger remains open.
      */
     virtual ~XmlDumper() throw();
 
     /**
-     * Parses a file converts it into a corresponding internal representation of
-     * the ForSyDe processnetwork. The processnetwork will also be checked so that it appears
-     * sane for the later stages of the software synthesis leaf.
+     * Dumps a \c Forsyde::ProcessNetwork into an XML file.
      *
-     * The receiver of the returned processnetwork is responsible of freeing the memory
-     * consumed when the processnetwork is no longer needed.
-     *
+     * @param pn
+     *        The \c Forsyde::ProcessNetwork that needs to be dumped.
      * @param file
-     *        Input file.
-     * @returns Parsed processnetwork.
+     *        Output file.
+     *
      * @throws InvalidArgumentException
-     *         When \c file is an empty string.
-     * @throws FileNotFoundException
-     *         When the file cannot be found.
+     *         When \c file is an empty string or \c pn doesn't exist.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws ParseException
      *         When the file fails to be parsed.
      * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When a process in the process network is invalid.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
@@ -108,76 +98,62 @@ class XmlDumper {
 
   private:
     /**
-     * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
-     * responsible of dynamically allocating and returning a new \c
-     * Forsyde::ProcessNetwork object.
+     * Builds an XML \c Document object from a \c Forsyde::ProcessNetwork object.
      *
-     * @param file
-     *        Input file.
-     * @returns Parsed processnetwork.
+     * @param pn
+     *        The \c Forsyde::ProcessNetwork that needs to be dumped.
+     * @param doc
+     *        The \c Document object that will hold the XML data.
+     *
      * @throws InvalidArgumentException
-     *         When \c file is an empty string.
-     * @throws FileNotFoundException
-     *         When the file cannot be found.
-     * @throws IOException
-     *         When the file cannot be read or the log file cannot be written.
+     *         When \c \c pn doesn't exist.
      * @throws ParseException
      *         When the file fails to be parsed.
      * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When an element of the process network is invalid.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
     void dumpProcessNetwork(Forsyde::ProcessNetwork* pn,
     		ticpp::Document doc)
-        throw(InvalidArgumentException, FileNotFoundException,
-              InvalidModelException, RuntimeException);
+        throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
     /**
-     * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
-     * responsible of dynamically allocating and returning a new \c
-     * Forsyde::ProcessNetwork object.
+     * Dumps a \c Forsyde::Composite process into an XML \c Element object.
      *
-     * @param file
-     *        Input file.
-     * @returns Parsed processnetwork.
+     * @param composite
+     *        The \c Forsyde::Composite process that needs to be dumped.
+     * @param parent
+     *        The \c Element object that will hold its XML data.
+     *
      * @throws InvalidArgumentException
-     *         When \c file is an empty string.
-     * @throws FileNotFoundException
-     *         When the file cannot be found.
-     * @throws IOException
-     *         When the file cannot be read or the log file cannot be written.
+     *         When \c parent or \c composite doesn't exist.
      * @throws ParseException
      *         When the file fails to be parsed.
      * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When an element of the process network is invalid.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
     void dumpComposite(Forsyde::Composite* composite, ticpp::Element* parent)
-        throw(InvalidArgumentException,
-              InvalidModelException, RuntimeException);
+        throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
     /**
-     * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
-     * responsible of dynamically allocating and returning a new \c
-     * Forsyde::ProcessNetwork object.
+     * Dumps a \c Forsyde::Leaf process into an XML \c Element object.
      *
-     * @param file
-     *        Input file.
-     * @returns Parsed processnetwork.
+     * @param leaf
+     *        The \c Forsyde::Leaf process that needs to be dumped.
+     * @param parent
+     *        The \c Element object that will hold its XML data.
+     *
      * @throws InvalidArgumentException
-     *         When \c file is an empty string.
-     * @throws FileNotFoundException
-     *         When the file cannot be found.
-     * @throws IOException
-     *         When the file cannot be read or the log file cannot be written.
+     *         When \c parent or \c leaf doesn't exist.
      * @throws ParseException
      *         When the file fails to be parsed.
      * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When an element of the process network is invalid.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
@@ -186,23 +162,22 @@ class XmlDumper {
         throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
     /**
-     * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
-     * responsible of dynamically allocating and returning a new \c
-     * Forsyde::ProcessNetwork object.
+     * Dumps a \c Forsyde::Composite::IOPort and its connection inside, and exports them into
+     * an XML \c Element object.
      *
-     * @param file
-     *        Input file.
-     * @returns Parsed processnetwork.
+     * @param port
+     *        The \c Forsyde::Composite::IOPort process that that to be dumped.
+     * @param composite
+     *        The \c Element object that holds the data for its parent \c Forsyde::Composite process.
+     * @param direction
+     *        The port's direction (in or out).
+     *
      * @throws InvalidArgumentException
-     *         When \c file is an empty string.
-     * @throws FileNotFoundException
-     *         When the file cannot be found.
-     * @throws IOException
-     *         When the file cannot be read or the log file cannot be written.
+     *         When \c port or \c composite doesn't exist.
      * @throws ParseException
      *         When the file fails to be parsed.
      * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When an element of the process network is invalid.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
@@ -212,23 +187,19 @@ class XmlDumper {
         throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
     /**
-     * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
-     * responsible of dynamically allocating and returning a new \c
-     * Forsyde::ProcessNetwork object.
+     * Dumps a link between two \c Forsyde::Leaf::Port into an XML \c Element object called "signal".
      *
-     * @param file
-     *        Input file.
-     * @returns Parsed processnetwork.
+     * @param port
+     *        The \c Forsyde::Leaf::Port that that to be dumped, and its connection at the other end.
+     * @param composite
+     *        The \c Element object that holds the data for its parent \c Forsyde::Composite process.
+     *
      * @throws InvalidArgumentException
-     *         When \c file is an empty string.
-     * @throws FileNotFoundException
-     *         When the file cannot be found.
-     * @throws IOException
-     *         When the file cannot be read or the log file cannot be written.
+     *         When \c port or \c composite doesn't exist.
      * @throws ParseException
      *         When the file fails to be parsed.
      * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When an element of the process network is invalid.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
@@ -237,23 +208,22 @@ class XmlDumper {
         throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
     /**
-     * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
-     * responsible of dynamically allocating and returning a new \c
-     * Forsyde::ProcessNetwork object.
+     * Dumps a link between a \c Forsyde::Composite::IOPort and its connection outside into an XML
+     * \c Element object called "signal". It behaves like
+     * dumpSignal(Forsyde::Leaf::Port*, ticpp::Element*), but it takes a \c Forsyde::Composite::IOPort
+     * as argument, since there may exist uncovered signals with an IOPort as source.
      *
-     * @param file
-     *        Input file.
-     * @returns Parsed processnetwork.
+     * @param port
+     *        The \c Forsyde::Composite::IOPort that that to be dumped, and its connection at the other end.
+     * @param composite
+     *        The \c Element object that holds the data for its parent \c Forsyde::Composite process.
+     *
      * @throws InvalidArgumentException
-     *         When \c file is an empty string.
-     * @throws FileNotFoundException
-     *         When the file cannot be found.
-     * @throws IOException
-     *         When the file cannot be read or the log file cannot be written.
+     *         When \c port or \c composite doesn't exist.
      * @throws ParseException
      *         When the file fails to be parsed.
      * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When an element of the process network is invalid.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
@@ -263,50 +233,28 @@ class XmlDumper {
 
 
     /**
-     * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
-     * responsible of dynamically allocating and returning a new \c
-     * Forsyde::ProcessNetwork object.
+     * Checks whether a \c Forsyde::Process was visited during the parsing.
      *
-     * @param file
-     *        Input file.
-     * @returns Parsed processnetwork.
-     * @throws InvalidArgumentException
-     *         When \c file is an empty string.
-     * @throws FileNotFoundException
-     *         When the file cannot be found.
-     * @throws IOException
-     *         When the file cannot be read or the log file cannot be written.
-     * @throws ParseException
-     *         When the file fails to be parsed.
-     * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
-     * @throws RuntimeException
-     *         When something unexpected occurs. This is most likely due to a
-     *         bug.
+     * @param process
+     *        The \c Forsyde::Process that is checked.
+     *
+	 * @returns \b true if the process was visited.
+     *
+     * @throws InvalidArgumentExceptison
+     *         When \c process doesn't exist.
      */
     bool isVisitedProcess(Forsyde::Process* process) throw(InvalidArgumentException);
 
     /**
-     * Creates a new ForSyDe processnetwork by parsing a given input file. This method is
-     * responsible of dynamically allocating and returning a new \c
-     * Forsyde::ProcessNetwork object.
+     * Checks whether a \c Forsyde::Process::Interface was visited during the parsing.
      *
-     * @param file
-     *        Input file.
-     * @returns Parsed processnetwork.
+     * @param port
+     *        The \c Forsyde::Process::Interface that is checked.
+     *
+	 * @returns \b true if the interface was visited.
+     *
      * @throws InvalidArgumentException
-     *         When \c file is an empty string.
-     * @throws FileNotFoundException
-     *         When the file cannot be found.
-     * @throws IOException
-     *         When the file cannot be read or the log file cannot be written.
-     * @throws ParseException
-     *         When the file fails to be parsed.
-     * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
-     * @throws RuntimeException
-     *         When something unexpected occurs. This is most likely due to a
-     *         bug.
+     *         When \c process doesn't exist.
      */
     bool isVisitedPort(Forsyde::Process::Interface* port) throw(
     		InvalidArgumentException);
@@ -318,12 +266,12 @@ class XmlDumper {
     Logger& logger_;
 
     /**
-     * Logger.
+     * A list with visited processes.
      */
     std::list<Forsyde::Process*> visited_processes_;
 
     /**
-     * Logger.
+     * A list with visited interfaces.
      */
     std::list<Forsyde::Process::Interface*> visited_ports_;
 };

@@ -77,7 +77,10 @@ class CVariable {
     ~CVariable() throw();
 
     /**
-	 * Gets the data type of this variable.
+	 * Changes the variable name.
+	 *
+     * @param name
+     *        Variable name.
 	 *
 	 * @returns Data type.
 	 */
