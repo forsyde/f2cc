@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,23 @@
 #include "../../tools/tools.h"
 #include <typeinfo>
 
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::bad_cast;
 
 delay::delay(const Id& id, const string& initial_value)
         throw(InvalidArgumentException)
         : Leaf(id), initial_value_(initial_value) {
+    if (initial_value_.length() == 0) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"initial_value\" must not "
+                        "be empty string");
+    }
+}
+
+delay::delay(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
+ 		int cost, const string& initial_value)
+        throw(InvalidArgumentException)
+        : Leaf(id, hierarchy, string("sy"), cost), initial_value_(initial_value) {
     if (initial_value_.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"initial_value\" must not "
                         "be empty string");

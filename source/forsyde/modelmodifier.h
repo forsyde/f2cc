@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +52,7 @@
 #include <vector>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 
 /**
  * @brief Performs semantic-preserving modifications on a \c ProcessNetwork
@@ -77,7 +79,7 @@ class ModelModifier {
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
      */
-    ModelModifier(ForSyDe::ProcessNetwork* processnetwork, Logger& logger)
+    ModelModifier(Forsyde::ProcessNetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
@@ -112,8 +114,8 @@ class ModelModifier {
         throw(IOException, RuntimeException);
 
     /**
-     * Splits data parallel segments by injecting a \c zipxSY followed by an
-     * \c unzipxSY leaf between each segment.
+     * Splits data parallel segments by injecting a \c ZipxSY followed by an
+     * \c UnzipxSY leaf between each segment.
      *
      * @throws IOException
      *         When access to the log file failed.
@@ -124,7 +126,7 @@ class ModelModifier {
     void splitDataParallelSegments() throw(IOException, RuntimeException);
 
     /**
-     * Fuses a segment of \c unzipxSY, \c mapSY, and \c zipxSY leafs into a
+     * Fuses a segment of \c UnzipxSY, \c mapSY, and \c ZipxSY leafs into a
      * single \c parallelmapSY leaf with the same leaf function argument
      * as the \c mapSY leafs.
      *
@@ -160,7 +162,7 @@ class ModelModifier {
     /**
      * Removes redundant leafs from the processnetwork. Redundant leafs are
      * instances which does not affect the semantic behaviour of the processnetwork when
-     * removed, such as \c UnzipxSy and \c ZipxSy leafs with only one in
+     * removed, such as \c UnZipxSy and \c ZipxSy leafs with only one in
      * and out port.
      *
      * @throws IOException
@@ -174,7 +176,7 @@ class ModelModifier {
 
   private:
     /**
-     * Injects a \c zipxSY followed by an \c unzipxSY leaf between each
+     * Injects a \c ZipxSY followed by an \c UnzipxSY leaf between each
      * segment (column of mapSY leafs) in a section. The section is given
      * as a vector of leaf chains (which is also given as a vector).
      *
@@ -187,7 +189,7 @@ class ModelModifier {
      *         bug.
      */
     void splitDataParallelSegments(
-        std::vector< std::vector<ForSyDe::Leaf*> > chains)
+        std::vector< std::vector<Forsyde::Leaf*> > chains)
             throw(IOException, RuntimeException);
 
     /**
@@ -208,8 +210,8 @@ class ModelModifier {
     /**
      * Searches for contained sections within the processnetwork. A contained section is
      * a part of the processnetwork which:
-     *   - start with a \c unzipxSY leaf, and
-     *   - ends with a \c zipxSY leaf, where
+     *   - start with a \c UnzipxSY leaf, and
+     *   - ends with a \c ZipxSY leaf, where
      *   - all data flow diverging from the starting point converges at the end
      *     point, and
      *   - all data flow converging to the end point diverges from the starting
@@ -244,23 +246,23 @@ class ModelModifier {
      *         bug.
      */
     std::list<ContainedSection> findContainedSections(
-        ForSyDe::Leaf* begin, std::set<ForSyDe::Id> visited)
+        Forsyde::Leaf* begin, std::set<Forsyde::Id> visited)
         throw(IOException, RuntimeException);
     
     /**
-     * Finds the nearest \c unzipx leaf that can be found from a given
+     * Finds the nearest \c Unzipx leaf that can be found from a given
      * starting point.
      *
      * @param begin
      *        Leaf to begin from.
-     * @returns A zipx leaf, if found; otherwise \c NULL.
+     * @returns A Zipx leaf, if found; otherwise \c NULL.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    ForSyDe::SY::unzipx* findNearestunzipxLeaf(ForSyDe::Leaf* begin)
+    Forsyde::SY::Unzipx* findNearestUnzipxLeaf(Forsyde::Leaf* begin)
     throw(IOException, RuntimeException);
 
     /**
@@ -271,7 +273,7 @@ class ModelModifier {
      *        Starting point.
      * @param end
      *        End point.
-     * @returns \c true if the paths are contained within the same start and 
+     * @returns \b true if the paths are contained within the same start and 
      *          end points.
      * @throws InvalidArgumentException
      *         When either \c start or \c end is \c NULL.
@@ -294,9 +296,9 @@ class ModelModifier {
      * @param end
      *        Expected end point.
      * @param forward
-     *        Set to \c true for forward data flow check (from start to end),
-     *        and \c false for backward data flow check (from end to start).
-     * @returns \c true if the check is passed.
+     *        Set to \b true for forward data flow check (from start to end),
+     *        and \b false for backward data flow check (from end to start).
+     * @returns \b true if the check is passed.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
@@ -318,7 +320,7 @@ class ModelModifier {
      *
      * @param section
      *        A contained section.
-     * @returns \c true if the section is data parallel.
+     * @returns \b true if the section is data parallel.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
@@ -333,9 +335,9 @@ class ModelModifier {
      * 
      * @param chain
      *        Leaf chain.
-     * @returns \c true if the chain consists of only \c Map leafs.
+     * @returns \b true if the chain consists of only \c Map leafs.
      */
-    bool hasOnlyMapSys(std::list<ForSyDe::Leaf*> chain) const throw();
+    bool hasOnlyMapSys(std::list<Forsyde::Leaf*> chain) const throw();
 
     /**
      * Checks if two leaf chains are of equal lengths and have the same order
@@ -345,15 +347,15 @@ class ModelModifier {
      *        First leaf chain.
      * @param second
      *        Second leaf chain.
-     * @returns \c true if the chains are equal.
+     * @returns \b true if the chains are equal.
      * @throws IOException
      *         When access to the log file failed.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    bool areLeafChainsEqual(std::list<ForSyDe::Leaf*> first,
-                               std::list<ForSyDe::Leaf*> second)
+    bool areLeafChainsEqual(std::list<Forsyde::Leaf*> first,
+                               std::list<Forsyde::Leaf*> second)
         throw(IOException, RuntimeException);
 
     /**
@@ -370,8 +372,8 @@ class ModelModifier {
      * @throws OutOfMemoryException
      *         When the chain cannot be created due to memory shortage.
      */
-    std::list<ForSyDe::Leaf*> getProcessChain(
-        ForSyDe::Leaf::Port* start, ForSyDe::Leaf* end)
+    std::list<Forsyde::Leaf*> getProcessChain(
+        Forsyde::Leaf::Port* start, Forsyde::Leaf* end)
         throw(OutOfMemoryException);
 
     /**
@@ -386,7 +388,7 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void coalesceLeafChain(std::list<ForSyDe::Leaf*> chain)
+    void coalesceLeafChain(std::list<Forsyde::Leaf*> chain)
         throw(RuntimeException);
 
     /**
@@ -397,13 +399,13 @@ class ModelModifier {
      * 
      * @param chain
      *        Leaf chain.
-     * @returns \c true if the chain can be coalesced.
+     * @returns \b true if the chain can be coalesced.
      * @throws RuntimeException
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
     bool isParallelMapSyChainCoalescable(
-        std::list<ForSyDe::SY::ParallelMap*> chain) throw(RuntimeException);
+        std::list<Forsyde::SY::ParallelMap*> chain) throw(RuntimeException);
 
     /**
      * Searches for chains for \c ParallelMap leafs within the processnetwork.
@@ -415,7 +417,7 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    std::list< std::list<ForSyDe::SY::ParallelMap*> > findParallelMapSyChains()
+    std::list< std::list<Forsyde::SY::ParallelMap*> > findParallelMapSyChains()
         throw(IOException, RuntimeException);
 
     
@@ -436,7 +438,7 @@ class ModelModifier {
      *         bug.
      */
     std::list< std::list<SY::ParallelMap*> > findParallelMapSyChains(
-        ForSyDe::Leaf* begin, std::set<ForSyDe::Id> visited)
+        Forsyde::Leaf* begin, std::set<Forsyde::Id> visited)
         throw(IOException, RuntimeException);
 
     /**
@@ -451,7 +453,7 @@ class ModelModifier {
      *         When a program error has occurred. This most likely indicates a
      *         bug.
      */
-    void coalesceParallelMapSyChain(std::list<ForSyDe::SY::ParallelMap*> chain)
+    void coalesceParallelMapSyChain(std::list<Forsyde::SY::ParallelMap*> chain)
         throw(RuntimeException);
 
     /**
@@ -461,13 +463,13 @@ class ModelModifier {
      *        Leaf chain.
      * @returns String representation.
      */
-    std::string leafChainToString(std::list<ForSyDe::Leaf*> chain)
+    std::string leafChainToString(std::list<Forsyde::Leaf*> chain)
         const throw();
 
     /**
-     * @copydoc leafChainToString(std::list<ForSyDe::Leaf*>) const
+     * @copydoc leafChainToString(std::list<Forsyde::Leaf*>) const
      */
-    std::string leafChainToString(std::list<ForSyDe::SY::ParallelMap*> chain)
+    std::string leafChainToString(std::list<Forsyde::SY::ParallelMap*> chain)
         const throw();
 
     /**
@@ -479,7 +481,7 @@ class ModelModifier {
      * @throws InvalidArgumentExceptionException
      *         When \c leaf is \c NULL.
      */
-    void destroyLeafChain(ForSyDe::Leaf* start)
+    void destroyLeafChain(Forsyde::Leaf* start)
         throw(InvalidArgumentException);
 
     /**
@@ -553,12 +555,12 @@ class ModelModifier {
         /**
          * First leaf in the chain.
          */
-        ForSyDe::Leaf* start;
+        Forsyde::Leaf* start;
 
         /**
          * Last leaf in the chain.
          */
-        ForSyDe::Leaf* end;
+        Forsyde::Leaf* end;
 
         /**
          * Creates a contained section.
@@ -570,7 +572,7 @@ class ModelModifier {
          * @throws InvalidArgumentException
          *         When either \c start or \c end is \c NULL.
          */
-        ContainedSection(ForSyDe::Leaf* start, ForSyDe::Leaf* end)
+        ContainedSection(Forsyde::Leaf* start, Forsyde::Leaf* end)
             throw(InvalidArgumentException);
 
         /**
@@ -585,7 +587,7 @@ class ModelModifier {
     /**
      * ForSyDe processnetwork.
      */
-    ForSyDe::ProcessNetwork* const processnetwork_;
+    Forsyde::ProcessNetwork* const processnetwork_;
 
     /**
      * Logger.

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +43,7 @@
 #include "logger/logger.h"
 #include "frontend/frontend.h"
 #include "frontend/graphmlparser.h"
+#include "frontend/xmlparser.h"
 #include "forsyde/processnetwork.h"
 #include "forsyde/leaf.h"
 #include "forsyde/modelmodifier.h"
@@ -57,7 +60,7 @@
 #include <set>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using std::string;
 using std::cout;
 using std::endl;
@@ -129,7 +132,22 @@ int main(int argc, const char* argv[]) {
     // Execute
     try {
         try {
-            Frontend* parser = new (std::nothrow) GraphmlParser(logger);
+        	Frontend* parser;
+            switch (config.getInputFormat()) {
+                case Config::XML: {
+                	logger.logInfoMessage(string("New XML format assumed.")
+                			+ " The execution will follow the path from v0.2...");
+                	parser = new (std::nothrow) XmlParser(logger);
+                    break;
+                }
+
+                case Config::CUDA: {
+                	logger.logInfoMessage(string("Old GraphML format assumed.")
+                	        + " The execution will follow the path from v0.1...");
+                	parser = new (std::nothrow) GraphmlParser(logger);
+                    break;
+                }
+            }
             if (!parser) THROW_EXCEPTION(OutOfMemoryException);
             logger.logInfoMessage(string("MODEL INPUT FILE: ")
                                   + config.getInputFile());
@@ -159,8 +177,8 @@ int main(int argc, const char* argv[]) {
             ModelModifier modifier(processnetwork, logger);
             logger.logInfoMessage("Removing redundant leafs...");
             modifier.removeRedundantLeafs();
-            logger.logInfoMessage("Converting comb leafs "
-                              "with one in port to comb leafs...");
+            logger.logInfoMessage("Converting Comb leafs "
+                              "with one in port to Comb leafs...");
             modifier.convertZipWith1ToMap();
             if (config.getTargetPlatform() == Config::CUDA) {
                 string leaf_coalescing_message("DATA PARALLEL PROCESS "
@@ -174,7 +192,7 @@ int main(int argc, const char* argv[]) {
                 logger.logInfoMessage(leaf_coalescing_message);
                 if (config.doDataParallelLeafCoalesing()) {
                     logger.logInfoMessage(""
-                                      "Performing data parallel comb leaf "
+                                      "Performing data parallel Comb leaf "
                                       "coalescing...");
                     modifier.coalesceDataParallelLeafs();
                 }
@@ -184,7 +202,7 @@ int main(int argc, const char* argv[]) {
                 modifier.splitDataParallelSegments();
 
                 logger.logMessage(Logger::INFO,
-                                  "Fusing chains of unzipx-map-zipx "
+                                  "Fusing chains of Unzipx-map-Zipx "
                                   "leafs...");
                 modifier.fuseUnzipMapZipLeafs();
 
@@ -229,7 +247,7 @@ int main(int argc, const char* argv[]) {
             logger.logErrorMessage(ex.getMessage());
         } catch (ParseException& ex) {
             logger.logErrorMessage(parse_error_str + ex.getMessage());
-        } catch (InvalidProcessNetworkException& ex) {
+        } catch (InvalidModelException& ex) {
             logger.logErrorMessage(processnetwork_error_str + ex.getMessage());
         } catch (IOException& ex) {
             logger.logErrorMessage(io_error_str + ex.getMessage());

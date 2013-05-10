@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +31,8 @@
 #include <list>
 #include <new>
 
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
+using namespace f2cc;
 using std::string;
 using std::map;
 using std::list;
@@ -39,7 +42,9 @@ using std::bad_alloc;
 ProcessNetwork::ProcessNetwork() throw() :
 	Model() {}
 
-ProcessNetwork::~ProcessNetwork() throw() {}
+ProcessNetwork::~ProcessNetwork() throw() {
+	destroyAllFunctions();
+}
 
 bool ProcessNetwork::addInput(Process::Interface* port)
     throw(InvalidArgumentException, IllegalStateException,
@@ -125,6 +130,64 @@ std::list<Process::Interface*> ProcessNetwork::getOutputs() throw() {
     return outputs_;
 }
 
+bool ProcessNetwork::addFunction(CFunction* function)
+    throw(InvalidArgumentException, OutOfMemoryException) {
+    if (!function) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"function\" must not be "
+                        "NULL");
+    }
+    try {
+        pair<map<const Id, CFunction*>::iterator, bool>
+            result = functions_.insert(pair<const Id, CFunction*>(
+                    Id(function->getName()), function));
+        return result.second;
+    }
+    catch(bad_alloc&) {
+        THROW_EXCEPTION(OutOfMemoryException);
+    }
+}
+
+void ProcessNetwork::addFunctions(map<const Id, CFunction*> functions)
+    throw(OutOfMemoryException) {
+    try {
+        functions_.insert(functions.begin(), functions.end());
+    }
+    catch(bad_alloc&) {
+        THROW_EXCEPTION(OutOfMemoryException);
+    }
+}
+
+CFunction* ProcessNetwork::getFunction(const Id& id) throw() {
+    map<const Id, CFunction*>::iterator it = findFunction(id);
+    return it != functions_.end() ? it->second : NULL;
+}
+
+int ProcessNetwork::getNumFunctions() const throw() {
+    return functions_.size();
+}
+
+list<CFunction*> ProcessNetwork::getFunctions() throw() {
+    list<CFunction*> functions;
+    map<const Id, CFunction*>::iterator it;
+    for (it = functions_.begin(); it != functions_.end(); ++it) {
+        functions.push_back(it->second);
+    }
+    return functions;
+}
+
+bool ProcessNetwork::deleteFunction(const Id& id) throw() {
+    map<const Id, CFunction*>::iterator it = findFunction(id);
+    if (it != functions_.end()) {
+    	CFunction* removed_function = it->second;
+        functions_.erase(it);
+        delete removed_function;
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 list<Process::Interface*>::iterator ProcessNetwork::findPort(
     const Id& id, list<Process::Interface*>& ports) const throw() {
     list<Process::Interface*>::iterator it;
@@ -168,6 +231,9 @@ std::string ProcessNetwork::toString() const throw() {
     str += " Outputs = {";
     str += portsToString(outputs_);
     str += "}\n";
+    str += " NumFunctions: ";
+    str += tools::toString(getNumFunctions());
+    str += ",\n";
     str += "}";
     return str;
 }
@@ -189,11 +255,21 @@ string ProcessNetwork::portsToString(const list<Process::Interface*> ports) cons
             Process::Interface* port = *it;
             str += "  ID: ";
             str += port->getId()->getString();
-            str += ", ";
-            str += "belonging to ";
-            str += port->getProcess()->getId()->getString();
+            str += ": ";
+            str += port->toString();
         }
         str += "\n ";
     }
     return str;
+}
+
+void ProcessNetwork::destroyAllFunctions() throw() {
+    map<const Id, CFunction*>::iterator it;
+    for (it=functions_.begin(); it != functions_.end(); ++it) {
+        delete it->second;
+    }
+}
+
+map<const Id, CFunction*>::iterator ProcessNetwork::findFunction(const Id& id) throw() {
+    return functions_.find(id);
 }
