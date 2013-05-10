@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -47,8 +49,8 @@
 #include <new>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde;
+using namespace f2cc::Forsyde::SY;
 using ticpp::Document;
 using ticpp::Node;
 using ticpp::Element;
@@ -65,7 +67,7 @@ GraphmlParser::~GraphmlParser() throw() {}
 
 ProcessNetwork* GraphmlParser::createProcessNetwork(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidProcessNetworkException, RuntimeException) {
+          ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
@@ -211,7 +213,7 @@ Element* GraphmlParser::findXmlGraphElement(Document* xml)
 }
 
 ProcessNetwork* GraphmlParser::generateProcessNetwork(Element* xml)
-    throw(InvalidArgumentException, ParseException, InvalidProcessNetworkException,
+    throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException) {
     if (!xml) {
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
@@ -365,10 +367,10 @@ Leaf* GraphmlParser::generateLeaf(Element* xml)
                                         generateLeafFunction(xml));
         }
         else if (process_type == "unzipxsy") {
-            process = new unzipx(Id(process_id));
+            process = new Unzipx(Id(process_id));
         }
         else if (process_type == "zipxsy") {
-            process = new zipx(Id(process_id));
+            process = new Zipx(Id(process_id));
         }
         else if (process_type == "delaysy") {
             process = new delay(Id(process_id), getInitialDelayValue(xml));
@@ -967,15 +969,15 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
                            + target_port->toString() + "\"");
     }
     else {
-        // Source port already connected; use intermediate fanout process
+        // Source port already connected; use intermediate Fanout process
         logger_.logMessage(Logger::DEBUG,
                            string("Source port \"")
                            + source_port->toString() + "\" already connected "
                            + "to \""
                            + source_port->getConnectedPort()->toString()
-                           + "\". Using intermediate fanout process.");
+                           + "\". Using intermediate Fanout process.");
 
-        // Get fanout process
+        // Get Fanout process
         Leaf* copy_process;
         map<Leaf::Port*, Leaf*>::iterator it =
             copy_processs.find(source_port);
@@ -983,13 +985,13 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
             copy_process = it->second;
         }
         else {
-            // No such fanout process; create a new one
+            // No such Fanout process; create a new one
             copy_process = new (std::nothrow)
-                fanout(processnetwork->getUniqueProcessId("_copySY_"));
+                Fanout(processnetwork->getUniqueProcessId("_copySY_"));
             if (copy_process == NULL) THROW_EXCEPTION(OutOfMemoryException);
             copy_processs.insert(pair<Leaf::Port*, Leaf*>(source_port,
                                                                  copy_process));
-            logger_.logMessage(Logger::DEBUG, string("New fanout process \"")
+            logger_.logMessage(Logger::DEBUG, string("New Fanout process \"")
                                + copy_process->getId()->getString()
                                + "\" created");
 
@@ -1005,7 +1007,7 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
                                + "\" added to the processnetwork");
 
             // Break the current connection and connect the source and previous
-            // target connection through the fanout process
+            // target connection through the Fanout process
             if(!copy_process->addInPort(Id("in"))) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "in port to process \""
@@ -1055,7 +1057,7 @@ void GraphmlParser::generateConnection(Element* xml, ProcessNetwork* processnetw
 }
 
 void GraphmlParser::checkProcessNetworkMore(ProcessNetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+    throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     bool found_in_port_process = false;
     bool found_out_port_process = false;
@@ -1074,7 +1076,7 @@ void GraphmlParser::checkProcessNetworkMore(ProcessNetwork* processnetwork)
                 found_in_port_process = true;
             }
             else {
-                THROW_EXCEPTION(InvalidProcessNetworkException,
+                THROW_EXCEPTION(InvalidModelException,
                                 "Only one \"InPort\" process is allowed");
             }
         }
@@ -1083,18 +1085,18 @@ void GraphmlParser::checkProcessNetworkMore(ProcessNetwork* processnetwork)
                 found_out_port_process = true;
             }
             else {
-                THROW_EXCEPTION(InvalidProcessNetworkException,
+                THROW_EXCEPTION(InvalidModelException,
                                 "Only one \"OutPort\" process is allowed");
             }
         }
     }
     if (!found_out_port_process) {
-        THROW_EXCEPTION(InvalidProcessNetworkException,
+        THROW_EXCEPTION(InvalidModelException,
                         "No \"OutPort\" process found");
     }
 }
 
-void GraphmlParser::postCheckFixes(ForSyDe::ProcessNetwork* processnetwork)
+void GraphmlParser::postCheckFixes(Forsyde::ProcessNetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {
     fixProcessNetworkInputsOutputs(processnetwork);
 }

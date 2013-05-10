@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -24,10 +26,11 @@
  */
 
 #include "frontend.h"
+#include "dumper.h"
 #include <list>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using std::string;
 using std::list;
 
@@ -37,13 +40,17 @@ Frontend::~Frontend() throw() {}
 
 ProcessNetwork* Frontend::parse(const string& file)
     throw(InvalidArgumentException, FileNotFoundException, IOException,
-          ParseException, InvalidProcessNetworkException, RuntimeException) {
+          ParseException, InvalidModelException, RuntimeException) {
     if (file.length() == 0) {
         THROW_EXCEPTION(InvalidArgumentException, "\"file\" must not be empty "
                         "string");
     }
 
     ProcessNetwork* processnetwork = createProcessNetwork(file);
+
+    XmlDumper* dumper;
+    dumper = new (std::nothrow) XmlDumper(logger_);
+    dumper->dump(processnetwork,"hallo.xml");
 
     logger_.logMessage(Logger::INFO, "Checking that the internal processnetwork is "
                        "sane...");
@@ -56,7 +63,7 @@ ProcessNetwork* Frontend::parse(const string& file)
 }
 
 void Frontend::checkProcessNetwork(ProcessNetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+    throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     list<Leaf*> leafs = processnetwork->getProcesses();
     list<Leaf*>::iterator leaf_it;
@@ -71,7 +78,7 @@ void Frontend::checkProcessNetwork(ProcessNetwork* processnetwork)
         try {
             leaf->check();
         } catch (InvalidProcessException& ex) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, ex.getMessage());
+            THROW_EXCEPTION(InvalidModelException, ex.getMessage());
         }
 
         // Port checks
@@ -88,7 +95,7 @@ void Frontend::checkProcessNetwork(ProcessNetwork* processnetwork)
 }
 
 void Frontend::checkPort(Leaf::Port* port, ProcessNetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+    throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
@@ -98,7 +105,7 @@ void Frontend::checkPort(Leaf::Port* port, ProcessNetwork* processnetwork)
     }
 
     if (!port->isConnected()) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("Port \"")
+        THROW_EXCEPTION(InvalidModelException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in leaf \""
                         + port->getProcess()->getId()->getString()
@@ -107,17 +114,17 @@ void Frontend::checkPort(Leaf::Port* port, ProcessNetwork* processnetwork)
 
     // Check that the port is not connected to its own leaf
     if (port->getConnectedPort()->getProcess() == port->getProcess()) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("Port \"")
+        THROW_EXCEPTION(InvalidModelException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in leaf \""
                         + port->getProcess()->getId()->getString()
                         + "\" is connected to its own processnetwork "
-                        + "(combinatorial looping)");
+                        + "(Combinatorial looping)");
     }
 
     // Check that the other port belongs to a leaf in the processnetwork
     if (!processnetwork->getProcess(*port->getConnectedPort()->getProcess()->getId())) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("Port \"")
+        THROW_EXCEPTION(InvalidModelException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in leaf \""
                         + port->getProcess()->getId()->getString()
@@ -126,10 +133,10 @@ void Frontend::checkPort(Leaf::Port* port, ProcessNetwork* processnetwork)
     }
 }
 
-void Frontend::checkProcessNetworkMore(ForSyDe::ProcessNetwork* processnetwork)
-    throw(InvalidArgumentException, InvalidProcessNetworkException, IOException,
+void Frontend::checkProcessNetworkMore(Forsyde::ProcessNetwork* processnetwork)
+    throw(InvalidArgumentException, InvalidModelException, IOException,
           RuntimeException) {}
 
 
-void Frontend::postCheckFixes(ForSyDe::ProcessNetwork* processnetwork)
+void Frontend::postCheckFixes(Forsyde::ProcessNetwork* processnetwork)
     throw(InvalidArgumentException, IOException, RuntimeException) {}

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +79,16 @@ std::string& searchReplace(std::string& str, const std::string& search,
                            const std::string& replace) throw();
 
 /**
+ * Creates a tabbed indentation corresponding to the current parser
+ * level.
+ *
+ * @param level
+ *        Parsing level.
+ * @returns Modified string.
+ */
+std::string indent(int level) throw();
+
+/**
  * Trims front and end of a string from whitespace.
  *
  * @param str
@@ -124,7 +136,7 @@ std::string toString(const T& e) throw() {
  *
  * @param str
  *        String to check.
- * @returns \c true if the string consists only of numbers.
+ * @returns \b true if the string consists only of numbers.
  */
 bool isNumeric(const std::string& str) throw();
 
@@ -140,11 +152,26 @@ bool isNumeric(const std::string& str) throw();
 int toInt(const std::string& str) throw(InvalidArgumentException);
 
 /**
+ * Gets the number of elements (i.e. array length) from the extracted
+ * runtime data size. It is assumed that the ForSyDe-SystemC model was
+ * extracted on the same machine type (x86 or x64).
+ *
+ * @param size
+ *        The datatype size as extracted by ForSyDe INTROSPECTION.
+ * @param datatype
+ *        Base data type, passed as a string.
+ *
+ * @returns Number of elements in array.
+ *          -1 if data type is not recognized.
+ */
+int noElements(const int& size, const std::string& datatype) throw();
+
+/**
  * Checks if a file exists.
  *
  * @param file
  *        File.
- * @returns \c true if the file exists.
+ * @returns \b true if the file exists.
  */
 bool existsFile(const std::string& file) throw();
 
@@ -187,6 +214,16 @@ void writeFile(const std::string& file, const std::string& data)
  * @returns File name.
  */
 std::string getFileName(std::string file) throw();
+
+/**
+ * Gets the file name from a file path. If no file name is found, an empty
+ * string is returned.
+ *
+ * @param file
+ *        File path.
+ * @returns File name.
+ */
+std::string getExtension(std::string file) throw();
 
 /**
  * Copies and appends the content of one list to the end of another.
