@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +30,26 @@
 #include <list>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::bad_cast;
 using std::list;
 
-comb::comb(const Id& id, const CFunction& function) throw()
-        : Leaf(id), function_(function) {}
+Comb::Comb(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
+ 		int cost, CFunction* function) throw()
+        : Leaf(id, hierarchy, string("sy"), cost),  function_(function) {}
 
-comb::~comb() throw() {}
+Comb::~Comb() throw() {}
 
-CFunction* comb::getFunction() throw() {
-    return &function_;
+CFunction* Comb::getFunction() throw() {
+    return function_;
 }
 
-bool comb::operator==(const Leaf& rhs) const throw() {
+bool Comb::operator==(const Leaf& rhs) const throw() {
     if (!Leaf::operator==(rhs)) return false;
 
     try {
-        const comb& other = dynamic_cast<const comb&>(rhs);
+        const Comb& other = dynamic_cast<const Comb&>(rhs);
         if (function_ != other.function_) return false;
     }
     catch (bad_cast&) {
@@ -55,11 +58,11 @@ bool comb::operator==(const Leaf& rhs) const throw() {
     return true;
 }
 
-string comb::type() const throw() {
+string Comb::type() const throw() {
     return "comb";
 }
 
-void comb::moreChecks() throw(InvalidProcessException) {
+void Comb::moreChecks() throw(InvalidProcessException) {
     if (getInPorts().size() < 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
@@ -73,14 +76,14 @@ void comb::moreChecks() throw(InvalidProcessException) {
     checkFunction(function_, getNumInPorts());
 }
 
-string comb::moreToString() const throw() {
-    return string("LeafFunction: ") + function_.toString();
+string Comb::moreToString() const throw() {
+    return string("LeafFunction: ") + function_->toString();
 }
 
-void comb::checkFunction(CFunction& function, size_t num_in_ports) const
+void Comb::checkFunction(CFunction* function, size_t num_in_ports) const
     throw(InvalidProcessException) {
-    if (function.getInputParameters().size() == num_in_ports) {
-        if (function.getReturnDataType()->getFunctionReturnDataTypeString()
+    if (function->getInputParameters().size() == num_in_ports) {
+        if (function->getReturnDataType()->getFunctionReturnDataTypeString()
             == "void") {
             THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
@@ -88,15 +91,15 @@ void comb::checkFunction(CFunction& function, size_t num_in_ports) const
                             "parameter must return data (i.e. have return "
                             "data type other than \"void\")");
         }
-        if (function.getReturnDataType()->isArray()) {
+        if (function->getReturnDataType()->isArray()) {
             THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
                             + type() + "\": return type of function arguments "
                             "with one input parameter must not be an array");
         }
     }
-    else if (function.getInputParameters().size() == num_in_ports + 1) {
-        if (function.getReturnDataType()->getFunctionReturnDataTypeString()
+    else if (function->getInputParameters().size() == num_in_ports + 1) {
+        if (function->getReturnDataType()->getFunctionReturnDataTypeString()
             != "void") {
             THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                             + getId()->getString() + "\" of type \""
@@ -113,7 +116,7 @@ void comb::checkFunction(CFunction& function, size_t num_in_ports) const
     }
 
     size_t i;
-    list<CVariable*> input_parameters = function.getInputParameters();
+    list<CVariable*> input_parameters = function->getInputParameters();
     list<CVariable*>::iterator it;
     for (i = 0, it = input_parameters.begin(); i < num_in_ports; ++i, ++it) {
         CVariable variable = **it;

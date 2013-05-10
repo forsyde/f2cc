@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -42,17 +44,17 @@
 #include <list>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 namespace SY {
 
 /**
  * @brief Implements a synthesis-related \c coalescedmap leaf.
  *
- * This class implements a specialized leaf \c coalescedcomb which is not
- * part of the ForSyDe standard. It is used to replace coalesced \c comb
+ * This class implements a specialized leaf \c coalescedComb which is not
+ * part of the ForSyDe standard. It is used to replace coalesced \c Comb
  * leafs into a single leaf which contains all function arguments of the
  * leafs which it replaces. Thus, executing a single \c CoalescedMap
- * leaf produces the same result as executing a series of \c comb leafs.
+ * leaf produces the same result as executing a series of \c Comb leafs.
  */
 class CoalescedMap : public Map {
   public:
@@ -133,7 +135,7 @@ class CoalescedMap : public Map {
      *
      * @param rhs
      *        Leaf to compare with.
-     * @returns \c true if both leafs are equal.
+     * @returns \b true if both leafs are equal.
      */
     virtual bool operator==(const Leaf& rhs) const throw();
 

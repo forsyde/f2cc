@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +41,7 @@
 #include <string>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 namespace SY {
 
 /**
@@ -61,6 +63,24 @@ class delay : public Leaf {
         throw(InvalidArgumentException);
 
     /**
+     * Creates a leaf.
+     *
+     * @param id
+     *        Leaf ID.
+     * @param hierarchy
+     *        Hierarchy path.
+     * @param cost
+     *        Cost parameter.
+     * @param initial_value
+     *        Initial delay value.
+     * @throws InvalidArgumentException
+     *         When the initial delay value is empty string.
+     */
+    delay(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
+            		int cost, const std::string& initial_value)
+    	throw(InvalidArgumentException);
+
+    /**
      * @copydoc ~Leaf()
      */
     virtual ~delay() throw();
@@ -78,7 +98,7 @@ class delay : public Leaf {
      *
      * @param rhs
      *        Leaf to compare with.
-     * @returns \c true if both leafs are equal.
+     * @returns \b true if both leafs are equal.
      */
     virtual bool operator==(const Leaf& rhs) const throw();
 

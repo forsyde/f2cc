@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,14 +32,14 @@
 #include <map>
 #include <vector>
 
-using namespace f2cc::ForSyDe;
+using namespace f2cc::Forsyde;
 using std::string;
 using std::list;
 using std::bad_alloc;
 using std::vector;
 
-Composite::Composite(const ForSyDe::Id& id, ForSyDe::Hierarchy hierarchy,
-		ForSyDe::Id& name) throw() :
+Composite::Composite(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy,
+		Forsyde::Id name) throw() :
 		Model(), Process(id, hierarchy), composite_name_(name){}
 
 Composite::~Composite() throw() {
@@ -49,7 +51,7 @@ Id Composite::getName() const throw() {
     return composite_name_;
 }
 
-void Composite::changeName(ForSyDe::Id* name) throw() {
+void Composite::changeName(Forsyde::Id* name) throw() {
 	composite_name_ = Id(name->getString());
 }
 
@@ -261,7 +263,7 @@ void Composite::moreChecks() throw(InvalidProcessException){
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have at least one (1) out port");
     }
-    if (getProcesses().size() == 0) {
+    if ((getProcesses().size() == 0) && (getComposites().size() == 0)) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have at least one (1) process");
@@ -287,7 +289,8 @@ bool Composite::IOPort::isConnectedInside() const throw() {
     return connected_port_inside_;
 }
 
-void Composite::IOPort::connect(Process::Interface* port) throw(InvalidArgumentException) {
+void Composite::IOPort::connect(Process::Interface* port)
+throw(IllegalStateException, InvalidArgumentException, CastException) {
     if (port == this) return;
     if (!port) {
         unconnectInside();
@@ -323,7 +326,10 @@ void Composite::IOPort::connect(Process::Interface* port) throw(InvalidArgumentE
 			ioport_to_connect->connected_port_outside_ = this;
 			return;
 		}
-		else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+		else THROW_EXCEPTION(InvalidArgumentException, string("Connection not possible")
+				+ "with port \""
+				+ port->toString()
+				+ "\". Port is not in scope of vision");
 	}
 
 
@@ -340,11 +346,14 @@ void Composite::IOPort::connect(Process::Interface* port) throw(InvalidArgumentE
 			port_to_connect->setConnection(this);
 			return;
 		}
-		else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+		else THROW_EXCEPTION(InvalidArgumentException, string("Connection not possible")
+				+ "with port \""
+				+ port->toString()
+				+ "\". Port is not in scope of vision");
 	}
 
 	// It should never be here
-	THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+	THROW_EXCEPTION(CastException, string("Critical error in ")
 					+ toString()
 					+ "! Connected port is of unknown type");
 
@@ -358,7 +367,8 @@ void Composite::IOPort::unconnect(Process::Interface* port) throw(InvalidArgumen
 
 }
 
-void Composite::IOPort::unconnectOutside() throw(InvalidArgumentException) {
+void Composite::IOPort::unconnectOutside() throw(IllegalStateException,
+		CastException) {
     if (connected_port_outside_) {
         //outside guard
     	if (!getProcess()) {
@@ -383,7 +393,7 @@ void Composite::IOPort::unconnectOutside() throw(InvalidArgumentException) {
 				connected_port_outside_ = NULL;
     			return;
     		}
-    		else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+    		else THROW_EXCEPTION(IllegalStateException, "Connection not possible");
     	}
 
 
@@ -395,17 +405,17 @@ void Composite::IOPort::unconnectOutside() throw(InvalidArgumentException) {
     			connected_port_outside_ = NULL;
     			return;
     		}
-    		else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+    		else THROW_EXCEPTION(IllegalStateException, "Connection not possible");
     	}
 
     	// It should never be here
-    	THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+    	THROW_EXCEPTION(CastException, string("Critical error in ")
     					+ toString()
     					+ "! Outside connection is of unknown type");
     }
 }
 
-void Composite::IOPort::unconnectInside() throw(InvalidArgumentException) {
+void Composite::IOPort::unconnectInside() throw(IllegalStateException, CastException) {
 	if (connected_port_inside_) {
 		//outside guard
 		if (!getProcess()) {
@@ -425,7 +435,7 @@ void Composite::IOPort::unconnectInside() throw(InvalidArgumentException) {
 				connected_port_inside_ = NULL;
 				return;
 			}
-			else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+			else THROW_EXCEPTION(IllegalStateException, "Connection not possible");
 		}
 
 
@@ -437,11 +447,11 @@ void Composite::IOPort::unconnectInside() throw(InvalidArgumentException) {
 				connected_port_inside_ = NULL;
 				return;
 			}
-			else THROW_EXCEPTION(InvalidArgumentException, "Connection not possible");
+			else THROW_EXCEPTION(IllegalStateException, "Connection not possible");
 		}
 
 		// It should never be here
-		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
+		THROW_EXCEPTION(CastException, string("Critical error in ")
 						+ toString()
 						+ "! Outside connection is of unknown type");
 	}
@@ -490,7 +500,7 @@ bool Composite::IOPort::isConnectedToLeaf(const Process::Interface* startpoit) c
 }
 
 
-bool Composite::IOPort::unconnectFromLeafOutside() throw(InvalidArgumentException) {
+bool Composite::IOPort::unconnectFromLeafOutside() throw() {
 	if (isConnectedToLeafOutside()) {
     	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
     	if (ioport) {
@@ -503,7 +513,7 @@ bool Composite::IOPort::unconnectFromLeafOutside() throw(InvalidArgumentExceptio
     return false;
 }
 
-bool Composite::IOPort::unconnectFromLeafInside() throw(InvalidArgumentException) {
+bool Composite::IOPort::unconnectFromLeafInside() throw() {
 	if (isConnectedToLeafInside()) {
     	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
     	if (ioport) {
@@ -545,86 +555,10 @@ bool Composite::IOPort::unconnectFromLeaf(Process::Interface* previous) throw() 
     return false;
 }
 
-/*
-bool Composite::IOPort::unconnectFromLeafOutside() throw(InvalidArgumentException) {
-    if (!isConnectedToLeafOutside()) return false;
-    else
-		// Checking if other end is IOPort
-		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
-		if (ioport_to_unconnect) {
-			ioport_to_unconnect->unconnectFromLeafOutside();
-			unconnectOutside();
-			return true;
-		}
-		 // Checking if other end is Port
-		Leaf::Port* port_to_unconnect = dynamic_cast<Leaf::Port*>(connected_port_outside_);
-		if (port_to_unconnect) {
-			unconnectOutside();
-			return true;
-		}
-
-		// It should never be here
-		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
-						+ toString()
-						+ "! Outside connection is of unknown type");
-		return false;
-
-    }
-    else return false;
-}
-
-bool Composite::IOPort::unconnectFromLeafInside() throw(InvalidArgumentException) {
-    if (connected_port_inside_) {
-		// Checking if other end is IOPort
-		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_inside_);
-		if (ioport_to_unconnect) {
-			ioport_to_unconnect->unconnectFromLeafInside();
-			unconnectInside();
-			return true;
-		}
-		 // Checking if other end is Port
-		Leaf::Port* port_to_unconnect = dynamic_cast<Leaf::Port*>(connected_port_inside_);
-		if (port_to_unconnect) {
-			unconnectInside();
-			return true;
-		}
-
-		// It should never be here
-		THROW_EXCEPTION(InvalidArgumentException, string("Critical error in ")
-						+ toString()
-						+ "! Outside connection is of unknown type");
-		return false;
-    }
-    else return false;
-}
-*/
-/*
-bool Composite::IOPort::isConnectedToLeafOutside() const throw() {
-    if (connected_port_outside_){
-    	static const Composite::IOPort* ioport_out = dynamic_cast<const Composite::IOPort*>(connected_port_outside_);
-    	if(ioport_out)
-    		return ioport_out->isConnectedToLeafOutside();
-    	else return true;
-    }
-    else return false;
-}
-
-bool Composite::IOPort::isConnectedToLeafInside() const throw() {
-    if (connected_port_inside_){
-    	static const Composite::IOPort* ioport_in = dynamic_cast<const Composite::IOPort*>(connected_port_inside_);
-    	if(ioport_in)
-    		return ioport_in->isConnectedToLeafInside();
-    	else return true;
-    }
-    else return false;
-}
-
-*/
-
-/*
-Process::Port* Composite::IOPort::getConnectedLeafPortOutside() const throw(InvalidArgumentException) {
+Leaf::Port* Composite::IOPort::getConnectedLeafPortOutside() const throw(CastException) {
 	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_outside_->getProcess());
 	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_outside_);
+	Leaf::Port* port = dynamic_cast<Leaf::Port*>(connected_port_outside_);
 	if (ioport){
 		if (relation == Hierarchy::Sibling) return ioport->getConnectedLeafPortInside();
 		else if (relation == Hierarchy::FirstParent) return ioport->getConnectedLeafPortOutside();
@@ -633,12 +567,19 @@ Process::Port* Composite::IOPort::getConnectedLeafPortOutside() const throw(Inva
 			return NULL;
 		}
 	}
-	else return connected_port_outside_;
+	else if (port) return port;
+	else{
+	// It should never be here
+	THROW_EXCEPTION(CastException, string("Critical error in ")
+					+ toString()
+					+ "! Outside connection is of unknown type");
+	}
 }
 
-Process::Port* Composite::IOPort::getConnectedLeafPortInside() const throw(InvalidArgumentException) {
+Leaf::Port* Composite::IOPort::getConnectedLeafPortInside() const throw(CastException) {
 	Hierarchy::Relation relation = getProcess()->findRelation(connected_port_inside_->getProcess());
 	static Composite::IOPort* ioport = dynamic_cast<Composite::IOPort*>(connected_port_inside_);
+	Leaf::Port* port = dynamic_cast<Leaf::Port*>(connected_port_outside_);
 	if (ioport){
 		if (relation == Hierarchy::FirstChild) return ioport->getConnectedLeafPortInside();
 		else {
@@ -646,9 +587,14 @@ Process::Port* Composite::IOPort::getConnectedLeafPortInside() const throw(Inval
 			return NULL;
 		}
 	}
-	else return connected_port_inside_;
+	else if (port) return port;
+	else{
+	// It should never be here
+	THROW_EXCEPTION(CastException, string("Critical error in ")
+					+ toString()
+					+ "! Outside connection is of unknown type");
+	}
 }
-*/
 
 string Composite::IOPort::moretoString() const throw() {
     string str;

@@ -7,15 +7,15 @@ project. The name stands for "ForSyDe-2-CUDA C" and enables models to be
 synthesized into either C code or CUDA C code, the latter which can be compiled
 for parallel execution on a CUDA-enabled NVIDIA graphics card. Currently, the
 tool can handle models which contain the following leaf types:
-   - \c f2cc::ForSyDe::SY::comb
-   - \c f2cc::ForSyDe::SY::ParallelMap
-   - \c f2cc::ForSyDe::SY::unzipx
-   - \c f2cc::ForSyDe::SY::zipx
-   - \c f2cc::ForSyDe::SY::delay
+   - \c f2cc::Forsyde::SY::Comb
+   - \c f2cc::Forsyde::SY::ParallelMap
+   - \c f2cc::Forsyde::SY::Unzipx
+   - \c f2cc::Forsyde::SY::Zipx
+   - \c f2cc::Forsyde::SY::delay
 
-The tool recognizes simple data parallel patterns in a processnetwork (an \c unzipx
-leaf, followed by a series of \c comb leafs, which all connect to a \c
-zipx leaf) and generate correct CUDA code for such regions. Support for
+The tool recognizes simple data parallel patterns in a processnetwork (an \c Unzipx
+leaf, followed by a series of \c Comb leafs, which all connect to a \c
+Zipx leaf) and generate correct CUDA code for such regions. Support for
 additional leaf types and data parallel processnetwork patterns will be added in the
 future.
 
@@ -31,7 +31,8 @@ For licensing and copyright information, see the \ref license "License" page.
 
 f2cc is licensed under the BSD 2-clause license.
 
-Copyright &copy; 2011-2012 Gabriel Hjort Blindell &lt;ghb@kth.se&gt;
+Copyright &copy; 2011-2013 Gabriel Hjort Blindell &lt;ghb@kth.se&gt; 
+and George Ungureanu &lt;ugeorge@kth.se&gt;.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

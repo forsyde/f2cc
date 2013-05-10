@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,20 +28,24 @@
 #include "zipxsy.h"
 #include <typeinfo>
 
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::bad_cast;
 
-zipx::zipx(const Id& id) throw()
+Zipx::Zipx(const Id& id) throw()
         : Leaf(id) {}
 
-zipx::~zipx() throw() {}
+Zipx::Zipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
+ 		int cost) throw()
+        : Leaf(id, hierarchy, string("sy"), cost) {}
 
-bool zipx::operator==(const Leaf& rhs) const throw() {
+Zipx::~Zipx() throw() {}
+
+bool Zipx::operator==(const Leaf& rhs) const throw() {
     if (Leaf::operator==(rhs)) return false;
 
     try {
-        dynamic_cast<const zipx&>(rhs);
+        dynamic_cast<const Zipx&>(rhs);
     }
     catch (bad_cast&) {
         return false;
@@ -47,11 +53,11 @@ bool zipx::operator==(const Leaf& rhs) const throw() {
     return true;
 }
 
-string zipx::type() const throw() {
-    return "zipx";
+string Zipx::type() const throw() {
+    return "zipX";
 }
 
-void zipx::moreChecks() throw(InvalidProcessException) {
+void Zipx::moreChecks() throw(InvalidProcessException) {
     if (getOutPorts().size() != 1) {
         THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""

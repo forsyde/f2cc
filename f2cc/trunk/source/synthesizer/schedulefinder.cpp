@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +30,8 @@
 #include "../tools/tools.h"
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -37,7 +39,7 @@ using std::pair;
 using std::bad_alloc;
 using std::queue;
 
-ScheduleFinder::ScheduleFinder(ForSyDe::ProcessNetwork* processnetwork, Logger& logger)
+ScheduleFinder::ScheduleFinder(Forsyde::ProcessNetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException) : processnetwork_(processnetwork), logger_(logger) {
     if (!processnetwork) {
         THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
@@ -153,12 +155,12 @@ ScheduleFinder::PartialSchedule ScheduleFinder::findPartialSchedule(
     return partial_schedule;
 }
 
-bool ScheduleFinder::isGloballyVisited(ForSyDe::Leaf* leaf) {
+bool ScheduleFinder::isGloballyVisited(Forsyde::Leaf* leaf) {
     return globally_visited_.find(*leaf->getId()) != globally_visited_.end();
 }
 
-bool ScheduleFinder::visitLocally(ForSyDe::Leaf* leaf,
-                                  set<ForSyDe::Id>& visited) {
+bool ScheduleFinder::visitLocally(Forsyde::Leaf* leaf,
+                                  set<Forsyde::Id>& visited) {
     return visited.insert(*leaf->getId()).second;
 }
 

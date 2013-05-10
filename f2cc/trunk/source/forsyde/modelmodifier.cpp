@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +42,8 @@
 #include <stdexcept>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -247,11 +249,11 @@ void ModelModifier::removeRedundantLeafs()
         logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
                            + leaf->getId()->getString() + "\"...");
 
-        // Remove zipx and unzipx leafs which have only one in and out
+        // Remove Zipx and Unzipx leafs which have only one in and out
         // port
-        bool is_zipxsy = dynamic_cast<zipx*>(leaf);
-        bool is_unzipxsy = !is_zipxsy && dynamic_cast<unzipx*>(leaf);
-        if (is_zipxsy || is_unzipxsy) {
+        bool is_Zipxsy = dynamic_cast<Zipx*>(leaf);
+        bool is_Unzipxsy = !is_Zipxsy && dynamic_cast<Unzipx*>(leaf);
+        if (is_Zipxsy || is_Unzipxsy) {
             if (leaf->getNumInPorts() == 1
                 && leaf->getNumOutPorts() == 1) {
                 string leaf_name = leaf->getId()->getString();
@@ -289,15 +291,15 @@ void ModelModifier::removeRedundantLeafs()
                                     + "\"");
                 }
                 
-                if (is_zipxsy) {
+                if (is_Zipxsy) {
                     logger_.logMessage(Logger::INFO, string("Removed ")
-                                       + "redundant zipx leaf \""
+                                       + "redundant Zipx leaf \""
                                        + leaf_name + "\" (had only 1 in "
                                        + "port)");
                 }
                 else {
                     logger_.logMessage(Logger::INFO, string("Removed ")
-                                       + "redundant unzipx leaf \""
+                                       + "redundant Unzipx leaf \""
                                        + leaf_name + "\" (had only 1 out "
                                        + "port)");
                 }
@@ -369,23 +371,23 @@ ModelModifier::findContainedSections(Leaf* begin, set<Id> visited)
     if (not_already_visited) {
         logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
                            + begin->getId()->getString() + "\"...");
-        zipx* converge_point = dynamic_cast<zipx*>(begin);
+        Zipx* converge_point = dynamic_cast<Zipx*>(begin);
         if (converge_point) {
-            logger_.logMessage(Logger::DEBUG, string("Discovered zipxSY ")
+            logger_.logMessage(Logger::DEBUG, string("Discovered ZipxSY ")
                                + "leaf \""
                                + converge_point->getId()->getString() + "\"");
-            logger_.logMessage(Logger::DEBUG, "Searching for nearest unzipxSY "
+            logger_.logMessage(Logger::DEBUG, "Searching for nearest UnzipxSY "
                                "leaf...");
-            unzipx* diverge_point =
-                findNearestunzipxLeaf(converge_point);
+            Unzipx* diverge_point =
+                findNearestUnzipxLeaf(converge_point);
             if (diverge_point) {
                 logger_.logMessage(Logger::DEBUG, string("Found nearest ")
-                                   + "unzipxSY leaf \""
+                                   + "UnzipxSY leaf \""
                                    + diverge_point->getId()->getString()
                                    + "\"");
             }
             else {
-                logger_.logMessage(Logger::DEBUG, "No unzipxSY leaf found");
+                logger_.logMessage(Logger::DEBUG, "No UnzipxSY leaf found");
                 // Return empty list
                 return sections;
             }
@@ -499,13 +501,13 @@ bool ModelModifier::checkDataFlowConvergence(Leaf* start, Leaf* end,
     return true;
 }
 
-unzipx* ModelModifier::findNearestunzipxLeaf(ForSyDe::Leaf* begin)
+Unzipx* ModelModifier::findNearestUnzipxLeaf(Forsyde::Leaf* begin)
     throw(IOException, RuntimeException) {
     if (!begin) return NULL;
 
     logger_.logMessage(Logger::DEBUG, string("Analyzing leaf \"")
                        + begin->getId()->getString() + "\"...");
-    unzipx* sought_leaf = dynamic_cast<unzipx*>(begin);
+    Unzipx* sought_leaf = dynamic_cast<Unzipx*>(begin);
     if (sought_leaf) return sought_leaf;
 
     list<Leaf::Port*> in_ports = begin->getInPorts();
@@ -513,7 +515,7 @@ unzipx* ModelModifier::findNearestunzipxLeaf(ForSyDe::Leaf* begin)
     for (it = in_ports.begin(); it != in_ports.end(); ++it) {
         if ((*it)->isConnected()) {
             Leaf* next_leaf = dynamic_cast<Leaf*>((*it)->getConnectedPort()->getProcess());
-            sought_leaf = findNearestunzipxLeaf(next_leaf);
+            sought_leaf = findNearestUnzipxLeaf(next_leaf);
             if (sought_leaf) return sought_leaf;
         }
     }
@@ -560,7 +562,7 @@ bool ModelModifier::isContainedSectionDataParallel(
     return true;
 }
 
-bool ModelModifier::hasOnlyMapSys(std::list<ForSyDe::Leaf*> chain) const
+bool ModelModifier::hasOnlyMapSys(std::list<Forsyde::Leaf*> chain) const
     throw() {
     list<Leaf*>::const_iterator it;
     for (it = chain.begin(); it != chain.end(); ++it) {
@@ -846,7 +848,7 @@ string ModelModifier::leafChainToString(list<ParallelMap*> chain)
     return leafChainToString(new_list);
 }
 
-void ModelModifier::destroyLeafChain(ForSyDe::Leaf* start)
+void ModelModifier::destroyLeafChain(Forsyde::Leaf* start)
     throw(InvalidArgumentException) {
     if (!start) {
         THROW_EXCEPTION(InvalidArgumentException, "\"start\" must not be NULL");
@@ -863,7 +865,7 @@ void ModelModifier::destroyLeafChain(ForSyDe::Leaf* start)
 }
 
 void ModelModifier::splitDataParallelSegments(
-    vector< vector<ForSyDe::Leaf*> > chains)
+    vector< vector<Forsyde::Leaf*> > chains)
     throw(IOException, RuntimeException) {
     try {
         size_t num_segments = chains.front().size();
@@ -874,84 +876,84 @@ void ModelModifier::splitDataParallelSegments(
                                + tools::toString(current_segment - 1) + " and "
                                + tools::toString(current_segment) + "...");
 
-            // Create new leafs zipxSY and unzipxSY
-            zipx* new_zipxSY = new (std::nothrow) zipx(
-                processnetwork_->getUniqueProcessId("_zipxSY_"));
-            if (!new_zipxSY) THROW_EXCEPTION(OutOfMemoryException);
-            logger_.logMessage(Logger::DEBUG, string("New zipx leaf \"")
-                               + new_zipxSY->getId()->getString()
+            // Create new leafs ZipxSY and UnzipxSY
+            Zipx* new_ZipxSY = new (std::nothrow) Zipx(
+                processnetwork_->getUniqueProcessId("_ZipxSY_"));
+            if (!new_ZipxSY) THROW_EXCEPTION(OutOfMemoryException);
+            logger_.logMessage(Logger::DEBUG, string("New Zipx leaf \"")
+                               + new_ZipxSY->getId()->getString()
                                + "\" created");
-            unzipx* new_unzipxSY = new (std::nothrow) unzipx(
-                processnetwork_->getUniqueProcessId("_unzipxSY_"));
-            if (!new_unzipxSY) THROW_EXCEPTION(OutOfMemoryException);
-            logger_.logMessage(Logger::DEBUG, string("New unzipx leaf \"")
-                               + new_zipxSY->getId()->getString()
+            Unzipx* new_UnzipxSY = new (std::nothrow) Unzipx(
+                processnetwork_->getUniqueProcessId("_UnzipxSY_"));
+            if (!new_UnzipxSY) THROW_EXCEPTION(OutOfMemoryException);
+            logger_.logMessage(Logger::DEBUG, string("New Unzipx leaf \"")
+                               + new_ZipxSY->getId()->getString()
                                + "\" created");
 
-            // Connect the zipxSY to the unzipxSY
-            if (!new_zipxSY->addOutPort(Id("out"))) {
+            // Connect the ZipxSY to the UnzipxSY
+            if (!new_ZipxSY->addOutPort(Id("out"))) {
                 THROW_EXCEPTION(IllegalStateException, "Failed to add port");
             }
-            if (!new_unzipxSY->addInPort(Id("in"))) {
+            if (!new_UnzipxSY->addInPort(Id("in"))) {
                 THROW_EXCEPTION(IllegalStateException, "Failed to add port");
             }
-            new_zipxSY->getOutPort(Id("out"))->connect(
-                new_unzipxSY->getInPort(Id("in")));
+            new_ZipxSY->getOutPort(Id("out"))->connect(
+                new_UnzipxSY->getInPort(Id("in")));
             logger_.logMessage(Logger::DEBUG, "Ports added");
 
-            // Insert the zipxSY and unzipxSY leaf in between the current
+            // Insert the ZipxSY and UnzipxSY leaf in between the current
             // data parallel segment
             for (size_t i = 0; i < chains.size(); ++i) {
                 string num(tools::toString(i + 1));
 
-                // Connect left mapSY with zipxSY
-                if (!new_zipxSY->addInPort(Id(string("in") + num))) {
+                // Connect left mapSY with ZipxSY
+                if (!new_ZipxSY->addInPort(Id(string("in") + num))) {
                     THROW_EXCEPTION(IllegalStateException, "Failed to add "
                                     "port");
                 }
                 Leaf::Port* left_mapSY_out_port = 
                     chains[i][current_segment - 1]->getOutPorts().front();
-                Leaf::Port* zipxSY_in_port = new_zipxSY->getInPorts().back();
+                Leaf::Port* ZipxSY_in_port = new_ZipxSY->getInPorts().back();
                 logger_.logMessage(Logger::DEBUG, string("Connecting \"")
                                    + left_mapSY_out_port->toString()
                                    + "\" with \""
-                                   + zipxSY_in_port->toString() + "\"...");
-                left_mapSY_out_port->connect(zipxSY_in_port);
+                                   + ZipxSY_in_port->toString() + "\"...");
+                left_mapSY_out_port->connect(ZipxSY_in_port);
 
-                // Connect right mapSY with unzipxSY
-                if (!new_unzipxSY->addOutPort(Id(string("out") + num))) {
+                // Connect right mapSY with UnzipxSY
+                if (!new_UnzipxSY->addOutPort(Id(string("out") + num))) {
                     THROW_EXCEPTION(IllegalStateException, "Failed to add "
                                     "port");
                 }
                 Leaf::Port* right_mapSY_in_port = 
                     chains[i][current_segment]->getInPorts().front();
-                Leaf::Port* unzipxSY_out_port = 
-                    new_unzipxSY->getOutPorts().back();
+                Leaf::Port* UnzipxSY_out_port = 
+                    new_UnzipxSY->getOutPorts().back();
                 logger_.logMessage(Logger::DEBUG, string("Connecting \"")
                                    + right_mapSY_in_port->toString()
                                    + "\" with \""
-                                   + unzipxSY_out_port->toString() + "\"...");
-                right_mapSY_in_port->connect(unzipxSY_out_port);
+                                   + UnzipxSY_out_port->toString() + "\"...");
+                right_mapSY_in_port->connect(UnzipxSY_out_port);
             }
 
             // Add new leafs to the processnetwork
-            if (!processnetwork_->addProcess(new_zipxSY)) {
+            if (!processnetwork_->addProcess(new_ZipxSY)) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "new leaf: Leaf with ID "
-                                + "\"" + new_zipxSY->getId()->getString()
+                                + "\"" + new_ZipxSY->getId()->getString()
                                 + "\" already existed");
             }
-            if (!processnetwork_->addProcess(new_unzipxSY)) {
+            if (!processnetwork_->addProcess(new_UnzipxSY)) {
                 THROW_EXCEPTION(IllegalStateException, string("Failed to add ")
                                 + "new leaf: Leaf with ID "
-                                + "\"" + new_unzipxSY->getId()->getString()
+                                + "\"" + new_UnzipxSY->getId()->getString()
                                 + "\" already existed");
             }
 
             logger_.logMessage(Logger::DEBUG, string("New leafs \"")
-                               + new_zipxSY->getId()->getString()
+                               + new_ZipxSY->getId()->getString()
                                + "\" and \""
-                               + new_unzipxSY->getId()->getString()
+                               + new_UnzipxSY->getId()->getString()
                                + "\" added to the processnetwork");
         }
     }

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -52,11 +54,11 @@
 namespace f2cc {
 
 /**
- * @brief A class for finding a leaf schedule for a given \c ForSyDe::ProcessNetwork
+ * @brief A class for finding a leaf schedule for a given \c Forsyde::ProcessNetwork
  *        instance.
  *
  * The \c ScheduleFinder class implements an algorithm for finding a leaf
- * schedule for a given instance of a \c ForSyDe::ProcessNetwork.
+ * schedule for a given instance of a \c Forsyde::ProcessNetwork.
  *
  * The algorithm is a recursive DFS algorithm which traverses over the leafs
  * in the processnetwork. It starts by building a \em starting \em point \em queue,
@@ -64,7 +66,7 @@ namespace f2cc {
  * pops a leaf from the head of the queue, and creates a \em partial \em
  * leaf \em schedule. The partial leaf schedule is created by recursively
  * traversing upwards along the data flow, moving via the in ports (\c
- * ForSyDe::Leaf::Port) of a \c ForSyDe::Leaf. When no more traversing can
+ * Forsyde::Leaf::Port) of a \c Forsyde::Leaf. When no more traversing can
  * be done, it rewinds the stack, and adds the current leaf to the
  * schedule. If a leaf has more than one in port, then a partial schedule is
  * generated for each, concatenated together, and then the current leaf is
@@ -107,7 +109,7 @@ class ScheduleFinder {
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
      */
-    ScheduleFinder(ForSyDe::ProcessNetwork* processnetwork, Logger& logger)
+    ScheduleFinder(Forsyde::ProcessNetwork* processnetwork, Logger& logger)
         throw(InvalidArgumentException);
 
     /**
@@ -129,7 +131,7 @@ class ScheduleFinder {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::list<ForSyDe::Id> findSchedule() throw(IOException, RuntimeException);
+    std::list<Forsyde::Id> findSchedule() throw(IOException, RuntimeException);
 
     /**
      * Finds a partial schedule for unvisited leafs when traversing from a
@@ -149,7 +151,7 @@ class ScheduleFinder {
      *         When a program error occurs. This most likely indicates a bug.
      */
     PartialSchedule findPartialSchedule(
-        ForSyDe::Leaf* start, std::set<ForSyDe::Id>& locally_visited)
+        Forsyde::Leaf* start, std::set<Forsyde::Id>& locally_visited)
         throw(IOException, RuntimeException);
 
     /**
@@ -158,9 +160,9 @@ class ScheduleFinder {
      *
      * @param leaf
      *        Leaf.
-     * @returns \c true if the leaf has already been visited.
+     * @returns \b true if the leaf has already been visited.
      */
-    bool isGloballyVisited(ForSyDe::Leaf* leaf);
+    bool isGloballyVisited(Forsyde::Leaf* leaf);
 
     /**
      * Visits a leaf in a local sense.
@@ -169,16 +171,16 @@ class ScheduleFinder {
      *        Leaf to visit.
      * @param visited
      *        Set of locally visited leafs.
-     * @returns \c true if the leaf has not previously been locally visisted.
+     * @returns \b true if the leaf has not previously been locally visisted.
      */
-    bool visitLocally(ForSyDe::Leaf* leaf,
-                      std::set<ForSyDe::Id>& visited);
+    bool visitLocally(Forsyde::Leaf* leaf,
+                      std::set<Forsyde::Id>& visited);
 
   private:
     /**
      * ForSyDe processnetwork.
      */
-    ForSyDe::ProcessNetwork* const processnetwork_;
+    Forsyde::ProcessNetwork* const processnetwork_;
 
     /**
      * Logger.
@@ -188,12 +190,12 @@ class ScheduleFinder {
     /**
      * Set of globally already visited leafs.
      */
-    std::set<ForSyDe::Id> globally_visited_;
+    std::set<Forsyde::Id> globally_visited_;
 
     /**
      * Queue of starting points.
      */
-    std::queue<ForSyDe::Leaf*> starting_points_;
+    std::queue<Forsyde::Leaf*> starting_points_;
 
   private:
     /**
@@ -218,19 +220,19 @@ class ScheduleFinder {
          *        beginning of the global schedule.
          * @param insertion_point
          *        Schedule insertion point (leave undefined if \c at_beginning
-         *        is set to \c true).
+         *        is set to \b true).
          */
-        PartialSchedule(std::list<ForSyDe::Id>& schedule, bool at_beginning,
-                       ForSyDe::Id insertion_point);
+        PartialSchedule(std::list<Forsyde::Id>& schedule, bool at_beginning,
+                       Forsyde::Id insertion_point);
 
         /**
          * Partial schedule.
          */
-        std::list<ForSyDe::Id> schedule;
+        std::list<Forsyde::Id> schedule;
 
         /**
          * Whether the insertion point is at the beginning of the schedule.
-         * Default value is \c true.
+         * Default value is \b true.
          */
         bool at_beginning;
 
@@ -238,7 +240,7 @@ class ScheduleFinder {
          * Leaf ID (only defined if the insertion point is not at the
          * beginning of the schedule).
          */
-        ForSyDe::Id insertion_point;
+        Forsyde::Id insertion_point;
     };
 };
 

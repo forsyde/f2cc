@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +30,7 @@
 #include <new>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::list;
 using std::bad_alloc;
@@ -48,8 +50,8 @@ CoalescedMap::CoalescedMap(const Id& id, const CFunction& function)
 CoalescedMap::CoalescedMap(const Id& id,
                                const list<CFunction>& functions)
         throw(InvalidArgumentException, OutOfMemoryException)
-        // comb requires a function, but can not be certain at this point that
-        // functions is not empty, so we provide comb with a dummy function
+        // Comb requires a function, but can not be certain at this point that
+        // functions is not empty, so we provide Comb with a dummy function
         // (we will never access it anyway)
         : Map(id, CFunction()) {
     if (functions.size() == 0) {

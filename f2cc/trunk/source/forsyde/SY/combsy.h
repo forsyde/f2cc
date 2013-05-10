@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -39,35 +41,40 @@
 #include <string>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 namespace SY{
 
 /**
  * @brief Implements the generic ForSyDe \c zipWithN leaf.
  */
-class comb : public Leaf {
+class Comb : public Leaf {
   public:
     /**
      * Creates a leaf.
      *
      * @param id
      *        Leaf ID.
+     * @param hierarchy
+     *        Hierarchy path.
+     * @param cost
+     *        Cost parameter.
      * @param function
      *        Leaf function argument.
      */
-    comb(const Id& id, const CFunction& function) throw();
+    Comb(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
+    		int cost, CFunction* function) throw();
 
     /**
      * @copydoc ~Leaf()
      */
-    virtual ~comb() throw();
+    virtual ~Comb() throw();
 
     /**
      * Gets the function argument of this leaf.
      *
      * @returns Function argument.
      */
-    virtual CFunction* getFunction() throw();
+    CFunction* getFunction() throw();
 
     /**
      * Same as Leaf::operator==(const Leaf&) const but with the additional
@@ -75,7 +82,7 @@ class comb : public Leaf {
      *
      * @param rhs
      *        Leaf to compare with.
-     * @returns \c true if both leafs are equal.
+     * @returns \b true if both leafs are equal.
      */
     virtual bool operator==(const Leaf& rhs) const throw();
 
@@ -116,7 +123,7 @@ class comb : public Leaf {
      * @throws InvalidProcessException
      *         When the check fails.
      */
-    virtual void checkFunction(CFunction& function, size_t num_in_ports) const
+    virtual void checkFunction(CFunction* function, size_t num_in_ports) const
         throw(InvalidProcessException);
 
     /**
@@ -135,7 +142,7 @@ class comb : public Leaf {
     /**
      * Leaf function argument.
      */
-    CFunction function_;
+    CFunction* function_;
 };
 
 }

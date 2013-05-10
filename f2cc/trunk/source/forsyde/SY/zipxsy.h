@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +33,7 @@
  * @author  Gabriel Hjort Blindell <ghb@kth.se>
  * @version 0.1
  *
- * @brief Implements the ForSyDe \c zipx leaf.
+ * @brief Implements the ForSyDe \c Zipx leaf.
  */
 
 #include "../leaf.h"
@@ -39,23 +41,36 @@
 #include <string>
 
 namespace f2cc {
-namespace ForSyDe {
+namespace Forsyde {
 namespace SY{
 
 /**
- * @brief Implements the ForSyDe \c zipx leaf.
+ * @brief Implements the ForSyDe \c Zipx leaf.
  */
-class zipx : public Leaf {
+class Zipx : public Leaf {
   public:
     /**
      * @copydoc Leaf(const Id&)
      */
-    zipx(const Id& id) throw();
+    Zipx(const Id& id) throw();
+
+    /**
+     * Creates a leaf.
+     *
+     * @param id
+     *        Leaf ID.
+     * @param hierarchy
+     *        Hierarchy path.
+     * @param cost
+     *        Cost parameter.
+     */
+    Zipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
+        		int cost) throw();
 
     /**
      * @copydoc ~Leaf()
      */
-    virtual ~zipx() throw();
+    virtual ~Zipx() throw();
 
     /**
      * @copydoc Leaf::operator==(const Leaf&) const

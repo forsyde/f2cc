@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
+ * Copyright (c) 2011-2013
+ *     Gabriel Hjort Blindell <ghb@kth.se>
+ *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +43,8 @@
 #include <map>
 
 using namespace f2cc;
-using namespace f2cc::ForSyDe;
-using namespace f2cc::ForSyDe::SY;
+using namespace f2cc::Forsyde;
+using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::list;
 using std::set;
@@ -70,19 +72,19 @@ Synthesizer::~Synthesizer() throw() {
 }
 
 Synthesizer::CodeSet Synthesizer::generateCCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     target_platform_ = Synthesizer::C;
     return generateCode();
 }
 
 Synthesizer::CodeSet Synthesizer::generateCudaCCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     target_platform_ = Synthesizer::CUDA;
     return generateCode();
 }
 
 Synthesizer::CodeSet Synthesizer::generateCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logMessage(Logger::INFO, "Checking that the internal processnetwork is "
                        "valid for synthesis...");
     checkProcessNetwork();
@@ -98,14 +100,14 @@ Synthesizer::CodeSet Synthesizer::generateCode()
     renameMapFunctions();
     logger_.logMessage(Logger::INFO, "Combining function duplicates through "
                        "renaming...");
-    combineFunctionDuplicates();
+    CombineFunctionDuplicates();
 
     logger_.logMessage(Logger::INFO, "Generating wrapper functions for "
                        "coalesced leafs...");
     generateCoalescedSyWrapperFunctions();
     logger_.logMessage(Logger::INFO, "Combining function duplicates through "
                        "renaming...");
-    combineFunctionDuplicates();
+    CombineFunctionDuplicates();
 
     if (target_platform_ == Synthesizer::CUDA) {
         logger_.logMessage(Logger::INFO, "Generating CUDA kernel functions for "
@@ -113,7 +115,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
         generateCudaKernelFunctions();
         logger_.logMessage(Logger::INFO, "Combining function duplicates "
                            "through renaming...");
-        combineFunctionDuplicates();
+        CombineFunctionDuplicates();
     }
     else {
         logger_.logMessage(Logger::INFO, "Generating wrapper functions for "
@@ -121,7 +123,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
         generateParallelMapSyWrapperFunctions();
         logger_.logMessage(Logger::INFO, "Combining function duplicates "
                            "through renaming...");
-        combineFunctionDuplicates();
+        CombineFunctionDuplicates();
     }
 
     logger_.logMessage(Logger::INFO, "Creating signal variables...");
@@ -202,7 +204,7 @@ Synthesizer::CodeSet Synthesizer::generateCode()
 }
 
 void Synthesizer::checkProcessNetwork()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {}
+    throw(InvalidModelException, IOException, RuntimeException) {}
 
 void Synthesizer::findSchedule() throw (IOException, RuntimeException) {
     schedule_.clear();
@@ -269,7 +271,7 @@ Synthesizer::Signal* Synthesizer::getSignalByInPort(Leaf::Port* in_port)
 }
 
 void Synthesizer::renameMapFunctions()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
         Leaf* current_leaf = processnetwork_->getProcess(*it);
@@ -306,8 +308,8 @@ void Synthesizer::renameMapFunctions()
     }
 }
 
-void Synthesizer::combineFunctionDuplicates()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+void Synthesizer::CombineFunctionDuplicates()
+    throw(InvalidModelException, IOException, RuntimeException) {
     // The mapset below is used to store the unique functions found across the
     // processnetwork. The body is used as key, and the name as body
     map<string, string> unique_functions;
@@ -358,7 +360,7 @@ void Synthesizer::combineFunctionDuplicates()
 }
 
 void Synthesizer::generateCoalescedSyWrapperFunctions()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
         Leaf* current_leaf = processnetwork_->getProcess(*it);
@@ -393,7 +395,7 @@ void Synthesizer::generateCoalescedSyWrapperFunctions()
 
 CFunction Synthesizer::generateCoalescedSyWrapperFunction(
     list<CFunction*> functions)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string new_name = "func_wrapper";
     CDataType new_return_type = *functions.back()->getReturnDataType();
     list<CVariable> new_input_parameters;
@@ -440,7 +442,7 @@ CFunction Synthesizer::generateCoalescedSyWrapperFunction(
 }
 
 string Synthesizer::generateLeafFunctionDefinitionsCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     set<string> unique_function_names;
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
@@ -487,7 +489,7 @@ string Synthesizer::generateLeafFunctionDefinitionsCode()
 }
 
 string Synthesizer::generateProcessNetworkFunctionPrototypeCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     code += "void executeProcessNetwork("
         + generateProcessNetworkFunctionParameterListCode()
@@ -496,7 +498,7 @@ string Synthesizer::generateProcessNetworkFunctionPrototypeCode()
 }
 
 string Synthesizer::generateProcessNetworkFunctionDefinitionCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     code += generateProcessNetworkFunctionPrototypeCode() + " {\n";
     code += kIndents + "int i; // Can safely be removed if the compiler warns\n"
@@ -519,8 +521,8 @@ string Synthesizer::generateProcessNetworkFunctionDefinitionCode()
             try {
                 code += generateLeafExecutionCodeFordelayStep1(delaysy);
             }
-            catch (InvalidProcessNetworkException& ex) {
-                THROW_EXCEPTION(InvalidProcessNetworkException, "Error in leaf \""
+            catch (InvalidModelException& ex) {
+                THROW_EXCEPTION(InvalidModelException, "Error in leaf \""
                                 + current_leaf->getId()->getString() + "\": "
                                 + ex.getMessage());
             }
@@ -538,8 +540,8 @@ string Synthesizer::generateProcessNetworkFunctionDefinitionCode()
         try {
             code += generateLeafExecutionCode(current_leaf);
         }
-        catch (InvalidProcessNetworkException& ex) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, "Error in leaf \""
+        catch (InvalidModelException& ex) {
+            THROW_EXCEPTION(InvalidModelException, "Error in leaf \""
                             + current_leaf->getId()->getString() + "\": "
                             + ex.getMessage());
         }
@@ -558,8 +560,8 @@ string Synthesizer::generateProcessNetworkFunctionDefinitionCode()
             try {
                 code += generateLeafExecutionCodeFordelayStep2(delaysy);
             }
-            catch (InvalidProcessNetworkException& ex) {
-                THROW_EXCEPTION(InvalidProcessNetworkException, "Error in leaf \""
+            catch (InvalidModelException& ex) {
+                THROW_EXCEPTION(InvalidModelException, "Error in leaf \""
                                 + current_leaf->getId()->getString() + "\": "
                                 + ex.getMessage());
             }
@@ -575,7 +577,7 @@ string Synthesizer::generateProcessNetworkFunctionDefinitionCode()
 }
 
 string Synthesizer::generateProcessNetworkFunctionDescription() 
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string desc;
     desc += string("/**\n")
         + " * Executes the processnetwork.\n"
@@ -622,7 +624,7 @@ string Synthesizer::generateProcessNetworkFunctionDescription()
 }
 
 string Synthesizer::generateProcessNetworkFunctionParameterListCode()
-    throw(InvalidProcessNetworkException, RuntimeException) {
+    throw(InvalidModelException, RuntimeException) {
     string code;
 
     // Generate input parameters
@@ -655,7 +657,7 @@ string Synthesizer::generateProcessNetworkFunctionParameterListCode()
 }
 
 string Synthesizer::generateInputsToSignalsCopyingCode()
-    throw(InvalidProcessNetworkException, RuntimeException) {
+    throw(InvalidModelException, RuntimeException) {
     string code;
 
     list<Process::Interface*> inputs = processnetwork_->getInputs();
@@ -684,7 +686,7 @@ string Synthesizer::generateInputsToSignalsCopyingCode()
 }
 
 string Synthesizer::generateSignalsToOutputsCopyingCode()
-    throw(InvalidProcessNetworkException, RuntimeException) {
+    throw(InvalidModelException, RuntimeException) {
     string code;
 
     list<Process::Interface*> outputs = processnetwork_->getOutputs();
@@ -714,7 +716,7 @@ string Synthesizer::generateSignalsToOutputsCopyingCode()
 }
 
 string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
-    throw(InvalidProcessNetworkException, RuntimeException) {
+    throw(InvalidModelException, RuntimeException) {
     string code;
     bool at_least_one = false;
 
@@ -761,7 +763,7 @@ string Synthesizer::generateArrayInputOutputsToSignalsAliasingCode()
 }
 
 void Synthesizer::createSignals()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     signals_.clear();
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
@@ -844,13 +846,13 @@ void Synthesizer::setInputArraySignalVariableDataTypesAsConst()
 }
 
 void Synthesizer::discoverSignalDataTypes()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (set<Signal*>::iterator it = signals_.begin(); it != signals_.end();
          ++it) {
         try {
             discoverSignalDataTypeBackwardSearch(*it);
         }
-        catch (InvalidProcessNetworkException&) {
+        catch (InvalidModelException&) {
             // Data type was not found; do second attempt with forward search
             discoverSignalDataTypeForwardSearch(*it);
         }
@@ -858,7 +860,7 @@ void Synthesizer::discoverSignalDataTypes()
 }
 
 CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logMessage(Logger::DEBUG, string("Searching data type for signal ")
                        + signal->toString() + "...");
 
@@ -871,7 +873,7 @@ CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
 
     if (!signal->getInPort()) {
         logger_.logMessage(Logger::DEBUG, "Reached end of network");
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
+        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
@@ -925,26 +927,26 @@ CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
                 data_type = discoverSignalDataTypeForwardSearch(next_signal);
                 data_type_found = true;
             }
-            catch (InvalidProcessNetworkException&) {
+            catch (InvalidModelException&) {
                 // Ignore exception as it only indicates that no data type was
                 // found for next signal
             }
         }
         if (!data_type_found) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
+            THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                             + "signal " + signal->toString()
                             + " could be found");
         }
 
-        if (dynamic_cast<unzipx*>(leaf)) {
+        if (dynamic_cast<Unzipx*>(leaf)) {
             data_type.setIsArray(true);
         }
     }
 
-    // If this leaf is a zipx and the data type is an array, then we cannot
+    // If this leaf is a Zipx and the data type is an array, then we cannot
     // be sure of its array size at this point and therefore must make it
     // unknown
-    if (dynamic_cast<zipx*>(leaf) && data_type.isArray()) {
+    if (dynamic_cast<Zipx*>(leaf) && data_type.isArray()) {
         data_type.setIsArray(true);
     }
 
@@ -955,7 +957,7 @@ CDataType Synthesizer::discoverSignalDataTypeForwardSearch(Signal* signal)
 }
 
 CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logMessage(Logger::DEBUG, string("Searching data type for signal ")
                        + signal->toString() + "...");
 
@@ -968,7 +970,7 @@ CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
 
     if (!signal->getOutPort()) {
         logger_.logMessage(Logger::DEBUG, "Reached end of network");
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
+        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
@@ -1021,26 +1023,26 @@ CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
                 data_type = discoverSignalDataTypeBackwardSearch(prev_signal);
                 data_type_found = true;
             }
-            catch (InvalidProcessNetworkException&) {
+            catch (InvalidModelException&) {
                 // Ignore exception as it only indicates that no data type was
                 // found for previous signal
             }
         }
         if (!data_type_found) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
+            THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                             + "signal " + signal->toString()
                             + " could be found");
         }
 
-        if (dynamic_cast<zipx*>(leaf)) {
+        if (dynamic_cast<Zipx*>(leaf)) {
             data_type.setIsArray(true);
         }
     }
 
-    // If this leaf is an unzipx and the data type is an array, then we
+    // If this leaf is an Unzipx and the data type is an array, then we
     // cannot be sure of its array size at this point and therefore must make it
     // unknown
-    if (dynamic_cast<unzipx*>(leaf) && data_type.isArray()) {
+    if (dynamic_cast<Unzipx*>(leaf) && data_type.isArray()) {
         data_type.setIsArray(true);
     }
 
@@ -1051,7 +1053,7 @@ CDataType Synthesizer::discoverSignalDataTypeBackwardSearch(Signal* signal)
 }
 
 void Synthesizer::propagateArraySizesBetweenSignals()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
         Leaf* current_leaf = processnetwork_->getProcess(*it);
@@ -1067,7 +1069,7 @@ void Synthesizer::propagateArraySizesBetweenSignals()
             try {
                 discoverSignalArraySizeBackwardSearch(signal);
             }
-            catch (InvalidProcessNetworkException&) {
+            catch (InvalidModelException&) {
                 // Do second attempt with forward search
                 discoverSignalArraySizeForwardSearch(signal);
             }
@@ -1078,7 +1080,7 @@ void Synthesizer::propagateArraySizesBetweenSignals()
             try {
                 discoverSignalArraySizeForwardSearch(signal);
             }
-            catch (InvalidProcessNetworkException&) {
+            catch (InvalidModelException&) {
                 // Do second attempt with backward search
                 discoverSignalArraySizeBackwardSearch(signal);
             }
@@ -1087,7 +1089,7 @@ void Synthesizer::propagateArraySizesBetweenSignals()
 }
 
 size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logMessage(Logger::DEBUG, string("Searching array size for signal ")
                        + signal->toString() + "...");
 
@@ -1100,13 +1102,13 @@ size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
 
     if (!signal->getInPort()) {
         logger_.logMessage(Logger::DEBUG, "Reached end of network");        
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("No array size for ")
+        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port leaf is an unzipx, and if so, get its array
+    // Check if the in port leaf is an Unzipx, and if so, get its array
     // size by summing up the array sizes of its out port signals; if it is not
-    // an unzipx, get the array size from a neighbouring signal
+    // an Unzipx, get the array size from a neighbouring signal
     size_t array_size = 0;
     Leaf* leaf = dynamic_cast<Leaf*>(signal->getInPort()->getProcess());
     list<Leaf::Port*> out_ports = leaf->getOutPorts();
@@ -1116,8 +1118,8 @@ size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
                         "have any out ports");
     }
     try {
-        if (dynamic_cast<unzipx*>(leaf)) {
-            logger_.logMessage(Logger::DEBUG, "Found unzipx leaf. Summing "
+        if (dynamic_cast<Unzipx*>(leaf)) {
+            logger_.logMessage(Logger::DEBUG, "Found Unzipx leaf. Summing "
                                "up array sizes from its out ports...");
             list<Leaf::Port*>::iterator it;
             for (it = out_ports.begin(); it != out_ports.end(); ++it) {
@@ -1130,9 +1132,9 @@ size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
             array_size = discoverSignalArraySizeForwardSearch(next_signal);
         }
     }
-    catch (InvalidProcessNetworkException&) {
+    catch (InvalidModelException&) {
         // Throw new exception but for this signal
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
+        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                         + "signal " + signal->toString()
                         + " could be found");
     }
@@ -1144,7 +1146,7 @@ size_t Synthesizer::discoverSignalArraySizeForwardSearch(Signal* signal)
 }
 
 size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
-        throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+        throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logMessage(Logger::DEBUG, string("Searching array size for signal ")
                        + signal->toString() + "...");
 
@@ -1157,13 +1159,13 @@ size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
 
     if (!signal->getOutPort()) {
         logger_.logMessage(Logger::DEBUG, "Reached end of network");        
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("No array size for ")
+        THROW_EXCEPTION(InvalidModelException, string("No array size for ")
                         + "signal " + signal->toString() + " could be found");
     }
 
-    // Check if the in port leaf is a zipx, and if so, get its array
+    // Check if the in port leaf is a Zipx, and if so, get its array
     // size by summing up the array sizes of its in port signals; if it is not
-    // a zipx, get the array size from a neighbouring signal
+    // a Zipx, get the array size from a neighbouring signal
     size_t array_size = 0;
     Leaf* leaf = dynamic_cast<Leaf*>(signal->getOutPort()->getProcess());
     list<Leaf::Port*> in_ports = leaf->getInPorts();
@@ -1173,8 +1175,8 @@ size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
                         "have any in ports");
     }
     try {
-        if (dynamic_cast<zipx*>(leaf)) {
-            logger_.logMessage(Logger::DEBUG, "Found zipx leaf. Summing "
+        if (dynamic_cast<Zipx*>(leaf)) {
+            logger_.logMessage(Logger::DEBUG, "Found Zipx leaf. Summing "
                                "up array sizes from its in ports...");
             list<Leaf::Port*>::iterator it;
             for (it = in_ports.begin(); it != in_ports.end(); ++it) {
@@ -1188,9 +1190,9 @@ size_t Synthesizer::discoverSignalArraySizeBackwardSearch(Signal* signal)
             array_size = discoverSignalArraySizeBackwardSearch(next_signal);
         }
     }
-    catch (InvalidProcessNetworkException&) {
+    catch (InvalidModelException&) {
         // Throw new exception but for this signal
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("No data type for ")
+        THROW_EXCEPTION(InvalidModelException, string("No data type for ")
                         + "signal " + signal->toString()
                         + " could be found");
     }
@@ -1209,7 +1211,7 @@ void Synthesizer::propagateSignalArraySizesToLeafFunctions()
 }
 
 string Synthesizer::generateSignalVariableDeclarationsCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     try {
         string code;
         code += kIndents + "// Declare signal variables\n";
@@ -1240,12 +1242,12 @@ string Synthesizer::generateSignalVariableDeclarationsCode()
         return code;
     }
     catch (UnknownArraySizeException& ex) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, ex.getMessage());
+        THROW_EXCEPTION(InvalidModelException, ex.getMessage());
     }
 }
 
 string Synthesizer::generateDelayVariableDeclarationsCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     try {
         string code;
         if (delay_variables_.size() > 0) {
@@ -1265,7 +1267,7 @@ string Synthesizer::generateDelayVariableDeclarationsCode()
         return code;
     }
     catch (UnknownArraySizeException& ex) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, ex.getMessage());
+        THROW_EXCEPTION(InvalidModelException, ex.getMessage());
     }
 }
 
@@ -1318,7 +1320,7 @@ string Synthesizer::scheduleToString() const throw() {
 }
         
 string Synthesizer::generateLeafExecutionCode(Leaf* leaf)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     logger_.logMessage(Logger::DEBUG, string("Generating execution code for ")
                        + "leaf \"" + leaf->getId()->getString()
                        + "\"...");
@@ -1334,14 +1336,14 @@ string Synthesizer::generateLeafExecutionCode(Leaf* leaf)
     else if (ZipWithNSY* cast_leaf = dynamic_cast<ZipWithNSY*>(leaf)) {
         return generateLeafExecutionCodeForZipWithNSY(cast_leaf);
     }
-    else if (zipx* cast_leaf = dynamic_cast<zipx*>(leaf)) {
-        return generateLeafExecutionCodeForzipx(cast_leaf);
+    else if (Zipx* cast_leaf = dynamic_cast<Zipx*>(leaf)) {
+        return generateLeafExecutionCodeForZipx(cast_leaf);
     }
-    else if (unzipx* cast_leaf = dynamic_cast<unzipx*>(leaf)) {
-        return generateLeafExecutionCodeForunzipx(cast_leaf);
+    else if (Unzipx* cast_leaf = dynamic_cast<Unzipx*>(leaf)) {
+        return generateLeafExecutionCodeForUnzipx(cast_leaf);
     }
-    else if (fanout* cast_leaf = dynamic_cast<fanout*>(leaf)) {
-        return generateLeafExecutionCodeForfanout(cast_leaf);
+    else if (Fanout* cast_leaf = dynamic_cast<Fanout*>(leaf)) {
+        return generateLeafExecutionCodeForFanout(cast_leaf);
     }
     else {
         THROW_EXCEPTION(InvalidArgumentException, string("Leaf \"")
@@ -1353,7 +1355,7 @@ string Synthesizer::generateLeafExecutionCode(Leaf* leaf)
 }
 
 void Synthesizer::generateCudaKernelFunctions()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
         Leaf* current_leaf = processnetwork_->getProcess(*it);
@@ -1389,8 +1391,8 @@ void Synthesizer::generateCudaKernelFunctions()
                                                  wrapper_function.getName()));
                 parmapsy->insertFunctionFirst(wrapper_function);
             }
-            catch (InvalidProcessNetworkException& ex) {
-                THROW_EXCEPTION(InvalidProcessNetworkException, string("Error in ")
+            catch (InvalidModelException& ex) {
+                THROW_EXCEPTION(InvalidModelException, string("Error in ")
                                 + "leaf \"" + parmapsy->getId()->getString() 
                                 + "\": " + ex.getMessage());
             }
@@ -1400,7 +1402,7 @@ void Synthesizer::generateCudaKernelFunctions()
 
 CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
                                                   size_t num_leafs)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string new_name("kernel");
     string input_param_name("input");
     string output_param_name("output");
@@ -1419,7 +1421,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (old_input_param_data_type.isArray()) {
             if (!old_input_param_data_type.hasArraySize()) {
-                THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
+                THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                                 + "first input parameter has no array size");
             }
             input_data_size = num_leafs * old_input_param_data_type
@@ -1446,7 +1448,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         // Create input parameter
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (!old_input_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
+            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                             + "first input parameter has no array size");
         }
         input_data_size = num_leafs * old_input_param_data_type
@@ -1459,7 +1461,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         CVariable new_output_param(output_param_name,
                                    old_output_param_data_type);
         if (!old_output_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
+            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                             + "second input parameter has no array size");
         }
         output_data_size = num_leafs * old_output_param_data_type
@@ -1565,7 +1567,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
 
 CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
     size_t num_leafs)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string new_name("kernel_wrapper");
     string input_param_name("input");
     string output_param_name("output");
@@ -1743,7 +1745,7 @@ CFunction Synthesizer::generateCudaKernelWrapperFunction(CFunction* function,
 }
 
 void Synthesizer::generateParallelMapSyWrapperFunctions()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     for (list<Id>::iterator it = schedule_.begin(); it != schedule_.end();
          ++it) {
         Leaf* current_leaf = processnetwork_->getProcess(*it);
@@ -1766,8 +1768,8 @@ void Synthesizer::generateParallelMapSyWrapperFunctions()
                                              wrapper_function.getName()));
                 parmapsy->insertFunctionFirst(wrapper_function);
             }
-            catch (InvalidProcessNetworkException& ex) {
-                THROW_EXCEPTION(InvalidProcessNetworkException, string("Error in ")
+            catch (InvalidModelException& ex) {
+                THROW_EXCEPTION(InvalidModelException, string("Error in ")
                                 + "leaf \"" + parmapsy->getId()->getString() 
                                 + "\": " + ex.getMessage());
             }
@@ -1777,7 +1779,7 @@ void Synthesizer::generateParallelMapSyWrapperFunctions()
 
 CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
     size_t num_leafs)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string new_name("parallel_wrapper");
     string input_param_name("input");
     string output_param_name("output");
@@ -1793,7 +1795,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (old_input_param_data_type.isArray()) {
             if (!old_input_param_data_type.hasArraySize()) {
-                THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
+                THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                                 + "first input parameter has no array size");
             }
             int input_data_size = num_leafs * old_input_param_data_type
@@ -1819,7 +1821,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         // Create input parameter
         CVariable new_input_param(input_param_name, old_input_param_data_type);
         if (!old_input_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
+            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                             + "first input parameter has no array size");
         }
         int input_data_size = num_leafs * old_input_param_data_type
@@ -1832,7 +1834,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
         CVariable new_output_param(output_param_name,
                                    old_output_param_data_type);
         if (!old_output_param_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Data type of ")
+            THROW_EXCEPTION(InvalidModelException, string("Data type of ")
                             + "second input parameter has no array size");
         }
         int output_data_size = num_leafs * old_output_param_data_type
@@ -1889,7 +1891,7 @@ CFunction Synthesizer::generateParallelMapSyWrapperFunction(CFunction* function,
 
 string Synthesizer::generateVariableCopyingCode(CVariable to, CVariable from,
                                                 bool do_deep_copy) 
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     ensureVariableDataTypeCompatibilities(from, to);
     ensureVariableArrayCompatibilities(from, to);
 
@@ -1924,7 +1926,7 @@ string Synthesizer::generateVariableCopyingCode(CVariable to, CVariable from,
 
 string Synthesizer::generateVariableCopyingCode(CVariable to,
                                                 list<CVariable>& from) 
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     ensureVariableIsNotConst(to);
     ensureVariableIsArray(to);
     size_t num_from_elements = 0;
@@ -1935,8 +1937,8 @@ string Synthesizer::generateVariableCopyingCode(CVariable to,
     try {
         ensureArraySizes(to.getDataType()->getArraySize(), num_from_elements);
     }
-    catch (InvalidProcessNetworkException& ex) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
+    catch (InvalidModelException& ex) {
+        THROW_EXCEPTION(InvalidModelException, string("Error between ")
                         + "list of variables and variable \""
                         + to.getReferenceString() + "\": " + ex.getMessage());
     }
@@ -1968,7 +1970,7 @@ string Synthesizer::generateVariableCopyingCode(CVariable to,
 
 string Synthesizer::generateVariableCopyingCode(list<CVariable>& to,
                                                 CVariable from)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     size_t num_to_elements = 0;
     for (list<CVariable>::iterator it = to.begin(); it != to.end(); ++it) {
         ensureVariableIsNotConst(*it);
@@ -1979,8 +1981,8 @@ string Synthesizer::generateVariableCopyingCode(list<CVariable>& to,
     try {
         ensureArraySizes(num_to_elements, from.getDataType()->getArraySize());
     }
-    catch (InvalidProcessNetworkException& ex) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
+    catch (InvalidModelException& ex) {
+        THROW_EXCEPTION(InvalidModelException, string("Error between ")
                         + "variable \"" + from.getReferenceString() + "\" and "
                         + "list of variables: " + ex.getMessage());
     }
@@ -2012,7 +2014,7 @@ string Synthesizer::generateVariableCopyingCode(list<CVariable>& to,
 
 string Synthesizer::generateLeafFunctionExecutionCode(
     CFunction* function, list<CVariable> inputs, CVariable output)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     ensureVariableIsNotConst(output);
 
     string code;
@@ -2024,8 +2026,8 @@ string Synthesizer::generateLeafFunctionExecutionCode(
             ensureVariableDataTypeCompatibilities(output, function_return);
             ensureVariableArrayCompatibilities(output, function_return);
         }
-        catch (InvalidProcessNetworkException& ex) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error in function, ")
+        catch (InvalidModelException& ex) {
+            THROW_EXCEPTION(InvalidModelException, string("Error in function, ")
                             + "return value: " + ex.getMessage());
         }
 
@@ -2038,8 +2040,8 @@ string Synthesizer::generateLeafFunctionExecutionCode(
             ensureVariableDataTypeCompatibilities(function_output, output);
             ensureVariableArrayCompatibilities(function_output, output);
         }
-        catch (InvalidProcessNetworkException& ex) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error in function, ")
+        catch (InvalidModelException& ex) {
+            THROW_EXCEPTION(InvalidModelException, string("Error in function, ")
                             + "last parameter: " + ex.getMessage());
         }
 
@@ -2073,20 +2075,20 @@ string Synthesizer::generateLeafFunctionExecutionCode(
 }
 
 void Synthesizer::ensureVariableIsNotConst(CVariable variable)
-    throw(InvalidProcessNetworkException) {
+    throw(InvalidModelException) {
     if (variable.getDataType()->isConst()) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("Variable \"") +
+        THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
                         variable.getReferenceString() + "\" is a const");
     }
 }
 
 void Synthesizer::ensureVariableDataTypeCompatibilities(CVariable lhs,
                                                         CVariable rhs)
-    throw(InvalidProcessNetworkException) {
+    throw(InvalidModelException) {
     CDataType lhs_data_type = *lhs.getDataType();
     CDataType rhs_data_type = *rhs.getDataType();
     if (lhs_data_type.getType() != rhs_data_type.getType()) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
+            THROW_EXCEPTION(InvalidModelException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + "mismatched data types (from "
@@ -2098,17 +2100,17 @@ void Synthesizer::ensureVariableDataTypeCompatibilities(CVariable lhs,
 }
 
 void Synthesizer::ensureVariableIsArray(CVariable variable)
-    throw(InvalidProcessNetworkException) {
+    throw(InvalidModelException) {
     if (!variable.getDataType()->isArray()) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("Variable \"") +
+        THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
                         variable.getReferenceString() + "\" is not an array");
     }    
 }
 
 void Synthesizer::ensureArraySizes(size_t lhs, size_t rhs)
-    throw(InvalidProcessNetworkException) {
+    throw(InvalidModelException) {
     if (lhs != rhs) {
-        THROW_EXCEPTION(InvalidProcessNetworkException, string("Mismatched array ")
+        THROW_EXCEPTION(InvalidModelException, string("Mismatched array ")
                         + "sizes (from size " + tools::toString(rhs)
                         + " to size " + tools::toString(lhs) + ")");
     }
@@ -2116,23 +2118,23 @@ void Synthesizer::ensureArraySizes(size_t lhs, size_t rhs)
 
 void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
                                                      CVariable rhs)
-    throw(InvalidProcessNetworkException) {
+    throw(InvalidModelException) {
     CDataType lhs_data_type = *lhs.getDataType();
     CDataType rhs_data_type = *rhs.getDataType();
     if (lhs_data_type.isArray()) {
         if (!rhs_data_type.isArray()) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
+            THROW_EXCEPTION(InvalidModelException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + "mismatched data types (from scalar to array)");
         }
         if (!lhs_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Variable \"") +
+            THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
                             lhs.getReferenceString() + "\" has no array "
                             + "size");
         }
         if (!rhs_data_type.hasArraySize()) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Variable \"") +
+            THROW_EXCEPTION(InvalidModelException, string("Variable \"") +
                             rhs.getReferenceString() + "\" has no array "
                             + "size");
         }
@@ -2140,8 +2142,8 @@ void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
             ensureArraySizes(lhs_data_type.getArraySize(),
                              rhs_data_type.getArraySize());
         }
-        catch (InvalidProcessNetworkException& ex) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
+        catch (InvalidModelException& ex) {
+            THROW_EXCEPTION(InvalidModelException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + ex.getMessage());
@@ -2149,7 +2151,7 @@ void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
     }
     else {
         if (rhs_data_type.isArray()) {
-            THROW_EXCEPTION(InvalidProcessNetworkException, string("Error between ")
+            THROW_EXCEPTION(InvalidModelException, string("Error between ")
                             + "variables " + rhs.getReferenceString()
                             + " and " + lhs.getReferenceString() + ": "
                             + "mismatched data types (from array to scalar)");
@@ -2158,7 +2160,7 @@ void Synthesizer::ensureVariableArrayCompatibilities(CVariable lhs,
 }
 
 string Synthesizer::generateKernelConfigStructDefinitionCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     code += string("/**\n")
         + " * C struct for returning the calculated kernel configuration for \n"
@@ -2173,7 +2175,7 @@ string Synthesizer::generateKernelConfigStructDefinitionCode()
 }
 
 string Synthesizer::generateKernelConfigFunctionDefinitionCode()
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     string code;
     code += string("/**\n")
         + " * Calculate the best kernel configuration of grid and thread\n"
@@ -2266,7 +2268,7 @@ string Synthesizer::generateKernelConfigFunctionDefinitionCode()
 }
 
 string Synthesizer::getGlobalLeafFunctionName(
-    ForSyDe::Id leaf_id, const string& function_name) const throw() {
+    Forsyde::Id leaf_id, const string& function_name) const throw() {
     return string("f") + leaf_id.getString() + "_" + function_name;
 }
 
@@ -2280,7 +2282,7 @@ bool Synthesizer::dynamicallyAllocateMemoryForSignalVariable(Signal* signal) {
 
 string Synthesizer::generateLeafExecutionCodeFordelayStep1(
     delay* leaf)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     CVariable output =
         getSignalByOutPort(leaf->getOutPorts().front())->getVariable();
     CVariable delay_variable = getDelayVariable(leaf).first;
@@ -2289,7 +2291,7 @@ string Synthesizer::generateLeafExecutionCodeFordelayStep1(
 
 string Synthesizer::generateLeafExecutionCodeFordelayStep2(
     delay* leaf)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input = 
         getSignalByInPort(leaf->getInPorts().front())->getVariable();
     CVariable delay_variable = getDelayVariable(leaf).first;
@@ -2297,7 +2299,7 @@ string Synthesizer::generateLeafExecutionCodeFordelayStep2(
 }
 
 string Synthesizer::generateLeafExecutionCodeForMap(Map* leaf)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     list<CVariable> inputs;
     inputs.push_back(getSignalByInPort(leaf->getInPorts().front())
                      ->getVariable());
@@ -2309,7 +2311,7 @@ string Synthesizer::generateLeafExecutionCodeForMap(Map* leaf)
 
 string Synthesizer::generateLeafExecutionCodeForZipWithNSY(
     ZipWithNSY* leaf)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+    throw(InvalidModelException, IOException, RuntimeException) {
     list<CVariable> inputs;
     list<Leaf::Port*> in_ports = leaf->getInPorts();
     list<Leaf::Port*>::iterator it;
@@ -2322,8 +2324,8 @@ string Synthesizer::generateLeafExecutionCodeForZipWithNSY(
     return generateLeafFunctionExecutionCode(function, inputs, output);
 }
 
-string Synthesizer::generateLeafExecutionCodeForunzipx(unzipx* leaf)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+string Synthesizer::generateLeafExecutionCodeForUnzipx(Unzipx* leaf)
+    throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(leaf->getInPorts().front())->getVariable();
     list<CVariable> outputs;
@@ -2335,8 +2337,8 @@ string Synthesizer::generateLeafExecutionCodeForunzipx(unzipx* leaf)
     return generateVariableCopyingCode(outputs, input);
 }
 
-string Synthesizer::generateLeafExecutionCodeForzipx(zipx* leaf)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+string Synthesizer::generateLeafExecutionCodeForZipx(Zipx* leaf)
+    throw(InvalidModelException, IOException, RuntimeException) {
     CVariable output =
         getSignalByOutPort(leaf->getOutPorts().front())->getVariable();
     list<CVariable> inputs;
@@ -2351,8 +2353,8 @@ string Synthesizer::generateLeafExecutionCodeForzipx(zipx* leaf)
     return code;
 }
 
-string Synthesizer::generateLeafExecutionCodeForfanout(fanout* leaf)
-    throw(InvalidProcessNetworkException, IOException, RuntimeException) {
+string Synthesizer::generateLeafExecutionCodeForFanout(Fanout* leaf)
+    throw(InvalidModelException, IOException, RuntimeException) {
     CVariable input =
         getSignalByInPort(leaf->getInPorts().front())->getVariable();
     list<Leaf::Port*> out_ports = leaf->getOutPorts();
