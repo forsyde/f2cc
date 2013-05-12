@@ -220,7 +220,7 @@ public:
       *        Composite to compare with.
       * @returns \b true if both composites are equal.
       */
-     bool operator==(const Composite& rhs) const throw();
+     virtual bool operator==(const Composite& rhs) const throw();
 
      /**
       * Same as operator==(const Composite&) but for inequality.
@@ -229,7 +229,7 @@ public:
       *        Composite to compare with.
       * @returns \b true if both composites are not equal.
       */
-     bool operator!=(const Composite& rhs) const throw();
+     virtual bool operator!=(const Composite& rhs) const throw();
 
      /**
 	  * @copydoc Process::type()

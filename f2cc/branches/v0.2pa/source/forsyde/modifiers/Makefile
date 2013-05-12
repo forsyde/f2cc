@@ -23,63 +23,24 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-SRCFILES = f2cc.cpp
-OBJECTS  = $(addprefix $(OBJPATH)/, \
-             $(addsuffix .o, $(basename $(SRCFILES))) \
-            )
-EXEC_ = f2cc
-EXEC  = $(addprefix $(TARGETPATH)/, $(EXEC_))
+MODULE      = forsyde/modifiers
+SRCFILES    =  modelmodifier.cpp modelmodifiersysc.cpp
+THISOBJPATH = $(OBJPATH)/$(MODULE)
+OBJECTS     = $(addprefix $(THISOBJPATH)/, \
+                $(addsuffix .o, $(basename $(SRCFILES))) \
+               )
 
-DEPENDENCIES = ticpp exceptions tools logger forsyde forsyde/SY forsyde/modifiers \
-               language frontend config synthesizer  
-               
-DEPOBJECTS   = $(addprefix $(OBJPATH)/, \
-                 $(addsuffix /*.o, $(basename $(DEPENDENCIES))) \
-                )
-
-export LIBPATH = $(TARGETPATH)/lib
-export OBJPATH = $(TARGETPATH)/obj
-
-export CC      = g++
-export CCFLAGS = -Wall \
-                 -DSVNVERSION="\"`svnversion`\""
-export LDFLAGS =
-export AR      = ar
-export ARFLAGS = crf
-
-all: $(LIBPATH) $(OBJPATH) link
-
-link: build prelink
-	@printf $(subst %,$(EXEC_),$(ITEMLINKMSG))
-	@$(CC) $(CCFLAGS) $(LDFLAGS) -o $(TARGETPATH)/$(EXEC_) $(OBJECTS) \
-           $(DEPOBJECTS)
-	@printf $(POSTLINKMSG)
-
-prelink:
-	@printf $(PRELINKMSG)
-
-build: $(DEPENDENCIES) prebuild $(OBJECTS)
+build: $(THISOBJPATH) prebuild $(OBJECTS)
 	@printf $(POSTBUILDMSG)
 
-prebuild:
-	@printf $(subst %,core,$(PREBUILDMSG))
-
-$(LIBPATH) $(OBJPATH):
+$(THISOBJPATH):
 	@mkdir -p $@
 
-$(DEPENDENCIES):
-	@$(DOMAKE) -C ./$@
+prebuild:
+	@printf $(subst %,$(MODULE),$(PREBUILDMSG))
 
-$(OBJPATH)/%.o: %.cpp
+$(THISOBJPATH)/%.o: %.cpp %.h
 	@printf $(subst %,$<,$(ITEMBUILDMSG))
 	@$(CC) $(CCFLAGS) -o $@ -c $<
 
-docs: predocs
-	@doxygen dox
-	@printf $(POSTDOCSBUILDMSG)
-	@cat dox.log
-
-predocs:
-	@printf $(PREDOCSBUILDMSG)
-
-.PHONY: prebuild $(LIBPATH) $(OBJPATH) docs predocs $(DEPENDENCIES)
+.PHONY: prebuild $(THISOBJPATH)

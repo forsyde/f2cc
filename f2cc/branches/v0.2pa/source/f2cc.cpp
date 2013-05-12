@@ -46,7 +46,7 @@
 #include "frontend/xmlparser.h"
 #include "forsyde/processnetwork.h"
 #include "forsyde/leaf.h"
-#include "forsyde/modelmodifier.h"
+#include "forsyde/modifiers/modelmodifier.h"
 #include "synthesizer/synthesizer.h"
 #include "exceptions/exception.h"
 #include "exceptions/ioexception.h"

@@ -3,7 +3,7 @@
  *     Gabriel Hjort Blindell <ghb@kth.se>
  *     George Ungureanu <ugeorge@kth.se>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright notice,
@@ -11,7 +11,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -26,16 +26,16 @@
  */
 
 #include "modelmodifier.h"
-#include "SY/zipxsy.h"
-#include "SY/unzipxsy.h"
-#include "SY/parallelmapsy.h"
-#include "SY/coalescedmapsy.h"
-#include "SY/zipwithnsy.h"
-#include "../language/cfunction.h"
-#include "../language/cdatatype.h"
-#include "../tools/tools.h"
-#include "../exceptions/castexception.h"
-#include "../exceptions/indexoutofboundsexception.h"
+#include "../SY/zipxsy.h"
+#include "../SY/unzipxsy.h"
+#include "../SY/parallelmapsy.h"
+#include "../SY/coalescedmapsy.h"
+#include "../SY/zipwithnsy.h"
+#include "../../language/cfunction.h"
+#include "../../language/cdatatype.h"
+#include "../../tools/tools.h"
+#include "../../exceptions/castexception.h"
+#include "../../exceptions/indexoutofboundsexception.h"
 #include <set>
 #include <string>
 #include <new>
@@ -260,9 +260,9 @@ void ModelModifier::removeRedundantLeafs()
 
                 // Redirect the leaf' in and out ports to unconnect it from
                 // the network
-                Leaf::Port* in_port = 
+                Leaf::Port* in_port =
                     leaf->getInPorts().front();
-                Leaf::Port* out_port = 
+                Leaf::Port* out_port =
                     leaf->getOutPorts().front();
                 Leaf::Port* other_end_at_in_port =
                 	dynamic_cast<Leaf::Port*>(in_port->getConnectedPort());
@@ -286,11 +286,11 @@ void ModelModifier::removeRedundantLeafs()
 
                 // Delete leaf from processnetwork
                 if (!processnetwork_->deleteProcess(*leaf->getId())) {
-                    THROW_EXCEPTION(IllegalStateException, string("Could not ") 
+                    THROW_EXCEPTION(IllegalStateException, string("Could not ")
                                     + "delete leaf \"" + leaf_name
                                     + "\"");
                 }
-                
+
                 if (is_Zipxsy) {
                     logger_.logMessage(Logger::INFO, string("Removed ")
                                        + "redundant Zipx leaf \""
@@ -551,7 +551,7 @@ bool ModelModifier::isContainedSectionDataParallel(
         else {
             logger_.logMessage(Logger::DEBUG,
                                string("Comparing leaf chains ")
-                               + leafChainToString(first_chain) 
+                               + leafChainToString(first_chain)
                                + " and "
                                + leafChainToString(current_chain) + "...");
             if (!areLeafChainsEqual(first_chain, current_chain)) {
@@ -704,7 +704,7 @@ void ModelModifier::coalesceLeafChain(list<Leaf*> chain)
     CoalescedMap* new_leaf = new (std::nothrow) CoalescedMap(
         processnetwork_->getUniqueProcessId("_coalescedmapSY_"), functions);
     if (!new_leaf) THROW_EXCEPTION(OutOfMemoryException);
-    
+
     redirectDataFlow(chain.front(), chain.back(), new_leaf, new_leaf);
 
     // Add new leaf to the processnetwork
@@ -802,7 +802,7 @@ void ModelModifier::coalesceParallelMapSyChain(list<ParallelMap*> chain)
         processnetwork_->getUniqueProcessId("_parallelmapSY_"), num_leafs,
         functions);
     if (!new_leaf) THROW_EXCEPTION(OutOfMemoryException);
-    
+
     redirectDataFlow(chain.front(), chain.back(), new_leaf, new_leaf);
 
     // Add new leaf to the processnetwork
@@ -911,7 +911,7 @@ void ModelModifier::splitDataParallelSegments(
                     THROW_EXCEPTION(IllegalStateException, "Failed to add "
                                     "port");
                 }
-                Leaf::Port* left_mapSY_out_port = 
+                Leaf::Port* left_mapSY_out_port =
                     chains[i][current_segment - 1]->getOutPorts().front();
                 Leaf::Port* ZipxSY_in_port = new_ZipxSY->getInPorts().back();
                 logger_.logMessage(Logger::DEBUG, string("Connecting \"")
@@ -925,9 +925,9 @@ void ModelModifier::splitDataParallelSegments(
                     THROW_EXCEPTION(IllegalStateException, "Failed to add "
                                     "port");
                 }
-                Leaf::Port* right_mapSY_in_port = 
+                Leaf::Port* right_mapSY_in_port =
                     chains[i][current_segment]->getInPorts().front();
-                Leaf::Port* UnzipxSY_out_port = 
+                Leaf::Port* UnzipxSY_out_port =
                     new_UnzipxSY->getOutPorts().back();
                 logger_.logMessage(Logger::DEBUG, string("Connecting \"")
                                    + right_mapSY_in_port->toString()
@@ -973,7 +973,7 @@ ModelModifier::ContainedSection::ContainedSection(Leaf* start, Leaf* end)
 }
 
 string ModelModifier::ContainedSection::toString() const throw() {
-    return string("\"") + start->getId()->getString() + "--" + 
+    return string("\"") + start->getId()->getString() + "--" +
         end->getId()->getString() + "\"";
 }
 

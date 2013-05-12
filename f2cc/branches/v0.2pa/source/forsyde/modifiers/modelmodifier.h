@@ -36,17 +36,17 @@
  * @brief Defines a class for performing \c ProcessNetwork modifications.
  */
 
-#include "id.h"
-#include "processnetwork.h"
-#include "leaf.h"
-#include "SY/mapsy.h"
-#include "SY/parallelmapsy.h"
-#include "SY/unzipxsy.h"
-#include "SY/zipxsy.h"
-#include "../logger/logger.h"
-#include "../exceptions/ioexception.h"
-#include "../exceptions/invalidargumentexception.h"
-#include "../exceptions/outofmemoryexception.h"
+#include "../id.h"
+#include "../processnetwork.h"
+#include "../leaf.h"
+#include "../SY/mapsy.h"
+#include "../SY/parallelmapsy.h"
+#include "../SY/unzipxsy.h"
+#include "../SY/zipxsy.h"
+#include "../../logger/logger.h"
+#include "../../exceptions/ioexception.h"
+#include "../../exceptions/invalidargumentexception.h"
+#include "../../exceptions/outofmemoryexception.h"
 #include <list>
 #include <set>
 #include <vector>
