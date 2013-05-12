@@ -54,9 +54,10 @@ string Config::getHelpMenu() const throw() {
     const size_t maximum_line_length = 80;
     string part;
     string str = string()
-        + "Developer: Gabriel Hjort Blindell <ghb@kth.se>\n"
+        + "Developers: Gabriel Hjort Blindell <ghb@kth.se>\n"
+        + "            George Ungureanu <ugeorge@kth.se>\n"
         + "KTH - Royal Institute of Technology, Stockholm, Sweden\n"
-        + "Copyright (c) 2011-2012\n"
+        + "Copyright (c) 2011-2013\n"
         + "\n";
 
     part = "This tool is part of the ForSyDe framework for synthesizing "
@@ -119,7 +120,7 @@ string Config::getHelpMenu() const throw() {
     tools::breakLongLines(part, maximum_line_length, indents);
     str += part;
 
-    part = "   -ll=LEVEL, --log-file=LEVEL\n"
+    part = "   -ll LEVEL, --log-level=LEVEL\n"
         "      Specifies the log level. This affects how verbose the tool is "
         "in its logging and prompt output. Valid options are CRITICAL, ERROR, "
         "WARNING, INFO, and DEBUG. Default setting is INFO."
@@ -366,10 +367,12 @@ void Config::setFromCommandLine(int argc, const char** argv)
                 }
             }
         }
-        std::string extension = tools::getExtension(input_file_);
-        if (extension == "xml") format_ = XML;
-        else if (extension == "graphml") format_ = GraphML;
-        else THROW_EXCEPTION(InvalidFormatException, "Input format not recognized");
+        if (found_input_file){
+        	std::string extension = tools::getExtension(input_file_);
+			if (extension == "xml") format_ = XML;
+			else if (extension == "graphml") format_ = GraphML;
+			else THROW_EXCEPTION(InvalidFormatException, "Input format not recognized");
+        }
     }
     catch(InvalidFormatException& ex) {
         THROW_EXCEPTION(InvalidFormatException, ex.getMessage()

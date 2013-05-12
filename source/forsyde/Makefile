@@ -25,7 +25,7 @@
 
 MODULE      = forsyde
 SRCFILES    = id.cpp hierarchy.cpp model.cpp process.cpp leaf.cpp composite.cpp \
-              processnetwork.cpp modelmodifier.cpp
+              processnetwork.cpp 
 THISOBJPATH = $(OBJPATH)/$(MODULE)
 OBJECTS     = $(addprefix $(THISOBJPATH)/, \
                 $(addsuffix .o, $(basename $(SRCFILES))) \

@@ -142,7 +142,7 @@ Document XmlParser::parseXmlFile(const string& file)
     string xml_data;
     logger_.logMessage(Logger::INFO, string(tools::indent(level_)
                            + "Level " + tools::toString(level_)
-                           + ". Reading xml data from file: "
+                           + ". Active XML: "
                            + file
                            + "..."));
     try {
@@ -685,7 +685,7 @@ CDataType XmlParser::getDataType(const string& port_datatype,
 		}
 
 		data_type = new CDataType(CDataType::stringToType(base_datatype),
-					true, true, size, false, false);
+					true, true, size, false, true);
 
 		return *data_type;
 	}
@@ -838,10 +838,10 @@ void XmlParser::generateConnection(Process::Interface* source_port,
 		Composite::IOPort* source_io = dynamic_cast<Composite::IOPort*>(source_port);
 		if (!source_io) THROW_EXCEPTION(CastException);
 		else {
-			logger_.logMessage(Logger::WARNING, string()
+			/*logger_.logMessage(Logger::WARNING, string()
 					+ tools::indent(level_)
 					+ "Multiple connections are not treated for IO ports.");
-
+			 */
 			source_io->connect(target_port);
 			logger_.logMessage(Logger::DEBUG, string()
 							   + tools::indent(level_)
@@ -1008,7 +1008,7 @@ string XmlParser::getInitialDelayValue(Element* xml, Composite* parent)
 ////////////////////////////////////////////////////////////////////
 
 XmlParser::CParser::CParser(Logger& logger, int indent) throw() :
-		level_(indent), file_(NULL), cdata_(NULL), logger_(logger){}
+		level_(indent), logger_(logger){}
 
 XmlParser::CParser::~CParser() throw() {}
 
@@ -1273,7 +1273,7 @@ void XmlParser::CParser::createFunctionParameter(CFunction* function, string ana
 	tools::searchReplace(data_type_string, "&", "");
 	tools::trim(data_type_string);
 	c_data_type = new CDataType(CDataType::stringToType(data_type_string),
-			is_array, false, 0, false, false);
+			is_array, false, 0, false, is_array);
 
 	CVariable* c_variable;
 	string name_string = analysis_string.substr(separator + 1,
