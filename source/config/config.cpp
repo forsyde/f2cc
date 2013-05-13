@@ -412,6 +412,14 @@ void Config::setTargetPlatform(Config::TargetPlatform platform) throw() {
     target_platform_ = platform;
 }
 
+Config::Costs Config::getCosts() const throw(){
+	return costs_;
+}
+
+void Config::setCosts(const string& file) throw(){
+//TODO::IMPLEMENT
+}
+
 Config::InputFormat Config::getInputFormat() const throw() {
     return format_;
 }

@@ -334,6 +334,21 @@ public:
          */
         virtual ~IOPort() throw();
 
+        /**
+		 * Gets the data type of this port.
+		 *
+		 * @return the associated data type.
+		 */
+        std::pair<f2cc::CDataType, f2cc::CDataType> getDataType() throw();
+
+        /**
+		 * Sets the data type of this port.
+		 *
+		 * @param datatype
+		 *        The new data type that has to be set.
+		 */
+        void setDataType(bool outside, CDataType datatype) throw();
+
 
         /**
          * Checks if this \c IOPort is immediately connected to a \c Process::Interface
@@ -440,6 +455,8 @@ public:
          *         knowing the hierarchical path is not possible. Also, if by any
          *         means, the outside connection points to an interface outside
          *         the scope of vision for this \c IOPort.
+		 *
+		 * @return the associated data type.
          * @throws CastException
          *         When the given interface is not \c Leaf::Port or \c Composite::IOPort.
          */
@@ -543,6 +560,11 @@ public:
 		 * The connected interface outside the composite process
 		 */
         Process::Interface* connected_port_outside_;
+
+        /**
+		 * Port data type.
+		 */
+		std::pair<CDataType, CDataType> data_types_;
 
     };
 };

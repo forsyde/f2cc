@@ -281,6 +281,15 @@ Composite::IOPort::~IOPort() throw() {
     unconnectInside();
 }
 
+std::pair<f2cc::CDataType, f2cc::CDataType> Composite::IOPort::getDataType() throw() {
+    return data_types_;
+}
+
+void Composite::IOPort::setDataType(bool outside, CDataType datatype) throw() {
+	if (outside) data_types_.first = datatype;
+	else data_types_.second = datatype;
+}
+
 bool Composite::IOPort::isConnectedOutside() const throw() {
     return connected_port_outside_;
 }
