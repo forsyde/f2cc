@@ -40,7 +40,8 @@ using std::vector;
 
 ParallelComposite::ParallelComposite(const Forsyde::Id& id,
 		Forsyde::Hierarchy& hierarchy, Forsyde::Id name, int number_of_processes) throw():
-		Composite(id, hierarchy, name), number_of_processes_(number_of_processes){}
+		Composite(id, hierarchy, name), number_of_processes_(number_of_processes),
+		contained_process_id_(NULL){}
 
 ParallelComposite::~ParallelComposite() throw() {}
 
@@ -52,190 +53,12 @@ void ParallelComposite::setNumberOfProcesses(int number_of_processes) throw() {
 	number_of_processes_ = number_of_processes;
 }
 
-
-bool ParallelComposite::addInConduit(Process::Interface* conduit) throw(OutOfMemoryException) {
-    if (!conduit) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"conduit\" must not be NULL");
-    }
-
-    if (!conduit) return false;
-    if (findConduit(conduit, in_conduits_) != in_conduits_.end()) return false;
-
-    try {
-    	in_conduits_.push_back(conduit);
-        return true;
-    }
-    catch (bad_alloc& ex) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
+Id* ParallelComposite::getContainedProcessId() throw() {
+    return contained_process_id_;
 }
 
-bool ParallelComposite::deleteInConduit(Process::Interface* port) throw() {
-    list<Process::Interface*>::iterator it = findConduit(port, in_conduits_);
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (it != in_conduits_.end()) {
-    	in_conduits_.erase(it);
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-size_t ParallelComposite::getNumInConduits() const throw() {
-    return in_conduits_.size();
-}
-
-Process::Interface* ParallelComposite::getInConduit(Process::Interface* port) throw() {
-	list<Process::Interface*>::iterator it = (findConduit(port,in_conduits_));
-    if (it != in_conduits_.end()) {
-        return *it;
-    }
-    return NULL;
-}
-
-
-std::list<Process::Interface*> ParallelComposite::getInConduits() throw() {
-    return in_conduits_;
-}
-
-bool ParallelComposite::addOutConduit(Process::Interface* port)
-    throw(InvalidArgumentException, OutOfMemoryException) {
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (!port) return false;
-    if (findConduit(port, out_conduits_) != out_conduits_.end()) return false;
-
-    try {
-    	out_conduits_.push_back(port);
-        return true;
-    }
-    catch (bad_alloc& ex) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
-}
-
-bool ParallelComposite::deleteOutConduit(Process::Interface* port) throw(InvalidArgumentException) {
-    list<Process::Interface*>::iterator it = findConduit(port, out_conduits_);
-    if (!port) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
-    }
-
-    if (it != out_conduits_.end()) {
-    	out_conduits_.erase(it);
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-size_t ParallelComposite::getNumOutConduits() const throw() {
-    return out_conduits_.size();
-}
-
-Process::Interface* ParallelComposite::getOutConduit(Process::Interface* port) throw() {
-	list<Process::Interface*>::iterator it = (findConduit(port,out_conduits_));
-    if (it != out_conduits_.end()) {
-        return *it;
-    }
-    return NULL;
-}
-
-std::list<Process::Interface*> ParallelComposite::getOutConduits() throw() {
-    return out_conduits_;
-}
-
-/*
-string ParallelComposite::toString() const throw() {
-    string str;
-    str += "{\n";
-    str += " Composite Process ID: ";
-    str += getId()->getString();
-    str += ",\n";
-    str += " Name: ";
-    str += getName().getString();
-    str += ",\n";
-    str += " NumInPorts: ";
-    str += tools::toString(getNumInIOPorts());
-    str += ",\n";
-    str += " InPorts = {";
-    str += portsToString(in_ports_);
-    str += "}";
-    str += ",\n";
-    str += " NumOutPorts: ";
-    str += tools::toString(getNumOutIOPorts());
-    str += ",\n";
-    str += " OutPorts = {";
-    str += portsToString(out_ports_);
-    str += "}";
-
-    return str;
-}*/
-
-list<Process::Interface*>::iterator ParallelComposite::findConduit(
-    const Id& id, list<Process::Interface*>& conduits) const throw() {
-    list<Process::Interface*>::iterator it;
-    for (it = conduits.begin(); it != conduits.end(); ++it) {
-        if (*(*it)->getId() == id) {
-            return it;
-        }
-    }
-
-    // No such port was found
-    return it;
-}
-
-list<Process::Interface*>::iterator ParallelComposite::findConduit(
-    Process::Interface* conduit, std::list<Process::Interface*>& conduits) const throw() {
-    list<Process::Interface*>::iterator it;
-    for (it = conduits.begin(); it != conduits.end(); ++it) {
-        if (*it == conduit) {
-            return it;
-        }
-    }
-
-    // No such port was found
-    return it;
-}
-
-string ParallelComposite::conduitsToString(const list<Process::Interface*> conduits) const throw() {
-    string str;
-    if (conduits.size() > 0) {
-        str += "\n";
-        bool first = true;
-        for (list<Process::Interface*>::const_iterator it = conduits.begin();
-             it != conduits.end(); ++it) {
-            if (!first) {
-                str += ",\n";
-            }
-            else {
-                first = false;
-            }
-
-            Process::Interface* port = *it;
-            str += "  ID: ";
-            str += port->getId()->getString();
-            str += ": ";
-            str += port->toString();
-        }
-        str += "\n ";
-    }
-    return str;
-}
-
-bool ParallelComposite::operator==(const ParallelComposite& rhs) const throw() {
-	if (getName() != rhs.getName()) return false;
-
-    return true;
-}
-
-bool ParallelComposite::operator!=(const ParallelComposite& rhs) const throw() {
-    return !operator==(rhs);
+void ParallelComposite::setContainedProcessId(Id* id) throw() {
+	contained_process_id_ = id;
 }
 
 string ParallelComposite::type() const throw() {
@@ -243,6 +66,8 @@ string ParallelComposite::type() const throw() {
 }
 
 void ParallelComposite::moreChecks() throw(InvalidProcessException){
+
+	//TODO: check inner and outer data type.
     if (getInIOPorts().size() == 0) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""

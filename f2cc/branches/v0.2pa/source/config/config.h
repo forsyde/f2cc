@@ -86,6 +86,21 @@ class Config {
         GraphML
     };
 
+    struct Costs {
+        /**
+         * Contains the code for the header file.
+         */
+        int k_H2D;
+
+        int k_D2H;
+
+        int k_D2D;
+
+        int k_H2H;
+
+        unsigned min_parallel;
+    };
+
     /**
      * Creates a configuration with default settings.
      */
@@ -267,6 +282,21 @@ class Config {
     void setTargetPlatform(TargetPlatform platform) throw();
 
     /**
+     * Gets the target platform. Default platform is Config::CUDA.
+     *
+     * @returns Target platform.
+     */
+    Costs getCosts() const throw();
+
+    /**
+     * Sets the target platform.
+     *
+     * @param platform
+     *        Target platform.
+     */
+    void setCosts(const std::string& file) throw();
+
+    /**
      * Gets the input file format, that determines the execution path.
      *
      * @returns Input format.
@@ -394,6 +424,8 @@ class Config {
      * Specifies the input format, thus the execution path.
      */
     InputFormat format_;
+
+    Costs costs_;
 };
 
 }
