@@ -111,7 +111,7 @@ class Model {
      *
      * @returns Process count.
      */
-    int getNumProcesses() const throw();
+    virtual int getNumProcesses() const throw();
 
     /**
      * Gets a list of all processes in this model.
@@ -121,6 +121,13 @@ class Model {
     std::list<Leaf*> getProcesses() throw();
 
     /**
+     * Gets a list of all processes in this model.
+     *
+     * @returns Process list.
+     */
+    std::map<const Id, Leaf*> getProcessesMap() throw();
+
+    /**
      * Removes and destroys a process by ID.
      *
      * @param id
@@ -128,6 +135,15 @@ class Model {
      * @returns \b true if such a process was found and successfully deleted.
      */
     bool deleteProcess(const Id& id) throw();
+
+    /**
+     * Removes a process by ID.
+     *
+     * @param id
+     *        Process ID.
+     * @returns \b true if such a process was found and successfully deleted.
+     */
+    bool removeProcess(const Id& id) throw();
 
     /**
      * Gets a new process ID which is not currently in use within this model.
@@ -173,6 +189,7 @@ class Model {
     void addComposites(std::map<const Id, Composite*> composites)
         throw(OutOfMemoryException);
 
+
     /**
      * Gets a composite by ID.
      *
@@ -197,6 +214,13 @@ class Model {
     std::list<Composite*> getComposites() throw();
 
     /**
+     * Gets a list of all composites in this model.
+     *
+     * @returns Composite list.
+     */
+    std::map<const Id, Composite*> getCompositesMap() throw();
+
+    /**
      * Removes and destroys a composite by ID.
      *
      * @param id
@@ -204,6 +228,15 @@ class Model {
      * @returns \b true if such a composite was found and successfully deleted.
      */
     bool deleteComposite(const Id& id) throw();
+
+    /**
+     * Removes a composite by ID.
+     *
+     * @param id
+     *        Composite ID.
+     * @returns \b true if such a composite was found and successfully deleted.
+     */
+    bool removeComposite(const Id& id) throw();
 
     /**
      * Gets a new composite ID which is not currently in use within this model.
@@ -256,6 +289,8 @@ class Model {
      * Destroys all processes in this model.
      */
     void destroyAllComposites() throw();
+
+    void removeRecursive(Composite* root) throw();
 
   protected:
     /**

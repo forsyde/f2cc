@@ -62,5 +62,6 @@ void Zipx::moreChecks() throw(InvalidProcessException) {
         THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have exactly one (1) out port");
+        //TODO:: Check port sizes
     }
 }

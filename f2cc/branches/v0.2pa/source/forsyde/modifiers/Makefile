@@ -23,24 +23,25 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-MODULE      = forsyde/modifiers
+MODULE      = forsyde
+SUBMODULE	= modifiers
 SRCFILES    =  modelmodifier.cpp modelmodifiersysc.cpp
-THISOBJPATH = $(OBJPATH)/$(MODULE)
-OBJECTS     = $(addprefix $(THISOBJPATH)/, \
+SUBOBJPATH = $(OBJPATH)/$(MODULE)/$(SUBMODULE)
+OBJECTS     = $(addprefix $(SUBOBJPATH)/, \
                 $(addsuffix .o, $(basename $(SRCFILES))) \
                )
 
-build: $(THISOBJPATH) prebuild $(OBJECTS)
+build: $(SUBOBJPATH) prebuild $(OBJECTS)
 	@printf $(POSTBUILDMSG)
 
-$(THISOBJPATH):
+$(SUBOBJPATH):
 	@mkdir -p $@
 
 prebuild:
-	@printf $(subst %,$(MODULE),$(PREBUILDMSG))
+	@printf $(subst %,$(SUBMODULE),$(PREBUILDMSG))
 
-$(THISOBJPATH)/%.o: %.cpp %.h
+$(SUBOBJPATH)/%.o: %.cpp %.h
 	@printf $(subst %,$<,$(ITEMBUILDMSG))
 	@$(CC) $(CCFLAGS) -o $@ -c $<
 
-.PHONY: prebuild $(THISOBJPATH)
+.PHONY: prebuild $(SUBOBJPATH)/

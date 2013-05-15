@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef F2CC_SOURCE_FORSYDE_MODELMODIFIER_H_
-#define F2CC_SOURCE_FORSYDE_MODELMODIFIER_H_
+#ifndef F2CC_SOURCE_FORSYDE_MODELMODIFIERSYSC_H_
+#define F2CC_SOURCE_FORSYDE_MODELMODIFIERSYSC_H_
 
 /**
  * @file
@@ -68,8 +68,8 @@ namespace Forsyde {
  * or parallel CUDA C code).
  */
 class ModelModifierSysC {
-  private:
-    class ContainedSection;
+ // private:
+  //  class ContainedSection;
 
   public:
 
@@ -111,47 +111,27 @@ class ModelModifierSysC {
          throw(InvalidArgumentException, OutOfMemoryException);
 
      void createParallelComposite(Composite* parent, std::list<Forsyde::Process*> equivalent_processes)
-              throw(InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
+         throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
-  private:
-    /**
-     * @brief Defines a contained section.
-     *
-     * A contained section is a part of the leaf network where all data
-     * flow diverging from a single point converges at another single point,
-     * and vice versa.
-     */
-    struct ContainedSection {
-        /**
-         * First leaf in the chain.
-         */
-        Forsyde::Leaf* start;
+     void prepareLeafForParallel(Forsyde::Leaf* reference_leaf, Forsyde::Composite* parent,
+    		 Forsyde::ParallelComposite* new_pcomp, unsigned number_of_processes)
+         throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
-        /**
-         * Last leaf in the chain.
-         */
-        Forsyde::Leaf* end;
+     void prepareCompositeForParallel(Forsyde::Composite* reference_comp, Forsyde::Composite* parent,
+    		 Forsyde::ParallelComposite* new_pcomp, unsigned number_of_processes)
+		  throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
-        /**
-         * Creates a contained section.
-         *
-         * @param start
-         *        Starting point.
-         * @param end
-         *        End point.
-         * @throws InvalidArgumentException
-         *         When either \c start or \c end is \c NULL.
-         */
-        ContainedSection(Forsyde::Process* start, Forsyde::Process* end)
-            throw(InvalidArgumentException);
+     void prepareParallelCompositeForParallel(Forsyde::ParallelComposite* reference_pcomp,
+    		 Forsyde::Composite* parent, Forsyde::ParallelComposite* new_pcomp, unsigned number_of_processes)
+		  throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
-        /**
-         * Converts this section into a string representation.
-         *
-         * @returns String representation.
-         */
-        std::string toString() const throw();
-    };
+     void moveToParallelComposite(Process* reference_process, Composite* old_parent,
+    		 ParallelComposite* new_parent) throw (
+    		 InvalidProcessException, OutOfMemoryException);
+
+     void redirectFlow(Process* old_process, Composite* parent, ParallelComposite* new_pcomp) throw (
+    		 InvalidArgumentException, RuntimeException, InvalidProcessException);
+
 
   private:
     /**

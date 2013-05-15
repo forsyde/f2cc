@@ -75,7 +75,7 @@ void XmlDumper::dump(ProcessNetwork* pn, const string& file)
 	Declaration * decl = new Declaration( "1.0", "", "" );
 	doc.LinkEndChild( decl );
 
-    logger_.logMessage(Logger::INFO, string() + "Building XML structure \""
+    logger_.logMessage(Logger::INFO, string() + "Building XML structure "
             + " from internal Process Network"
     		+ " for dumping...");
 
@@ -147,7 +147,7 @@ void XmlDumper::dumpComposite(Composite* composite, Element* parent)
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
 
-    Element* curr_element = new Element( "composite" );
+    Element* curr_element = new Element( "composite_process" );
     curr_element->SetAttribute("name",
     		composite->getId()->getString().c_str());
     curr_element->SetAttribute("component_name",
@@ -161,7 +161,7 @@ void XmlDumper::dumpComposite(Composite* composite, Element* parent)
     		it != input_ports.end(); it++){
     	dumpPort((*it), curr_element, "in");
     	if (((*it)->isConnectedOutside()) && (!isVisitedPort(*it))){
-    		dumpIOSignal((*it), parent);
+    		dumpIOSignal((*it), parent, true);
     	}
     }
     list<Composite::IOPort*> output_ports = composite->getOutIOPorts();
@@ -169,7 +169,7 @@ void XmlDumper::dumpComposite(Composite* composite, Element* parent)
     		it != output_ports.end(); it++){
     	dumpPort((*it), curr_element, "out");
     	if (((*it)->isConnectedOutside()) && (!isVisitedPort(*it))){
-    		dumpIOSignal((*it), parent);
+    		dumpIOSignal((*it), parent, false);
     	}
     }
 
@@ -235,7 +235,7 @@ void XmlDumper::dumpLeaf(Leaf* leaf, Element* parent)
     			(*it)->getVariable()->getReferenceString());
     	leaf_element->LinkEndChild(port_element);
     	if (!isVisitedPort(*it)){
-    		dumpSignal((*it), parent);
+    		dumpSignal((*it), parent, true);
     	}
     }
     list<Leaf::Port*> output_ports = leaf->getOutPorts();
@@ -244,13 +244,13 @@ void XmlDumper::dumpLeaf(Leaf* leaf, Element* parent)
     	Element* port_element = new Element( "port" );
     	port_element->SetAttribute("name", (*it)->getId()->getString());
     	port_element->SetAttribute("type",
-    			(*it)->getDataType().getVariableDataTypeString());
+    			(*it)->getDataType().toString());
     	port_element->SetAttribute("direction", "out");
     	if (comb_leaf) port_element->SetAttribute("associated_variable",
     	    			(*it)->getVariable()->getReferenceString());
     	leaf_element->LinkEndChild(port_element);
     	if (!isVisitedPort(*it)){
-    		dumpSignal((*it), parent);
+    		dumpSignal((*it), parent, false);
     	}
     }
 
@@ -272,14 +272,16 @@ void XmlDumper::dumpPort(Composite::IOPort* port, Element* composite,
     port_element->SetAttribute("bound_process",
     		port->getConnectedPortInside()->getProcess()->getId()->getString().c_str());
     port_element->SetAttribute("bound_port",
-        		port->getConnectedPortInside()->getId()->getString().c_str());
+        	port->getConnectedPortInside()->getId()->getString().c_str());
+    port_element->SetAttribute("type_outside", port->getDataType().first.toString());
+    port_element->SetAttribute("type_inside", port->getDataType().second.toString());
 
     composite->LinkEndChild( port_element );
     visited_ports_.push_back(port->getConnectedPortInside());
     //visited_ports_.push_back(port);
 }
 
-void XmlDumper::dumpSignal(Leaf::Port* port, Element* composite)
+void XmlDumper::dumpSignal(Leaf::Port* port, Element* composite,  bool is_in)
     throw(InvalidArgumentException, InvalidModelException, RuntimeException){
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
@@ -288,15 +290,31 @@ void XmlDumper::dumpSignal(Leaf::Port* port, Element* composite)
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
 
+    std::cout<<"Chech in: "<<port->getId()->getString();
+    std::cout<<" Currently in: "<<port->toString()<<"\n";
+    std::cout<<"Chech in: "<<port->getConnectedPort()->getId()->getString();
+    std::cout<<" ConnectedPort: "<<port->getConnectedPort()->toString()<<"\n\n";
+
     Element* signal_element = new Element( "signal" );
     signal_element->SetAttribute("type",
     		port->getDataType().getVariableDataTypeString());
-    signal_element->SetAttribute("source", port->getProcess()->getId()->getString());
-    signal_element->SetAttribute("source_port", port->getId()->getString());
-    signal_element->SetAttribute("target",
-    		port->getConnectedPort()->getProcess()->getId()->getString());
-    signal_element->SetAttribute("target_port",
-    		port->getConnectedPort()->getId()->getString());
+    if (is_in){
+		signal_element->SetAttribute("source",
+				port->getConnectedPort()->getProcess()->getId()->getString());
+		signal_element->SetAttribute("source_port",
+				port->getConnectedPort()->getId()->getString());
+    	signal_element->SetAttribute("target", port->getProcess()->getId()->getString());
+		signal_element->SetAttribute("target_port", port->getId()->getString());
+    }
+    else {
+    	signal_element->SetAttribute("source", port->getProcess()->getId()->getString());
+		signal_element->SetAttribute("source_port", port->getId()->getString());
+		signal_element->SetAttribute("target",
+				port->getConnectedPort()->getProcess()->getId()->getString());
+		signal_element->SetAttribute("target_port",
+				port->getConnectedPort()->getId()->getString());
+    }
+
 
     composite->LinkEndChild( signal_element );
     visited_ports_.push_back(port);
@@ -304,7 +322,7 @@ void XmlDumper::dumpSignal(Leaf::Port* port, Element* composite)
 
 }
 
-void XmlDumper::dumpIOSignal(Composite::IOPort* port, Element* composite)
+void XmlDumper::dumpIOSignal(Composite::IOPort* port, Element* composite, bool is_in)
     throw(InvalidArgumentException, InvalidModelException, RuntimeException){
     if (!port) {
         THROW_EXCEPTION(InvalidArgumentException, "\"port\" must not be NULL");
@@ -314,12 +332,22 @@ void XmlDumper::dumpIOSignal(Composite::IOPort* port, Element* composite)
     }
 
     Element* signal_element = new Element( "signal" );
-    signal_element->SetAttribute("source", port->getProcess()->getId()->getString());
-    signal_element->SetAttribute("source_port", port->getId()->getString());
-    signal_element->SetAttribute("target",
-    		port->getConnectedPortOutside()->getProcess()->getId()->getString());
-    signal_element->SetAttribute("target_port",
-    		port->getConnectedPortOutside()->getId()->getString());
+    if (is_in){
+		signal_element->SetAttribute("source",
+				port->getConnectedPortOutside()->getProcess()->getId()->getString());
+		signal_element->SetAttribute("source_port",
+				port->getConnectedPortOutside()->getId()->getString());
+		signal_element->SetAttribute("target", port->getProcess()->getId()->getString());
+		signal_element->SetAttribute("target_port", port->getId()->getString());
+    }
+    else {
+		signal_element->SetAttribute("source", port->getProcess()->getId()->getString());
+		signal_element->SetAttribute("source_port", port->getId()->getString());
+		signal_element->SetAttribute("target",
+				port->getConnectedPortOutside()->getProcess()->getId()->getString());
+		signal_element->SetAttribute("target_port",
+				port->getConnectedPortOutside()->getId()->getString());
+    }
 
     composite->LinkEndChild( signal_element );
     visited_ports_.push_back(port);

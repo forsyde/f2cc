@@ -91,7 +91,7 @@ class ParallelComposite : public Composite {
      *
      * @returns Name of the composite process.
      */
-    int getNumberOfProcesses() throw();
+    virtual int getNumProcesses() throw();
 
     /**
      * Changes the name of this composite process.
@@ -99,14 +99,14 @@ class ParallelComposite : public Composite {
      * @param name
      *        New name for the composite process, wrapped in an \c Id object.
      */
-    void setNumberOfProcesses(int number_of_processes) throw();
+    void setNumProcesses(int number_of_processes) throw();
 
     /**
      * Gets the name of this composite process, wrapped in an \c Id object.
      *
      * @returns Name of the composite process.
      */
-    Id* getContainedProcessId() throw();
+    const Id* getContainedProcessId() const throw();
 
     /**
      * Changes the name of this composite process.
@@ -114,7 +114,7 @@ class ParallelComposite : public Composite {
      * @param name
      *        New name for the composite process, wrapped in an \c Id object.
      */
-    void setContainedProcessId(Id* id) throw();
+    void setContainedProcessId(const Id* id) throw();
 
      /**
 	  * @copydoc Process::type()
@@ -137,7 +137,7 @@ class ParallelComposite : public Composite {
 
     int number_of_processes_;
 
-    Id* contained_process_id_;
+    const Id* contained_process_id_;
 
 };
 

@@ -26,7 +26,6 @@
  */
 
 #include "frontend.h"
-#include "dumper.h"
 #include <list>
 
 using namespace f2cc;
@@ -47,10 +46,6 @@ ProcessNetwork* Frontend::parse(const string& file)
     }
 
     ProcessNetwork* processnetwork = createProcessNetwork(file);
-
-    XmlDumper* dumper;
-    dumper = new (std::nothrow) XmlDumper(logger_);
-    dumper->dump(processnetwork,"hallo.xml");
 
     logger_.logMessage(Logger::INFO, "Checking that the internal processnetwork is "
                        "sane...");
