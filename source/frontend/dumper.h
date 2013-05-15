@@ -204,7 +204,7 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void dumpSignal(Forsyde::Leaf::Port* port, ticpp::Element* composite)
+    void dumpSignal(Forsyde::Leaf::Port* port, ticpp::Element* composite, bool is_in)
         throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
     /**
@@ -228,7 +228,7 @@ class XmlDumper {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void dumpIOSignal(Forsyde::Composite::IOPort* port, ticpp::Element* composite)
+    void dumpIOSignal(Forsyde::Composite::IOPort* port, ticpp::Element* composite, bool is_in)
         throw(InvalidArgumentException, InvalidModelException, RuntimeException);
 
 

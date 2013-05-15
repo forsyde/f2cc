@@ -530,9 +530,13 @@ void XmlParser::generateIOPort(Element* xml, Composite* parent)
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
     string port_name = getAttributeByTag(xml,"name");
+    string port_datatype = getAttributeByTag(xml,"type");
+    int port_size = tools::toInt(getAttributeByTag(xml, "size"));
     string port_direction = getAttributeByTag(xml,"direction");
     string bound_process = getAttributeByTag(xml,"bound_process");
     string bound_port = getAttributeByTag(xml,"bound_port");
+
+    CDataType data_type = getDataType(port_datatype, port_size);
 
     /* @todo: check whether the xml port data in the opened file corresponds to
      * the xml port data in the caller file
@@ -541,11 +545,11 @@ void XmlParser::generateIOPort(Element* xml, Composite* parent)
     Composite::IOPort* this_ioport;
 	bool port_added;
 	if (port_direction == "in") {
-		port_added = parent->addInIOPort(Id(port_name));
+		port_added = parent->addInIOPort(Id(port_name), data_type);
 		this_ioport = parent->getInIOPort(Id(port_name));
 	}
 	else if (port_direction == "out"){
-		port_added = parent->addOutIOPort(Id(port_name));
+		port_added = parent->addOutIOPort(Id(port_name), data_type);
 		this_ioport = parent->getOutIOPort(Id(port_name));
 	}
 	else THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(),
@@ -671,8 +675,6 @@ CDataType XmlParser::getDataType(const string& port_datatype,
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException){
 
-	CDataType* data_type;
-
 	if (string::npos != port_datatype.find("array")){
 		unsigned type_begin = port_datatype.find_last_of("<") + 1;
 		unsigned type_end = port_datatype.find_first_of(">");
@@ -684,17 +686,14 @@ CDataType XmlParser::getDataType(const string& port_datatype,
 			THROW_EXCEPTION(InvalidArgumentException, "\"port_datatype\" carries the wrong type");
 		}
 
-		data_type = new CDataType(CDataType::stringToType(base_datatype),
+		return CDataType(CDataType::stringToType(base_datatype),
 					true, true, size, false, true);
-
-		return *data_type;
 	}
 	else{
 		string base_datatype = port_datatype;
 		tools::trim(base_datatype);
-		data_type = new CDataType(CDataType::stringToType(base_datatype),
-					false, false, 0, false, false);
-		return *data_type;
+		return CDataType(CDataType::stringToType(base_datatype),
+					false, false, 1, false, false);
 	}
 
 }
@@ -1273,7 +1272,7 @@ void XmlParser::CParser::createFunctionParameter(CFunction* function, string ana
 	tools::searchReplace(data_type_string, "&", "");
 	tools::trim(data_type_string);
 	c_data_type = new CDataType(CDataType::stringToType(data_type_string),
-			is_array, false, 0, false, is_array);
+			is_array, false, 1, false, is_array);
 
 	CVariable* c_variable;
 	string name_string = analysis_string.substr(separator + 1,

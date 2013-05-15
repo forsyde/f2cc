@@ -37,10 +37,10 @@ using std::list;
 using std::bad_alloc;
 using std::vector;
 
-Leaf::Leaf(const Id& id) throw() : Process(id) {}
+Leaf::Leaf(const Id& id) throw(RuntimeException) : Process(id) {}
 
 Leaf::Leaf(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
- 		const std::string moc, int cost) throw() :
+ 		const std::string moc, int cost) throw(RuntimeException) :
 		Process(id, hierarchy), moc_(moc), cost_(cost){}
 
 Leaf::~Leaf() throw() {
@@ -48,20 +48,20 @@ Leaf::~Leaf() throw() {
     destroyAllPorts(out_ports_);
 }
 
-const string Leaf::getMoc() const throw() {
+const string Leaf::getMoc() const throw(RuntimeException) {
     return moc_;
 }
 
 
-int Leaf::getCost() const throw(){
+int Leaf::getCost() const throw(RuntimeException){
 	return cost_;
 }
 
-void  Leaf::setCost(int& cost) throw(){
+void  Leaf::setCost(int& cost) throw(RuntimeException){
 	cost_ = cost;
 }
 
-bool Leaf::addInPort(const Id& id) throw(OutOfMemoryException) {
+bool Leaf::addInPort(const Id& id) throw(RuntimeException, OutOfMemoryException) {
     if (findPort(id, in_ports_) != in_ports_.end()) return false;
 
     try {
@@ -74,7 +74,7 @@ bool Leaf::addInPort(const Id& id) throw(OutOfMemoryException) {
     }
 }
 
-bool Leaf::addInPort(const Id& id, CDataType datatype) throw(OutOfMemoryException) {
+bool Leaf::addInPort(const Id& id, CDataType datatype) throw(RuntimeException, OutOfMemoryException) {
     if (findPort(id, in_ports_) != in_ports_.end()) return false;
 
     try {
@@ -88,7 +88,7 @@ bool Leaf::addInPort(const Id& id, CDataType datatype) throw(OutOfMemoryExceptio
 }
 
 
-bool Leaf::addInPort(Port& port) throw(OutOfMemoryException) {
+bool Leaf::addInPort(Port& port) throw(RuntimeException, OutOfMemoryException) {
     if (findPort(*port.getId(), in_ports_) != in_ports_.end()) return false;
 
     try {
@@ -101,7 +101,7 @@ bool Leaf::addInPort(Port& port) throw(OutOfMemoryException) {
     }
 }
 
-bool Leaf::deleteInPort(const Id& id) throw() {
+bool Leaf::deleteInPort(const Id& id) throw(RuntimeException) {
     list<Port*>::iterator it = findPort(id, in_ports_);
     if (it != in_ports_.end()) {
         Port* removed_port = *it;
@@ -114,11 +114,11 @@ bool Leaf::deleteInPort(const Id& id) throw() {
     }
 }
 
-size_t Leaf::getNumInPorts() const throw() {
+size_t Leaf::getNumInPorts() const throw(RuntimeException) {
     return in_ports_.size();
 }
 
-Leaf::Port* Leaf::getInPort(const Id& id) throw() {
+Leaf::Port* Leaf::getInPort(const Id& id) throw(RuntimeException) {
     list<Port*>::iterator it = findPort(id, in_ports_);
     if (it != in_ports_.end()) {
         return *it;
@@ -128,11 +128,11 @@ Leaf::Port* Leaf::getInPort(const Id& id) throw() {
     }
 }
 
-list<Leaf::Port*> Leaf::getInPorts() throw() {
+list<Leaf::Port*> Leaf::getInPorts() throw(RuntimeException) {
     return in_ports_;
 }
 
-bool Leaf::addOutPort(const Id& id) throw(OutOfMemoryException) {
+bool Leaf::addOutPort(const Id& id) throw(RuntimeException, OutOfMemoryException) {
     if (findPort(id, out_ports_) != out_ports_.end()) return false;
 
     try {
@@ -145,7 +145,7 @@ bool Leaf::addOutPort(const Id& id) throw(OutOfMemoryException) {
     }
 }
 
-bool Leaf::addOutPort(const Id& id, CDataType datatype) throw(OutOfMemoryException) {
+bool Leaf::addOutPort(const Id& id, CDataType datatype) throw(RuntimeException, OutOfMemoryException) {
     if (findPort(id, out_ports_) != out_ports_.end()) return false;
 
     try {
@@ -159,7 +159,7 @@ bool Leaf::addOutPort(const Id& id, CDataType datatype) throw(OutOfMemoryExcepti
 }
 
 
-bool Leaf::addOutPort(Port& port) throw(OutOfMemoryException) {
+bool Leaf::addOutPort(Port& port) throw(RuntimeException, OutOfMemoryException) {
     if (findPort(*port.getId(), out_ports_) != out_ports_.end()) return false;
 
     try {
@@ -172,7 +172,7 @@ bool Leaf::addOutPort(Port& port) throw(OutOfMemoryException) {
     }
 }
 
-bool Leaf::deleteOutPort(const Id& id) throw() {
+bool Leaf::deleteOutPort(const Id& id) throw(RuntimeException) {
     list<Port*>::iterator it = findPort(id, out_ports_);
     if (it != out_ports_.end()) {
         Port* removed_port = *it;
@@ -185,11 +185,11 @@ bool Leaf::deleteOutPort(const Id& id) throw() {
     }
 }
 
-size_t Leaf::getNumOutPorts() const throw() {
+size_t Leaf::getNumOutPorts() const throw(RuntimeException) {
     return out_ports_.size();
 }
 
-Leaf::Port* Leaf::getOutPort(const Id& id) throw() {
+Leaf::Port* Leaf::getOutPort(const Id& id) throw(RuntimeException) {
     list<Port*>::iterator it = findPort(id, out_ports_);
     if (it != out_ports_.end()) {
         return *it;
@@ -199,11 +199,11 @@ Leaf::Port* Leaf::getOutPort(const Id& id) throw() {
     }
 }
 
-list<Leaf::Port*> Leaf::getOutPorts() throw() {
+list<Leaf::Port*> Leaf::getOutPorts() throw(RuntimeException) {
     return out_ports_;
 }
 
-string Leaf::toString() const throw() {
+string Leaf::toString() const throw(RuntimeException) {
     string str;
     str += "{\n";
     str += " LeafID: ";
@@ -240,12 +240,12 @@ string Leaf::toString() const throw() {
     return str;
 }
 
-string Leaf::moreToString() const throw() {
+string Leaf::moreToString() const throw(RuntimeException) {
     return "";
 }
 
 list<Leaf::Port*>::iterator Leaf::findPort(
-    const Id& id, list<Port*>& ports) const throw() {
+    const Id& id, list<Port*>& ports) const throw(RuntimeException) {
     list<Port*>::iterator it;
     for (it = ports.begin(); it != ports.end(); ++it) {
         if (*(*it)->getId() == id) {
@@ -257,7 +257,7 @@ list<Leaf::Port*>::iterator Leaf::findPort(
     return it;
 }
 
-string Leaf::portsToString(const list<Port*> ports) const throw() {
+string Leaf::portsToString(const list<Port*> ports) const throw(RuntimeException) {
     string str;
     if (ports.size() > 0) {
         str += "\n";
@@ -291,7 +291,7 @@ string Leaf::portsToString(const list<Port*> ports) const throw() {
     return str;
 }
 
-void Leaf::destroyAllPorts(list<Port*>& ports) throw() {
+void Leaf::destroyAllPorts(list<Port*>& ports) throw(RuntimeException) {
     while (ports.size() > 0) {
         Port* port = ports.front();
         ports.pop_front();
@@ -299,21 +299,21 @@ void Leaf::destroyAllPorts(list<Port*>& ports) throw() {
     }
 }
 
-bool Leaf::operator==(const Leaf& rhs) const throw() {
+bool Leaf::operator==(const Leaf& rhs) const throw(RuntimeException) {
     if (getNumInPorts() != rhs.getNumInPorts()) return false;
     if (getNumOutPorts() != rhs.getNumOutPorts()) return false;
     return true;
 }
 
-bool Leaf::operator!=(const Leaf& rhs) const throw() {
+bool Leaf::operator!=(const Leaf& rhs) const throw(RuntimeException) {
     return !operator==(rhs);
 }
 
-Leaf::Port::Port(const Id& id) throw()
+Leaf::Port::Port(const Id& id) throw(RuntimeException)
         : Interface(id), connected_port_(NULL), data_type_(CDataType()),
           variable_(NULL){}
 
-Leaf::Port::Port(const Id& id, Leaf* leaf) throw(InvalidArgumentException)
+Leaf::Port::Port(const Id& id, Leaf* leaf) throw(RuntimeException, InvalidArgumentException)
         : Interface(id, leaf), connected_port_(NULL), data_type_(CDataType()),
           variable_(NULL){
     if (!leaf) {
@@ -321,7 +321,7 @@ Leaf::Port::Port(const Id& id, Leaf* leaf) throw(InvalidArgumentException)
     }
 }
 
-Leaf::Port::Port(const Id& id, Leaf* leaf, CDataType data_type) throw(InvalidArgumentException)
+Leaf::Port::Port(const Id& id, Leaf* leaf, CDataType data_type) throw(RuntimeException, InvalidArgumentException)
         : Interface(id, leaf), connected_port_(NULL), data_type_(data_type),
           variable_(NULL){
     if (!leaf) {
@@ -329,7 +329,7 @@ Leaf::Port::Port(const Id& id, Leaf* leaf, CDataType data_type) throw(InvalidArg
     }
 }
 
-Leaf::Port::Port(Port& rhs) throw()
+Leaf::Port::Port(Port& rhs) throw(RuntimeException)
         : Interface(rhs.id_), connected_port_(NULL), data_type_(CDataType()),
           variable_(NULL){
     if (rhs.isConnected()) {
@@ -339,7 +339,7 @@ Leaf::Port::Port(Port& rhs) throw()
     }
 }
 
-Leaf::Port::Port(Port& rhs, Leaf* leaf) throw(InvalidArgumentException)
+Leaf::Port::Port(Port& rhs, Leaf* leaf) throw(RuntimeException, InvalidArgumentException)
         : Interface(rhs.id_, leaf), connected_port_(NULL), data_type_(CDataType()),
           variable_(NULL){
     if (!leaf) {
@@ -358,28 +358,28 @@ Leaf::Port::~Port() throw() {
     unconnect();
 }
 
-f2cc::CDataType Leaf::Port::getDataType() throw() {
+f2cc::CDataType Leaf::Port::getDataType() throw(RuntimeException) {
     return data_type_;
 }
 
-void Leaf::Port::setDataType(CDataType datatype) throw() {
+void Leaf::Port::setDataType(CDataType datatype) throw(RuntimeException) {
 	data_type_ = datatype;
 }
 
-f2cc::CVariable* Leaf::Port::getVariable() throw() {
+f2cc::CVariable* Leaf::Port::getVariable() throw(RuntimeException) {
     return variable_;
 }
 
-void Leaf::Port::setVariable(CVariable* variable) throw() {
+void Leaf::Port::setVariable(CVariable* variable) throw(RuntimeException) {
 	variable_ = variable;
 }
 
 
-bool Leaf::Port::isConnected() const throw() {
+bool Leaf::Port::isConnected() const throw(RuntimeException) {
     return connected_port_;
 }
 
-bool Leaf::Port::isConnectedToLeaf() const throw(IllegalStateException) {
+bool Leaf::Port::isConnectedToLeaf() const throw(RuntimeException, IllegalStateException) {
 	if (connected_port_){
 		static const Composite::IOPort* ioport =
 				dynamic_cast<const Composite::IOPort*>(connected_port_);
@@ -390,7 +390,7 @@ bool Leaf::Port::isConnectedToLeaf() const throw(IllegalStateException) {
 	else return false;
 }
 
-void Leaf::Port::connect(Process::Interface* port) throw(InvalidArgumentException) {
+void Leaf::Port::connect(Process::Interface* port) throw(RuntimeException, InvalidArgumentException,IllegalCallException) {
     if (!port) {
         unconnect();
         return;
@@ -405,6 +405,13 @@ void Leaf::Port::connect(Process::Interface* port) throw(InvalidArgumentExceptio
 	Leaf::Port* port_to_connect = dynamic_cast<Leaf::Port*>(port);
 	if (port_to_connect) {
 		if (port_to_connect == this) return;
+		/*if (port_to_connect->getDataType() != getDataType()){
+			THROW_EXCEPTION(IllegalCallException, string()
+					+"Cannot connect \""
+					+ toString() + "\" of type" + getDataType().toString()
+					+ "with \"" + port_to_connect->toString() + "\" of type"
+					+ port_to_connect->getDataType().toString());
+		}*/
 		if (connected_port_) {
 			unconnect();
 		}
@@ -418,7 +425,7 @@ void Leaf::Port::connect(Process::Interface* port) throw(InvalidArgumentExceptio
 					+ "! Connected port is of unknown type");
 }
 
-void Leaf::Port::unconnect() throw() {
+void Leaf::Port::unconnect() throw(RuntimeException) {
     if (connected_port_) {
     	// Checking if other end is IOPort
 		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_);
@@ -440,7 +447,7 @@ void Leaf::Port::unconnect() throw() {
     }
 }
 
-void Leaf::Port::unconnectFromLeaf() throw() {
+void Leaf::Port::unconnectFromLeaf() throw(RuntimeException) {
     if (connected_port_) {
     	// Checking if other end is IOPort
 		Composite::IOPort* ioport_to_unconnect = dynamic_cast<Composite::IOPort*>(connected_port_);
@@ -461,16 +468,16 @@ void Leaf::Port::unconnectFromLeaf() throw() {
     }
 }
 
-Process::Interface* Leaf::Port::getConnectedPort() const throw() {
+Process::Interface* Leaf::Port::getConnectedPort() const throw(RuntimeException) {
     return connected_port_;
 }
 
-void Leaf::Port::setConnection(Process::Interface* port) throw() {
+void Leaf::Port::setConnection(Process::Interface* port) throw(RuntimeException) {
     connected_port_ = port;
 }
 
 /*
-Leaf::Port* Leaf::Port::getConnectedLeafPort() const throw() {
+Leaf::Port* Leaf::Port::getConnectedLeafPort() const throw(RuntimeException) {
 	if (!getProcess()) {
 		THROW_EXCEPTION(IllegalStateException, string("Error in: ")
 					+ toString()
@@ -500,15 +507,15 @@ Leaf::Port* Leaf::Port::getConnectedLeafPort() const throw() {
 }
 */
 
-bool Leaf::Port::operator==(const Port& rhs) const throw() {
+bool Leaf::Port::operator==(const Port& rhs) const throw(RuntimeException) {
     return (process_ == rhs.process_) && (id_ == rhs.id_) && (data_type_ == rhs.data_type_);
 }
 
-bool Leaf::Port::operator!=(const Port& rhs) const throw() {
+bool Leaf::Port::operator!=(const Port& rhs) const throw(RuntimeException) {
     return !operator==(rhs);
 }
 
-string Leaf::Port::moretoString() const throw() {
+string Leaf::Port::moretoString() const throw(RuntimeException) {
     string str;
     str += "(";
     str += data_type_.toString();

@@ -45,19 +45,19 @@ ParallelComposite::ParallelComposite(const Forsyde::Id& id,
 
 ParallelComposite::~ParallelComposite() throw() {}
 
-int ParallelComposite::getNumberOfProcesses() throw() {
+int ParallelComposite::getNumProcesses() throw() {
     return number_of_processes_;
 }
 
-void ParallelComposite::setNumberOfProcesses(int number_of_processes) throw() {
+void ParallelComposite::setNumProcesses(int number_of_processes) throw() {
 	number_of_processes_ = number_of_processes;
 }
 
-Id* ParallelComposite::getContainedProcessId() throw() {
+const Id* ParallelComposite::getContainedProcessId() const throw() {
     return contained_process_id_;
 }
 
-void ParallelComposite::setContainedProcessId(Id* id) throw() {
+void ParallelComposite::setContainedProcessId(const Id* id) throw() {
 	contained_process_id_ = id;
 }
 
@@ -78,10 +78,37 @@ void ParallelComposite::moreChecks() throw(InvalidProcessException){
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have at least one (1) out port");
     }
-    if ((getProcesses().size() == 0) && (getComposites().size() == 0)) {
+    if ((getProcesses().size() + getComposites().size() != 1)) {
         THROW_EXCEPTION(InvalidProcessException, string("Process \"")
                         + getId()->getString() + "\" of type \""
-                        + type() + "\" must have at least one (1) process");
+                        + type() + "\" must have exactly one (1) process");
+    }
+
+    list<IOPort*> in_ports = getInIOPorts();
+    for (list<IOPort*>::iterator it = in_ports.begin(); it != in_ports.end(); ++it){
+    	if(((*it)->getDataType().first.getType() != (*it)->getDataType().second.getType()) ||
+    			((*it)->getDataType().first.getArraySize() != (*it)->getDataType().first.getArraySize() * number_of_processes_)){
+    		THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+						+ getId()->getString() + "\" of type \""
+						+ type() + "\" with " + tools::toString(getNumProcesses()) + " processes has port \""
+						+ (*it)->getId()->getString()
+						+ "\" of mismatching data types: in = "
+						+ (*it)->getDataType().first.toString() + "; out = "
+						+ (*it)->getDataType().second.toString());
+    	}
+    }
+    list<IOPort*> out_ports = getOutIOPorts();
+    for (list<IOPort*>::iterator it = out_ports.begin(); it != out_ports.end(); ++it){
+    	if(((*it)->getDataType().first.getType() != (*it)->getDataType().second.getType()) ||
+    			((*it)->getDataType().first.getArraySize() != (*it)->getDataType().first.getArraySize() * number_of_processes_)){
+    		THROW_EXCEPTION(InvalidProcessException, string("Process \"")
+						+ getId()->getString() + "\" of type \""
+						+ type() + "\" with " + tools::toString(getNumProcesses()) + " processes has port \""
+						+ (*it)->getId()->getString()
+						+ "\" of mismatching data types: in = "
+						+ (*it)->getDataType().first.toString() + "; out = "
+						+ (*it)->getDataType().second.toString());
+    	}
     }
 }
 

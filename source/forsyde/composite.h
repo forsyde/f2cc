@@ -42,11 +42,13 @@
 #include "hierarchy.h"
 #include "model.h"
 #include "process.h"
+#include "../language/cdatatype.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/notsupportedexception.h"
 #include "../exceptions/invalidprocessexception.h"
 #include "../exceptions/castexception.h"
 #include "../exceptions/illegalstateexception.h"
+#include "../exceptions/illegalcallexception.h"
 #include "../exceptions/invalidformatexception.h"
 #include "../exceptions/invalidargumentexception.h"
 #include <list>
@@ -82,7 +84,7 @@ public:
      *        to identify and compare a composite process' structure.
      */
     Composite(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy,
-    		Forsyde::Id name) throw();
+    		Forsyde::Id name) throw(RuntimeException);
 
     /**
      * Destroys this composite process. This also destroys all contained processes
@@ -94,7 +96,7 @@ public:
      *
      * @returns Name of the composite process.
      */
-    Forsyde::Id getName() const throw();
+    Forsyde::Id getName() const throw(RuntimeException);
 
     /**
      * Changes the name of this composite process.
@@ -102,7 +104,7 @@ public:
      * @param name
      *        New name for the composite process, wrapped in an \c Id object.
      */
-    void changeName(Forsyde::Id* name) throw();
+    void changeName(Forsyde::Id name) throw(RuntimeException);
 
     /**
       * Adds an in IOPort to this composite. Composites are not allowed to have
@@ -115,7 +117,7 @@ public:
       * @throws OutOfMemoryException
       *         When a IOPort cannot be added due to memory shortage.
       */
-     bool addInIOPort(const Forsyde::Id& id) throw(OutOfMemoryException);
+     bool addInIOPort(const Forsyde::Id& id, CDataType datatype) throw(RuntimeException, OutOfMemoryException);
 
      /**
       * Deletes and destroys an in IOPort to this composite.
@@ -124,14 +126,14 @@ public:
       *        IOPort ID.
       * @returns \b true if such a IOPort was found and successfully deleted.
       */
-     bool deleteInIOPort(const Forsyde::Id& id) throw();
+     bool deleteInIOPort(const Forsyde::Id& id) throw(RuntimeException);
 
      /**
       * Gets the number of in IOPorts of this composite.
       *
       * @returns Number of in IOPorts.
       */
-     size_t getNumInIOPorts() const throw();
+     size_t getNumInIOPorts() const throw(RuntimeException);
 
      /**
       * Gets an in IOPort by ID belonging to this this composite.
@@ -140,14 +142,14 @@ public:
       *        IOPort id.
       * @returns IOPort, if found; otherwise \c NULL.
       */
-     IOPort* getInIOPort(const Forsyde::Id& id) throw();
+     IOPort* getInIOPort(const Forsyde::Id& id) throw(RuntimeException);
 
      /**
       * Gets a list of in IOPorts belonging to this this leaf.
       *
       * @returns List of in IOPorts.
       */
-     std::list<IOPort*> getInIOPorts() throw();
+     std::list<IOPort*> getInIOPorts() throw(RuntimeException);
 
      /**
       * Same as addInIOPort(const Forsyde::Id&) but for out IOPorts.
@@ -159,7 +161,7 @@ public:
       * @throws OutOfMemoryException
       *         When a IOPort cannot be added due to memory shortage.
       */
-     bool addOutIOPort(const Forsyde::Id& id) throw(OutOfMemoryException);
+     bool addOutIOPort(const Forsyde::Id& id, CDataType datatype) throw(RuntimeException, OutOfMemoryException);
 
      /**
       * Same as deleteOutIOPort(const Forsyde::Id&) but for out IOPorts.
@@ -168,14 +170,14 @@ public:
       *        IOPort ID.
       * @returns \b true if such a IOPort was found and successfully deleted.
       */
-     bool deleteOutIOPort(const Forsyde::Id& id) throw();
+     bool deleteOutIOPort(const Forsyde::Id& id) throw(RuntimeException);
 
      /**
       * Same as getNumInIOPorts() but for out IOPorts.
       *
       * @returns Number of out IOPorts.
       */
-     size_t getNumOutIOPorts() const throw();
+     size_t getNumOutIOPorts() const throw(RuntimeException);
 
      /**
       * Same as getOutIOPort(const Forsyde::Id&) but for out IOPorts.
@@ -184,14 +186,14 @@ public:
       *        IOPort ID.
       * @returns IOPort, if found; otherwise \c NULL.
       */
-     IOPort* getOutIOPort(const Forsyde::Id& id) throw();
+     IOPort* getOutIOPort(const Forsyde::Id& id) throw(RuntimeException);
 
      /**
       * Same as getInIOPorts() but for out IOPorts.
       *
       * @returns List of out IOPorts.
       */
-     std::list<IOPort*> getOutIOPorts() throw();
+     std::list<IOPort*> getOutIOPorts() throw(RuntimeException);
 
      /**
       * Converts this leaf into a string representation. The resultant string
@@ -209,7 +211,7 @@ public:
       *
       * @returns String representation.
       */
-     virtual std::string toString() const throw();
+     virtual std::string toString() const throw(RuntimeException);
 
      /**
       * Checks whether this composite is equal to another. Two composites are equal
@@ -220,7 +222,7 @@ public:
       *        Composite to compare with.
       * @returns \b true if both composites are equal.
       */
-     virtual bool operator==(const Composite& rhs) const throw();
+     virtual bool operator==(const Composite& rhs) const throw(RuntimeException);
 
      /**
       * Same as operator==(const Composite&) but for inequality.
@@ -229,7 +231,7 @@ public:
       *        Composite to compare with.
       * @returns \b true if both composites are not equal.
       */
-     virtual bool operator!=(const Composite& rhs) const throw();
+     virtual bool operator!=(const Composite& rhs) const throw(RuntimeException);
 
      /**
 	  * @copydoc Process::type()
@@ -259,7 +261,7 @@ public:
       *          to the list's \c end() iterator.
       */
      std::list<IOPort*>::iterator findPort(const Forsyde::Id& id,
-                                         std::list<IOPort*>& IOPorts) const throw();
+                                         std::list<IOPort*>& IOPorts) const throw(RuntimeException);
 
      /**
       * Takes a list of IOPorts and converts it into a string representation. Each
@@ -274,7 +276,7 @@ public:
       *        Port list.
       * @returns String representation.
       */
-     std::string portsToString(const std::list<IOPort*> IOPorts) const throw();
+     std::string portsToString(const std::list<IOPort*> IOPorts) const throw(RuntimeException);
 
      /**
       * Destroys all IOPorts in a given list.
@@ -282,7 +284,7 @@ public:
       * @param IOPorts
       *        List of IOPorts to destroy.
       */
-     void destroyAllIOPorts(std::list<IOPort*>& IOPorts) throw();
+     void destroyAllIOPorts(std::list<IOPort*>& IOPorts) throw(RuntimeException);
 
 
   protected:
@@ -325,8 +327,8 @@ public:
          * @throws InvalidArgumentException
          *         When \c process is \c NULL.
          */
-    	IOPort(const Forsyde::Id& id, Composite* process)
-            throw(InvalidArgumentException);
+    	IOPort(const Forsyde::Id& id, Composite* process, CDataType datatype)
+            throw(RuntimeException, InvalidArgumentException);
 
 
         /**
@@ -339,7 +341,7 @@ public:
 		 *
 		 * @return the associated data type.
 		 */
-        std::pair<f2cc::CDataType, f2cc::CDataType> getDataType() throw();
+        std::pair<f2cc::CDataType, f2cc::CDataType> getDataType() throw(RuntimeException);
 
         /**
 		 * Sets the data type of this port.
@@ -347,7 +349,7 @@ public:
 		 * @param datatype
 		 *        The new data type that has to be set.
 		 */
-        void setDataType(bool outside, CDataType datatype) throw();
+        void setDataType(bool outside, CDataType datatype) throw(RuntimeException);
 
 
         /**
@@ -356,7 +358,7 @@ public:
          *
          * @returns \b true if connected.
          */
-		bool isConnectedOutside() const throw();
+		bool isConnectedOutside() const throw(RuntimeException);
 
         /**
          * Checks if this \c IOPort is immediately connected to a \c Process::Interface
@@ -364,7 +366,7 @@ public:
          *
          * @returns \b true if connected.
 		 */
-		bool isConnectedInside() const throw();
+		bool isConnectedInside() const throw(RuntimeException);
 
         /**
          * Function used for recursive search whether this \c IOPort is connected to a
@@ -377,7 +379,7 @@ public:
          * @returns \b true if connected to a \c Leaf::Port.
          *
 		 */
-		bool isConnectedToLeaf(const Interface* startpoint) const throw();
+		bool isConnectedToLeaf(const Interface* startpoint) const throw(RuntimeException);
 
         /**
          * Recursively checks whether this \c IOPort ends up in a \c Leaf::Port inside the
@@ -385,7 +387,7 @@ public:
          *
          * @returns \b true if connected.
 		 */
-		bool isConnectedToLeafInside() const throw();
+		bool isConnectedToLeafInside() const throw(RuntimeException);
 
         /**
          * Recursively checks whether this \c IOPort ends up in a \c Leaf::Port outside the
@@ -393,7 +395,7 @@ public:
          *
          * @returns \b true if connected.
          */
-		bool isConnectedToLeafOutside() const throw();
+		bool isConnectedToLeafOutside() const throw(RuntimeException);
 
         /**
          * Connects this IOPort to a \c Process::Interface. This also sets the
@@ -418,7 +420,7 @@ public:
          * @throws CastException
          *         When the given interface is not \c Leaf::Port or \c Composite::IOPort.
          */
-		void connect(Interface* interface) throw(IllegalStateException,
+		void connect(Interface* interface) throw(RuntimeException, IllegalStateException,
 				InvalidArgumentException, CastException);
 
         /**
@@ -430,7 +432,7 @@ public:
          * @throws InvalidArgumentException
          *         When the given interface is not actually connected to this \c IOPort.
          */
-		void unconnect(Interface* interface) throw(InvalidArgumentException);
+		void unconnect(Interface* interface) throw(RuntimeException, InvalidArgumentException);
 
         /**
          * Breaks the connection that this IOPort may have to another. If there is
@@ -444,7 +446,7 @@ public:
          * @throws CastException
          *         When the given interface is not \c Leaf::Port or \c Composite::IOPort.
          */
-		void unconnectOutside() throw(IllegalStateException, CastException);
+		void unconnectOutside() throw(RuntimeException, IllegalStateException, CastException);
 
         /**
          * Breaks the connection that this IOPort may have to another. If there is
@@ -460,7 +462,7 @@ public:
          * @throws CastException
          *         When the given interface is not \c Leaf::Port or \c Composite::IOPort.
          */
-		void unconnectInside() throw(IllegalStateException, CastException);
+		void unconnectInside() throw(RuntimeException, IllegalStateException, CastException);
 
         /**
          * Recursively unconnects this \c IOPort until it finds the first \c Leaf::Port.
@@ -472,7 +474,7 @@ public:
          *
          * @returns \b true if it was successfully unconnected.
 		 */
-		bool unconnectFromLeaf(Interface* previous) throw();
+		bool unconnectFromLeaf(Interface* previous) throw(RuntimeException);
 
         /**
          * Recursively unconnects this \c IOPort until it finds the first \c Leaf::Port,
@@ -480,7 +482,7 @@ public:
          *
          * @returns \b true if the connection was successfully broken.
          */
-		bool unconnectFromLeafOutside() throw();
+		bool unconnectFromLeafOutside() throw(RuntimeException);
 
         /**
          * Recursively unconnects this \c IOPort until it finds the first \c Leaf::Port,
@@ -488,7 +490,7 @@ public:
          *
          * @returns \b true if the connection was successfully broken.
          */
-		bool unconnectFromLeafInside() throw();
+		bool unconnectFromLeafInside() throw(RuntimeException);
 
         /**
          * Gets the immediate adjacent \c Process::Interface outside
@@ -496,7 +498,7 @@ public:
          *
          * @returns Connected interface, if any; otherwise \c NULL.
          */
-		Interface* getConnectedPortOutside() const throw();
+		Interface* getConnectedPortOutside() const throw(RuntimeException);
 
         /**
          * Gets the immediate adjacent \c Process::Interface inside
@@ -504,7 +506,7 @@ public:
          *
          * @returns Connected interface, if any; otherwise \c NULL.
          */
-		Interface* getConnectedPortInside() const throw();
+		Interface* getConnectedPortInside() const throw(RuntimeException);
 
         /**
          * Searches recursively through composites and gets
@@ -516,7 +518,7 @@ public:
          *         When the interface pointed outside is not \c Leaf::Port nor
          *         \c Composite::IOPort.
          */
-		Leaf::Port* getConnectedLeafPortOutside() const throw(CastException);
+		Leaf::Port* getConnectedLeafPortOutside() const throw(RuntimeException, CastException);
 
 		/**
          * Gets the immediate adjacent IOPort at the other end of the connection, if any.
@@ -527,7 +529,7 @@ public:
          *         When the interface pointed inside is not \c Leaf::Port nor
          *         \c Composite::IOPort.
          */
-		Leaf::Port* getConnectedLeafPortInside() const throw(CastException);
+		Leaf::Port* getConnectedLeafPortInside() const throw(RuntimeException, CastException);
 
 
       private:
@@ -540,14 +542,16 @@ public:
          *
          * @returns String representation.
          */
-        virtual std::string moretoString() const throw();
+        virtual std::string moretoString() const throw(RuntimeException);
+
+        void checkType(CDataType first_type, CDataType second_type) throw (IllegalCallException);
 
         /**
          * Due to how IOPort copying works, the assign operator is hidden and thus
          * not allowed to avoid potential bugs as it is easy to forget this
          * fact.
          */
-        void operator=(const Port&) throw();
+        void operator=(const Port&) throw(RuntimeException);
 
       private:
 
