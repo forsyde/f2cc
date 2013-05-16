@@ -51,7 +51,7 @@ bool Config::doPrintHelpMenu() const throw() {
 }
 
 string Config::getHelpMenu() const throw() {
-    const size_t maximum_line_length = 80;
+    const size_t maximum_line_length = 150;
     string part;
     string str = string()
         + "Developers: Gabriel Hjort Blindell <ghb@kth.se>\n"

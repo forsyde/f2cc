@@ -420,8 +420,9 @@ public:
          * @throws CastException
          *         When the given interface is not \c Leaf::Port or \c Composite::IOPort.
          */
-		void connect(Interface* interface) throw(RuntimeException, IllegalStateException,
+		virtual void connect(Interface* interface) throw(RuntimeException, IllegalStateException,
 				InvalidArgumentException, CastException);
+
 
         /**
          * Breaks the connection between this \c IOPort and the port passed as argument

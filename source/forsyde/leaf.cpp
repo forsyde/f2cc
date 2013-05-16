@@ -355,7 +355,7 @@ Leaf::Port::Port(Port& rhs, Leaf* leaf) throw(RuntimeException, InvalidArgumentE
 }
 
 Leaf::Port::~Port() throw() {
-    unconnect();
+    //unconnect();
 }
 
 f2cc::CDataType Leaf::Port::getDataType() throw(RuntimeException) {

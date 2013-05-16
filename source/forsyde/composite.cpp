@@ -303,8 +303,8 @@ Composite::IOPort::IOPort(const Id& id, Composite* process, CDataType datatype) 
 		   data_types_(pair<CDataType, CDataType>(datatype, datatype)){}
 
 Composite::IOPort::~IOPort() throw() {
-    unconnectOutside();
-    unconnectInside();
+    //unconnectOutside();
+    //unconnectInside();
 }
 
 std::pair<f2cc::CDataType, f2cc::CDataType> Composite::IOPort::getDataType() throw(RuntimeException) {
@@ -487,12 +487,12 @@ void Composite::IOPort::unconnectInside() throw(RuntimeException, IllegalStateEx
 		 // Checking if other end is Port
 		Leaf::Port* port_to_unconnect = dynamic_cast<Leaf::Port*>(connected_port_inside_);
 		if (port_to_unconnect) {
-			if (relation == Hierarchy::FirstChild){
+			//if (relation == Hierarchy::FirstChild){
 				port_to_unconnect->setConnection(NULL);
 				connected_port_inside_ = NULL;
 				return;
-			}
-			else THROW_EXCEPTION(IllegalStateException, "Connection not possible");
+			//}
+			//else THROW_EXCEPTION(IllegalStateException, "Connection not possible");
 		}
 
 		// It should never be here

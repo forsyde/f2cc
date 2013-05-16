@@ -547,7 +547,7 @@ class Leaf : public Process{
          *
          * @returns \b true if connection was successful.
          */
-        void connect(Process::Interface* port) throw(RuntimeException, InvalidArgumentException,IllegalCallException);
+        virtual void connect(Process::Interface* port) throw(RuntimeException, InvalidArgumentException,IllegalCallException);
 
         /**
          * Breaks the connection that this port may have to another. If there is

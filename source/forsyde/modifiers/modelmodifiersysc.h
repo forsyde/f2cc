@@ -93,9 +93,17 @@ class ModelModifierSysC {
     ~ModelModifierSysC() throw();
 
     void flattenAndParallelize() throw(
-    		RuntimeException, InvalidModelException, InvalidProcessException);
+    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException);
+
+    void firstCostAnalysis() throw(
+    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException);
 
   private:
+
+
+    void flattenCompositeProcess(Composite* composite, Composite* parent) throw(
+   		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
+
 
     /**
       * Coalesces data parallel leafs across different segments into a
@@ -107,30 +115,43 @@ class ModelModifierSysC {
       *         When a program error has occurred. This most likely indicates a
       *         bug.
       */
-     std::list<std::list<Forsyde::Process*> > extractEquivalentProcesses(Forsyde::Composite* parent)
+     std::list<std::list<Leaf*> > extractEquivalentCombs(Forsyde::Composite* parent)
          throw(InvalidArgumentException, OutOfMemoryException);
 
-     void createParallelComposite(Composite* parent, std::list<Forsyde::Process*> equivalent_processes)
+     std::list<std::list<Leaf*> > extractEquivalentLeafs(Forsyde::Composite* parent)
+         throw(InvalidArgumentException, OutOfMemoryException);
+
+     void removeRedundantZipsUnzips(Forsyde::Composite* parent)
+     throw(InvalidArgumentException, OutOfMemoryException);
+
+     bool foundDependencyDownstream(Leaf* current_process, std::map<Id, SY::Comb*> to_compare_with)
+ 	 	 throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
+
+     bool foundDependencyUpstream(Leaf* current_process, std::map<Id, SY::Comb*> to_compare_with)
+ 	 	 throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
+
+     void createParallelComposite(Composite* parent, std::list<Forsyde::Leaf*> equivalent_processes)
          throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
      void prepareLeafForParallel(Forsyde::Leaf* reference_leaf, Forsyde::Composite* parent,
     		 Forsyde::ParallelComposite* new_pcomp, unsigned number_of_processes)
          throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
-     void prepareCompositeForParallel(Forsyde::Composite* reference_comp, Forsyde::Composite* parent,
-    		 Forsyde::ParallelComposite* new_pcomp, unsigned number_of_processes)
-		  throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
-
-     void prepareParallelCompositeForParallel(Forsyde::ParallelComposite* reference_pcomp,
-    		 Forsyde::Composite* parent, Forsyde::ParallelComposite* new_pcomp, unsigned number_of_processes)
-		  throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
-
      void moveToParallelComposite(Process* reference_process, Composite* old_parent,
     		 ParallelComposite* new_parent) throw (
     		 InvalidProcessException, OutOfMemoryException);
 
-     void redirectFlow(Process* old_process, Composite* parent, ParallelComposite* new_pcomp) throw (
+     void moveToNewParent(Process* reference_process, Composite* old_parent,
+    		 Composite* new_parent) throw (
+    		 InvalidProcessException, OutOfMemoryException);
+
+     void redirectFlowThroughParallelComposite(Process* old_process, Composite* parent,
+    		 ParallelComposite* new_pcomp) throw (
     		 InvalidArgumentException, RuntimeException, InvalidProcessException);
+
+     void redirectFlow(Process::Interface* source, Process::Interface* target) throw (
+    		 InvalidArgumentException, RuntimeException, InvalidProcessException);
+
 
 
   private:
@@ -145,6 +166,8 @@ class ModelModifierSysC {
     Logger& logger_;
 
     Config configuration_;
+
+    std::map<Id, bool> visited_processes_;
 
 };
 

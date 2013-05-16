@@ -290,11 +290,6 @@ void XmlDumper::dumpSignal(Leaf::Port* port, Element* composite,  bool is_in)
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
 
-    std::cout<<"Chech in: "<<port->getId()->getString();
-    std::cout<<" Currently in: "<<port->toString()<<"\n";
-    std::cout<<"Chech in: "<<port->getConnectedPort()->getId()->getString();
-    std::cout<<" ConnectedPort: "<<port->getConnectedPort()->toString()<<"\n\n";
-
     Element* signal_element = new Element( "signal" );
     signal_element->SetAttribute("type",
     		port->getDataType().getVariableDataTypeString());
@@ -378,3 +373,4 @@ bool XmlDumper::isVisitedPort(Process::Interface* port) throw(InvalidArgumentExc
     }
     return false;
 }
+
