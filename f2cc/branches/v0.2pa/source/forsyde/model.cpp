@@ -214,8 +214,8 @@ bool Model::removeComposite(const Id& id) throw() {
     map<const Id, Composite*>::iterator it = findComposite(id);
     if (it != composites_.end()) {
     	Composite* saved_composite = it->second;
+    	removeRecursive(saved_composite);
         composites_.erase(it);
-        removeRecursive(saved_composite);
         return saved_composite;
     }
     else {

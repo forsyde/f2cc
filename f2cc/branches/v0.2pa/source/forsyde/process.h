@@ -45,6 +45,7 @@
 #include "../exceptions/invalidformatexception.h"
 #include "../exceptions/invalidargumentexception.h"
 #include "../exceptions/illegalstateexception.h"
+#include "../exceptions/illegalcallexception.h"
 #include <list>
 
 namespace f2cc {
@@ -198,6 +199,8 @@ class Process{
          */
         const Forsyde::Id* getId() const throw();
 
+        virtual void connect(Process::Interface* port) throw(RuntimeException,
+        		InvalidArgumentException,IllegalCallException) = 0;
 
         /**
          * Converts this interface into a string representation. The resultant string
