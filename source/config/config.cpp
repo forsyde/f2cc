@@ -26,6 +26,8 @@
  */
 
 #include "config.h"
+#include "../ticpp/tinyxml.h"
+#include "../ticpp/ticpp.h"
 #include "../tools/tools.h"
 #include "../exceptions/invalidargumentexception.h"
 #include <vector>
@@ -33,6 +35,9 @@
 using namespace f2cc;
 using std::string;
 using std::vector;
+using ticpp::Document;
+using ticpp::Node;
+using ticpp::Element;
 
 Config::Config() throw() {
     setDefaults();
@@ -51,7 +56,7 @@ bool Config::doPrintHelpMenu() const throw() {
 }
 
 string Config::getHelpMenu() const throw() {
-    const size_t maximum_line_length = 150;
+    const size_t maximum_line_length = 120;
     string part;
     string str = string()
         + "Developers: Gabriel Hjort Blindell <ghb@kth.se>\n"
@@ -380,6 +385,113 @@ void Config::setFromCommandLine(int argc, const char** argv)
     }
 }
 
+void Config::setCosts(const string& file) throw(InvalidArgumentException,
+		InvalidFormatException, FileNotFoundException, IOException, CastException, ParseException,
+		OutOfMemoryException){
+
+    string xml_data;
+    try {
+        tools::readFile(file, xml_data);
+    } catch (FileNotFoundException& ex) {
+    	THROW_EXCEPTION(FileNotFoundException, ex.getMessage());
+    } catch (IOException& ex) {
+    	THROW_EXCEPTION(IOException, string("Failed to read xml file:\n")
+    			+ ex.getMessage());
+    }
+
+    Document xml;
+    try {
+    	xml.Parse(xml_data);
+    } catch (ticpp::Exception& ex) {
+        // @todo throw more detailed ParseException (with line and column)
+        THROW_EXCEPTION(ParseException, file, ex.what());
+    }
+
+    Node* xml_root = dynamic_cast<Element*>(tools::findXmlRootNode(&xml, file, "f2cc_cost_coefficients"));
+    if (!xml_root) THROW_EXCEPTION(CastException);
+
+    std::list<Element*> cost_node;
+    string value_str;
+    cost_node = tools::getXmlElementsByName(xml_root, "host_to_device_transfer");
+    if (cost_node.size() != 1){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"Multiple constructors are illegal");
+    }
+    value_str = cost_node.front()->GetAttribute("value");
+    tools::trim(value_str);
+    if (value_str.size() == 0){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"host_to_device transfer coefficient has no value");
+    }
+    costs_.k_H2D = tools::toInt(value_str);
+
+    cost_node = tools::getXmlElementsByName(xml_root, "device_to_host_transfer");
+    if (cost_node.size() != 1){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"Multiple constructors are illegal");
+    }
+    value_str = cost_node.front()->GetAttribute("value");
+    tools::trim(value_str);
+    if (value_str.size() == 0){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"device_to_host transfer coefficient has no value");
+    }
+    costs_.k_D2H = tools::toInt(value_str);
+
+    cost_node = tools::getXmlElementsByName(xml_root, "device_inter_thread_transfer");
+    if (cost_node.size() != 1){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"Multiple constructors are illegal");
+    }
+    value_str = cost_node.front()->GetAttribute("value");
+    tools::trim(value_str);
+    if (value_str.size() == 0){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"device_inter_thread transfer coefficient has no value");
+    }
+    costs_.k_D2D = tools::toInt(value_str);
+
+    cost_node = tools::getXmlElementsByName(xml_root, "device_intra_thread_transfer");
+    if (cost_node.size() != 1){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"Multiple constructors are illegal");
+    }
+    value_str = cost_node.front()->GetAttribute("value");
+    tools::trim(value_str);
+    if (value_str.size() == 0){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"device_intra_thread transfer coefficient has no value");
+    }
+    costs_.k_T2T = tools::toInt(value_str);
+
+    cost_node = tools::getXmlElementsByName(xml_root, "host_to_host_transfer");
+    if (cost_node.size() != 1){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"Multiple constructors are illegal");
+    }
+
+    value_str = cost_node.front()->GetAttribute("value");
+    tools::trim(value_str);
+    if (value_str.size() == 0){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"host_to_host transfer coefficient has no value");
+    }
+    costs_.k_H2H = tools::toInt(value_str);
+
+    cost_node = tools::getXmlElementsByName(xml_root, "host_execution");
+    if (cost_node.size() != 1){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"Multiple constructors are illegal");
+    }
+
+    value_str = cost_node.front()->GetAttribute("value");
+    tools::trim(value_str);
+    if (value_str.size() == 0){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"host_execution coefficient has no value");
+    }
+    costs_.k_SEQ = tools::toInt(value_str);
+
+    cost_node = tools::getXmlElementsByName(xml_root, "device_execution");
+    if (cost_node.size() != 1){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"Multiple constructors are illegal");
+    }
+    value_str = cost_node.front()->GetAttribute("value");
+    tools::trim(value_str);
+    if (value_str.size() == 0){
+    	THROW_EXCEPTION(ParseException, file, xml_root->Row(),"device_execution coefficient has no value");
+    }
+    costs_.k_PAR = tools::toInt(value_str);
+}
+
 bool Config::doDataParallelLeafCoalesing() const throw() {
     return do_data_parallel_leaf_coalescing_;
 }
@@ -416,9 +528,6 @@ Config::Costs Config::getCosts() const throw(){
 	return costs_;
 }
 
-void Config::setCosts(const string& file) throw(){
-//TODO::IMPLEMENT
-}
 
 Config::InputFormat Config::getInputFormat() const throw() {
     return format_;

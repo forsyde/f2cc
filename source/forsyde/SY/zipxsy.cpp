@@ -37,7 +37,7 @@ Zipx::Zipx(const Id& id) throw()
 
 Zipx::Zipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
  		int cost) throw()
-        : Leaf(id, hierarchy, string("sy"), cost) {}
+        : Leaf(id, hierarchy, "sy", cost) {}
 
 Zipx::~Zipx() throw() {}
 

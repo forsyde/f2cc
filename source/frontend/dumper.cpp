@@ -147,11 +147,15 @@ void XmlDumper::dumpComposite(Composite* composite, Element* parent)
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
 
+    ParallelComposite* pcomp = dynamic_cast<ParallelComposite*>(composite);
     Element* curr_element = new Element( "composite_process" );
-    curr_element->SetAttribute("name",
-    		composite->getId()->getString().c_str());
-    curr_element->SetAttribute("component_name",
-    		composite->getName().getString().c_str());
+    curr_element->SetAttribute("name",composite->getId()->getString().c_str());
+    if (pcomp) curr_element->SetAttribute("number_of_processes",
+    		tools::toString(pcomp->getNumProcesses()).c_str());
+    curr_element->SetAttribute("component_name",composite->getName().getString().c_str());
+    curr_element->SetAttribute("cost", tools::toString(composite->getCost()).c_str());
+    curr_element->SetAttribute("stream", tools::toString(composite->getStream()).c_str());
+    curr_element->SetAttribute("mapped_to_device", composite->isMappedToDevice() ? "T" : "F");
 
     parent->LinkEndChild( curr_element );
     visited_processes_.push_back(composite);
@@ -200,12 +204,16 @@ void XmlDumper::dumpLeaf(Leaf* leaf, Element* parent)
 
     Element* leaf_element = new Element( "leaf_process" );
     leaf_element->SetAttribute("name", leaf->getId()->getString().c_str());
+    leaf_element->SetAttribute("cost", tools::toString(leaf->getCost()));
+    leaf_element->SetAttribute("stream", tools::toString(leaf->getStream()));
+    leaf_element->SetAttribute("mapped_to_device", leaf->isMappedToDevice() ? "T" : "F");
     parent->LinkEndChild( leaf_element );
     visited_processes_.push_back(leaf);
 
     Element* constructor = new Element( "process_constructor" );
     constructor->SetAttribute("name", leaf->type());
     constructor->SetAttribute("moc", leaf->getMoc());
+
     leaf_element->LinkEndChild( constructor );
 
     SY::Comb* comb_leaf = dynamic_cast<SY::Comb*>(leaf);

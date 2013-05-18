@@ -41,8 +41,8 @@ Process::Process(const Id& id) throw()
 	hierarchy_.lowerLevel(id);
 }
 
-Process::Process(const Id& id, Hierarchy& hierarchy) throw() :
-		hierarchy_(hierarchy){
+Process::Process(const Id& id, Hierarchy& hierarchy, bool mapped_to_cuda, int cost) throw() :
+		hierarchy_(hierarchy), mapped_to_cuda_(mapped_to_cuda), cost_(cost), stream_number_(0) {
 	hierarchy_.lowerLevel(id);
 }
 
@@ -62,6 +62,32 @@ void Process::setHierarchy(Hierarchy hierarchy) throw() {
 	hierarchy_.setHierarchy(hierarchy.getHierarchy());
     hierarchy_.lowerLevel(id_copy);
 }
+
+void Process::mapToDevice(bool mapped_to_cuda) throw(){
+	mapped_to_cuda_=mapped_to_cuda;
+}
+
+bool Process::isMappedToDevice() throw(){
+	return mapped_to_cuda_;
+}
+
+
+int Process::getCost() const throw(){
+	return cost_;
+}
+
+void  Process::setCost(int& cost) throw(){
+	cost_ = cost;
+}
+
+unsigned Process::getStream() throw(){
+	return stream_number_;
+}
+
+void  Process::setStream(unsigned stream_number) throw(){
+	stream_number_ = stream_number;
+}
+
 
 Hierarchy::Relation Process::findRelation(const Process* rhs) const throw(RuntimeException){
 	if (rhs) return hierarchy_.findRelation(rhs->hierarchy_);

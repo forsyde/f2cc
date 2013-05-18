@@ -87,7 +87,7 @@ class Leaf : public Process{
      *        Leaf cost parameter.
      */
     Leaf(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
-    		const std::string moc, int cost) throw(RuntimeException);
+    		const std::string& moc, int cost) throw(RuntimeException);
 
     /**
      * Destroys this leaf. This also destroys all ports and breaks all
@@ -101,21 +101,6 @@ class Leaf : public Process{
      * @returns The MoC.
      */
     const std::string getMoc() const throw(RuntimeException);
-
-    /**
-     * Gets the cost for this process.
-     *
-     * @returns The cost parameter.
-     */
-    int getCost() const throw(RuntimeException);
-
-    /**
-     * Sets the cost for this process.
-     *
-     * @param cost
-     *        The cost parameter.
-     */
-    void setCost(int& cost) throw(RuntimeException);
 
     /**
      * Adds an in port to this leaf. Leafs are not allowed to have
@@ -394,10 +379,6 @@ class Leaf : public Process{
 	 */
 	const std::string moc_;
 
-    /**
-	 * Process cost parameter.
-	 */
-	int cost_;
 
   public:
     /**

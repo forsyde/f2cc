@@ -298,6 +298,8 @@ class CDataType {
      */
     static std::string typeToString(Type type) throw();
 
+    int getTypeSize() throw();
+
   private:
     /**
      * Checks that the array size is valid.

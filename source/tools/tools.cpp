@@ -26,16 +26,26 @@
  */
 
 #include "tools.h"
+#include "../ticpp/ticpp.h"
+#include "../ticpp/tinyxml.h"
 #include <ctime>
 #include <algorithm>
 #include <sstream>
 #include <fstream>
 #include <istream>
 #include <cstdlib>
+#include <list>
+#include <stdexcept>
+
 
 using std::string;
 using std::vector;
 using std::ofstream;
+using std::list;
+using ticpp::Document;
+using ticpp::Node;
+using ticpp::Element;
+using std::bad_alloc;
 
 /**
  * Converts a month name (e.g. "Jan") to its corresponding number (e.g. "01").
@@ -321,4 +331,81 @@ void f2cc::tools::breakLongLines(string& str, size_t maximum_length,
 
         str += buf;
     }
+}
+
+std::list<ticpp::Element*> f2cc::tools::getXmlElementsByName(Node* xml, const string& name)
+    throw(InvalidArgumentException, IOException, RuntimeException, CastException, OutOfMemoryException) {
+    if (!xml) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
+    }
+    if (name.length() == 0) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"name\" must not be empty "
+                        "string");
+    }
+
+    list<Element*> elements;
+    Node* child = NULL;
+    while ((child = xml->IterateChildren(name, child))) {
+        switch (child->Type()) {
+            case TiXmlNode::ELEMENT: {
+                try {
+                    Element* e = dynamic_cast<Element*>(child);
+                    if (!e) THROW_EXCEPTION(CastException);
+                    elements.push_back(e);
+                } catch (bad_alloc&) {
+                    THROW_EXCEPTION(OutOfMemoryException);
+                }
+                break;
+            }
+
+            case TiXmlNode::DECLARATION:
+            case TiXmlNode::DOCUMENT:
+            case TiXmlNode::UNKNOWN:
+            case TiXmlNode::TEXT:
+            case TiXmlNode::STYLESHEETREFERENCE:
+            case TiXmlNode::TYPECOUNT: {
+                // Found unknown XML data; warn and remove
+                /*logger_.logMessage(Logger::WARNING,
+                                   string("Unknown XML data at line ")
+                                   + tools::toString(child->Row()) + ", column "
+                                   + tools::toString(child->Column()) + ":\n"
+                                   + child->Value());*/
+                Node* prev_child = child->PreviousSibling(name, false);
+                xml->RemoveChild(child);
+                child = prev_child;
+                break;
+            }
+
+            case TiXmlNode::COMMENT: {
+                // Found XML comment; ignore and remove
+                Node* prev_child = child->PreviousSibling(name, false);
+                xml->RemoveChild(child);
+                child = prev_child;
+                break;
+            }
+        }
+    }
+    return elements;
+}
+
+ticpp::Node* f2cc::tools::findXmlRootNode(Document* xml, const string& file, const string& rootname)
+    throw(InvalidArgumentException, ParseException, IOException, RuntimeException) {
+    if (!xml) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
+    }
+
+    Node* xml_root_node = xml->FirstChild(rootname, false);
+    if (!xml_root_node) {
+        THROW_EXCEPTION(ParseException, file,
+                        string("Could not find root element \"graphml\""));
+    }
+    if (xml_root_node->Type() != TiXmlNode::ELEMENT) {
+        THROW_EXCEPTION(ParseException, file,
+        		        xml_root_node->Row(),
+        				xml_root_node->Column(),
+                        string("Found \"process_network\" structure is not an "
+                               "element"));
+    }
+
+    return xml_root_node;
 }

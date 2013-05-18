@@ -38,7 +38,7 @@ using std::list;
 
 Comb::Comb(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
  		int cost, CFunction* function) throw()
-        : Leaf(id, hierarchy, string("sy"), cost),  function_(function) {}
+        : Leaf(id, hierarchy, "sy", cost),  function_(function) {}
 
 Comb::~Comb() throw() {}
 

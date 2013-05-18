@@ -39,6 +39,7 @@
 #include "../logger/logger.h"
 #include "../forsyde/processnetwork.h"
 #include "../forsyde/composite.h"
+#include "../forsyde/parallelcomposite.h"
 #include "../forsyde/leaf.h"
 #include "../ticpp/ticpp.h"
 #include "../exceptions/filenotfoundexception.h"

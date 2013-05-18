@@ -51,6 +51,8 @@
 #include "../../exceptions/outofmemoryexception.h"
 #include "../../exceptions/invalidmodelexception.h"
 #include <list>
+#include <map>
+#include <utility>
 #include <set>
 #include <vector>
 
@@ -68,10 +70,16 @@ namespace Forsyde {
  * or parallel CUDA C code).
  */
 class ModelModifierSysC {
- // private:
-  //  class ContainedSection;
+  public:
+	struct DataPath;
 
   public:
+
+    enum CostType {
+   	 IN_COST,
+   	 OUT_COST,
+   	 PROCESS_COST
+    };
 
     /**
      * Creates a processnetwork modifier.
@@ -84,7 +92,7 @@ class ModelModifierSysC {
      *         When \c processnetwork is \c NULL.
      */
     ModelModifierSysC(Forsyde::ProcessNetwork* processnetwork,
-    		Logger& logger, Config& config)
+    		Logger& logger, Config::Costs costs)
         throw(InvalidArgumentException);
 
     /**
@@ -95,11 +103,33 @@ class ModelModifierSysC {
     void flattenAndParallelize() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException);
 
-    void firstCostAnalysis() throw(
+    void optimizePlatform() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException);
+
+    void loadBalance() throw(
+    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
+    		InvalidModelException);
 
   private:
 
+    std::pair<unsigned long long, std::string> findMaximumCost(
+    		Composite* root, std::list<DataPath> datapaths) throw (
+		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException,
+		InvalidModelException);
+
+    std::list<DataPath> extractDataPaths(Composite* root) throw (
+		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
+
+    std::list<DataPath> parsePath(Process* process, DataPath current_path,
+    		Composite* root) throw(
+		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
+
+    std::map<unsigned long long, std::list<Id> > sortContainedSectionsByCost(
+    		std::list<DataPath> datapaths) throw (
+		RuntimeException, InvalidProcessException, OutOfMemoryException, InvalidModelException);
+
+    void splitPipelineStages(std::map<unsigned long long, std::list<Id> > contained_sections)
+    throw (RuntimeException, InvalidProcessException, OutOfMemoryException, InvalidModelException);
 
     void flattenCompositeProcess(Composite* composite, Composite* parent) throw(
    		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
@@ -121,8 +151,11 @@ class ModelModifierSysC {
      std::list<std::list<Leaf*> > extractEquivalentLeafs(Forsyde::Composite* parent)
          throw(InvalidArgumentException, OutOfMemoryException);
 
+     std::map<CostType, unsigned long long> calculateCostInNetwork(Process* process, bool on_device)
+     	 throw(RuntimeException, InvalidProcessException, InvalidArgumentException);
+
      void removeRedundantZipsUnzips(Forsyde::Composite* parent)
-     throw(InvalidArgumentException, OutOfMemoryException);
+     	 throw(InvalidArgumentException, OutOfMemoryException);
 
      bool foundDependencyDownstream(Leaf* current_process, std::map<Id, SY::Comb*> to_compare_with)
  	 	 throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
@@ -152,9 +185,19 @@ class ModelModifierSysC {
      void redirectFlow(Process::Interface* source, Process::Interface* target) throw (
     		 InvalidArgumentException, RuntimeException, InvalidProcessException);
 
+     int transferCoefficient(bool source_on_device, bool target_on_device, bool same_stream)
+          	 throw();
+
+     bool inListId(Id id, std::list<Id> list) throw();
+
+     std::list<Id> getPortionOfPath(Id start, Id stop, std::list<Id> list) throw();
+
+     unsigned long long calculateLoopCost(Id divergent_proc, std::list<Id> list) throw();
 
 
   private:
+
+
     /**
      * ForSyDe processnetwork.
      */
@@ -165,9 +208,37 @@ class ModelModifierSysC {
      */
     Logger& logger_;
 
-    Config configuration_;
+    Config::Costs costs_;
+
+    bool delay_dependency_;
 
     std::map<Id, bool> visited_processes_;
+
+  public:
+	class DataPath {
+	  public:
+    	DataPath() throw();
+
+    	~DataPath() throw();
+
+    	std::string printDataPath() throw();
+
+    	bool wasVisited(Id id) throw();
+
+    	std::list<std::list<Id> > getContainedPaths() throw();
+
+    	void operator=(const DataPath& rhs) throw();
+
+    	bool is_loop_;
+
+    	Id input_process_;
+
+    	Id output_process_;
+
+		std::list<std::pair<Id, bool> > path_;
+
+	};
+
 
 };
 
