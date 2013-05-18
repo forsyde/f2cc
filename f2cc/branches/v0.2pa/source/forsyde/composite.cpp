@@ -41,7 +41,7 @@ using std::vector;
 
 Composite::Composite(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy,
 		Forsyde::Id name) throw(RuntimeException) :
-		Model(), Process(id, hierarchy), composite_name_(name){}
+		Model(), Process(id, hierarchy, true, 0), composite_name_(name){}
 
 Composite::~Composite() throw() {
     destroyAllIOPorts(in_ports_);

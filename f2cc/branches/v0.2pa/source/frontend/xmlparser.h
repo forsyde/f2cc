@@ -506,31 +506,6 @@ class XmlParser : public Frontend {
 
 
     /**
-     * Locates the \c process_nertwork XML element in the XML document.
-     *
-     * @param xml
-     *        XML document.
-     * @param file
-     *        \c .xml file.
-     *
-     * @returns \c process_network element.
-     *
-     * @throws InvalidArgumentException
-     *         When \c xml is \c NULL.
-     * @throws ParseException
-     *         If no or multiple graph elements were found.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When something unexpected occurs. This is most likely due to a
-     *         bug.
-     */
-    ticpp::Node* findXmlRootNode(ticpp::Document* xml,
-    		const std::string& file)
-        throw(InvalidArgumentException, ParseException, IOException,
-              RuntimeException);
-
-    /**
      * Gets a list of elements with a particular name which are immediate
      * children to a XML object. If none are found, an empty list is returned.
      *

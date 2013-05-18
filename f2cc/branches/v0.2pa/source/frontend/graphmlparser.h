@@ -89,27 +89,6 @@ class GraphmlParser : public Frontend {
               ParseException, InvalidModelException, RuntimeException);
 
     /**
-     * Gets a list of elements with a particular name which are immediate
-     * children to a XML object. If none are found, an empty list is returned.
-     *
-     * @param xml
-     *        XML object to search.
-     * @param name
-     *        Name of the elements to search for.
-     * @returns List of 
-     * @throws InvalidArgumentException
-     *         When \c xml is \c NULL or when \c name is an empty string.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When something unexpected occurs. This is most likely due to a
-     *         bug.
-     */
-    std::list<ticpp::Element*> getElementsByName(ticpp::Node* xml,
-                                                 const std::string& name)
-        throw(InvalidArgumentException, IOException, RuntimeException);
-
-    /**
      * Scans the entire XML structure and checks that all needed elements and
      * attributes are there and also removes all elements and attributes which
      * are not needed for the latter parsing stages. This primarily means data

@@ -231,11 +231,19 @@ int main(int argc, const char* argv[]) {
 				}
 
 				case Config::XML: {
-					ModelModifierSysC modifier(processnetwork, logger, config);
+					config.setCosts(string("config/costs.xml"));
+					ModelModifierSysC modifier(processnetwork, logger, config.getCosts());
 					modifier.flattenAndParallelize();
 
 					XmlDumper dumper1(logger);
-					dumper1.dump(processnetwork,"hola.xml");
+					dumper1.dump(processnetwork,"flattenAndParallelize.xml");
+
+					modifier.optimizePlatform();
+
+					XmlDumper dumper2(logger);
+					dumper2.dump(processnetwork,"optimizePlatform.xml");
+
+					modifier.loadBalance();
 
 					processnetwork_info_message = "NEW MODEL INFO:\n";
 					processnetwork_info_message += getProcessNetworkInfo(processnetwork);

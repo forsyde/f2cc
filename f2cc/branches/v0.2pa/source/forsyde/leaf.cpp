@@ -40,8 +40,10 @@ using std::vector;
 Leaf::Leaf(const Id& id) throw(RuntimeException) : Process(id) {}
 
 Leaf::Leaf(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
- 		const std::string moc, int cost) throw(RuntimeException) :
-		Process(id, hierarchy), moc_(moc), cost_(cost){}
+ 		const std::string& moc, int cost) throw(RuntimeException) :
+		Process(id, hierarchy, false, cost), moc_(moc){
+
+}
 
 Leaf::~Leaf() throw() {
     destroyAllPorts(in_ports_);
@@ -52,14 +54,6 @@ const string Leaf::getMoc() const throw(RuntimeException) {
     return moc_;
 }
 
-
-int Leaf::getCost() const throw(RuntimeException){
-	return cost_;
-}
-
-void  Leaf::setCost(int& cost) throw(RuntimeException){
-	cost_ = cost;
-}
 
 bool Leaf::addInPort(const Id& id) throw(RuntimeException, OutOfMemoryException) {
     if (findPort(id, in_ports_) != in_ports_.end()) return false;

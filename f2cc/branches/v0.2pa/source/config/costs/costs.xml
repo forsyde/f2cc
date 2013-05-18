@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<f2cc_cost_coefficients>
+	<host_to_device_transfer value="100"/>
+	<device_to_host_transfer value="100"/>
+	<device_inter_thread_transfer value="1"/>
+	<device_intra_thread_transfer value="0"/>
+	<host_to_host_transfer value="0"/>
+	<host_execution value="5"/>
+	<device_execution value="5"/>
+</f2cc_cost_coefficients>

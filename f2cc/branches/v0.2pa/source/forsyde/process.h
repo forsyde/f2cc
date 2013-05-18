@@ -80,7 +80,8 @@ class Process{
      * @param hierarchy
      *        Process hierarchy.
      */
-    Process(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy) throw();
+    Process(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy,
+    		bool mapped_to_cuda, int cost) throw();
 
     /**
      * Destroys this process.
@@ -117,6 +118,29 @@ class Process{
 	void setHierarchy(Forsyde::Hierarchy) throw();
 
     /**
+     * Gets the cost for this process.
+     *
+     * @returns The cost parameter.
+     */
+    int getCost() const throw();
+
+    /**
+     * Sets the cost for this process.
+     *
+     * @param cost
+     *        The cost parameter.
+     */
+    void setCost(int& cost) throw();
+
+    void mapToDevice(bool mapped_to_cuda) throw();
+
+    bool isMappedToDevice() throw();
+
+    void setStream(unsigned stream_number) throw();
+
+    unsigned getStream() throw();
+
+    /**
      * Checks that this process is valid. This does nothing except invoke the
      * purely virtual method moreChecks() for process type-related checks.
      *
@@ -148,6 +172,15 @@ class Process{
 	 * Hierarchy list
 	 */
 	Forsyde::Hierarchy hierarchy_;
+
+	bool mapped_to_cuda_;
+
+    /**
+	 * Process cost parameter.
+	 */
+	int cost_;
+
+	unsigned stream_number_;
 
 
   public:
@@ -241,6 +274,7 @@ class Process{
          * Port name.
          */
         Process* process_;
+
 
     };
 

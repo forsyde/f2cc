@@ -109,60 +109,7 @@ ProcessNetwork* GraphmlParser::createProcessNetwork(const string& file)
     return processnetwork;
 }
 
-list<Element*> GraphmlParser::getElementsByName(Node* xml, const string& name)
-    throw(InvalidArgumentException, IOException, RuntimeException) {
-    if (!xml) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
-    }
-    if (name.length() == 0) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"name\" must not be empty "
-                        "string");
-    }
 
-    list<Element*> elements;
-    Node* child = NULL;
-    while ((child = xml->IterateChildren(name, child))) {
-        switch (child->Type()) {
-            case TiXmlNode::ELEMENT: {
-                try {
-                    Element* e = dynamic_cast<Element*>(child);
-                    if (!e) THROW_EXCEPTION(CastException);
-                    elements.push_back(e);
-                } catch (bad_alloc&) {
-                    THROW_EXCEPTION(OutOfMemoryException);
-                }
-                break;
-            }
-
-            case TiXmlNode::DECLARATION:
-            case TiXmlNode::DOCUMENT:
-            case TiXmlNode::UNKNOWN:
-            case TiXmlNode::TEXT:
-            case TiXmlNode::STYLESHEETREFERENCE:
-            case TiXmlNode::TYPECOUNT: {
-                // Found unknown XML data; warn and remove
-                logger_.logMessage(Logger::WARNING,
-                                   string("Unknown XML data at line ")
-                                   + tools::toString(child->Row()) + ", column "
-                                   + tools::toString(child->Column()) + ":\n"
-                                   + child->Value());
-                Node* prev_child = child->PreviousSibling(name, false);
-                xml->RemoveChild(child);
-                child = prev_child;
-                break;
-            }
-
-            case TiXmlNode::COMMENT: {
-                // Found XML comment; ignore and remove
-                Node* prev_child = child->PreviousSibling(name, false);
-                xml->RemoveChild(child);
-                child = prev_child;
-                break;
-            }
-        }
-    }
-    return elements;
-}
 
 void GraphmlParser::checkXmlDocument(Document* xml)
     throw(InvalidArgumentException, ParseException, IOException,
@@ -242,7 +189,7 @@ void GraphmlParser::parseXmlNodes(Element* xml, ProcessNetwork* processnetwork)
         THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "node");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "node");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string("Analyzing line "
@@ -273,7 +220,7 @@ void GraphmlParser::parseXmlEdges(Element* xml, ProcessNetwork* processnetwork,
         THROW_EXCEPTION(InvalidArgumentException, "\"processnetwork\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "edge");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "edge");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string("Analyzing line "
@@ -394,7 +341,7 @@ Leaf* GraphmlParser::generateLeaf(Element* xml)
                        + " from \"" + process->getId()->getString() + "\"");
 
     // Get ports
-    list<Element*> elements = getElementsByName(xml, "port");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "port");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG,
@@ -462,7 +409,7 @@ string GraphmlParser::getProcessType(Element* xml)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "data");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG,
@@ -486,7 +433,7 @@ CFunction GraphmlParser::generateLeafFunction(Element* xml)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "data");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG,
@@ -643,7 +590,7 @@ int GraphmlParser::getNumProcesses(ticpp::Element* xml)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "data");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG,
@@ -676,7 +623,7 @@ void GraphmlParser::findFunctionArraySizes(CFunction& function,
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "port");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "port");
 
     // If return data type or last input parameter is an array, find the array
     // size by analyzing the out port XML elements
@@ -769,7 +716,7 @@ size_t GraphmlParser::findArraySize(ticpp::Element* xml)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "data");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG,
@@ -802,7 +749,7 @@ string GraphmlParser::getInitialDelayValue(Element* xml)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "data");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "data");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG,

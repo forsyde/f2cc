@@ -37,7 +37,7 @@ Unzipx::Unzipx(const Id& id) throw()
 
 Unzipx::Unzipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
  		int cost) throw()
-        : Leaf(id, hierarchy, string("sy"), cost) {}
+        : Leaf(id, hierarchy, "sy", cost) {}
 
 Unzipx::~Unzipx() throw() {}
 

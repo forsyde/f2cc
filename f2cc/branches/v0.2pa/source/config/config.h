@@ -37,8 +37,14 @@
  */
 
 #include "../logger/logger.h"
+#include "../ticpp/ticpp.h"
 #include "../exceptions/invalidformatexception.h"
+#include "../exceptions/filenotfoundexception.h"
 #include "../exceptions/invalidargumentexception.h"
+#include "../exceptions/runtimeexception.h"
+#include "../exceptions/parseexception.h"
+#include "../exceptions/castexception.h"
+#include "../exceptions/outofmemoryexception.h"
 #include <string>
 
 namespace f2cc {
@@ -96,9 +102,13 @@ class Config {
 
         int k_D2D;
 
+        int k_T2T;
+
         int k_H2H;
 
-        unsigned min_parallel;
+        int k_SEQ;
+
+        int k_PAR;
     };
 
     /**
@@ -282,21 +292,6 @@ class Config {
     void setTargetPlatform(TargetPlatform platform) throw();
 
     /**
-     * Gets the target platform. Default platform is Config::CUDA.
-     *
-     * @returns Target platform.
-     */
-    Costs getCosts() const throw();
-
-    /**
-     * Sets the target platform.
-     *
-     * @param platform
-     *        Target platform.
-     */
-    void setCosts(const std::string& file) throw();
-
-    /**
      * Gets the input file format, that determines the execution path.
      *
      * @returns Input format.
@@ -326,6 +321,13 @@ class Config {
      */
     void setFromCommandLine(int argc, const char** argv)
         throw(InvalidArgumentException, InvalidFormatException);
+
+
+    void setCosts(const std::string& file) throw(InvalidArgumentException,
+    		InvalidFormatException, FileNotFoundException, IOException, CastException, ParseException,
+    		OutOfMemoryException);
+
+    Costs getCosts() const throw();
 
     /**
      * Gets the program version.
