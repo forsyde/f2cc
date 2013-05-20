@@ -368,6 +368,8 @@ public:
 		 */
 		bool isConnectedInside() const throw(RuntimeException);
 
+		void setConnection(Process::Interface* port, bool outside) throw();
+
         /**
          * Function used for recursive search whether this \c IOPort is connected to a
          * \c Leaf::Port on a chosen side.

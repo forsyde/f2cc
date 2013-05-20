@@ -78,7 +78,7 @@ class ModelModifierSysC {
     enum CostType {
    	 IN_COST,
    	 OUT_COST,
-   	 PROCESS_COST
+   	 PROCESS_COST,
     };
 
     /**
@@ -110,10 +110,13 @@ class ModelModifierSysC {
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
     		InvalidModelException);
 
+    void createMapToKernelDirectives() throw(
+    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
+    		InvalidModelException);
+
   private:
 
-    std::pair<unsigned long long, std::string> findMaximumCost(
-    		Composite* root, std::list<DataPath> datapaths) throw (
+    std::string findMaximumCost(Composite* root, std::list<DataPath> datapaths) throw (
 		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException,
 		InvalidModelException);
 
@@ -128,7 +131,7 @@ class ModelModifierSysC {
     		std::list<DataPath> datapaths) throw (
 		RuntimeException, InvalidProcessException, OutOfMemoryException, InvalidModelException);
 
-    void splitPipelineStages(std::map<unsigned long long, std::list<Id> > contained_sections)
+    bool splitPipelineStages(std::vector<Id> contained_sections)
     throw (RuntimeException, InvalidProcessException, OutOfMemoryException, InvalidModelException);
 
     void flattenCompositeProcess(Composite* composite, Composite* parent) throw(
@@ -188,11 +191,23 @@ class ModelModifierSysC {
      int transferCoefficient(bool source_on_device, bool target_on_device, bool same_stream)
           	 throw();
 
-     bool inListId(Id id, std::list<Id> list) throw();
+     std::list<Id>::iterator getIdFromList(Id id, std::list<Id> list) throw();
+
+     unsigned getPosOf(Id id, std::vector<Id> vector) throw(RuntimeException);
+		/*if (pos_csec < 0 || pos_csec >=contained_s.size()){
+			THROW_EXCEPTION(RuntimeException, string("The Id  \"")
+							+ remaining[lrit].getString()
+							+ "\" has index " + tools::toString(pos_csec)
+							+ " in the contained section list:\n"
+							+ printVector(contained_s));*/
 
      std::list<Id> getPortionOfPath(Id start, Id stop, std::list<Id> list) throw();
 
      unsigned long long calculateLoopCost(Id divergent_proc, std::list<Id> list) throw();
+
+     unsigned long long getSignalCost(Process* source, Process* target, bool sync) throw();
+
+     std::string printVector(std::vector<Id> vector) throw();
 
 
   private:
@@ -212,7 +227,11 @@ class ModelModifierSysC {
 
     bool delay_dependency_;
 
+    unsigned long long quantum_cost_;
+
     std::map<Id, bool> visited_processes_;
+
+    std::map<unsigned, unsigned long long> stage_costs_; // stage : trasfer cost
 
   public:
 	class DataPath {

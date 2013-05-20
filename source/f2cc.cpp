@@ -244,6 +244,13 @@ int main(int argc, const char* argv[]) {
 					dumper2.dump(processnetwork,"optimizePlatform.xml");
 
 					modifier.loadBalance();
+					XmlDumper dumper3(logger);
+					dumper3.dump(processnetwork,"loadBalanced.xml");
+
+					modifier.createMapToKernelDirectives();
+
+					XmlDumper dumper4(logger);
+					dumper4.dump(processnetwork,"pipelined.xml");
 
 					processnetwork_info_message = "NEW MODEL INFO:\n";
 					processnetwork_info_message += getProcessNetworkInfo(processnetwork);

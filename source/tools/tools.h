@@ -294,6 +294,7 @@ void breakLongLines(std::string& str, size_t maximum_length,
     throw();
 
 
+
 /**
  * Gets a list of elements with a particular name which are immediate
  * children to a XML object. If none are found, an empty list is returned.

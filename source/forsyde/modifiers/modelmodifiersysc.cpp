@@ -38,6 +38,7 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <iterator>
 #include <new>
 #include <stdexcept>
 
@@ -46,6 +47,7 @@ using namespace f2cc::Forsyde;
 using namespace f2cc::Forsyde::SY;
 using std::string;
 using std::list;
+using std::advance;
 using std::map;
 using std::set;
 using std::vector;
@@ -204,19 +206,217 @@ void ModelModifierSysC::loadBalance() throw(
 	logger_.logMessage(Logger::INFO, "Extracting individual data paths");
 	list<DataPath> datapaths = extractDataPaths(root);
 
+	quantum_cost_ = 0;
 	logger_.logMessage(Logger::INFO, "Finding the maximum (quantum) cost in the process network...");
-	pair<unsigned long long, string> quantum_cost = findMaximumCost(root, datapaths);
+	string owner = findMaximumCost(root, datapaths);
 	logger_.logMessage(Logger::INFO, string() + "Found the maximum cost of "
-			+ tools::toString(quantum_cost.first) + " belonging to the "
-			+ quantum_cost.second);
+			+ tools::toString(quantum_cost_) + " belonging to the "
+			+ owner);
 
 	logger_.logMessage(Logger::INFO, "Extracting contained paths and sorting them by maximum cost...");
 	map<unsigned long long, list<Id> > contained_sections = sortContainedSectionsByCost(datapaths);
 
+	stage_costs_.insert(make_pair(0,0));
+	bool split_successful = false;
 	logger_.logMessage(Logger::INFO, "Splitting the data paths into pipeline stages");
-	splitPipelineStages(contained_sections);
+	while (!split_successful)
+    for (map<unsigned long long, list<Id> >::reverse_iterator csit = contained_sections.rbegin();
+    		csit != contained_sections.rend(); ++csit){
+    	//std::cout<<"COST: "<<(*csit).first<<"\n";
+    	std::vector<Id> list_as_vector(csit->second.begin(), csit->second.end());
+    	split_successful = splitPipelineStages(list_as_vector);
+    }
+}
 
 
+void ModelModifierSysC::createMapToKernelDirectives() throw(
+		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
+		InvalidModelException){
+	logger_.logMessage(Logger::INFO, "Creating map-to-kernel directives by grouping processes "
+			"sharing the same pipeline stage into composite processes...");
+
+	Composite* root = processnetwork_->getComposite(Id("f2cc0"));
+	if(!root){
+		THROW_EXCEPTION(InvalidModelException, string("Process network ")
+						+ "does not have a root process");
+	}
+
+	list<Composite*> comps = root->getComposites();
+	for (list<Composite*>::iterator cit = comps.begin(); cit != comps.end(); ++cit){
+		ParallelComposite* pcomp = dynamic_cast<ParallelComposite*>(*cit);
+		if (!pcomp){
+			continue;
+		}
+
+		unsigned stage = pcomp->getStream();
+		Id kernel_id = Id(string() + "f2cc_kernel_" + tools::toString(stage));
+		Composite* kernel_composite = processnetwork_->getComposite(kernel_id);
+		if (!kernel_composite){
+			Hierarchy new_hierarchy = root->getHierarchy();
+			kernel_composite = new Composite(kernel_id, new_hierarchy, Id(""));
+			root->addComposite(kernel_composite);
+		}
+		moveToNewParent(pcomp, root, kernel_composite);
+	}
+
+	list<Leaf*> leafs = root->getProcesses();
+	for (list<Leaf*>::iterator lit = leafs.begin(); lit != leafs.end(); ++lit){
+		Leaf* leaf = *lit;
+
+		unsigned stage = leaf->getStream();
+		Id kernel_id = Id(string() + "f2cc_kernel_" + tools::toString(stage));
+		Composite* kernel_composite = processnetwork_->getComposite(kernel_id);
+		if (!kernel_composite){
+			Hierarchy new_hierarchy = root->getHierarchy();
+			kernel_composite = new Composite(kernel_id, new_hierarchy, Id(""));
+			root->addComposite(kernel_composite);
+		}
+		moveToNewParent(leaf, root, kernel_composite);
+	}
+
+	/*list<Composite*> kcomps = root->getComposites();
+	for (list<Composite*>::iterator kcit = kcomps.begin(); kcit != kcomps.end(); ++kcit){
+		ParallelComposite* pcomp = dynamic_cast<ParallelComposite*>(*kcit);
+		if (pcomp){
+			THROW_EXCEPTION(InvalidModelException, string("Process network ")
+							+ "should not have parallel composites at this stage");
+		}
+
+		list<Composite*> incl_comps = (*kcit)->getComposites();
+		for (list<Composite*>::iterator icit = incl_comps.begin(); icit != incl_comps.end(); ++icit){
+			ParallelComposite* pcomp = dynamic_cast<ParallelComposite*>(*icit);
+			if (!pcomp){
+				THROW_EXCEPTION(InvalidModelException, string("Process  ")
+								+ (*icit)->getId()->getString()
+								+ "should have only parallel composites at this stage");
+			}
+
+			list<Composite::IOPort*> inputs = pcomp->getInIOPorts();
+			for (list<Composite::IOPort*>::iterator iit = inputs.begin(); iit != inputs.end(); ++iit){
+				Process::Interface* connection = (*iit)->getConnectedPortOutside();
+				if ((*kcit)->findRelation(connection->getProcess()) != Hierarchy::FirstChild ){
+					CDataType outer_type;
+					Leaf::Port* conn_port = dynamic_cast<Leaf::Port*>(connection);
+					if (conn_port) outer_type = conn_port->getDataType();
+					else{
+						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
+						outer_type = conn_ioport->getDataType().first;
+					}
+					CDataType inner_type = (*iit)->getDataType().first;
+					(*iit)->setConnection(NULL,true);
+					Id inner_id = Id((*iit)->toString());
+
+					(*kcit)->addInIOPort(inner_id, inner_type);
+					Composite::IOPort* new_port = (*kcit)->getInIOPort(inner_id);
+					new_port->setDataType(true, outer_type);
+
+					new_port->setConnection(*iit, false);
+					if (conn_port) conn_port->setConnection(new_port);
+					else {
+						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
+						conn_ioport->setConnection(new_port, true);
+					}
+					new_port->setConnection(connection, true);
+					std::cout<<new_port->toString()<<"\n";
+				}
+			}
+
+			list<Composite::IOPort*> outputs  = pcomp->getOutIOPorts();
+			for (list<Composite::IOPort*>::iterator iit = outputs.begin(); iit != outputs.end(); ++iit){
+				Process::Interface* connection = (*iit)->getConnectedPortOutside();
+				if ((*kcit)->findRelation(connection->getProcess()) !=
+						Hierarchy::FirstChild ){
+					CDataType outer_type;
+					Leaf::Port* conn_port = dynamic_cast<Leaf::Port*>(connection);
+					if (conn_port) outer_type = conn_port->getDataType();
+					else{
+						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
+						outer_type = conn_ioport->getDataType().first;
+					}
+					CDataType inner_type = (*iit)->getDataType().first;
+					(*iit)->setConnection(NULL,true);
+					Id inner_id = Id((*iit)->toString());
+
+					(*kcit)->addOutIOPort(inner_id, inner_type);
+					Composite::IOPort* new_port = (*kcit)->getOutIOPort(inner_id);
+					new_port->setDataType(true, outer_type);
+
+					new_port->setConnection(*iit, false);
+					if (conn_port) conn_port->setConnection(new_port);
+					else {
+						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
+						conn_ioport->setConnection(new_port, true);
+					}
+					new_port->setConnection(connection, true);
+					std::cout<<new_port->toString()<<"\n";
+				}
+			}
+		}
+
+		list<Leaf*> incl_leafs = root->getProcesses();
+		for (list<Leaf*>::iterator lit = incl_leafs.begin(); lit != incl_leafs.end(); ++lit){
+			Leaf* leaf = *lit;
+
+			list<Leaf::Port*> inputs  = leaf->getInPorts();
+			for (list<Leaf::Port*>::iterator iit = inputs.begin(); iit != inputs.end(); ++iit){
+				Process::Interface* connection = (*iit)->getConnectedPort();
+				if ((*kcit)->findRelation(connection->getProcess()) !=
+						Hierarchy::FirstChild ){
+					CDataType outer_type;
+					Leaf::Port* conn_port = dynamic_cast<Leaf::Port*>(connection);
+					if (conn_port) outer_type = conn_port->getDataType();
+					else{
+						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
+						outer_type = conn_ioport->getDataType().first;
+					}
+					CDataType inner_type = (*iit)->getDataType();
+					(*iit)->setConnection(NULL);
+					Id inner_id = Id((*iit)->toString());
+
+					(*kcit)->addInIOPort(inner_id, inner_type);
+					Composite::IOPort* new_port = (*kcit)->getInIOPort(inner_id);
+					new_port->setDataType(true, outer_type);
+
+					new_port->setConnection(*iit, false);
+					if (conn_port) conn_port->setConnection(new_port);
+					else {
+						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
+						conn_ioport->setConnection(new_port, true);
+					}
+					new_port->setConnection(connection, true);
+				}
+			}
+			list<Leaf::Port*> outputs  = leaf->getOutPorts();
+			for (list<Leaf::Port*>::iterator iit = outputs.begin(); iit != outputs.end(); ++iit){
+				Process::Interface* connection = (*iit)->getConnectedPort();
+				if ((*kcit)->findRelation(connection->getProcess()) !=
+						Hierarchy::FirstChild ){
+					CDataType outer_type;
+					Leaf::Port* conn_port = dynamic_cast<Leaf::Port*>(connection);
+					if (conn_port) outer_type = conn_port->getDataType();
+					else{
+						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
+						outer_type = conn_ioport->getDataType().first;
+					}
+					CDataType inner_type = (*iit)->getDataType();
+					(*iit)->setConnection(NULL);
+					Id inner_id = Id((*iit)->toString());
+
+					(*kcit)->addOutIOPort(inner_id, inner_type);
+					Composite::IOPort* new_port = (*kcit)->getOutIOPort(inner_id);
+					new_port->setDataType(true, outer_type);
+
+					new_port->setConnection(*iit, false);
+					if (conn_port) conn_port->setConnection(new_port);
+					else {
+						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
+						conn_ioport->setConnection(new_port, true);
+					}
+					new_port->setConnection(connection, true);
+				}
+			}
+		}
+	}*/
 }
 
 std::list<ModelModifierSysC::DataPath> ModelModifierSysC::extractDataPaths(Composite* root) throw (
@@ -337,15 +537,14 @@ std::list<ModelModifierSysC::DataPath> ModelModifierSysC::parsePath(Process* pro
 	return ret_paths;
 }
 
-std::pair<unsigned long long, std::string> ModelModifierSysC::findMaximumCost(
-		Composite* root, list<DataPath> datapaths) throw (
+std::string ModelModifierSysC::findMaximumCost(Composite* root, list<DataPath> datapaths) throw (
   		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException,
   		InvalidModelException){
     if (!root) {
         THROW_EXCEPTION(InvalidArgumentException, "\"composite\" must not be NULL");
     }
 
-    pair<unsigned long long, string> maximum;
+    string maximum_owner;
 
     unsigned long long cost = 0;
     list<Leaf*> leafs  = root->getProcesses();
@@ -353,20 +552,20 @@ std::pair<unsigned long long, std::string> ModelModifierSysC::findMaximumCost(
 		if (!(*lit)->isMappedToDevice()) cost += (*lit)->getCost() * costs_.k_SEQ;
 		else {
 			std::map<CostType, unsigned long long> leaf_costs = calculateCostInNetwork((*lit), true);
-			if (leaf_costs[PROCESS_COST] > maximum.first){
-				maximum = std::make_pair(leaf_costs[PROCESS_COST],
-						string("leaf process \"")
-						+ (*lit)->getId()->getString() + "\" executing on device");
+			if (leaf_costs[PROCESS_COST] > quantum_cost_){
+				quantum_cost_ = leaf_costs[PROCESS_COST];
+				maximum_owner = string("leaf process \"")
+						+ (*lit)->getId()->getString() + "\" executing on device";
 			}
-			if (leaf_costs[IN_COST] > maximum.first){
-				maximum = std::make_pair(leaf_costs[IN_COST],
-						string("data transfer to \"")
-						+ (*lit)->getId()->getString() + "\" executing on device");
+			if (leaf_costs[IN_COST] > quantum_cost_){
+				quantum_cost_ = leaf_costs[IN_COST];
+				maximum_owner = string("The input costs for leaf process \"")
+						+ (*lit)->getId()->getString() + "\" executing on device";
 			}
-			if (leaf_costs[OUT_COST] > maximum.first){
-				maximum = std::make_pair(leaf_costs[IN_COST],
-						string("data transfer from \"")
-						+ (*lit)->getId()->getString() + "\" executing on device");
+			if (leaf_costs[OUT_COST] > quantum_cost_){
+				quantum_cost_ = leaf_costs[OUT_COST];
+				maximum_owner = string("The output costs for leaf process \"")
+						+ (*lit)->getId()->getString() + "\" executing on device";
 			}
 		}
 	}
@@ -383,39 +582,44 @@ std::pair<unsigned long long, std::string> ModelModifierSysC::findMaximumCost(
 					* costs_.k_SEQ;
 			else {
 				std::map<CostType, unsigned long long> pcomp_costs = calculateCostInNetwork(pcomp, true);
-				if (pcomp_costs[PROCESS_COST] > maximum.first){
-					maximum = std::make_pair(pcomp_costs[PROCESS_COST],
-							string("parallel composite process \"")
-							+ pcomp->getId()->getString() + "\" executing on device");
+				if (pcomp_costs[PROCESS_COST] > quantum_cost_){
+					quantum_cost_ = pcomp_costs[PROCESS_COST];
+					maximum_owner = string("leaf process \"")
+							+ pcomp->getId()->getString() + "\" executing on device";
 				}
-				if (pcomp_costs[IN_COST] > maximum.first){
-					maximum = std::make_pair(pcomp_costs[IN_COST],
-							string("data transfer to \"")
-							+ pcomp->getId()->getString() + "\" executing on device");
+				if (pcomp_costs[IN_COST] > quantum_cost_){
+					quantum_cost_ = pcomp_costs[IN_COST];
+					maximum_owner = string("leaf process \"")
+							+ pcomp->getId()->getString() + "\" executing on device";
 				}
-				if (pcomp_costs[OUT_COST] > maximum.first){
-					maximum = std::make_pair(pcomp_costs[IN_COST],
-							string("data transfer from \"")
-							+ pcomp->getId()->getString() + "\" executing on device");
+				if (pcomp_costs[OUT_COST] > quantum_cost_){
+					quantum_cost_ = pcomp_costs[OUT_COST];
+					maximum_owner = string("leaf process \"")
+							+ pcomp->getId()->getString() + "\" executing on device";
 				}
 			}
 		}
 	}
-	if (cost > maximum.first) maximum = std::make_pair(cost, string("processes executing on host"));
+	if (cost >quantum_cost_){
+		quantum_cost_ = cost;
+		maximum_owner = string("processes executing on host");
+	}
 
 	for (list<DataPath>::iterator dit = datapaths.begin(); dit != datapaths.end(); ++dit){
 		if (dit->is_loop_){
 			list<Id> first_contained = dit->getContainedPaths().front();
-			if (inListId(dit->input_process_, first_contained)){
+			if (getIdFromList(dit->input_process_, first_contained) != first_contained.end()){
 				unsigned long long loopcost = calculateLoopCost(dit->input_process_, first_contained);
-				if (loopcost > maximum.first)
-						maximum = std::make_pair(loopcost, string("processes the loop started by \"")
-								+ dit->input_process_.getString() + "\"");
+				if (loopcost > quantum_cost_){
+					quantum_cost_ = loopcost;
+					maximum_owner = string("processes the loop started by \"")
+							+ dit->input_process_.getString() + "\"";
+				}
 			}
 		}
 	}
 
-	return maximum;
+	return maximum_owner;
 }
 
 std::map<unsigned long long, std::list<Id> > ModelModifierSysC::sortContainedSectionsByCost(
@@ -430,18 +634,20 @@ std::map<unsigned long long, std::list<Id> > ModelModifierSysC::sortContainedSec
 		for (list<list<Id> >::iterator lcit = list_contained.begin(); lcit != list_contained.end(); ++lcit){
 			unsigned long long contained_cost = 0;
 			if(dpit->is_loop_ && lcit == list_contained.begin()){
-				if (inListId(dpit->input_process_, *lcit)){
+				if (getIdFromList(dpit->input_process_, *lcit) != (*lcit).end()){
 					unsigned long long loopcost = calculateLoopCost(dpit->input_process_, *lcit);
 					if (loopcost > contained_cost) contained_cost = loopcost;
-					continue;
+					//continue;
 				}
 			}
-			for (list<Id>::iterator cit = lcit->begin(); cit != lcit->end(); ++cit){
-				Process* current = processnetwork_->getProcess(*cit);
-				if (!current) current = processnetwork_->getComposite(*cit);
-				std::map<CostType, unsigned long long> proc_costs =
-						calculateCostInNetwork(current, true);
-				if (proc_costs[PROCESS_COST] > contained_cost) contained_cost = proc_costs[PROCESS_COST];
+			else {
+				for (list<Id>::iterator cit = lcit->begin(); cit != lcit->end(); ++cit){
+					Process* current = processnetwork_->getProcess(*cit);
+					if (!current) current = processnetwork_->getComposite(*cit);
+					std::map<CostType, unsigned long long> proc_costs =
+							calculateCostInNetwork(current, true);
+					if (proc_costs[PROCESS_COST] > contained_cost) contained_cost = proc_costs[PROCESS_COST];
+				}
 			}
 			if (index.find(contained_cost) != index.end()) index[contained_cost]++;
 			else index.insert(make_pair(contained_cost, contained_cost * 1000));
@@ -451,11 +657,306 @@ std::map<unsigned long long, std::list<Id> > ModelModifierSysC::sortContainedSec
 	return sorted_list;
 }
 
-void ModelModifierSysC::splitPipelineStages(map<unsigned long long, list<Id> > contained_sections)
+bool ModelModifierSysC::splitPipelineStages(vector<Id> contained_s)
     throw (RuntimeException, InvalidProcessException, OutOfMemoryException, InvalidModelException){
 
-	map<Id, unsigned> pipe_assoc;
+	//std::cout<<"!!!AT THE ENTRANCE: "<<printVector(contained_s)<<"\n";
+	vector<Id> already_assigned;
+	bool is_optimized = false;
 
+	logger_.logMessage(Logger::DEBUG, string() + "Commencing load balancing for the contained "
+			"section... ");
+
+	while(!is_optimized){
+		is_optimized = true;
+		//find out which processes in this section are already assigned
+		for (unsigned i=0; i<contained_s.size(); i++) {
+			Process* proc = processnetwork_->getComposite(contained_s[i]);
+			if (!proc) proc = processnetwork_->getProcess(contained_s[i]);
+			if(proc->getStream() != 0){
+				//std::cout<<"Assigned stream = "<<proc->getStream()<<"\n";
+				already_assigned.push_back(*proc->getId());
+			}
+		}
+		//std::cout<<"### Already assigned procs:"<<printVector(already_assigned)<<"\n";
+
+		//try to fill up the already assigned stages
+		for (unsigned ait=0; ait<already_assigned.size(); ait++) {
+			Process* assigned_proc = processnetwork_->getComposite(already_assigned[ait]);
+			if (!assigned_proc) assigned_proc = processnetwork_->getProcess(already_assigned[ait]);
+			unsigned pos_cs = getPosOf(already_assigned[ait], contained_s);
+
+			//std::cout<<"### AMU ii la "<<pos_cs<<":"<<contained_s[pos_cs]<<"\n";
+
+			if (pos_cs != 0){
+				//std::cout<<"### NU E 0 :"<<pos_cs<<" : "<<contained_s[pos_cs]<<"\n";
+				Process* proc_to_add = processnetwork_->getComposite(contained_s[pos_cs - 1]);
+				if (!proc_to_add) proc_to_add = processnetwork_->getProcess(contained_s[pos_cs - 1]);
+
+				if(proc_to_add->getStream() == 0){
+					//the process belongs to the current section, but was not assigned yet
+					unsigned assigned_stage = assigned_proc->getStream();
+					//get the "new link cost"
+					unsigned long long new_sync_cost;
+					if (pos_cs - 1 != 0){
+						Process* conn_to_proctoadd = processnetwork_->
+								getComposite(contained_s[pos_cs - 2]);
+						if (!conn_to_proctoadd) conn_to_proctoadd = processnetwork_->
+								getProcess(contained_s[pos_cs - 2]);
+						new_sync_cost = getSignalCost(conn_to_proctoadd, proc_to_add, true);
+					}
+					else new_sync_cost = 0;
+					unsigned old_sync_cost = getSignalCost(proc_to_add, assigned_proc, true);
+
+					unsigned long long new_stage_cost =
+							stage_costs_[assigned_stage] +
+							proc_to_add->getCost() * costs_.k_PAR +
+							new_sync_cost - old_sync_cost;
+					if (new_stage_cost < quantum_cost_ ){
+						stage_costs_[assigned_stage] = new_stage_cost;
+						proc_to_add->setStream(assigned_stage);
+						is_optimized = false;
+						logger_.logMessage(Logger::DEBUG, string() + "Added process \""
+								+  proc_to_add->getId()->getString()
+								+ "\" to stage " + tools::toString(assigned_stage)
+								+ ". The new stage cost is " + tools::toString(new_stage_cost));
+					}
+				}
+			}
+			if (pos_cs < contained_s.size() - 1){
+				//std::cout<<"### NU E LAST :"<<pos_cs<<" : "<<contained_s[pos_cs]<<"\n";
+				Process* proc_to_add = processnetwork_->getComposite(contained_s[pos_cs + 1]);
+				if (!proc_to_add) proc_to_add = processnetwork_->getProcess(contained_s[pos_cs + 1]);
+
+				if(proc_to_add->getStream() == 0){
+					//the process belongs to the current section, but was not assigned yet
+					unsigned assigned_stage = assigned_proc->getStream();
+					//get the "new link cost"
+					unsigned long long new_sync_cost;
+					if (pos_cs + 1 < contained_s.size() - 1){
+						Process* conn_to_proctoadd = processnetwork_->
+								getComposite(contained_s[pos_cs + 2]);
+						if (!conn_to_proctoadd) conn_to_proctoadd = processnetwork_->
+								getProcess(contained_s[pos_cs + 2]);
+						new_sync_cost = getSignalCost(proc_to_add, conn_to_proctoadd, true);
+					}
+					else new_sync_cost = 0;
+					unsigned old_sync_cost = getSignalCost(assigned_proc, proc_to_add, true);
+
+					unsigned long long new_stage_cost =
+							stage_costs_[assigned_stage] +
+							proc_to_add->getCost() * costs_.k_PAR +
+							new_sync_cost - old_sync_cost;
+					if (new_stage_cost < quantum_cost_ ){
+						stage_costs_[assigned_stage] = new_stage_cost;
+						proc_to_add->setStream(assigned_stage);
+						is_optimized = false;
+						logger_.logMessage(Logger::DEBUG, string() + "Added process \""
+								+  proc_to_add->getId()->getString()
+								+ "\" to stage " + tools::toString(assigned_stage)
+								+ ". The new stage cost is " + tools::toString(new_stage_cost));
+					}
+				}
+			}
+		}
+	}
+
+	//split all the remaining contained section into free portions
+	list<vector<Id> > free_condained;
+	vector<Id> dummy_vector;
+	bool previous_free = false;
+	for (unsigned cit=0; cit<contained_s.size(); cit++) {
+		Process* proc = processnetwork_->getComposite(contained_s[cit]);
+		if (!proc) proc = processnetwork_->getProcess(contained_s[cit]);
+		if(proc->getStream() == 0){
+			if (!previous_free) free_condained.push_back(dummy_vector);
+			free_condained.back().push_back(*proc->getId());
+			previous_free = true;
+		}
+		else if (previous_free) {
+			previous_free = false;
+		}
+	}
+	/*logger_.logMessage(Logger::DEBUG, string() + "The current contained section was split into "
+			+  tools::toString(free_condained.size())
+			+ " other sections. Proceeding with their analysis...");*/
+
+
+
+	//all that is left is to load balance the free contained sections
+	for (list<vector<Id> >::iterator fcit = free_condained.begin(); fcit != free_condained.end(); ++fcit){
+		vector<Id> remaining;
+		remaining.assign(fcit->begin(),fcit->end());
+		while (remaining.size() > 0){
+			vector<Id> dummy;
+			list<pair<vector<Id>, pair<unsigned long long, unsigned long long> > > left_right_costs;
+			list<pair<vector<Id>, pair<unsigned long long, unsigned long long> > > right_left_costs;
+			left_right_costs.push_back(make_pair(dummy, make_pair(0, 0)));
+			right_left_costs.push_back(make_pair(dummy, make_pair(0, 0)));
+			//parse section from left to right
+			unsigned long long stage_cost = 0;
+			unsigned long long sync_cost = 0;
+			unsigned long long first_sync_cost = 0;
+
+
+			//std::cout<<"### Unallocated Contained:"<<printVector(remaining)<<"\n";
+			//std::cout<<"### Initial Contained:"<<printVector(contained_s)<<"\n";
+			for (unsigned lrit=0; lrit<remaining.size(); lrit++) {
+				Process* proc = processnetwork_->getComposite(remaining[lrit]);
+				if (!proc) proc = processnetwork_->getProcess(remaining[lrit]);
+				//if either first or last in the free contained list, add sync cost.
+				unsigned pos_csec = getPosOf(remaining[lrit], contained_s);
+				//std::cout<<"IDX LR: "<< lrit<<"; Pos CSEC: "<< pos_csec<<"\n";
+				if (lrit == 0){
+					//if first in a free contained section, check if there is another connected as contained
+					if  (pos_csec > 0){
+						Process* connected_proc = processnetwork_->
+								getComposite(contained_s[pos_csec - 1]);
+						if (!connected_proc) connected_proc = processnetwork_->
+								getProcess(contained_s[pos_csec - 1]);
+						first_sync_cost = getSignalCost(connected_proc, proc, true);
+					}
+				}
+
+				if  (pos_csec < contained_s.size() - 1){
+					//if this process has another contained after him, calculate the transfer
+					Process* connected_proc = processnetwork_->
+							getComposite(contained_s[pos_csec + 1]);
+					if (!connected_proc) connected_proc = processnetwork_->
+							getProcess(contained_s[pos_csec + 1]);
+					sync_cost = first_sync_cost + getSignalCost(proc, connected_proc, true);
+				}
+
+				//add the computation cost for this process
+				stage_cost += proc->getCost() * costs_.k_PAR;
+				if (stage_cost + sync_cost <= quantum_cost_){
+					left_right_costs.back().first.push_back(remaining[lrit]);
+					left_right_costs.back().second.first = sync_cost;
+					left_right_costs.back().second.second = stage_cost + sync_cost;
+				}
+				else{
+					if(left_right_costs.back().first.size() == 0){
+						//uh oh! found a new critical cost. set it and invalidate the optimization!
+						quantum_cost_ = stage_cost + sync_cost;
+						logger_.logMessage(Logger::INFO, string() + "Found a new quantum cost, "
+								+ tools::toString(quantum_cost_) + ", belonging to \""
+								+ proc->getId()->getString()
+								+ "\". Invalidating the optimizations and starting over with the"
+								+ " load balancing...");
+						return false;
+					}
+					//everything is all right, add a new stage.
+					if (lrit < remaining.size() - 1){
+						//std::cout<<"### New Stage: "<<printVector(left_right_costs.back().first)<<"\n";
+						left_right_costs.push_back(make_pair(dummy, make_pair(0,0)));
+						sync_cost = 0;
+						first_sync_cost = 0;
+						stage_cost = 0;
+						//if (lrit == 0) std::cout<<"HOPA!!!!!!!!!!!!!!!!!!!!!!!\n";
+						--lrit;
+					}
+				}
+			}
+			//std::cout<<"### New Stage: "<<printVector(left_right_costs.back().first)<<"\n";
+			//parse section from right to left
+			stage_cost = 0;
+			sync_cost = 0;
+			first_sync_cost = 0;
+			for (unsigned rlit = remaining.size() - 1; rlit > 0; rlit--) {
+				//std::cout<<"entering "<<rlit<<"\n";
+				Process* proc = processnetwork_->getComposite(remaining[rlit]);
+				if (!proc) proc = processnetwork_->getProcess(remaining[rlit]);
+
+				//if either first or last in the free contained list, add sync cost.
+				unsigned pos_csec = getPosOf(remaining[rlit], contained_s);
+				//std::cout<<"IDX RL: "<< rlit<<"; Pos CSEC: "<< pos_csec<<"\n";
+				if (rlit == remaining.size() - 1){
+					//if first in a free contained section, check if there is another connected as contained
+					if  (pos_csec < contained_s.size() - 1){
+						Process* connected_proc = processnetwork_->
+								getComposite(contained_s[pos_csec + 1]);
+						if (!connected_proc) connected_proc = processnetwork_->
+								getProcess(contained_s[pos_csec + 1]);
+						first_sync_cost = getSignalCost(proc, connected_proc, true);
+					}
+				}
+
+				if  (pos_csec > 0){
+					//if this process has another contained after him, calculate the transfer
+					Process* connected_proc = processnetwork_->
+							getComposite(contained_s[pos_csec - 1]);
+					if (!connected_proc) connected_proc = processnetwork_->
+							getProcess(contained_s[pos_csec - 1]);
+					sync_cost = first_sync_cost + getSignalCost(connected_proc, proc, true);
+				}
+
+				//add the computation cost for this process
+				stage_cost += proc->getCost() * costs_.k_PAR;
+				if (stage_cost + sync_cost <= quantum_cost_){
+					right_left_costs.back().first.insert(right_left_costs.back().first.begin(),
+							remaining[rlit]);
+					right_left_costs.back().second.first = sync_cost;
+					right_left_costs.back().second.second = stage_cost + sync_cost;
+				}
+				else{
+					if(left_right_costs.back().first.size() == 0){
+						//uh oh! found a new critical cost. set it and invalidate the optimization!
+						quantum_cost_ = stage_cost + sync_cost;
+						logger_.logMessage(Logger::INFO, string() + "Found a new quantum cost, "
+								+ tools::toString(quantum_cost_) + ", belonging to \""
+								+ proc->getId()->getString()
+								+ "\". Invalidating the optimizations and starting over with the"
+								+ " load balancing...");
+						return false;
+					}
+					//everything is all right, add a new stage.
+					if (rlit > 0){
+						//std::cout<<"### New Stage: "<<printVector(right_left_costs.back().first)<<"\n";
+						right_left_costs.push_back(make_pair(dummy, make_pair(0,0)));
+						sync_cost = 0;
+						first_sync_cost = 0;
+						stage_cost = 0;
+						//if (rlit == remaining.size() - 1) std::cout<<"HOPA!!!!!!!!!!!!!!!!!!!!!!!\n";
+						++rlit;
+					}
+				}
+				//std::cout<<"exiting "<<rlit<<": "<<printVector(right_left_costs.back().first)<<"\n";
+			}
+
+			//std::cout<<"### New Stage: "<<printVector(right_left_costs.back().first)<<"\n";
+
+			bool size_demand = left_right_costs.size() >= right_left_costs.size();
+			bool sync_demand = left_right_costs.front().second.first >
+					right_left_costs.front().second.first;
+			pair<vector<Id>, pair<unsigned long long, unsigned long long> > final_stage_combset =
+					(size_demand && sync_demand) ? right_left_costs.front() : left_right_costs.front();
+
+			vector<Id> final_stage = final_stage_combset.first;
+			unsigned long long final_stage_cost = final_stage_combset.second.second;
+			unsigned new_stage_id = (*stage_costs_.rbegin()).first + 1;
+			stage_costs_.insert(make_pair(new_stage_id, final_stage_cost));
+
+			//std::cout<<"### HOP : "<<printVector(final_stage)<<"\n";
+
+			for (unsigned fsit = 0; fsit < final_stage.size() ; fsit++){
+				Process* proc = processnetwork_->getComposite(final_stage[fsit]);
+				if (!proc) proc = processnetwork_->getProcess(final_stage[fsit]);
+				proc->setStream(new_stage_id);
+				remaining.erase(remaining.begin());
+				logger_.logMessage(Logger::DEBUG, string() + "Added process \""
+						+  proc->getId()->getString()
+						+ "\" to stage " + tools::toString(proc->getStream()));
+			}
+			logger_.logMessage(Logger::DEBUG, string() + "Created a new stage ("
+					+ tools::toString(new_stage_id) + ") with "
+					+ tools::toString(final_stage.size())
+					+ " processes, an execution cost of "
+					+ tools::toString(final_stage_cost)
+					+ " and a sync cost of "
+					+ tools::toString(final_stage_combset.second.first));
+		}
+	}
+	return true;
 }
 
 void ModelModifierSysC::flattenCompositeProcess(Composite* composite, Composite* parent) throw(
@@ -1349,11 +1850,23 @@ int ModelModifierSysC::transferCoefficient(bool source_on_device, bool target_on
 	else return -1;
 }
 
-bool  ModelModifierSysC::inListId(Id id, list<Id> list) throw(){
-	for (std::list<Id>::iterator it = list.begin(); it != list.end(); ++it){
-		if (id == *it) return true;
+std::list<Id>::iterator  ModelModifierSysC::getIdFromList(Id id, list<Id> list) throw(){
+	std::list<Id>::iterator it;
+	for (it = list.begin(); it != list.end(); ++it){
+		if (*it == id) return it;
 	}
-	return false;
+	return it;
+}
+
+unsigned ModelModifierSysC::getPosOf(Id id, std::vector<Id> vector) throw(RuntimeException){
+	unsigned index;
+	for (index = 0; index < vector.size() ; index++){
+		if (vector[index] == id) return index;
+	}
+	THROW_EXCEPTION(RuntimeException, string("The Id  \"")
+					+ id.getString()
+					+ "\" was not found in the list;\n"
+					+ printVector(vector));
 }
 
 std::list<Id>  ModelModifierSysC::getPortionOfPath(Id start, Id stop, std::list<Id> list) throw(){
@@ -1408,6 +1921,39 @@ unsigned long long ModelModifierSysC::calculateLoopCost(Id divergent_proc,
 		loopcost = loopcost / num_delays;
 
 	return loopcost;
+}
+
+unsigned long long ModelModifierSysC::getSignalCost(Process* source, Process* target,
+		bool sync) throw(){
+	Leaf* leaf = dynamic_cast<Leaf*>(source);
+	Composite* comp = dynamic_cast<Composite*>(source);
+
+	if(leaf){
+		list<Leaf::Port*> oports = leaf->getInPorts();
+		for (list<Leaf::Port*>::iterator pit = oports.begin(); pit != oports.end(); ++pit){
+			if((*pit)->getConnectedPort()->getProcess() == target)
+				return (*pit)->getDataType().getArraySize() * (*pit)->getDataType().getTypeSize() *
+						(source->getStream() == target->getStream() ? costs_.k_T2T : costs_.k_D2D);
+		}
+	}
+	if(comp){
+		list<Composite::IOPort*> oports = comp->getInIOPorts();
+		for (list<Composite::IOPort*>::iterator pit = oports.begin(); pit != oports.end(); ++pit){
+			if((*pit)->getConnectedPortOutside()->getProcess() == target)
+				return (*pit)->getDataType().first.getArraySize() *
+						(*pit)->getDataType().first.getTypeSize() *
+						(source->getStream() == target->getStream() ? costs_.k_T2T : costs_.k_D2D);
+		}
+	}
+	return 0;
+}
+
+std::string ModelModifierSysC::printVector(std::vector<Id> vector) throw(){
+	string str = "";
+	for (unsigned index = 0; index < vector.size() ; index++){
+		str += vector[index].getString() + ", ";
+	}
+	return str;
 }
 
 ModelModifierSysC::DataPath::DataPath() throw() :
