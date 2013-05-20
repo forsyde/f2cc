@@ -324,6 +324,11 @@ bool Composite::IOPort::isConnectedInside() const throw(RuntimeException) {
     return connected_port_inside_;
 }
 
+void Composite::IOPort::setConnection(Process::Interface* port, bool outside) throw() {
+	if (outside) connected_port_outside_ = port;
+	else connected_port_inside_ = port;
+}
+
 void Composite::IOPort::connect(Process::Interface* port)
 throw(RuntimeException, IllegalStateException, InvalidArgumentException, CastException) {
     if (port == this) return;
