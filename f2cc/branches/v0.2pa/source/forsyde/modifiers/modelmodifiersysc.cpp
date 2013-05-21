@@ -228,197 +228,6 @@ void ModelModifierSysC::loadBalance() throw(
     }
 }
 
-
-void ModelModifierSysC::createMapToKernelDirectives() throw(
-		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
-		InvalidModelException){
-	logger_.logMessage(Logger::INFO, "Creating map-to-kernel directives by grouping processes "
-			"sharing the same pipeline stage into composite processes...");
-
-	Composite* root = processnetwork_->getComposite(Id("f2cc0"));
-	if(!root){
-		THROW_EXCEPTION(InvalidModelException, string("Process network ")
-						+ "does not have a root process");
-	}
-
-	list<Composite*> comps = root->getComposites();
-	for (list<Composite*>::iterator cit = comps.begin(); cit != comps.end(); ++cit){
-		ParallelComposite* pcomp = dynamic_cast<ParallelComposite*>(*cit);
-		if (!pcomp){
-			continue;
-		}
-
-		unsigned stage = pcomp->getStream();
-		Id kernel_id = Id(string() + "f2cc_kernel_" + tools::toString(stage));
-		Composite* kernel_composite = processnetwork_->getComposite(kernel_id);
-		if (!kernel_composite){
-			Hierarchy new_hierarchy = root->getHierarchy();
-			kernel_composite = new Composite(kernel_id, new_hierarchy, Id(""));
-			root->addComposite(kernel_composite);
-		}
-		moveToNewParent(pcomp, root, kernel_composite);
-	}
-
-	list<Leaf*> leafs = root->getProcesses();
-	for (list<Leaf*>::iterator lit = leafs.begin(); lit != leafs.end(); ++lit){
-		Leaf* leaf = *lit;
-
-		unsigned stage = leaf->getStream();
-		Id kernel_id = Id(string() + "f2cc_kernel_" + tools::toString(stage));
-		Composite* kernel_composite = processnetwork_->getComposite(kernel_id);
-		if (!kernel_composite){
-			Hierarchy new_hierarchy = root->getHierarchy();
-			kernel_composite = new Composite(kernel_id, new_hierarchy, Id(""));
-			root->addComposite(kernel_composite);
-		}
-		moveToNewParent(leaf, root, kernel_composite);
-	}
-
-	/*list<Composite*> kcomps = root->getComposites();
-	for (list<Composite*>::iterator kcit = kcomps.begin(); kcit != kcomps.end(); ++kcit){
-		ParallelComposite* pcomp = dynamic_cast<ParallelComposite*>(*kcit);
-		if (pcomp){
-			THROW_EXCEPTION(InvalidModelException, string("Process network ")
-							+ "should not have parallel composites at this stage");
-		}
-
-		list<Composite*> incl_comps = (*kcit)->getComposites();
-		for (list<Composite*>::iterator icit = incl_comps.begin(); icit != incl_comps.end(); ++icit){
-			ParallelComposite* pcomp = dynamic_cast<ParallelComposite*>(*icit);
-			if (!pcomp){
-				THROW_EXCEPTION(InvalidModelException, string("Process  ")
-								+ (*icit)->getId()->getString()
-								+ "should have only parallel composites at this stage");
-			}
-
-			list<Composite::IOPort*> inputs = pcomp->getInIOPorts();
-			for (list<Composite::IOPort*>::iterator iit = inputs.begin(); iit != inputs.end(); ++iit){
-				Process::Interface* connection = (*iit)->getConnectedPortOutside();
-				if ((*kcit)->findRelation(connection->getProcess()) != Hierarchy::FirstChild ){
-					CDataType outer_type;
-					Leaf::Port* conn_port = dynamic_cast<Leaf::Port*>(connection);
-					if (conn_port) outer_type = conn_port->getDataType();
-					else{
-						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
-						outer_type = conn_ioport->getDataType().first;
-					}
-					CDataType inner_type = (*iit)->getDataType().first;
-					(*iit)->setConnection(NULL,true);
-					Id inner_id = Id((*iit)->toString());
-
-					(*kcit)->addInIOPort(inner_id, inner_type);
-					Composite::IOPort* new_port = (*kcit)->getInIOPort(inner_id);
-					new_port->setDataType(true, outer_type);
-
-					new_port->setConnection(*iit, false);
-					if (conn_port) conn_port->setConnection(new_port);
-					else {
-						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
-						conn_ioport->setConnection(new_port, true);
-					}
-					new_port->setConnection(connection, true);
-					std::cout<<new_port->toString()<<"\n";
-				}
-			}
-
-			list<Composite::IOPort*> outputs  = pcomp->getOutIOPorts();
-			for (list<Composite::IOPort*>::iterator iit = outputs.begin(); iit != outputs.end(); ++iit){
-				Process::Interface* connection = (*iit)->getConnectedPortOutside();
-				if ((*kcit)->findRelation(connection->getProcess()) !=
-						Hierarchy::FirstChild ){
-					CDataType outer_type;
-					Leaf::Port* conn_port = dynamic_cast<Leaf::Port*>(connection);
-					if (conn_port) outer_type = conn_port->getDataType();
-					else{
-						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
-						outer_type = conn_ioport->getDataType().first;
-					}
-					CDataType inner_type = (*iit)->getDataType().first;
-					(*iit)->setConnection(NULL,true);
-					Id inner_id = Id((*iit)->toString());
-
-					(*kcit)->addOutIOPort(inner_id, inner_type);
-					Composite::IOPort* new_port = (*kcit)->getOutIOPort(inner_id);
-					new_port->setDataType(true, outer_type);
-
-					new_port->setConnection(*iit, false);
-					if (conn_port) conn_port->setConnection(new_port);
-					else {
-						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
-						conn_ioport->setConnection(new_port, true);
-					}
-					new_port->setConnection(connection, true);
-					std::cout<<new_port->toString()<<"\n";
-				}
-			}
-		}
-
-		list<Leaf*> incl_leafs = root->getProcesses();
-		for (list<Leaf*>::iterator lit = incl_leafs.begin(); lit != incl_leafs.end(); ++lit){
-			Leaf* leaf = *lit;
-
-			list<Leaf::Port*> inputs  = leaf->getInPorts();
-			for (list<Leaf::Port*>::iterator iit = inputs.begin(); iit != inputs.end(); ++iit){
-				Process::Interface* connection = (*iit)->getConnectedPort();
-				if ((*kcit)->findRelation(connection->getProcess()) !=
-						Hierarchy::FirstChild ){
-					CDataType outer_type;
-					Leaf::Port* conn_port = dynamic_cast<Leaf::Port*>(connection);
-					if (conn_port) outer_type = conn_port->getDataType();
-					else{
-						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
-						outer_type = conn_ioport->getDataType().first;
-					}
-					CDataType inner_type = (*iit)->getDataType();
-					(*iit)->setConnection(NULL);
-					Id inner_id = Id((*iit)->toString());
-
-					(*kcit)->addInIOPort(inner_id, inner_type);
-					Composite::IOPort* new_port = (*kcit)->getInIOPort(inner_id);
-					new_port->setDataType(true, outer_type);
-
-					new_port->setConnection(*iit, false);
-					if (conn_port) conn_port->setConnection(new_port);
-					else {
-						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
-						conn_ioport->setConnection(new_port, true);
-					}
-					new_port->setConnection(connection, true);
-				}
-			}
-			list<Leaf::Port*> outputs  = leaf->getOutPorts();
-			for (list<Leaf::Port*>::iterator iit = outputs.begin(); iit != outputs.end(); ++iit){
-				Process::Interface* connection = (*iit)->getConnectedPort();
-				if ((*kcit)->findRelation(connection->getProcess()) !=
-						Hierarchy::FirstChild ){
-					CDataType outer_type;
-					Leaf::Port* conn_port = dynamic_cast<Leaf::Port*>(connection);
-					if (conn_port) outer_type = conn_port->getDataType();
-					else{
-						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
-						outer_type = conn_ioport->getDataType().first;
-					}
-					CDataType inner_type = (*iit)->getDataType();
-					(*iit)->setConnection(NULL);
-					Id inner_id = Id((*iit)->toString());
-
-					(*kcit)->addOutIOPort(inner_id, inner_type);
-					Composite::IOPort* new_port = (*kcit)->getOutIOPort(inner_id);
-					new_port->setDataType(true, outer_type);
-
-					new_port->setConnection(*iit, false);
-					if (conn_port) conn_port->setConnection(new_port);
-					else {
-						Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(connection);
-						conn_ioport->setConnection(new_port, true);
-					}
-					new_port->setConnection(connection, true);
-				}
-			}
-		}
-	}*/
-}
-
 std::list<ModelModifierSysC::DataPath> ModelModifierSysC::extractDataPaths(Composite* root) throw (
  		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException){
     if (!root) {
@@ -1224,37 +1033,6 @@ void ModelModifierSysC::removeRedundantZipsUnzips(Forsyde::Composite* parent)
 					}
 				}
 			}
-
-
-			/*Process* conencted_rpocess = oports.front()->getConnectedPort()->getProcess();
-			if (!conencted_rpocess) break;
-			SY::Zipx* pair_zip = dynamic_cast<SY::Zipx*>(conencted_rpocess);
-			if (pair_zip){
-				bool paired = true;
-				list<Leaf::Port*>::iterator itp;
-				for (itp = oports.begin(); itp != oports.end(); ++itp){
-					if ((*itp)->getConnectedPort()->getProcess() != pair_zip){
-						paired = false;
-						break;
-					}
-				}
-				if (paired){
-					logger_.logMessage(Logger::DEBUG, string() + "Connecting \""
-					    			+ unzip->getInPorts().front()->getConnectedPort()->toString()
-					    			+ "\" with \""
-					    			+ pair_zip->getOutPorts().front()->getConnectedPort()->toString()
-					    			+"\"...");
-
-					unzip->getInPorts().front()->getConnectedPort()->connect(
-							pair_zip->getOutPorts().front()->getConnectedPort());
-
-
-					processnetwork_->removeProcess(*pair_zip->getId());
-					parent->removeProcess(*pair_zip->getId());
-					processnetwork_->removeProcess(*unzip->getId());
-					parent->removeProcess(*unzip->getId());
-				}
-			}*/
 		}
 		else if (zip){
 			map<Id, Id> equivalence_list;
@@ -1309,19 +1087,53 @@ void ModelModifierSysC::removeRedundantZipsUnzips(Forsyde::Composite* parent)
 				processnetwork_->removeProcess(*unzip->getId());
 				parent->deleteProcess(*unzip->getId());
 			}
+			else {
+				list<Leaf::Port*> oports = unzip->getOutPorts();
+				for (list<Leaf::Port*>::iterator itp = oports.begin(); itp != oports.end(); ++itp){
+					Process::Interface* connected_interface = (*itp)->getConnectedPort();
+					Leaf::Port* connected_port = dynamic_cast<Leaf::Port*>(connected_interface);
+					Composite::IOPort* connected_ioport = dynamic_cast<Composite::IOPort*>(connected_interface);
+					if (connected_port){
+						CDataType type = connected_port->getDataType();
+						(*itp)->setDataType(type);
+					}
+					else if (connected_ioport){
+						CDataType type = connected_ioport->getDataType().first;
+						(*itp)->setDataType(type);
+					}
+				}
+			}
 		}
-		else if (zip) if (zip->getNumInPorts() <= 1) {
-			logger_.logMessage(Logger::DEBUG, string() + "Connecting \""
-			    			+ zip->getInPorts().front()->getConnectedPort()->toString()
-			    			+ "\" with \""
-			    			+ zip->getOutPorts().front()->getConnectedPort()->toString()
-			    			+"\"...");
+		else if (zip) {
+			if (zip->getNumInPorts() <= 1) {
+				logger_.logMessage(Logger::DEBUG, string() + "Connecting \""
+								+ zip->getInPorts().front()->getConnectedPort()->toString()
+								+ "\" with \""
+								+ zip->getOutPorts().front()->getConnectedPort()->toString()
+								+"\"...");
 
-			zip->getInPorts().front()->getConnectedPort()->connect(
-					zip->getOutPorts().front()->getConnectedPort());
+				zip->getInPorts().front()->getConnectedPort()->connect(
+						zip->getOutPorts().front()->getConnectedPort());
 
-			processnetwork_->removeProcess(*zip->getId());
-			parent->deleteProcess(*zip->getId());
+				processnetwork_->removeProcess(*zip->getId());
+				parent->deleteProcess(*zip->getId());
+			}
+			else {
+				list<Leaf::Port*> iports = zip->getInPorts();
+				for (list<Leaf::Port*>::iterator itp = iports.begin(); itp != iports.end(); ++itp){
+					Process::Interface* connected_interface = (*itp)->getConnectedPort();
+					Leaf::Port* connected_port = dynamic_cast<Leaf::Port*>(connected_interface);
+					Composite::IOPort* connected_ioport = dynamic_cast<Composite::IOPort*>(connected_interface);
+					if (connected_port){
+						CDataType type = connected_port->getDataType();
+						(*itp)->setDataType(type);
+					}
+					else if (connected_ioport){
+						CDataType type = connected_ioport->getDataType().first;
+						(*itp)->setDataType(type);
+					}
+				}
+			}
 		}
 	}
 }
@@ -1738,7 +1550,7 @@ void ModelModifierSysC::redirectFlowThroughParallelComposite(Process* old_proces
 			if (!in_zip){
 				THROW_EXCEPTION(InvalidProcessException,
 								string("Process \"")
-								+ old_process->getId()->getString()
+								+ connected_proc->getId()->getString()
 								+ "\" is not Zipx");
 			}
 			Process::Interface* connected_interface = (*it)->getConnectedPortOutside();
@@ -1761,7 +1573,7 @@ void ModelModifierSysC::redirectFlowThroughParallelComposite(Process* old_proces
 			if (!out_unzip){
 				THROW_EXCEPTION(InvalidProcessException,
 								string("Process \"")
-								+ old_process->getId()->getString()
+								+ connected_proc->getId()->getString()
 								+ "\" is not Unzipx");
 			}
 			Process::Interface* connected_interface = (*it)->getConnectedPortOutside();
@@ -1788,7 +1600,7 @@ void ModelModifierSysC::redirectFlowThroughParallelComposite(Process* old_proces
 			if (!in_zip){
 				THROW_EXCEPTION(InvalidProcessException,
 								string("Process \"")
-								+ old_process->getId()->getString()
+								+ connected_proc->getId()->getString()
 								+ "\" is not Zipx");
 			}
 			Process::Interface* connected_interface = (*it)->getConnectedPort();
@@ -1812,7 +1624,7 @@ void ModelModifierSysC::redirectFlowThroughParallelComposite(Process* old_proces
 			if (!out_unzip){
 				THROW_EXCEPTION(InvalidProcessException,
 								string("Process \"")
-								+ old_process->getId()->getString()
+								+ connected_proc->getId()->getString()
 								+ "\" is not Unzipx");
 			}
 			Process::Interface* connected_interface = (*it)->getConnectedPort();

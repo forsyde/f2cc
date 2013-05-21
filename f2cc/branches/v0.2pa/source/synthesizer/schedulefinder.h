@@ -40,6 +40,7 @@
 #include "../forsyde/id.h"
 #include "../forsyde/processnetwork.h"
 #include "../forsyde/leaf.h"
+#include "../forsyde/composite.h"
 #include "../exceptions/ioexception.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/runtimeexception.h"
@@ -49,6 +50,7 @@
 #include <string>
 #include <list>
 #include <set>
+#include <utility>
 #include <queue>
 
 namespace f2cc {
@@ -134,6 +136,26 @@ class ScheduleFinder {
     std::list<Forsyde::Id> findSchedule() throw(IOException, RuntimeException);
 
     /**
+     * Finds a leaf schedule for the processnetwork. The schedule is such that if the
+     * leafs are executed one by one the result will be the same as if the
+     * perfect synchrony hypothesis still applied.
+     *
+     * See detailed class description for information on how the algorithm
+     * works.
+     *
+     * @returns Leaf schedule.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::list<Forsyde::Id> findSchedule(
+    		std::pair<std::list<Forsyde::Id>, std::pair<std::list<std::pair<Forsyde::Id,
+    		Forsyde::Id> >, std::list<std::pair<Forsyde::Id, Forsyde::Id> > > > stage) throw(
+    				IOException, RuntimeException);
+
+
+    /**
      * Finds a partial schedule for unvisited leafs when traversing from a
      * given leaf to an input port of the processnetwork.
      *
@@ -151,7 +173,7 @@ class ScheduleFinder {
      *         When a program error occurs. This most likely indicates a bug.
      */
     PartialSchedule findPartialSchedule(
-        Forsyde::Leaf* start, std::set<Forsyde::Id>& locally_visited)
+        Forsyde::Process* start, std::set<Forsyde::Id>& locally_visited)
         throw(IOException, RuntimeException);
 
     /**
@@ -162,7 +184,7 @@ class ScheduleFinder {
      *        Leaf.
      * @returns \b true if the leaf has already been visited.
      */
-    bool isGloballyVisited(Forsyde::Leaf* leaf);
+    bool isGloballyVisited(Forsyde::Process* leaf);
 
     /**
      * Visits a leaf in a local sense.
@@ -173,10 +195,13 @@ class ScheduleFinder {
      *        Set of locally visited leafs.
      * @returns \b true if the leaf has not previously been locally visisted.
      */
-    bool visitLocally(Forsyde::Leaf* leaf,
+    bool visitLocally(Forsyde::Process* leaf,
                       std::set<Forsyde::Id>& visited);
 
   private:
+
+    bool isInput(Forsyde::Process::Interface* port) throw();
+
     /**
      * ForSyDe processnetwork.
      */
@@ -195,7 +220,12 @@ class ScheduleFinder {
     /**
      * Queue of starting points.
      */
-    std::queue<Forsyde::Leaf*> starting_points_;
+    std::queue<Forsyde::Process*> starting_points_;
+
+    /**
+     * Queue of starting points.
+     */
+    std::list<std::pair<Forsyde::Id, Forsyde::Id> > inputs_;
 
   private:
     /**

@@ -110,7 +110,7 @@ class ModelModifierSysC {
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
     		InvalidModelException);
 
-    void createMapToKernelDirectives() throw(
+    void createPipelineComposites() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
     		InvalidModelException);
 
