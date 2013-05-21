@@ -24,7 +24,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 MODULE      = synthesizer
-SRCFILES    = schedulefinder.cpp synthesizer.cpp
+SRCFILES    = schedulefinder.cpp synthesizer.cpp synthesizer02.cpp
 THISOBJPATH = $(OBJPATH)/$(MODULE)
 OBJECTS     = $(addprefix $(THISOBJPATH)/, \
                 $(addsuffix .o, $(basename $(SRCFILES))) \

@@ -50,6 +50,7 @@
 #include "forsyde/modifiers/modelmodifier.h"
 #include "forsyde/modifiers/modelmodifiersysc.h"
 #include "synthesizer/synthesizer.h"
+#include "synthesizer/synthesizer02.h"
 #include "exceptions/exception.h"
 #include "exceptions/ioexception.h"
 #include "exceptions/filenotfoundexception.h"
@@ -247,7 +248,7 @@ int main(int argc, const char* argv[]) {
 					XmlDumper dumper3(logger);
 					dumper3.dump(processnetwork,"loadBalanced.xml");
 
-					modifier.createMapToKernelDirectives();
+					//modifier.createPipelineComposites();
 
 					XmlDumper dumper4(logger);
 					dumper4.dump(processnetwork,"pipelined.xml");
@@ -255,6 +256,20 @@ int main(int argc, const char* argv[]) {
 					processnetwork_info_message = "NEW MODEL INFO:\n";
 					processnetwork_info_message += getProcessNetworkInfo(processnetwork);
 					logger.logInfoMessage(processnetwork_info_message);
+
+		            SynthesizerExperimental synthesizer(processnetwork, logger, config);
+		            SynthesizerExperimental::CodeSet code;
+		            switch (config.getTargetPlatform()) {
+		                case Config::C: {
+		                    code = synthesizer.generateCCode();
+		                    break;
+		                }
+
+		                case Config::CUDA: {
+		                    code = synthesizer.generateCudaCCode();
+		                    break;
+		                }
+		            }
 
 					break;
 				}
