@@ -524,6 +524,18 @@ void Config::setTargetPlatform(Config::TargetPlatform platform) throw() {
     target_platform_ = platform;
 }
 
+void Config::setCosts(Costs costs) throw(){
+	costs_.k_D2D = costs.k_D2D;
+	costs_.k_D2H = costs.k_D2H;
+	costs_.k_D2D = costs.k_D2D;
+	costs_.k_T2T = costs.k_T2T;
+	costs_.k_H2H = costs.k_H2H;
+	costs_.k_SEQ = costs.k_SEQ;
+	costs_.k_PAR = costs.k_PAR;
+	costs_.n_bursts = costs.n_bursts;
+	costs_.n_stages = costs.n_stages;
+}
+
 Config::Costs Config::getCosts() const throw(){
 	return costs_;
 }

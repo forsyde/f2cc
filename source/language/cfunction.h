@@ -98,6 +98,32 @@ class CFunction {
         throw(InvalidFormatException, OutOfMemoryException);
 
     /**
+     * Creates a function.
+     *
+     * @param name
+     *        Function name.
+     * @param return_type
+     *        Return data type.
+     * @param input_parameters
+     *        List of input parameters.
+     * @param body
+     *        Function body.
+     * @param prefix
+     *        Prefix to add before the declaration of the entire function (e.g.,
+     *        in CUDA C, \c __global__ needs to be prefixed before the
+     *        declaration of CUDA kernel functions).
+     * @throws InvalidFormatException
+     *         When \c name is an empty string.
+     * @throws OutOfMemoryException
+     *         When the function could not be created due to memory shortage.
+     */
+    CFunction(const std::string& name, const std::list<CVariable> output_parameters,
+              const std::list<CVariable> input_parameters,
+              const std::string& body, const std::string& prefix
+              = std::string(""))
+        throw(InvalidFormatException, OutOfMemoryException);
+
+    /**
      * Creates a copy of another function.
      * 
      * @param rhs
@@ -129,6 +155,20 @@ class CFunction {
      * @returns Function as a string.
      */
     std::string getString() const throw();
+
+    /**
+     * Gets the function as a string.
+     *
+     * @returns Function as a string.
+     */
+    std::string getStringNew() const throw();
+
+    /**
+     * Gets the function as a string.
+     *
+     * @returns Function as a string.
+     */
+    std::string getStringNewRoot() const throw();
 
     /**
      * Gets the name of this function.
@@ -177,6 +217,20 @@ class CFunction {
         throw(OutOfMemoryException);
 
     /**
+     * Adds an input parameter to this function. The new parameter will be added
+     * as the last parameter to the function. If the parameter already exists
+     * then it will not be added and \b false is returned.
+     *
+     * @param parameter
+     *        Variable to add as input parameter.
+     * @returns \b true if the parameter was successfully added.
+     * @throws OutOfMemoryException
+     *         When the parameter fails to be added due to memory shortage.
+     */
+    bool addOutputParameter(const CVariable& parameter)
+        throw(OutOfMemoryException);
+
+    /**
      * Deletes an input parameter from this function.
      *
      * @param parameter
@@ -205,8 +259,30 @@ class CFunction {
      * @throws OutOfMemoryException
      *         When the parameter fails to be added due to memory shortage.
      */
-    bool setOutputParameter(const CVariable& parameter)
-        throw();
+    bool setOutputParameters(std::list<CVariable*> parameters) throw();
+
+
+    /**
+     * Gets a list of the input parameters to this function. The list will be
+     * in the order as they were added to the function.
+     *
+     * @returns List of input parameters.
+     */
+    std::list<CVariable*> getOutputParameters() throw();
+
+
+    /**
+     * Adds an input parameter to this function. The new parameter will be added
+     * as the last parameter to the function. If the parameter already exists
+     * then it will not be added and \b false is returned.
+     *
+     * @param parameter
+     *        Variable to add as input parameter.
+     * @returns \b true if the parameter was successfully added.
+     * @throws OutOfMemoryException
+     *         When the parameter fails to be added due to memory shortage.
+     */
+    bool setOutputParameter(const CVariable& parameter) throw();
 
 
     /**
@@ -319,7 +395,9 @@ class CFunction {
     /**
      * Input parameters.
      */
-    CVariable* output_parameter_;
+    std::list<CVariable*> output_parameters_;
+
+    CVariable* comb_output_;
 
     /**
      * Function body.

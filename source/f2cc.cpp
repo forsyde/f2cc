@@ -228,6 +228,31 @@ int main(int argc, const char* argv[]) {
 					processnetwork_info_message = "NEW MODEL INFO:\n";
 					processnetwork_info_message += getProcessNetworkInfo(processnetwork);
 					logger.logInfoMessage(processnetwork_info_message);
+
+
+					// Generate code and write to file
+					Synthesizer synthesizer(processnetwork, logger, config);
+					Synthesizer::CodeSet code;
+					switch (config.getTargetPlatform()) {
+						case Config::C: {
+							code = synthesizer.generateCCode();
+							break;
+						}
+
+						case Config::CUDA: {
+							code = synthesizer.generateCudaCCode();
+							break;
+						}
+					}
+
+					logger.logInfoMessage("Writing code to output files...");
+					tools::writeFile(config.getHeaderOutputFile(), code.header);
+					tools::writeFile(config.getImplementationOutputFile(),
+									 code.implementation);
+
+					logger.logInfoMessage("MODEL SYNTHESIS COMPLETE");
+
+
 					break;
 				}
 
@@ -244,11 +269,13 @@ int main(int argc, const char* argv[]) {
 					XmlDumper dumper2(logger);
 					dumper2.dump(processnetwork,"optimizePlatform.xml");
 
-					modifier.loadBalance();
+					Config::Costs newcosts = modifier.loadBalance();
+					config.setCosts(newcosts);
+
 					XmlDumper dumper3(logger);
 					dumper3.dump(processnetwork,"loadBalanced.xml");
 
-					//modifier.createPipelineComposites();
+					modifier.wrapPipelineStages();
 
 					XmlDumper dumper4(logger);
 					dumper4.dump(processnetwork,"pipelined.xml");
@@ -270,34 +297,13 @@ int main(int argc, const char* argv[]) {
 		                    break;
 		                }
 		            }
+		            tools::writeFile(config.getImplementationOutputFile(),
+		                                         code.implementation);
 
 					break;
 				}
 			}
 
-
-
-            // Generate code and write to file
-            Synthesizer synthesizer(processnetwork, logger, config);
-            Synthesizer::CodeSet code;
-            switch (config.getTargetPlatform()) {
-                case Config::C: {
-                    code = synthesizer.generateCCode();
-                    break;
-                }
-
-                case Config::CUDA: {
-                    code = synthesizer.generateCudaCCode();
-                    break;
-                }
-            }
-
-            logger.logInfoMessage("Writing code to output files...");
-            tools::writeFile(config.getHeaderOutputFile(), code.header);
-            tools::writeFile(config.getImplementationOutputFile(),
-                             code.implementation);
-
-            logger.logInfoMessage("MODEL SYNTHESIS COMPLETE");
 
             // Clean up
             delete processnetwork;

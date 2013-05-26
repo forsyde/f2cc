@@ -41,6 +41,7 @@
 #include <iterator>
 #include <new>
 #include <stdexcept>
+#include <cmath>
 
 using namespace f2cc;
 using namespace f2cc::Forsyde;
@@ -192,7 +193,7 @@ void ModelModifierSysC::optimizePlatform() throw(
 			" individual processes...");
 }
 
-void ModelModifierSysC::loadBalance() throw(
+Config::Costs ModelModifierSysC::loadBalance() throw(
 		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException){
 
 	logger_.logMessage(Logger::INFO, "Commencing the load balancing algorithm...");
@@ -219,14 +220,18 @@ void ModelModifierSysC::loadBalance() throw(
 	stage_costs_.insert(make_pair(0,0));
 	bool split_successful = false;
 	logger_.logMessage(Logger::INFO, "Splitting the data paths into pipeline stages");
-	while (!split_successful)
-    for (map<unsigned long long, list<Id> >::reverse_iterator csit = contained_sections.rbegin();
-    		csit != contained_sections.rend(); ++csit){
-    	//std::cout<<"COST: "<<(*csit).first<<"\n";
-    	std::vector<Id> list_as_vector(csit->second.begin(), csit->second.end());
-    	split_successful = splitPipelineStages(list_as_vector);
-    }
+	while (!split_successful){
+		for (map<unsigned long long, list<Id> >::reverse_iterator csit = contained_sections.rbegin();
+				csit != contained_sections.rend(); ++csit){
+			//std::cout<<"COST: "<<(*csit).first<<"\n";
+			std::vector<Id> list_as_vector(csit->second.begin(), csit->second.end());
+			split_successful = splitPipelineStages(list_as_vector);
+		}
+	}
+
+	return costs_;
 }
+
 
 std::list<ModelModifierSysC::DataPath> ModelModifierSysC::extractDataPaths(Composite* root) throw (
  		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException){
@@ -354,25 +359,27 @@ std::string ModelModifierSysC::findMaximumCost(Composite* root, list<DataPath> d
     }
 
     string maximum_owner;
+    unsigned long long max_comm_cost = 0;
+    unsigned long long max_comp_cost = 0;
 
-    unsigned long long cost = 0;
+    unsigned long long seq_cost = 0;
     list<Leaf*> leafs  = root->getProcesses();
 	for (list<Leaf*>::iterator lit = leafs.begin(); lit != leafs.end(); ++lit){
-		if (!(*lit)->isMappedToDevice()) cost += (*lit)->getCost() * costs_.k_SEQ;
+		if (!(*lit)->isMappedToDevice()) seq_cost += (*lit)->getCost() * costs_.k_SEQ;
 		else {
 			std::map<CostType, unsigned long long> leaf_costs = calculateCostInNetwork((*lit), true);
-			if (leaf_costs[PROCESS_COST] > quantum_cost_){
-				quantum_cost_ = leaf_costs[PROCESS_COST];
+			if (leaf_costs[PROCESS_COST] > max_comp_cost){
+				max_comp_cost = leaf_costs[PROCESS_COST];
 				maximum_owner = string("leaf process \"")
 						+ (*lit)->getId()->getString() + "\" executing on device";
 			}
-			if (leaf_costs[IN_COST] > quantum_cost_){
-				quantum_cost_ = leaf_costs[IN_COST];
+			if (leaf_costs[IN_COST] > max_comm_cost){
+				max_comm_cost = leaf_costs[IN_COST];
 				maximum_owner = string("The input costs for leaf process \"")
 						+ (*lit)->getId()->getString() + "\" executing on device";
 			}
-			if (leaf_costs[OUT_COST] > quantum_cost_){
-				quantum_cost_ = leaf_costs[OUT_COST];
+			if (leaf_costs[OUT_COST] > max_comm_cost){
+				max_comm_cost = leaf_costs[OUT_COST];
 				maximum_owner = string("The output costs for leaf process \"")
 						+ (*lit)->getId()->getString() + "\" executing on device";
 			}
@@ -387,30 +394,30 @@ std::string ModelModifierSysC::findMaximumCost(Composite* root, list<DataPath> d
 							+ "\" should not have been a composite at this stage");
 		}
 		else{
-			if (!pcomp->isMappedToDevice()) cost += pcomp->getCost() * pcomp->getNumProcesses()
+			if (!pcomp->isMappedToDevice()) seq_cost += pcomp->getCost() * pcomp->getNumProcesses()
 					* costs_.k_SEQ;
 			else {
 				std::map<CostType, unsigned long long> pcomp_costs = calculateCostInNetwork(pcomp, true);
-				if (pcomp_costs[PROCESS_COST] > quantum_cost_){
-					quantum_cost_ = pcomp_costs[PROCESS_COST];
+				if (pcomp_costs[PROCESS_COST] > max_comp_cost){
+					max_comp_cost = pcomp_costs[PROCESS_COST];
 					maximum_owner = string("leaf process \"")
 							+ pcomp->getId()->getString() + "\" executing on device";
 				}
-				if (pcomp_costs[IN_COST] > quantum_cost_){
-					quantum_cost_ = pcomp_costs[IN_COST];
+				if (pcomp_costs[IN_COST] > max_comm_cost){
+					max_comm_cost = pcomp_costs[IN_COST];
 					maximum_owner = string("leaf process \"")
 							+ pcomp->getId()->getString() + "\" executing on device";
 				}
-				if (pcomp_costs[OUT_COST] > quantum_cost_){
-					quantum_cost_ = pcomp_costs[OUT_COST];
+				if (pcomp_costs[OUT_COST] > max_comm_cost){
+					max_comm_cost = pcomp_costs[OUT_COST];
 					maximum_owner = string("leaf process \"")
 							+ pcomp->getId()->getString() + "\" executing on device";
 				}
 			}
 		}
 	}
-	if (cost >quantum_cost_){
-		quantum_cost_ = cost;
+	if (seq_cost >max_comp_cost){
+		max_comp_cost = seq_cost;
 		maximum_owner = string("processes executing on host");
 	}
 
@@ -419,13 +426,26 @@ std::string ModelModifierSysC::findMaximumCost(Composite* root, list<DataPath> d
 			list<Id> first_contained = dit->getContainedPaths().front();
 			if (getIdFromList(dit->input_process_, first_contained) != first_contained.end()){
 				unsigned long long loopcost = calculateLoopCost(dit->input_process_, first_contained);
-				if (loopcost > quantum_cost_){
-					quantum_cost_ = loopcost;
+				if (loopcost > max_comp_cost){
+					max_comp_cost = loopcost;
 					maximum_owner = string("processes the loop started by \"")
 							+ dit->input_process_.getString() + "\"";
 				}
 			}
 		}
+	}
+
+	if (max_comm_cost > max_comp_cost){
+		unsigned long long n_bursts = ceil((float)max_comm_cost / (float)max_comp_cost);
+		if (n_bursts > 16) costs_.n_bursts = 16;
+		else costs_.n_bursts = unsigned(n_bursts);
+		unsigned long long new_cost =  max_comm_cost / costs_.n_bursts + 1;
+		if (new_cost < max_comp_cost) quantum_cost_ = max_comp_cost;
+		else quantum_cost_ = new_cost;
+	}
+	else {
+		quantum_cost_ = max_comp_cost;
+		costs_.n_bursts = 1;
 	}
 
 	return maximum_owner;
@@ -763,9 +783,261 @@ bool ModelModifierSysC::splitPipelineStages(vector<Id> contained_s)
 					+ tools::toString(final_stage_cost)
 					+ " and a sync cost of "
 					+ tools::toString(final_stage_combset.second.first));
+
 		}
 	}
 	return true;
+}
+
+void ModelModifierSysC::wrapPipelineStages() throw(
+		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
+		InvalidArgumentException){
+
+	logger_.logMessage(Logger::INFO, "Specializing parallel composites for pipeline stages...");
+
+	Composite* root = processnetwork_->getComposite(Id("f2cc0"));
+	if(!root){
+		THROW_EXCEPTION(InvalidModelException, string("Process network ")
+						+ "does not have a root process");
+	}
+
+	logger_.logMessage(Logger::INFO, "Ordering pipeline stages...");
+	map<unsigned, list<Id> > stages = orderStages();
+
+	for (map<unsigned, list<Id> >::iterator sit = stages.begin(); sit != stages.end(); ++sit){
+		if(sit->first != 0) groupIntoPipelineComposites(sit->second);
+	}
+}
+
+
+void ModelModifierSysC::groupIntoPipelineComposites(std::list<Forsyde::Id> stage) throw(
+		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
+		    		InvalidArgumentException){
+
+	logger_.logMessage(Logger::INFO, "Grouping all processes within the current stage"
+			"into one parallel composite ...");
+
+	Composite* root = processnetwork_->getComposite(Id("f2cc0"));
+	if(!root){
+		THROW_EXCEPTION(InvalidModelException, string("Process network ")
+						+ "does not have a root process");
+	}
+
+	ParallelComposite* reference;
+	for (list<Id>::iterator idit = stage.begin(); idit != stage.end(); ++idit){
+		Composite* pcomp = root->getComposite(*idit);
+		if (dynamic_cast<ParallelComposite*>(pcomp)){
+			reference = dynamic_cast<ParallelComposite*>(pcomp);
+			reference->changeName(Id(string() + "stage_" + tools::toString(reference->getStream())));
+			stage.erase(idit);
+			logger_.logMessage(Logger::DEBUG, string() + "For this stage, \""
+					+ idit->getString()
+					+ "\" will be used as reference.");
+			break;
+		}
+	}
+	if (!reference){
+		Id pcomp_stage_id = processnetwork_->getUniqueCompositeId("f2cc_stage_");
+		Hierarchy new_hierarchy = root->getHierarchy();
+		reference = new ParallelComposite(pcomp_stage_id, new_hierarchy, pcomp_stage_id, 1);
+		root->addComposite(reference);
+		logger_.logMessage(Logger::DEBUG, string() + "New reference had to be created: "
+				+ pcomp_stage_id.getString());
+	}
+
+	unsigned num_procs = reference->getNumProcesses();
+
+	for (list<Id>::iterator idit = stage.begin(); idit != stage.end(); ++idit){
+		Composite* pcomp = dynamic_cast<ParallelComposite*>(root->getComposite(*idit));
+		Leaf* leaf = root->getProcess(*idit);
+
+		if (leaf){
+
+			moveToNewParent(leaf, root, reference);
+
+			list<Leaf::Port*> inputs  = leaf->getInPorts();
+			for (list<Leaf::Port*>::iterator iit = inputs.begin(); iit != inputs.end(); ++iit){
+				Process::Interface* connection = (*iit)->getConnectedPort();
+				redirectFlow((*iit), connection, reference, false);
+			}
+
+			list<Leaf::Port*> outputs  = leaf->getOutPorts();
+			for (list<Leaf::Port*>::iterator iit = outputs.begin(); iit != outputs.end(); ++iit){
+				Process::Interface* connection = (*iit)->getConnectedPort();
+				redirectFlow((*iit), connection, reference, true);
+			}
+		}
+		else if (pcomp){
+			moveToNewParent(pcomp, root, reference);
+			if ((int)num_procs < pcomp->getNumProcesses()) reference->setNumProcesses(
+					pcomp->getNumProcesses());
+
+			list<Composite::IOPort*> inputs  = pcomp->getInIOPorts();
+			for (list<Composite::IOPort*>::iterator iit = inputs.begin(); iit != inputs.end(); ++iit){
+				Process::Interface* connection = (*iit)->getConnectedPortOutside();
+				redirectFlow((*iit), connection, reference, false);
+			}
+
+			list<Composite::IOPort*> outputs  = pcomp->getOutIOPorts();
+			for (list<Composite::IOPort*>::iterator iit = outputs.begin(); iit != outputs.end(); ++iit){
+				Process::Interface* connection = (*iit)->getConnectedPortOutside();
+				redirectFlow((*iit), connection, reference, true);
+			}
+
+			flattenCompositeProcess(pcomp, reference);
+
+		}
+	}
+	list<Leaf*> contained_leafs  = reference->getProcesses();
+	for (list<Leaf*>::iterator nit = contained_leafs.begin(); nit != contained_leafs.end(); ++nit){
+		std::cout<<(*nit)->toString()<<"\n";
+	}
+	std::cout<<reference->toString()<<"\n";
+}
+
+void ModelModifierSysC::redirectFlow(Process::Interface* source, Process::Interface* target,
+		ParallelComposite* reference, bool input) throw (
+			 InvalidArgumentException, RuntimeException, InvalidProcessException){
+
+
+	Leaf::Port* src_port = dynamic_cast<Leaf::Port*>(source);
+	Composite::IOPort* src_ioport = dynamic_cast<Composite::IOPort*>(source);
+	unsigned num_procs = reference->getNumProcesses();
+	//unsigned num_procs = 1;
+	if (target->getProcess() != reference){
+		CDataType outer_type;
+		Leaf::Port* conn_port = dynamic_cast<Leaf::Port*>(target);
+		if (conn_port) outer_type = conn_port->getDataType();
+		else{
+			Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(target);
+			outer_type = conn_ioport->getDataType().first;
+		}
+		std::cout<<source->toString()<<"\n";
+		CDataType inner_type = (src_port) ? src_port->getDataType() : src_ioport->getDataType().first;
+		inner_type.setArraySize( (src_port) ? (inner_type.getArraySize() / num_procs) :
+				inner_type.getArraySize() / num_procs);
+
+		if (src_port) (src_port)->setConnection(NULL);
+		else src_ioport->setConnection(NULL, true);
+		//std::cout<<"LALALALALAAAAAAAAAAAAAAAAA\n";
+		Id inner_id = Id((source)->toString());
+		//std::cout<<"LALALALALAAAAAAAAAAAAAAAAA\n";
+		Leaf* trg_leaf = dynamic_cast<Leaf*>(target->getProcess());
+		Composite* trg_comp =  dynamic_cast<Composite*>(target->getProcess());
+		Composite::IOPort* new_port;
+		//std::cout<<"LALALALALAAAAAAAAAAAAAAAAA\n";
+		if (trg_leaf){
+			if (!input){
+				reference->addInIOPort(inner_id, inner_type);
+				new_port = reference->getInIOPort(inner_id);
+				}
+			else {
+				reference->addOutIOPort(inner_id, inner_type);
+				new_port = reference->getOutIOPort(inner_id);
+			}
+		}
+		else if (trg_comp){
+			if (!input){
+				reference->addInIOPort(inner_id, inner_type);
+				new_port = reference->getInIOPort(inner_id);
+				}
+			else {
+				reference->addOutIOPort(inner_id, inner_type);
+				new_port = reference->getOutIOPort(inner_id);
+			}
+		}
+		new_port->setDataType(true, outer_type);
+		//std::cout<<"LALALALALAAAAAAAAAAAAAAAAA\n";
+
+
+		new_port->setConnection(source, false);
+		if (src_port) (src_port)->setConnection(new_port);
+		else src_ioport->setConnection(new_port, true);
+		if (conn_port) conn_port->setConnection(new_port);
+		else {
+			Composite::IOPort* conn_ioport = dynamic_cast<Composite::IOPort*>(target);
+			if (*conn_ioport->getProcess()->getId() == Id("f2cc0")) {
+				conn_ioport->setConnection(new_port, false);
+			}
+			else conn_ioport->setConnection(new_port, true);
+		}
+		new_port->setConnection(target, true);
+
+		logger_.logMessage(Logger::DEBUG, string() + "Connection between "
+				+ source->toString() + " and "
+				+ target->toString() + " was made through "
+				+ new_port->toString());
+	}
+	else{
+		Composite::IOPort* pcomp_port;
+		if (src_port) pcomp_port = dynamic_cast<Composite::IOPort*>(src_port->getConnectedPort());
+		else if (src_ioport)  pcomp_port = dynamic_cast<Composite::IOPort*>(
+				src_ioport->getConnectedPortOutside());
+		Leaf::Port* inside_port = dynamic_cast<Leaf::Port*>(pcomp_port->getConnectedPortInside());
+
+		pcomp_port->setConnection(NULL, true);
+		pcomp_port->setConnection(NULL, false);
+		//std::cout<<inside_port->toString()<<" : "<<inside_port->getConnectedPort()->toString()<<"\n";
+			//	std::cout<<"LULUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\n";
+		//std::cout<<pcomp_port->getId()->getString()<<" : "<<input<<"\n";
+		if (input)
+				reference->deleteInIOPort(*pcomp_port->getId());
+		else
+			reference->deleteOutIOPort(*pcomp_port->getId());
+		//std::cout<<"LULUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\n";
+		if (src_port) src_port->setConnection(inside_port);
+		else if (src_ioport)  src_ioport->setConnection(inside_port, true);
+		//std::cout<<"LULUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\n";
+		inside_port->setConnection(source);
+
+		logger_.logMessage(Logger::DEBUG, string() + "Connection between "
+				+ source->toString() + " and "
+				+ inside_port->toString() + " was made by deleting the intermediary port");
+	}
+
+}
+
+std::map<unsigned, std::list<Forsyde::Id> > ModelModifierSysC::orderStages() throw(
+		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
+		InvalidArgumentException){
+	Composite* root = processnetwork_->getComposite(Id("f2cc0"));
+	if(!root){
+		THROW_EXCEPTION(InvalidModelException, string("Process network ")
+						+ "does not have a root process");
+	}
+
+	map<unsigned, list<Id> > stages;
+	list<Id> dummy;
+
+	list<Composite*> comps = root->getComposites();
+	for (list<Composite*>::iterator cit = comps.begin(); cit != comps.end(); ++cit){
+		ParallelComposite* pcomp = dynamic_cast<ParallelComposite*>(*cit);
+		if(!pcomp){
+			THROW_EXCEPTION(InvalidModelException, string("Process network ")
+							+ "should not have normal composites at this stage");
+		}
+
+		unsigned stage = pcomp->getStream();
+		map<unsigned, list<Id> >::iterator found_stage = stages.find(stage);
+		if (found_stage != stages.end()) found_stage->second.push_back(*pcomp->getId());
+		else {
+			stages.insert(make_pair(stage, dummy));
+			stages[stage].push_back(*pcomp->getId());
+		}
+	}
+
+	list<Leaf*> leafs = root->getProcesses();
+	for (list<Leaf*>::iterator lit = leafs.begin(); lit != leafs.end(); ++lit){
+		Leaf* leaf = *lit;
+		unsigned stage = leaf->getStream();
+		map<unsigned, list<Id> >::iterator found_stage = stages.find(stage);
+		if (found_stage != stages.end()) found_stage->second.push_back(*leaf->getId());
+		else {
+			stages.insert(make_pair(stage, dummy));
+			stages[stage].push_back(*leaf->getId());
+		}
+	}
+	return stages;
 }
 
 void ModelModifierSysC::flattenCompositeProcess(Composite* composite, Composite* parent) throw(
@@ -809,6 +1081,7 @@ void ModelModifierSysC::flattenCompositeProcess(Composite* composite, Composite*
 					+ (*nit)->getConnectedPortOutside()->toString()+ "\"");
 		(*nit)->getConnectedPortInside()->connect((*nit)->getConnectedPortOutside());
 	}
+
 
 	logger_.logMessage(Logger::DEBUG, string() + "Removing \""
 				+ composite->getId()->getString()
@@ -1827,3 +2100,5 @@ string ModelModifierSysC::DataPath::printDataPath() throw(){
 	str += "}";
 	return str;
 }
+
+

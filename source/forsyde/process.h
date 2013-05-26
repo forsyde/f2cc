@@ -244,6 +244,18 @@ class Process{
          *
          * @returns String representation.
          */
+        std::string toPrint() const throw();
+
+
+        /**
+         * Converts this interface into a string representation. The resultant string
+         * is as follows:
+         * @code
+         *  <process_id>:<interface_id>
+         * @endcode
+         *
+         * @returns String representation.
+         */
         std::string toString() const throw();
 
       protected:

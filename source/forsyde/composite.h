@@ -43,6 +43,7 @@
 #include "model.h"
 #include "process.h"
 #include "../language/cdatatype.h"
+#include "../language/cfunction.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/notsupportedexception.h"
 #include "../exceptions/invalidprocessexception.h"
@@ -105,6 +106,22 @@ public:
      *        New name for the composite process, wrapped in an \c Id object.
      */
     void changeName(Forsyde::Id name) throw(RuntimeException);
+
+    /**
+     * Gets the name of this composite process, wrapped in an \c Id object.
+     *
+     * @returns Name of the composite process.
+     */
+    CFunction* getWrapper() const throw(RuntimeException);
+
+    /**
+     * Changes the name of this composite process.
+     *
+     * @param name
+     *        New name for the composite process, wrapped in an \c Id object.
+     */
+    void setWrapper(CFunction* function) throw(RuntimeException);
+
 
     /**
       * Adds an in IOPort to this composite. Composites are not allowed to have
@@ -305,6 +322,7 @@ public:
      */
     std::list<IOPort*> out_ports_;
 
+    CFunction* wrapper_;
 
   public:
     /**
@@ -572,6 +590,7 @@ public:
 		 * Port data type.
 		 */
 		std::pair<CDataType, CDataType> data_types_;
+
 
     };
 };

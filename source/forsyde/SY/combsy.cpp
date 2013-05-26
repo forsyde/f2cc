@@ -93,7 +93,7 @@ void Comb::checkFunction(CFunction* function, size_t num_in_ports) const
 						+ tools::toString(getNumInPorts())
 		                + " input ports.");
 	}
-	if (!function->getOutputParameter()) {
+	if (!function->getOutputParameters().front()) {
 		THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
 						+ getId()->getString() + "\" of type \""
 						+ type() + "\": function has "
