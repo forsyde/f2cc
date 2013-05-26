@@ -62,7 +62,7 @@ void ParallelComposite::setContainedProcessId(const Id* id) throw() {
 }
 
 string ParallelComposite::type() const throw() {
-    return "parallel composite";
+    return "par_composite";
 }
 
 void ParallelComposite::moreChecks() throw(InvalidProcessException){

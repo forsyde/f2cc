@@ -109,6 +109,10 @@ class Config {
         int k_SEQ;
 
         int k_PAR;
+
+        unsigned n_bursts;
+
+        unsigned n_stages;
     };
 
     /**
@@ -326,6 +330,8 @@ class Config {
     void setCosts(const std::string& file) throw(InvalidArgumentException,
     		InvalidFormatException, FileNotFoundException, IOException, CastException, ParseException,
     		OutOfMemoryException);
+
+    void setCosts(Costs costs) throw();
 
     Costs getCosts() const throw();
 

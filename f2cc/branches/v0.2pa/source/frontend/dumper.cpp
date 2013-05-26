@@ -97,7 +97,6 @@ void XmlDumper::dumpProcessNetwork(ProcessNetwork* pn, Document doc)
     Element* element = new Element( "process_network" );
     doc.LinkEndChild( element );
 
-
     list<Process::Interface*> input_ports = pn->getInputs();
     for (list<Process::Interface*>::iterator it = input_ports.begin();
     		it != input_ports.end(); it++){
@@ -146,6 +145,7 @@ void XmlDumper::dumpComposite(Composite* composite, Element* parent)
     if (!parent) {
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
+
 
     ParallelComposite* pcomp = dynamic_cast<ParallelComposite*>(composite);
     Element* curr_element = new Element( "composite_process" );

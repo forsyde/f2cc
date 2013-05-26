@@ -106,13 +106,17 @@ class ModelModifierSysC {
     void optimizePlatform() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException);
 
-    void loadBalance() throw(
+    Config::Costs loadBalance() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
     		InvalidModelException);
 
     void createPipelineComposites() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
     		InvalidModelException);
+
+    void wrapPipelineStages() throw(
+    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
+    		InvalidArgumentException);
 
   private:
 
@@ -133,6 +137,14 @@ class ModelModifierSysC {
 
     bool splitPipelineStages(std::vector<Id> contained_sections)
     throw (RuntimeException, InvalidProcessException, OutOfMemoryException, InvalidModelException);
+
+    std::map<unsigned, std::list<Forsyde::Id> > orderStages() throw(
+    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
+    		InvalidArgumentException);
+
+    void groupIntoPipelineComposites(std::list<Forsyde::Id> stage) throw(
+    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
+    		    		InvalidArgumentException);
 
     void flattenCompositeProcess(Composite* composite, Composite* parent) throw(
    		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
@@ -185,7 +197,11 @@ class ModelModifierSysC {
     		 ParallelComposite* new_pcomp) throw (
     		 InvalidArgumentException, RuntimeException, InvalidProcessException);
 
-     void redirectFlow(Process::Interface* source, Process::Interface* target) throw (
+     void redirectFlow(Process::Interface* source, Process::Interface* target,
+    		 ParallelComposite* reference, bool input) throw (
+    		 InvalidArgumentException, RuntimeException, InvalidProcessException);
+
+     void convertPCompToLeaf(ParallelComposite* reference) throw (
     		 InvalidArgumentException, RuntimeException, InvalidProcessException);
 
      int transferCoefficient(bool source_on_device, bool target_on_device, bool same_stream)

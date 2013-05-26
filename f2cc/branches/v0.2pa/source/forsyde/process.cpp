@@ -123,7 +123,7 @@ const Id* Process::Interface::getId() const throw() {
     return &id_;
 }
 
-string Process::Interface::toString() const throw() {
+string Process::Interface::toPrint() const throw() {
     string str;
     if (process_) str += process_->getId()->getString();
     else          str += "NULL";
@@ -134,6 +134,15 @@ string Process::Interface::toString() const throw() {
         str += additional_data;
         str += "\n";
     }
+    return str;
+}
+
+string Process::Interface::toString() const throw() {
+    string str;
+    if (process_) str += process_->getId()->getString();
+    else          str += "NULL";
+    str += "_";
+    str += id_.getString();
     return str;
 }
 

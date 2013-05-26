@@ -149,9 +149,7 @@ class ScheduleFinder {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::list<Forsyde::Id> findSchedule(
-    		std::pair<std::list<Forsyde::Id>, std::pair<std::list<std::pair<Forsyde::Id,
-    		Forsyde::Id> >, std::list<std::pair<Forsyde::Id, Forsyde::Id> > > > stage) throw(
+    std::list<Forsyde::Id> findSchedule(Forsyde::Composite* stage) throw(
     				IOException, RuntimeException);
 
 

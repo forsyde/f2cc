@@ -56,6 +56,14 @@ void Composite::changeName(Forsyde::Id name) throw(RuntimeException) {
 	composite_name_ = name;
 }
 
+f2cc::CFunction* Composite::getWrapper() const throw(RuntimeException) {
+    return wrapper_;
+}
+
+void Composite::setWrapper(CFunction* function) throw(RuntimeException) {
+	wrapper_ = function;
+}
+
 
 bool Composite::addInIOPort(const Id& id, CDataType datatype) throw(RuntimeException, OutOfMemoryException) {
     if (findPort(id, in_ports_) != in_ports_.end()) return false;

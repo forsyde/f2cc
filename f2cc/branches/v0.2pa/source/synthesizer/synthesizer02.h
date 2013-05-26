@@ -44,11 +44,10 @@
 #include "../forsyde/composite.h"
 #include "../forsyde/parallelcomposite.h"
 #include "../forsyde/SY/delaysy.h"
-#include "../forsyde/SY/mapsy.h"
 #include "../forsyde/SY/unzipxsy.h"
 #include "../forsyde/SY/zipxsy.h"
 #include "../forsyde/SY/fanoutsy.h"
-#include "../forsyde/SY/zipwithnsy.h"
+#include "../forsyde/SY/combsy.h"
 #include "../language/cfunction.h"
 #include "../language/cvariable.h"
 #include "../language/cdatatype.h"
@@ -78,6 +77,7 @@ namespace f2cc {
  * compiler.
  */
 class SynthesizerExperimental {
+private:
   public:
     /**
      * @brief Contains the code for the header and implementation file.
@@ -103,6 +103,21 @@ class SynthesizerExperimental {
      * Indentation string.
      */
     static const std::string kIndents;
+
+    /**
+     * Indentation string.
+     */
+    static const std::string kExecSuffix;
+    /**
+     * Indentation string.
+     */
+    static const std::string kKernelFuncSuffix;
+
+    static const std::string kKernelStageSuffix;
+    /**
+     * Indentation string.
+     */
+    static const std::string kKernelWrapSuffix;
 
     /**
      * Prefix to use for the input parameters in the processnetwork C function.
@@ -206,12 +221,6 @@ class SynthesizerExperimental {
     void checkProcessNetwork()
         throw(InvalidModelException, IOException, RuntimeException);
 
-    std::map<unsigned, std::pair<std::list<Forsyde::Id>, std::pair<std::list<std::pair<Forsyde::Id,
-	Forsyde::Id> >, std::list<std::pair<Forsyde::Id, Forsyde::Id> > > > >
-    	separateStages() throw(
-    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
-    		InvalidModelException);
-
     /**
      * Generates code for the currently set target platform.
      *
@@ -234,8 +243,8 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void findSchedule(std::pair<std::list<Forsyde::Id>, std::pair<std::list<std::pair<Forsyde::Id,
-    		Forsyde::Id> >, std::list<std::pair<Forsyde::Id, Forsyde::Id> > > > stage) throw(IOException, RuntimeException);
+    void findSchedule(Forsyde::Composite* stage) throw(IOException, RuntimeException);
+
 
     /**
      * Registers a new signal. If no such signal is registred, it is registred
@@ -272,15 +281,15 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignal(Forsyde::Leaf::Port* out_port,
-                     Forsyde::Leaf::Port* in_port)
+    Signal* getSignal(Forsyde::Process::Interface* out_port,
+                     Forsyde::Process::Interface* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const Forsyde::Leaf::Port*, const
-     * Forsyde::Leaf::Port*) but only requires the out port. The method takes
+     * Same as getSignal(const Forsyde::Process::Interface*, const
+     * Forsyde::Process::Interface*) but only requires the out port. The method takes
      * care of finding the in port and invokes getSignal(const
-     * Forsyde::Leaf::Port*, const Forsyde::Leaf::Port*) with the correct
+     * Forsyde::Process::Interface*, const Forsyde::Process::Interface*) with the correct
      * parameters.
      *
      * @param out_port
@@ -293,14 +302,14 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignalByOutPort(Forsyde::Leaf::Port* out_port)
+    Signal* getSignalByOutPort(Forsyde::Process::Interface* out_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const Forsyde::Leaf::Port*, const
-     * Forsyde::Leaf::Port*) but only requires the in port. The method takes
+     * Same as getSignal(const Forsyde::Process::Interface*, const
+     * Forsyde::Process::Interface*) but only requires the in port. The method takes
      * care of finding the out port and invokes getSignal(const
-     * Forsyde::Leaf::Port*, const Forsyde::Leaf::Port*) with the correct
+     * Forsyde::Process::Interface*, const Forsyde::Process::Interface*) with the correct
      * parameters.
      *
      * @param in_port
@@ -313,8 +322,69 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    Signal* getSignalByInPort(Forsyde::Leaf::Port* in_port)
+    Signal* getSignalByInPort(Forsyde::Process::Interface* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
+
+    /**
+     * Same as getSignal(const Forsyde::Process::Interface*, const
+     * Forsyde::Process::Interface*) but only requires the out port. The method takes
+     * care of finding the in port and invokes getSignal(const
+     * Forsyde::Process::Interface*, const Forsyde::Process::Interface*) with the correct
+     * parameters.
+     *
+     * @param out_port
+     *        Out port of one leaf.
+     * @returns Registred signal.
+     * @throws InvalidArgumentException
+     *         When \c out_port is \c NULL.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    Signal* getSignalInsideByOutPort(Forsyde::Composite::IOPort* out_port)
+        throw(InvalidArgumentException, IOException, RuntimeException);
+
+    /**
+     * Same as getSignal(const Forsyde::Process::Interface*, const
+     * Forsyde::Process::Interface*) but only requires the in port. The method takes
+     * care of finding the out port and invokes getSignal(const
+     * Forsyde::Process::Interface*, const Forsyde::Process::Interface*) with the correct
+     * parameters.
+     *
+     * @param in_port
+     *        In port of one leaf.
+     * @returns Registred signal.
+     * @throws InvalidArgumentException
+     *         When \c in_port is \c NULL.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    Signal* getSignalInsideByInPort(Forsyde::Composite::IOPort* in_port)
+        throw(InvalidArgumentException, IOException, RuntimeException);
+
+
+    bool isInSignal(Signal* signal, Forsyde::Composite* composite) throw(
+    		InvalidArgumentException, IOException, RuntimeException);
+
+    bool isOutSignal(Signal* signal, Forsyde::Composite* composite) throw(
+    		InvalidArgumentException, IOException, RuntimeException);
+
+
+    /**
+     * Renames the functions of all Map leafs present in the schedule to
+     * avoid name clashes in the generated code. Also, C is a bit picky about
+     * variable and function names (for instance, they must not start with a
+     * number).
+     *
+     * @throws InvalidModelException
+     *         When something is wrong with the processnetwork.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
 
     /**
      * Renames the functions of all Map leafs present in the schedule to
@@ -329,7 +399,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void renameMapFunctions()
+    void renameCombFunctions()
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -346,6 +416,7 @@ class SynthesizerExperimental {
     void CombineFunctionDuplicates()
         throw(InvalidModelException, IOException, RuntimeException);
 
+
     /**
      * Leafs of type \c CoalescedMap may contain more than one leaf
      * function argument. In order to be able to generate correct code and still
@@ -361,7 +432,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void generateCoalescedSyWrapperFunctions()
+    void generateCompositeWrapperFunctions()
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -379,11 +450,41 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      * @see generateCoalescedSYWrapperFunctions()
+     * 
      */
-    CFunction generateCoalescedSyWrapperFunction(
-        std::list<CFunction*> functions)
+    f2cc::CFunction* generateWrapperForProcessNetwork(Forsyde::Composite* composite,
+    		std::list<Forsyde::Id> schedule)
         throw(InvalidModelException, IOException, RuntimeException);
 
+    /**
+     * Generates a wrapping function which invokes each function in a list,
+     * passing the result from one to the next. See
+     * generateCoalescedSyWrapperFunctions() for more information.
+     *
+     * @param functions
+     *        List of functions.
+     * @returns Wrapper function.
+     * @throws InvalidModelException
+     *         When something is wrong with the processnetwork.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     * @see generateCoalescedSYWrapperFunctions()
+     *
+     */
+    f2cc::CFunction* generateWrapperForComposite(Forsyde::Composite* composite,
+    		std::list<Forsyde::Id> schedule)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+
+    f2cc::CFunction* generateWrapperForKernelComposite(std::string current_id,
+    		Forsyde::Composite* composite,std::list<Forsyde::Id> schedule, unsigned n_procs)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+
+
+    std::string scheduleToString(std::list<Forsyde::Id> schedule) const throw();
     /**
      * Generates CUDA kernel functions for \c ParallelMap leafs. The
      * kernel function is added to the leaf as first function, which will
@@ -397,7 +498,8 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void generateCudaKernelFunctions()
+    CFunction* generateCudaKernelWrapper(Forsyde::Composite* composite,
+    		std::list<Forsyde::Id> schedule)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -410,7 +512,7 @@ class SynthesizerExperimental {
      *      as the computation may need to be split into multiple kernel
      *      invocations in order to avoid time out.
      * The kernel function expects that the thread blocks are configured in a
-     * 1-dimensional setting along the X axis, and that each block size is 
+     * 1-dimensional setting along the X axis, and that each block size is
      * configured as 1xN, where \em N is calculated from the size of the input
      * array for best performance.
      *
@@ -426,7 +528,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    CFunction generateCudaKernelFunction(CFunction* function,
+    CFunction* generateCudaKernelFunction(CFunction* function,
                                          size_t num_leafs)
         throw(InvalidModelException, IOException, RuntimeException);
 
@@ -524,7 +626,35 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessNetworkFunctionDefinitionCode()
+    std::string generateCompositeDefinitionCode(Forsyde::Composite* composite,
+    		std::list<Forsyde::Id> schedule)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+
+    /**
+     * Generates code for the processnetwork function definition, which implements the
+     * schedule.
+     *
+     * Note that \c delay leafs are executed in two steps. The first step
+     * of all \c delay leafs is executed before all other leafs. Then,
+     * the leafs are executed in order as defined by the schedule but the \c
+     * delay leafs are ignored. Once the schedule has been executed, the
+     * second step of all \c delay leafs is executed. This must be done in
+     * order to first propagate the values of the delay variables to the signal
+     * variables, and then save the new values in the delay variables until the
+     * next processnetwork invocation.
+     *
+     * @returns ProcessNetwork function definition code.
+     * @throws InvalidModelException
+     *         When something is wrong with the processnetwork.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::string generateCudaRootWrapperCode(Forsyde::Composite* composite,
+    		std::list<Forsyde::Id> schedule, std::list<std::list<Forsyde::Id> > k_schedules,
+    		unsigned n_proc)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -539,7 +669,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessNetworkFunctionPrototypeCode()
+    std::string generateCompositePrototypeCode(Forsyde::Composite* composite)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -553,11 +683,11 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessNetworkFunctionDescription() 
+    std::string generateCompositeDescription(Forsyde::Composite* composite)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code for copying the input parameter values of the processnetwork
+     * Generates code for copying the input parameter values of the composite
      * function to the appropriate signals. Input array parameters are ignored
      * (see generateArrayInputOutputsToSignalsAliasingCode()).
      *
@@ -567,7 +697,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateInputsToSignalsCopyingCode()
+    std::string generateInputsToSignalsCopyingCode(Forsyde::Composite* composite)
         throw(InvalidModelException, RuntimeException);
 
     /**
@@ -582,7 +712,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateSignalsToOutputsCopyingCode()
+    std::string generateSignalsToOutputsCopyingCode(Forsyde::Composite* composite)
         throw(InvalidModelException, RuntimeException);
 
     /**
@@ -596,7 +726,8 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateArrayInputOutputsToSignalsAliasingCode()
+    std::string renameVariables( std::string body,
+    		Forsyde::Composite* composite)
         throw(InvalidModelException, RuntimeException);
 
     /**
@@ -615,7 +746,87 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateSignalVariableDeclarationsCode()
+    std::string generateSignalVariableDeclarationsCode(Forsyde::Composite* composite)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+    /**
+     * Generates code for declaring the signal variables. Non-array data types
+     * will be allocated locally on the stack and arrays will be allocated on
+     * the heap. Also, signal variables which receives its value from an input
+     * array parameter, or will copy its value to an output array parameter,
+     * will simply be declared but not be allocated any memory as its address
+     * will be set to the address of the input array.
+     *
+     * @returns Variable declarations code.
+     * @throws InvalidModelException
+     *         When a variable cannot be declared due to lacking information.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::string generateCudaVariableCleanupCode(Forsyde::Composite* composite,
+    		std::list<std::list<Forsyde::Id> > k_schedules)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+    /**
+     * Generates code for declaring the signal variables. Non-array data types
+     * will be allocated locally on the stack and arrays will be allocated on
+     * the heap. Also, signal variables which receives its value from an input
+     * array parameter, or will copy its value to an output array parameter,
+     * will simply be declared but not be allocated any memory as its address
+     * will be set to the address of the input array.
+     *
+     * @returns Variable declarations code.
+     * @throws InvalidModelException
+     *         When a variable cannot be declared due to lacking information.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::string generateCudaVariableDeclarationsCode(Forsyde::Composite* composite,
+    		std::list<std::list<Forsyde::Id> > k_schedules)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+    /**
+     * Generates code for declaring the signal variables. Non-array data types
+     * will be allocated locally on the stack and arrays will be allocated on
+     * the heap. Also, signal variables which receives its value from an input
+     * array parameter, or will copy its value to an output array parameter,
+     * will simply be declared but not be allocated any memory as its address
+     * will be set to the address of the input array.
+     *
+     * @returns Variable declarations code.
+     * @throws InvalidModelException
+     *         When a variable cannot be declared due to lacking information.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::string generateCudaH2DCopyCode(Forsyde::Composite* composite,
+    		std::list<std::list<Forsyde::Id> > k_schedules)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+    /**
+     * Generates code for declaring the signal variables. Non-array data types
+     * will be allocated locally on the stack and arrays will be allocated on
+     * the heap. Also, signal variables which receives its value from an input
+     * array parameter, or will copy its value to an output array parameter,
+     * will simply be declared but not be allocated any memory as its address
+     * will be set to the address of the input array.
+     *
+     * @returns Variable declarations code.
+     * @throws InvalidModelException
+     *         When a variable cannot be declared due to lacking information.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::string generateCudaD2HCopyCode(Forsyde::Composite* composite,
+    		std::list<std::list<Forsyde::Id> > k_schedules)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -664,7 +875,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateSignalVariableCleanupCode()
+    std::string generateSignalVariableCleanupCode(Forsyde::Composite* composite)
         throw(IOException, RuntimeException);
 
     /**
@@ -682,7 +893,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateProcessNetworkFunctionParameterListCode()
+    std::string generateCompositeParameterListCode(Forsyde::Composite* composite)
         throw(InvalidModelException, RuntimeException);
 
     /**
@@ -699,7 +910,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void createSignals()
+    void createSignals(Forsyde::Composite* composite)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -713,7 +924,8 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    void createDelayVariables() throw(IOException, RuntimeException);
+    void createDelayVariables(std::list<Forsyde::Id> schedule) throw(
+    		IOException, RuntimeException);
 
     /**
      * Sets data types of array input signal variables as "const".  The
@@ -854,7 +1066,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCode(Forsyde::Leaf* leaf)
+    std::string generateProcessExecutionCode(Forsyde::Process* process)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -884,7 +1096,7 @@ class SynthesizerExperimental {
      *         When a program error occurs. This most likely indicates a bug.
      */
     std::string generateVariableCopyingCode(CVariable to, CVariable from, bool
-        do_deep_copy = true) 
+        do_deep_copy = true)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -904,7 +1116,7 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateVariableCopyingCode(CVariable to, 
+    std::string generateVariableCopyingCode(CVariable to,
                                             std::list<CVariable>& from)
         throw(InvalidModelException, IOException, RuntimeException);
 
@@ -951,6 +1163,72 @@ class SynthesizerExperimental {
                                                      std::list<CVariable>
                                                      inputs,
                                                      CVariable output)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+    /**
+     * Generates code for executing a leaf function.
+     *
+     * @param function
+     *        Function to invoke.
+     * @param inputs
+     *        List of input variables.
+     * @param output
+     *        Destination variable.
+     * @returns Execution code.
+     * @throws InvalidModelException
+     *         When the function has unexpected number of input parameters, or
+     *         when there is a data type or array size mismatch.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::string generateCompositeWrapperExecutionCode(CFunction function,
+    		std::list<CVariable> inputs, std::list<CVariable> outputs)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+    /**
+     * Generates code for executing a leaf function.
+     *
+     * @param function
+     *        Function to invoke.
+     * @param inputs
+     *        List of input variables.
+     * @param output
+     *        Destination variable.
+     * @returns Execution code.
+     * @throws InvalidModelException
+     *         When the function has unexpected number of input parameters, or
+     *         when there is a data type or array size mismatch.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::string generateParallelCompositeWrapperExecutionCode(CFunction function,
+    		unsigned nproc, std::list<CVariable> inputs, std::list<CVariable> outputs)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+    /**
+     * Generates code for executing a leaf function.
+     *
+     * @param function
+     *        Function to invoke.
+     * @param inputs
+     *        List of input variables.
+     * @param output
+     *        Destination variable.
+     * @returns Execution code.
+     * @throws InvalidModelException
+     *         When the function has unexpected number of input parameters, or
+     *         when there is a data type or array size mismatch.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::string generateRootExecutionCode(CFunction function,
+    		std::list<CVariable> inputs, std::list<CVariable> outputs)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1075,7 +1353,7 @@ class SynthesizerExperimental {
 
     /**
      * Checks whether to allocate dynamic memory for the signal variable.
-     * 
+     *
      * @param signal
      *        Signal whose variable to check.
      * @returns \b true if the data type is an array and it is not written to by
@@ -1123,9 +1401,9 @@ class SynthesizerExperimental {
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code which execute a given \c Map leaf. The generated code
-     * uses the leaf' in signal as input parameter to its function argument,
-     * and then writes the result to its out signal.
+     * Generates code which execute a given \c ZipWithNSY leaf. The generated
+     * code uses the leaf' in signals as input parameters to its function
+     * argument, and then writes the result to its out signal.
      *
      * @param leaf
      *        Leaf to execute.
@@ -1137,7 +1415,8 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForMap(Forsyde::SY::Map* leaf)
+    std::string generateCompositeExecutionCode(
+        Forsyde::Composite* composite)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1155,8 +1434,28 @@ class SynthesizerExperimental {
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
      */
-    std::string generateLeafExecutionCodeForZipWithNSY(
-        Forsyde::ZipWithNSY* leaf)
+    std::string generateParallelCompositeExecutionCode(
+        Forsyde::ParallelComposite* composite)
+        throw(InvalidModelException, IOException, RuntimeException);
+
+
+    /**
+     * Generates code which execute a given \c ZipWithNSY leaf. The generated
+     * code uses the leaf' in signals as input parameters to its function
+     * argument, and then writes the result to its out signal.
+     *
+     * @param leaf
+     *        Leaf to execute.
+     * @returns Execution code.
+     * @throws InvalidModelException
+     *         When something is wrong with the processnetwork.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
+    std::string generateLeafExecutionCodeForComb(
+        Forsyde::SY::Comb* leaf)
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
@@ -1226,6 +1525,8 @@ class SynthesizerExperimental {
      */
     Logger& logger_;
 
+   std::list<CFunction*> functions_;
+
     /**
      * Config.
      */
@@ -1234,7 +1535,7 @@ class SynthesizerExperimental {
     /**
      * Leaf schedule.
      */
-    std::list<std::list<Forsyde::Id> > schedule_;
+    std::map<Forsyde::Id, std::list<Forsyde::Id> > schedule_;
 
     /**
      * Set of processnetwork signals.
@@ -1252,6 +1553,10 @@ class SynthesizerExperimental {
      */
     std::map< Forsyde::SY::delay*, std::pair<CVariable, std::string> >
     delay_variables_;
+
+    bool in_kernel_;
+
+    bool enable_device_sync_;
 
   private:
     /**
@@ -1275,10 +1580,10 @@ class SynthesizerExperimental {
          * @throws InvalidArgumentException
          *         When \c out_port and \c in_port are \c NULL.
          */
-        Signal(Forsyde::Leaf::Port* out_port,
-               Forsyde::Leaf::Port* in_port)
+        Signal(Forsyde::Process::Interface* out_port,
+               Forsyde::Process::Interface* in_port)
             throw(InvalidArgumentException);
-        
+
         /**
          * Destroys this signal.
          */
@@ -1297,14 +1602,14 @@ class SynthesizerExperimental {
 
         /**
          * Checks whether this signal has a data type set.
-         * 
+         *
          * @returns \b true if the does.
          */
         bool hasDataType() const throw();
 
         /**
          * Gets the data type of this signal.
-         * 
+         *
          * @returns Data type.
          * @throws IllegalStateException
          *         When the signal has no data type.
@@ -1324,14 +1629,14 @@ class SynthesizerExperimental {
          *
          * @returns Out port, if any; otherwise \c NULL.
          */
-        Forsyde::Leaf::Port* getOutPort() const throw();
+        Forsyde::Process::Interface* getOutPort() const throw();
 
         /**
          * Gets the in port of this signal.
          *
          * @returns In port, if any; otherwise \c NULL.
          */
-        Forsyde::Leaf::Port* getInPort() const throw();
+        Forsyde::Process::Interface* getInPort() const throw();
 
         /**
          * Checks equality between this signal and another
@@ -1357,7 +1662,7 @@ class SynthesizerExperimental {
          *
          * @param rhs
          *        Other signal to compare with.
-         * @returns \b true if 
+         * @returns \b true if
          */
         bool operator<(const Signal& rhs) const throw();
 
@@ -1380,12 +1685,12 @@ class SynthesizerExperimental {
         /**
          * Out port of one signal.
          */
-        Forsyde::Leaf::Port* out_port_;
+        Forsyde::Process::Interface* out_port_;
 
         /**
          * In port of another signal.
          */
-        Forsyde::Leaf::Port* in_port_;
+        Forsyde::Process::Interface* in_port_;
 
         /**
          * Flag for checking if the signal has a data type set.

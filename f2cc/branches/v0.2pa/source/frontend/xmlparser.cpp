@@ -827,7 +827,7 @@ void XmlParser::generateConnection(Process::Interface* source_port,
 								   + source->toString()
 								   + "\" is a fanout. Generating a new port.");
 				Id new_id = Id(string(fanout->getOutPorts().back()->getId()->getString()
-						+ "_"));
+						+ "0"));
 				fanout->addOutPort(new_id, source->getDataType());
 				fanout->getOutPort(new_id)->connect(target_port);
 				logger_.logMessage(Logger::DEBUG, string()
@@ -1077,7 +1077,7 @@ void XmlParser::CParser::extractBody(CFunction* function)
         THROW_EXCEPTION(InvalidArgumentException, "\"function\" must not be empty "
                         "string");
     }
-    std::string body = "";
+    std::string body = "{\n";
 
     //getting the declaration stream
     stringstream tempcode(cdata_);
@@ -1091,7 +1091,7 @@ void XmlParser::CParser::extractBody(CFunction* function)
 			break;
 		}
     	else if (is_body){
-    		body += line;
+    		body += "\n" + line;
     		cdata_.erase(cdata_.find(line), line.size() + 1);
     	}
     }
@@ -1100,6 +1100,9 @@ void XmlParser::CParser::extractBody(CFunction* function)
 						string("The function in file \"")
 						+ file_ + "\" has no body.");
 	}
+    body += "\n}\n";
+
+    function->setBody(body);
 }
 
 void XmlParser::CParser::renameWrappedVariables(CFunction* function)
