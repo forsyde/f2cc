@@ -585,7 +585,7 @@ CFunction* SynthesizerExperimental::generateWrapperForComposite(Composite* compo
 
     functions_.push_back(wrapper_function);
 
-	std::cout<<wrapper_function->getStringNew()<<"\n";
+	//std::cout<<wrapper_function->getStringNew()<<"\n";
 
 	if (*composite->getId() == Id("f2cc0")){
 		string exec_body = generateRootExecutionCode(*wrapper_function, in_vars, out_vars);

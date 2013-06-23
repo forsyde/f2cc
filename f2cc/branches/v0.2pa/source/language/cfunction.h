@@ -102,8 +102,8 @@ class CFunction {
      *
      * @param name
      *        Function name.
-     * @param return_type
-     *        Return data type.
+     * @param output_parameters
+     *        List of output parameters.
      * @param input_parameters
      *        List of input parameters.
      * @param body
@@ -249,17 +249,12 @@ class CFunction {
 
 
     /**
-     * Adds an input parameter to this function. The new parameter will be added
-     * as the last parameter to the function. If the parameter already exists
-     * then it will not be added and \b false is returned.
+     * Sets the output parameters to this function. This replaces the existing ones.
      *
-     * @param parameter
-     *        Variable to add as input parameter.
-     * @returns \b true if the parameter was successfully added.
-     * @throws OutOfMemoryException
-     *         When the parameter fails to be added due to memory shortage.
+     * @param parameters
+     *        List of variables to add as output parameter.
      */
-    bool setOutputParameters(std::list<CVariable*> parameters) throw();
+    void setOutputParameters(std::list<CVariable*> parameters) throw();
 
 
     /**
@@ -286,10 +281,10 @@ class CFunction {
 
 
     /**
-     * Gets a list of the input parameters to this function. The list will be
+     * Gets a list of the output parameters to this function. The list will be
      * in the order as they were added to the function.
      *
-     * @returns List of input parameters.
+     * @returns List of output parameters.
      */
     CVariable* getOutputParameter() throw();
 
@@ -397,6 +392,9 @@ class CFunction {
      */
     std::list<CVariable*> output_parameters_;
 
+    /**
+     * In case the parent process is a comb, this holds a pointer to its output.
+     */
     CVariable* comb_output_;
 
     /**

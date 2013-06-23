@@ -258,7 +258,7 @@ std::list<CVariable*> CFunction::getOutputParameters() throw() {
     return output_parameters_;
 }
 
-bool CFunction::setOutputParameters(std::list<CVariable*> parameters) throw() {
+void CFunction::setOutputParameters(std::list<CVariable*> parameters) throw() {
 	output_parameters_ = parameters;
 }
 
