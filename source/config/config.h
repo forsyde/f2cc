@@ -92,26 +92,56 @@ class Config {
         GraphML
     };
 
+    /**
+     * Stores the cost coefficients extracted either from the platform model \c .xml file or
+     * calculated in the load balancing stage in ModelModifierSysC.
+     *
+     * @see: Forsyde::ModelModifierSysC
+     */
     struct Costs {
         /**
-         * Contains the code for the header file.
+         * Host-to-device transfer cost.
          */
         int k_H2D;
 
+        /**
+         * Device-to-host transfer cost.
+         */
         int k_D2H;
 
+        /**
+         * Intra-thread transfer cost.
+         */
         int k_D2D;
 
+        /**
+         * Inter-thread transfer cost.
+         */
         int k_T2T;
 
+        /**
+         * Host-to-host transfer cost.
+         */
         int k_H2H;
 
+        /**
+         * Sequential platform computation cost
+         */
         int k_SEQ;
 
+        /**
+         * Parallel platform computation cost.
+         */
         int k_PAR;
 
+        /**
+         * Number of data bursts.
+         */
         unsigned n_bursts;
 
+        /**
+         * Number of pipeline stages.
+         */
         unsigned n_stages;
     };
 
@@ -326,13 +356,29 @@ class Config {
     void setFromCommandLine(int argc, const char** argv)
         throw(InvalidArgumentException, InvalidFormatException);
 
-
+    /**
+     * Parses the platform model \c .xml file to extract the cost coefficients.
+     *
+     * @param file
+     *        Input \c XML file.
+     */
     void setCosts(const std::string& file) throw(InvalidArgumentException,
     		InvalidFormatException, FileNotFoundException, IOException, CastException, ParseException,
     		OutOfMemoryException);
 
+    /**
+     * Sets the encapsulated cost coefficients.
+     *
+     * @param costs
+     *        The new costs that have to be set.
+     */
     void setCosts(Costs costs) throw();
 
+    /**
+     * Gets the cost coefficients.
+     *
+     * @returns cost coefficients.
+     */
     Costs getCosts() const throw();
 
     /**
@@ -433,6 +479,9 @@ class Config {
      */
     InputFormat format_;
 
+    /**
+     * Encapsulates the cost coefficients that describe the target platform.
+     */
     Costs costs_;
 };
 

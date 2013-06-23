@@ -194,6 +194,8 @@ class XmlDumper {
      *        The \c Forsyde::Leaf::Port that that to be dumped, and its connection at the other end.
      * @param composite
      *        The \c Element object that holds the data for its parent \c Forsyde::Composite process.
+     * @param is_in
+     *        \c True if the direction is input.
      *
      * @throws InvalidArgumentException
      *         When \c port or \c composite doesn't exist.
@@ -218,6 +220,8 @@ class XmlDumper {
      *        The \c Forsyde::Composite::IOPort that that to be dumped, and its connection at the other end.
      * @param composite
      *        The \c Element object that holds the data for its parent \c Forsyde::Composite process.
+     * @param is_in
+     *        \c True if the direction is input.
      *
      * @throws InvalidArgumentException
      *         When \c port or \c composite doesn't exist.

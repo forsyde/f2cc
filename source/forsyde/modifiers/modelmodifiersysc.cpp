@@ -103,6 +103,8 @@ void ModelModifierSysC::flattenAndParallelize() throw(
 		}
 		equivalent_procs = extractEquivalentLeafs(root);
 	}
+    XmlDumper dump3(logger_);
+    dump3.dump(processnetwork_, "flattened2.xml");
 	removeRedundantZipsUnzips(root);
 }
 

@@ -144,6 +144,9 @@ class ScheduleFinder {
      * works.
      *
      * @returns Leaf schedule.
+     * @param stage
+     *        The parent composite process associated with the current stage.
+     *
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -198,6 +201,14 @@ class ScheduleFinder {
 
   private:
 
+    /**
+     * Checks if the current port is an input for the process network.
+     *
+     * @param port
+     *        Port being visited.
+     *
+     * @returns \b true if the port is an input for the process network.
+     */
     bool isInput(Forsyde::Process::Interface* port) throw();
 
     /**

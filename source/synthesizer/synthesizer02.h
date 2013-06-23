@@ -105,17 +105,21 @@ private:
     static const std::string kIndents;
 
     /**
-     * Indentation string.
+     * Function suffix for the execution wrapper.
      */
     static const std::string kExecSuffix;
     /**
-     * Indentation string.
+     * Function suffix for the kernel execution wrapper.
      */
     static const std::string kKernelFuncSuffix;
 
-    static const std::string kKernelStageSuffix;
     /**
-     * Indentation string.
+     * Function suffix for the pipeline stage function wrapper.
+     */
+    static const std::string kKernelStageSuffix;
+
+    /**
+     * Function suffix for the kernel wrapper.
      */
     static const std::string kKernelWrapSuffix;
 
@@ -236,8 +240,9 @@ private:
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Finds a leaf schedule for the processnetwork. 
-     *
+     * Finds a process schedule for the current pipeline stage.
+     * @param stage
+     *        The parent composite process that holds the processes for this stage.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -326,9 +331,9 @@ private:
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const Forsyde::Process::Interface*, const
-     * Forsyde::Process::Interface*) but only requires the out port. The method takes
-     * care of finding the in port and invokes getSignal(const
+     * Same as getSignalByOutPort(const Forsyde::Process::Interface*, const
+     * Forsyde::Process::Interface*) but only for an IOPort and it requires the connection
+     * inside. The method takes care of finding the in port and invokes getSignal(const
      * Forsyde::Process::Interface*, const Forsyde::Process::Interface*) with the correct
      * parameters.
      *
@@ -346,9 +351,9 @@ private:
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Same as getSignal(const Forsyde::Process::Interface*, const
-     * Forsyde::Process::Interface*) but only requires the in port. The method takes
-     * care of finding the out port and invokes getSignal(const
+     * Same as getSignalByInPort(const Forsyde::Process::Interface*, const
+     * Forsyde::Process::Interface*) bbut only for an IOPort and it requires the connection
+     * inside.  The method takes care of finding the out port and invokes getSignal(const
      * Forsyde::Process::Interface*, const Forsyde::Process::Interface*) with the correct
      * parameters.
      *
@@ -365,65 +370,46 @@ private:
     Signal* getSignalInsideByInPort(Forsyde::Composite::IOPort* in_port)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
-
+    /**
+     * Checks whether a signal is connected to one of a composite process' outputs.
+     *
+     * @param signal
+     *        Signal to be checked.
+     * @param composite
+     *        Composite process to be checked.
+     * @returns \c True if the signal is connected to one of the composite's outputs.
+     * @throws InvalidArgumentException
+     *         When \c in_port is \c NULL.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
     bool isInSignal(Signal* signal, Forsyde::Composite* composite) throw(
     		InvalidArgumentException, IOException, RuntimeException);
 
+    /**
+     * Checks whether a signal is connected to one of a composite process' inputs.
+     *
+     * @param signal
+     *        Signal to be checked.
+     * @param composite
+     *        Composite process to be checked.
+     * @returns \c True if the signal is connected to one of the composite's inputs.
+     * @throws InvalidArgumentException
+     *         When \c in_port is \c NULL.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
     bool isOutSignal(Signal* signal, Forsyde::Composite* composite) throw(
     		InvalidArgumentException, IOException, RuntimeException);
 
-
     /**
-     * Renames the functions of all Map leafs present in the schedule to
-     * avoid name clashes in the generated code. Also, C is a bit picky about
-     * variable and function names (for instance, they must not start with a
-     * number).
-     *
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-
-    /**
-     * Renames the functions of all Map leafs present in the schedule to
-     * avoid name clashes in the generated code. Also, C is a bit picky about
-     * variable and function names (for instance, they must not start with a
-     * number).
-     *
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    void renameCombFunctions()
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Combines functions between Map leafs which are identical by
-     * renaming the duplicates. Functions are compared using the \c == operator.
-     *
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    void CombineFunctionDuplicates()
-        throw(InvalidModelException, IOException, RuntimeException);
-
-
-    /**
-     * Leafs of type \c CoalescedMap may contain more than one leaf
-     * function argument. In order to be able to generate correct code and still
-     * treating them like any other \c Map leaf, wrapper functions need to
-     * be created which invoke the other function arguments in subsequent order.
-     * The wrapper function are then added to the \c CoalescedMap leaf
-     * such that it is the function returned when calling Map::getFunction().
+     * This method goes through all the composite processes in the process network and
+     * creates appropriate wrapper functions for each, depending on their position and
+     * meaning.
      *
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
@@ -436,61 +422,83 @@ private:
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates a wrapping function which invokes each function in a list,
-     * passing the result from one to the next. See
-     * generateCoalescedSyWrapperFunctions() for more information.
+     * \c Composite  processes may contain more than one leaf
+     * function argument. In order to be able to generate correct code and still
+     * treating them like any other \c Processes, wrapper functions need to
+     * be created which invoke the other function arguments in subsequent order.
+     * The wrapper function are then added to the \c Composite wrapper container
+     * such that it is the function returned when calling Composite::getWrapper().
      *
-     * @param functions
-     *        List of functions.
-     * @returns Wrapper function.
+     * @param composite
+     *        Composite process that needs a function created.
+     * @param schedule
+     *       List of IDs representing the sequential schedule.
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
+     * @returns Composite wrapper function.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
      *         When a program error occurs. This most likely indicates a bug.
-     * @see generateCoalescedSYWrapperFunctions()
-     * 
-     */
-    f2cc::CFunction* generateWrapperForProcessNetwork(Forsyde::Composite* composite,
-    		std::list<Forsyde::Id> schedule)
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Generates a wrapping function which invokes each function in a list,
-     * passing the result from one to the next. See
-     * generateCoalescedSyWrapperFunctions() for more information.
-     *
-     * @param functions
-     *        List of functions.
-     * @returns Wrapper function.
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     * @see generateCoalescedSYWrapperFunctions()
-     *
      */
     f2cc::CFunction* generateWrapperForComposite(Forsyde::Composite* composite,
     		std::list<Forsyde::Id> schedule)
         throw(InvalidModelException, IOException, RuntimeException);
 
 
+    /**
+     * \c Composite  processes may contain more than one leaf
+     * function argument. In order to be able to generate correct code and still
+     * treating them like any other \c Processes, wrapper functions need to
+     * be created which invoke the other function arguments in subsequent order.
+     * The wrapper function are then added to the \c Composite wrapper container
+     * such that it is the function returned when calling Composite::getWrapper().
+     *
+     * @param current_id
+     *        ID of the parent function.
+     * @param composite
+     *        Composite process that will be analyzed.
+     * @param schedule
+     *        List containing the sequential schedule of the pipeline stages.
+     * @param n_procs
+     *        Number of processes at input for calculating the burst size.
+     * @returns Composite Kernel wrapper function.
+     * @throws InvalidModelException
+     *         When something is wrong with the processnetwork.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
     f2cc::CFunction* generateWrapperForKernelComposite(std::string current_id,
     		Forsyde::Composite* composite,std::list<Forsyde::Id> schedule, unsigned n_procs)
         throw(InvalidModelException, IOException, RuntimeException);
 
 
-
+    /**
+     * Gets a the current schedule as text string, for printing.
+     *
+     * @param schedule
+     *        List containing the sequential schedule.
+     * @returns schedule string
+     * @throws InvalidModelException
+     *         When something is wrong with the processnetwork.
+     * @throws IOException
+     *         When access to the log file fails.
+     * @throws RuntimeException
+     *         When a program error occurs. This most likely indicates a bug.
+     */
     std::string scheduleToString(std::list<Forsyde::Id> schedule) const throw();
     /**
-     * Generates CUDA kernel functions for \c ParallelMap leafs. The
-     * kernel function is added to the leaf as first function, which will
-     * cause it to be retrieved when Map::getFunction() is invoked and thus
-     * the leaf can be handled like any other \c Map leaf.
+     * Generates CUDA kernel functions for \c ParallelComposite processes. It
+     * goes through all the pipeline stages, creates two wappers for each stage, and
+     * at the end creates the top wrapper for the kernel.
      *
+     * @param composite
+     *        Parent composite process.
+     * @param schedule
+     *        List containing the sequential schedule for the current composite.
+     * @returns Kernel wrapper function.
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
      * @throws IOException
@@ -532,81 +540,9 @@ private:
                                          size_t num_leafs)
         throw(InvalidModelException, IOException, RuntimeException);
 
-    /**
-     * Generates a wrapper function which invokes a CUDA kernel function with
-     * appropriate grid and thread block configuration. The kernel function is
-     * left intact.
-     *
-     * @param function
-     *        Kernel function.
-     * @param num_leafs
-     *        Number of leafs which the kernel function encompasses.
-     * @returns Wrapper function.
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    CFunction generateCudaKernelWrapperFunction(CFunction* function,
-                                                size_t num_leafs)
-        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates wrapper functions for \c ParallelMap leafs. This is only
-     * done when synthesizing C code. The wrapper function is added to the
-     * leaf as first function, which will cause it to be retrieved when
-     * Map::getFunction() is invoked and thus the leaf can be handled like
-     * any other \c Map leaf.
-     *
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    void generateParallelMapSyWrapperFunctions()
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Generates a wrapper function which executes a given function for the
-     * entire input array. The wrapping function is left intact.
-     *
-     * @param function
-     *        Function to execute.
-     * @param num_leafs
-     *        Number of leafs which the function encompasses.
-     * @returns Wrapper function.
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    CFunction generateParallelMapSyWrapperFunction(CFunction* function,
-                                                   size_t num_leafs)
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Generates code for the function definitions for the leafs present
-     * in the schedule.
-     *
-     * @returns Leaf function definitions code.
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    std::string generateLeafFunctionDefinitionsCode()
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Generates code for the processnetwork function definition, which implements the
+     * Generates code for the composite function definition, which implements its
      * schedule.
      *
      * Note that \c delay leafs are executed in two steps. The first step
@@ -616,11 +552,15 @@ private:
      * second step of all \c delay leafs is executed. This must be done in
      * order to first propagate the values of the delay variables to the signal
      * variables, and then save the new values in the delay variables until the
-     * next processnetwork invocation.
+     * next composite invocation.
      *
-     * @returns ProcessNetwork function definition code.
+     * @param composite
+     *        Parent composite process.
+     * @param schedule
+     *        List containing the sequential schedule for the current composite.
+     * @returns Composite function definition code.
      * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
+     *         When something is wrong with the composite.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -632,19 +572,22 @@ private:
 
 
     /**
-     * Generates code for the processnetwork function definition, which implements the
-     * schedule.
+     * Generates the execution code for the top module. Its execution steps are:
+     *  - Gather information about the device
+     *  - Allocate memory on host and device
+     *  - Transfer data and execute the kernels in a revolving barrel pattern
+     *  - Run the sequential schedule
+     *  - Deallocate the memory
      *
-     * Note that \c delay leafs are executed in two steps. The first step
-     * of all \c delay leafs is executed before all other leafs. Then,
-     * the leafs are executed in order as defined by the schedule but the \c
-     * delay leafs are ignored. Once the schedule has been executed, the
-     * second step of all \c delay leafs is executed. This must be done in
-     * order to first propagate the values of the delay variables to the signal
-     * variables, and then save the new values in the delay variables until the
-     * next processnetwork invocation.
-     *
-     * @returns ProcessNetwork function definition code.
+     * @param composite
+     *        Root composite process.
+     * @param schedule
+     *        List containing the pipeline stages' sequential schedule.
+     * @param k_schedules
+     *        List containing the schedules for the individual pipeline stages.
+     * @param n_proc
+     *        Number of processes.
+     * @returns Root function execution code.
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
      * @throws IOException
@@ -657,40 +600,14 @@ private:
     		unsigned n_proc)
         throw(InvalidModelException, IOException, RuntimeException);
 
-    /**
-     * Generates code for the processnetwork function prototype. This is used for the
-     * header file.
-     *
-     * @returns ProcessNetwork function prototype.
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    std::string generateCompositePrototypeCode(Forsyde::Composite* composite)
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Generates a method description (Java style) for the processnetwork function.
-     *
-     * @returns ProcessNetwork function description.
-     * @throws InvalidModelException
-     *         When something is wrong with the processnetwork.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    std::string generateCompositeDescription(Forsyde::Composite* composite)
-        throw(InvalidModelException, IOException, RuntimeException);
 
     /**
      * Generates code for copying the input parameter values of the composite
      * function to the appropriate signals. Input array parameters are ignored
      * (see generateArrayInputOutputsToSignalsAliasingCode()).
      *
+     * @param composite
+     *        Parent composite process.
      * @returns Copying code.
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
@@ -706,6 +623,8 @@ private:
      * output parameters are ignored (see
      * generateArrayInputOutputsToSignalsAliasingCode()).
      *
+     * @param composite
+     *        Parent composite process.
      * @returns Copying code.
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
@@ -716,10 +635,12 @@ private:
         throw(InvalidModelException, RuntimeException);
 
     /**
-     * Generates code which aliases the input and output array parameters with
-     * the corresponding signal array variables. This reduces the amount of
-     * memory copying needed.
+     * Renames the variables in the function body to be human readable.
      *
+     * @param body
+     *        Function body.
+     * @param composite
+     *        Parent composite process.
      * @returns Copying code.
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
@@ -738,6 +659,8 @@ private:
      * will simply be declared but not be allocated any memory as its address
      * will be set to the address of the input array.
      *
+     * @param composite
+     *        Parent composite process.
      * @returns Variable declarations code.
      * @throws InvalidModelException
      *         When a variable cannot be declared due to lacking information.
@@ -757,6 +680,10 @@ private:
      * will simply be declared but not be allocated any memory as its address
      * will be set to the address of the input array.
      *
+     * @param composite
+     *        Parent composite process.
+     * @param k_schedules
+     *        List of schedules associated with pipeline stages.
      * @returns Variable declarations code.
      * @throws InvalidModelException
      *         When a variable cannot be declared due to lacking information.
@@ -777,6 +704,10 @@ private:
      * will simply be declared but not be allocated any memory as its address
      * will be set to the address of the input array.
      *
+     * @param composite
+     *        Parent composite process.
+     * @param k_schedules
+     *        List of schedules associated with pipeline stages.
      * @returns Variable declarations code.
      * @throws InvalidModelException
      *         When a variable cannot be declared due to lacking information.
@@ -790,13 +721,12 @@ private:
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code for declaring the signal variables. Non-array data types
-     * will be allocated locally on the stack and arrays will be allocated on
-     * the heap. Also, signal variables which receives its value from an input
-     * array parameter, or will copy its value to an output array parameter,
-     * will simply be declared but not be allocated any memory as its address
-     * will be set to the address of the input array.
+     * Generates code for host-to-device transfers.
      *
+     * @param composite
+     *        Parent composite process.
+     * @param k_schedules
+     *        List of schedules associated with pipeline stages.
      * @returns Variable declarations code.
      * @throws InvalidModelException
      *         When a variable cannot be declared due to lacking information.
@@ -810,13 +740,12 @@ private:
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code for declaring the signal variables. Non-array data types
-     * will be allocated locally on the stack and arrays will be allocated on
-     * the heap. Also, signal variables which receives its value from an input
-     * array parameter, or will copy its value to an output array parameter,
-     * will simply be declared but not be allocated any memory as its address
-     * will be set to the address of the input array.
+     * Generates code for device-to-host transfers.
      *
+     * @param composite
+     *        Parent composite process.
+     * @param k_schedules
+     *        List of schedules associated with pipeline stages.
      * @returns Variable declarations code.
      * @throws InvalidModelException
      *         When a variable cannot be declared due to lacking information.
@@ -869,6 +798,8 @@ private:
      * allocated for them (they simply take the address of the array input
      * parameters).
      *
+     * @param composite
+     *        Parent composite process.
      * @returns Cleanup code.
      * @throws IOException
      *         When access to the log file fails.
@@ -878,23 +809,6 @@ private:
     std::string generateSignalVariableCleanupCode(Forsyde::Composite* composite)
         throw(IOException, RuntimeException);
 
-    /**
-     * Generates code for the processnetwork input parameters. Each parameter will have
-     * prefix specified by Synthesizer::kProcessNetworkInputParameterPrefix_ or
-     * Synthesizer::kProcessNetworkOutputParameterPrefix_, followed by an integer value.
-     * All output parameters will be declared as pointers (except arrays, which
-     * are already pointers).
-     *
-     * @returns Function parameter list code.
-     * @throws InvalidModelException
-     *         When a variable cannot be declared due to lacking information.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    std::string generateCompositeParameterListCode(Forsyde::Composite* composite)
-        throw(InvalidModelException, RuntimeException);
 
     /**
      * Creates all signals needed for the leafs present in the
@@ -903,6 +817,8 @@ private:
      * signals are \em not detected. The method also clears any previously
      * generated signals.
      *
+     * @param composite
+     *        Parent composite process.
      * @throws InvalidModelException
      *         When a signal cannot be created due to lacking information.
      * @throws IOException
@@ -919,6 +835,8 @@ private:
      * the top of the function definition in C. The method also clears any
      * previously generated variables.
      *
+     * @param schedule
+     *        List of IDs denoting the sequential schedule.
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
@@ -928,136 +846,12 @@ private:
     		IOException, RuntimeException);
 
     /**
-     * Sets data types of array input signal variables as "const".  The
-     * "constness" is removed by default when the signal is created, but for
-     * input array signals the values are copied shallowly by simply reassigning
-     * the address of the array pointer. However, to do that, the signal
-     * variable needs to be set as "const" or the compiler will complain, and
-     * simply throwing away the constness with a cast is ugly.
-     *
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    void setInputArraySignalVariableDataTypesAsConst()
-        throw(IOException, RuntimeException);
-
-    /**
-     * Attempts to discover and set the data types of all signals. If the data
-     * type is an array, its size may still be unknown.
-     *
-     * @throws InvalidModelException
-     *         When a data type cannot be found for all signals.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    void discoverSignalDataTypes()
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Attempts to discover and set the data type for a signal by doing
-     * leaf-to-leaf search in the forward data flow direction. This means
-     * the method only looks at the leafs of the in ports. If the data type
-     * is an array, its size may still be unknown.
-     *
-     * @param signal
-     *        Signal for which to discover data type.
-     * @returns Discovered data type.
-     * @throws InvalidModelException
-     *         When a data type cannot be found for this signal.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    CDataType discoverSignalDataTypeForwardSearch(Signal* signal)
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Same as discoverSignalDataTypeForwardSearch(Signal&) but does backward
-     * search.  This means the method only looks at the leafs of the out
-     * ports.
-     *
-     * @param signal
-     *        Signal for which to discover data type.
-     * @returns Discovered data type.
-     * @throws InvalidModelException
-     *         When a data type cannot be found for this signal.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    CDataType discoverSignalDataTypeBackwardSearch(Signal* signal)
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Propagates known array sizes between the signals.
-     *
-     * @throws InvalidModelException
-     *         When an array size cannot be propagated to all signals.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     * @todo Implement this method (currently it does nothing).
-     */
-    void propagateArraySizesBetweenSignals()
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Searches for the array size of a signal in the forward data flow search.
-     *
-     * @param signal
-     *        Signal for which to discover array size.
-     * @returns Discovered array size.
-     * @throws InvalidModelException
-     *         When an array size cannot be found for this signal.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    size_t discoverSignalArraySizeForwardSearch(Signal* signal)
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Same as discoverSignalArraySizeForwardSearch(Signal&) but does backward
-     * search.
-     *
-     * @param signal
-     *        Signal for which to discover array size.
-     * @returns Discovered array size.
-     * @throws InvalidModelException
-     *         When an array size cannot be found for this signal.
-     * @throws IOException
-     *         When access to the log file fails.
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    size_t discoverSignalArraySizeBackwardSearch(Signal* signal)
-        throw(InvalidModelException, IOException, RuntimeException);
-
-    /**
-     * Propagates the array sizes discovered for the signals to the leaf
-     * functions.
-     *
-     * @throws RuntimeException
-     *         When a program error occurs. This most likely indicates a bug.
-     */
-    void propagateSignalArraySizesToLeafFunctions()
-        throw(IOException, RuntimeException);
-
-    /**
      * Generates code which execute the semantic meaning of a leaf. Executing
      * a \c delay leaf with this method has no effect (i.e. the leaf
      * is ignored).
      *
-     * @param leaf
-     *        Leaf to execute.
+     * @param process
+     *        Process to execute.
      * @returns Execution code.
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
@@ -1166,14 +960,14 @@ private:
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code for executing a leaf function.
+     * Generates code for executing a composite function.
      *
      * @param function
      *        Function to invoke.
      * @param inputs
      *        List of input variables.
-     * @param output
-     *        Destination variable.
+     * @param outputs
+     *        List of destination variables.
      * @returns Execution code.
      * @throws InvalidModelException
      *         When the function has unexpected number of input parameters, or
@@ -1188,14 +982,16 @@ private:
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code for executing a leaf function.
+     * Generates code for executing a parallel composte function.
      *
      * @param function
      *        Function to invoke.
+     * @param nproc
+     *        number of parallel processes.
      * @param inputs
      *        List of input variables.
-     * @param output
-     *        Destination variable.
+     * @param outputs
+     *         List of destination variables.
      * @returns Execution code.
      * @throws InvalidModelException
      *         When the function has unexpected number of input parameters, or
@@ -1210,14 +1006,14 @@ private:
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Generates code for executing a leaf function.
+     * Generates code for executing the top level function.
      *
      * @param function
      *        Function to invoke.
      * @param inputs
      *        List of input variables.
-     * @param output
-     *        Destination variable.
+     * @param outputs
+     *         List of destination variables.
      * @returns Execution code.
      * @throws InvalidModelException
      *         When the function has unexpected number of input parameters, or
@@ -1337,21 +1133,6 @@ private:
         throw(InvalidModelException, IOException, RuntimeException);
 
     /**
-     * Gets a function name which can be used globally in the synthesized code
-     * file. The format of the resultant name is
-     * \c "f<leaf_id>_<function_name>".
-     *
-     * @param leaf_id
-     *        Leaf ID.
-     * @param function_name
-     *        Name of the function.
-     * @returns Global function name.
-     */
-    std::string getGlobalLeafFunctionName(Forsyde::Id leaf_id,
-                                             const std::string& function_name)
-        const throw();
-
-    /**
      * Checks whether to allocate dynamic memory for the signal variable.
      *
      * @param signal
@@ -1405,8 +1186,8 @@ private:
      * code uses the leaf' in signals as input parameters to its function
      * argument, and then writes the result to its out signal.
      *
-     * @param leaf
-     *        Leaf to execute.
+     * @param composite
+     *        Parent composite process.
      * @returns Execution code.
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
@@ -1424,8 +1205,8 @@ private:
      * code uses the leaf' in signals as input parameters to its function
      * argument, and then writes the result to its out signal.
      *
-     * @param leaf
-     *        Leaf to execute.
+     * @param composite
+     *        Parent composite process.
      * @returns Execution code.
      * @throws InvalidModelException
      *         When something is wrong with the processnetwork.
@@ -1525,6 +1306,9 @@ private:
      */
     Logger& logger_;
 
+    /**
+     * The list with all created functions.
+     */
    std::list<CFunction*> functions_;
 
     /**
@@ -1551,11 +1335,17 @@ private:
      * Mapset of delay variables. The delay leaf is used as key, and the
      * value is a pair of a \c CVariable and its initial value.
      */
-    std::map< Forsyde::SY::delay*, std::pair<CVariable, std::string> >
-    delay_variables_;
+    std::map< Forsyde::SY::delay*, std::pair<CVariable, std::string> > delay_variables_;
 
+    /**
+     * Flag that checks if the current function is a kernel function.
+     */
     bool in_kernel_;
 
+    /**
+     * Flag that determines whether the pipelining is done according to the SY MoC or
+     * it is just there.
+     */
     bool enable_device_sync_;
 
   private:
