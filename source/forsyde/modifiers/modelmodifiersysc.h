@@ -71,10 +71,12 @@ namespace Forsyde {
  */
 class ModelModifierSysC {
   public:
-	struct DataPath;
+	class DataPath;
 
   public:
-
+	/**
+	 * List for enumerating cost types.
+	 */
     enum CostType {
    	 IN_COST,
    	 OUT_COST,
@@ -82,12 +84,14 @@ class ModelModifierSysC {
     };
 
     /**
-     * Creates a processnetwork modifier.
+     * Creates a model modifier.
      *
      * @param processnetwork
-     *        ForSyDe processnetwork.
+     *        ForSyDe process network.
      * @param logger
      *        Reference to the logger.
+     * @param costs
+     *        Object modeling the platform costs.
      * @throws InvalidArgumentException
      *         When \c processnetwork is \c NULL.
      */
@@ -96,41 +100,197 @@ class ModelModifierSysC {
         throw(InvalidArgumentException);
 
     /**
-     * Destroys this processnetwork modifier. The logger remains open.
+     * Destroys this model modifier. The logger remains open.
      */
     ~ModelModifierSysC() throw();
 
+    /**
+	  * Public method called for flattening a ForSyDe model and identifying data
+	  * parallel sections. It performs the following steps, in order:
+	  * 	-# parse through composite processes and flatten them one by one;
+	  * 	-# extract equivalent \c Comb processes and group them to
+	  * 	\c Forsyde::ParallelComposite processes.
+	  * 	-# extract the remaining equivalent \c Leaf processes and group them to
+	  * 	\c Forsyde::ParallelComposite processes.
+	  * 	-# remove redundant \c Zipx and \c Unzipx processes.
+	  *
+	  * @throws RuntimeException
+	  *         When a program error has occurred. This most likely indicates a
+	  *         bug.
+	  * @throws InvalidModelException
+	  *         When an error related to the ForSyDe model occured.
+	  * @throws InvalidProcessException
+	  *         When an error related to a ForSyDe process occured.
+	  * @throws OutOfMemoryException
+	  *         When there is not enough memory for creating a new object.
+	  */
     void flattenAndParallelize() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException);
 
+    /**
+      * Public method called for optimizing the target platform: CPU or GPU. Initially,
+      * all \c ParallelComposite processes are mapped for GPU execution while all other
+      * ones are mapped for CPU execution. Based upon a local cost calculation of
+      * execution and communication for each process, some processes may be redirected
+      * to optimize throughput.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidModelException
+      *         When an error related to the ForSyDe model occurred.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      */
     void optimizePlatform() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException);
 
+    /**
+      * Public method called for balancing the load for efficient pipeline execution.
+      * It performs the following actions:
+      * 	-# extracts all possible data paths in the process network.
+      * 	-# finds the maximum single cost by analyzing the datapaths, which will
+      * 	become the quantum cost for balancing the process network load against.
+      * 	-# extracts he contained sections from de data paths and sorts them by their maximum
+      * 	cost.
+      * 	-# splits the data paths into pipeline stages, and assigns a stage number
+      * 	for each process.
+      *
+      * @returns The new set of costs, useful for the synthesis module.
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidModelException
+      *         When an error related to the ForSyDe model occurred.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      */
     Config::Costs loadBalance() throw(
-    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
-    		InvalidModelException);
+    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException);
 
-    void createPipelineComposites() throw(
-    		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
-    		InvalidModelException);
-
+    /**
+      * Public method called for grouping all processes that are associated to GPU
+      * pipeline stages into separate ParallelComposite processes, for easy code
+      * synthesis later on.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidModelException
+      *         When an error related to the ForSyDe model occurred.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      */
     void wrapPipelineStages() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
     		InvalidArgumentException);
 
   private:
-
+    /**
+      * Set of algorithms for calculating the maximum cost from a list of datapaths.
+      * The costs to take into consideration are:
+      * 	- execution cost for processes mapped for parallel execution;
+      * 	- input/output channel communication cost;
+      * 	- sum of execution costs for processes mapped for sequential execution.
+      * 	- sum of the costs inside a loop, between to \c Delay elements, since
+      * 	they cannot be split.
+      * 	- transfer costs per data burst, as seen in
+      * 	SynthesizerExperimental::generateCudaKernelWrapper
+      *
+      * @param root
+      *        The root composite process.
+      * @param datapaths
+      *        The list of datapaths to be analyzed.
+      *
+      * @returns A string stating the owner of the maximum cost.
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidModelException
+      *         When an error related to the ForSyDe model occurred.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root is \c NULL;
+      *
+      * @see SynthesizerExperimental::generateCudaKernelWrapper
+      */
     std::string findMaximumCost(Composite* root, std::list<DataPath> datapaths) throw (
 		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException,
 		InvalidModelException);
 
+    /**
+      * Extracts a list of individual datapaths from the process network.
+      *
+      * @param root
+      *        The root composite process.
+      *
+      * @returns A list with datapaths.
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root is \c NULL;
+      */
     std::list<DataPath> extractDataPaths(Composite* root) throw (
 		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
+    /**
+      * Recursively parses a process network branch and returns its associated list of
+      * data paths.
+      *
+      * @param process
+      *        The current process being visited.
+      * @param current_path
+      *        The datapath which is currently being formed.
+      * @param root
+      *        The root composite process.
+      *
+      * @returns A list with datapaths.
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
     std::list<DataPath> parsePath(Process* process, DataPath current_path,
     		Composite* root) throw(
 		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
+    /**
+      * Calculates and arranges the contained sections into combsets indexed by their
+      * costs, so that we can force a priority for accessing them in a defined order.
+      *
+      * @param datapaths
+      *        List of contained sections as datapath objects
+      *
+      * @returns Combset of contained section as ID lists indexed by their costs.
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
     std::map<unsigned long long, std::list<Id> > sortContainedSectionsByCost(
     		std::list<DataPath> datapaths) throw (
 		RuntimeException, InvalidProcessException, OutOfMemoryException, InvalidModelException);
