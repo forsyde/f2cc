@@ -290,6 +290,13 @@ class Model {
      */
     void destroyAllComposites() throw();
 
+    /**
+     * Recursively destroys all child processes from the lowest hierarchical levels to
+     * the highest.
+     *
+     * @param root
+     *        Root composite process.
+     */
     void removeRecursive(Composite* root) throw();
 
   protected:

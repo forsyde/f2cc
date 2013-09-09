@@ -127,24 +127,8 @@ class Comb : public Leaf {
         throw(InvalidProcessException);
 
     /**
-     * Performs a series of checks:
-     *    - The function must have either equal number of input parameters as
-     *      the leaf has in ports, or equal number of input parameters as
-     *      the leaf has in ports + 1 (for the out port).
-     *    - If the function has the same number of input parameters as the
-     *      leaf has in ports, then the function must return data (i.e. have
-     *      return data type other than \c void) which also is not an array.
-     *    - If the function has the same number of input parameters as the
-     *      leaf has in ports + 1 (for the out port), then the function must
-     *      not return data (i.e. have return data type \c void).
-     *    - If any input parameter is an array or pointer, it must also be
-     *      declared \c const. If the function returns \c void, then the last
-     *      input parameter is not considered.
+     * Checks whether the ports are compatible for connection.
      *
-     * @param function
-     *        Function to check.
-     * @param num_in_ports
-     *        Number of in ports to the leaf.
      * @throws InvalidProcessException
      *         When the check fails.
      */

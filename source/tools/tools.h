@@ -322,6 +322,8 @@ std::list<ticpp::Element*> getXmlElementsByName(ticpp::Node* xml, const std::str
  *        XML document.
  * @param file
  *        \c .xml file.
+ * @param rootname
+ *        Name of the root process.
  *
  * @returns \c process_network element.
  *

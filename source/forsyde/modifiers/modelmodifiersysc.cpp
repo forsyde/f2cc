@@ -509,7 +509,6 @@ bool ModelModifierSysC::splitPipelineStages(vector<Id> contained_s)
 				already_assigned.push_back(*proc->getId());
 			}
 		}
-		//std::cout<<"### Already assigned procs:"<<printVector(already_assigned)<<"\n";
 
 		//try to fill up the already assigned stages
 		for (unsigned ait=0; ait<already_assigned.size(); ait++) {
@@ -517,10 +516,8 @@ bool ModelModifierSysC::splitPipelineStages(vector<Id> contained_s)
 			if (!assigned_proc) assigned_proc = processnetwork_->getProcess(already_assigned[ait]);
 			unsigned pos_cs = getPosOf(already_assigned[ait], contained_s);
 
-			//std::cout<<"### AMU ii la "<<pos_cs<<":"<<contained_s[pos_cs]<<"\n";
 
 			if (pos_cs != 0){
-				//std::cout<<"### NU E 0 :"<<pos_cs<<" : "<<contained_s[pos_cs]<<"\n";
 				Process* proc_to_add = processnetwork_->getComposite(contained_s[pos_cs - 1]);
 				if (!proc_to_add) proc_to_add = processnetwork_->getProcess(contained_s[pos_cs - 1]);
 
@@ -555,7 +552,6 @@ bool ModelModifierSysC::splitPipelineStages(vector<Id> contained_s)
 				}
 			}
 			if (pos_cs < contained_s.size() - 1){
-				//std::cout<<"### NU E LAST :"<<pos_cs<<" : "<<contained_s[pos_cs]<<"\n";
 				Process* proc_to_add = processnetwork_->getComposite(contained_s[pos_cs + 1]);
 				if (!proc_to_add) proc_to_add = processnetwork_->getProcess(contained_s[pos_cs + 1]);
 
@@ -921,13 +917,10 @@ void ModelModifierSysC::redirectFlow(Process::Interface* source, Process::Interf
 
 		if (src_port) (src_port)->setConnection(NULL);
 		else src_ioport->setConnection(NULL, true);
-		//std::cout<<"LALALALALAAAAAAAAAAAAAAAAA\n";
 		Id inner_id = Id((source)->toString());
-		//std::cout<<"LALALALALAAAAAAAAAAAAAAAAA\n";
 		Leaf* trg_leaf = dynamic_cast<Leaf*>(target->getProcess());
 		Composite* trg_comp =  dynamic_cast<Composite*>(target->getProcess());
 		Composite::IOPort* new_port;
-		//std::cout<<"LALALALALAAAAAAAAAAAAAAAAA\n";
 		if (trg_leaf){
 			if (!input){
 				reference->addInIOPort(inner_id, inner_type);
@@ -949,7 +942,6 @@ void ModelModifierSysC::redirectFlow(Process::Interface* source, Process::Interf
 			}
 		}
 		new_port->setDataType(true, outer_type);
-		//std::cout<<"LALALALALAAAAAAAAAAAAAAAAA\n";
 
 
 		new_port->setConnection(source, false);
@@ -979,17 +971,12 @@ void ModelModifierSysC::redirectFlow(Process::Interface* source, Process::Interf
 
 		pcomp_port->setConnection(NULL, true);
 		pcomp_port->setConnection(NULL, false);
-		//std::cout<<inside_port->toString()<<" : "<<inside_port->getConnectedPort()->toString()<<"\n";
-			//	std::cout<<"LULUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\n";
-		//std::cout<<pcomp_port->getId()->getString()<<" : "<<input<<"\n";
 		if (input)
 				reference->deleteInIOPort(*pcomp_port->getId());
 		else
 			reference->deleteOutIOPort(*pcomp_port->getId());
-		//std::cout<<"LULUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\n";
 		if (src_port) src_port->setConnection(inside_port);
 		else if (src_ioport)  src_ioport->setConnection(inside_port, true);
-		//std::cout<<"LULUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\n";
 		inside_port->setConnection(source);
 
 		logger_.logMessage(Logger::DEBUG, string() + "Connection between "
