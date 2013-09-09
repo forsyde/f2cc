@@ -77,6 +77,8 @@ class ParallelComposite : public Composite {
      * @param name
      *        the composite process' name. Initially it is the same as its filename, and it is enough
      *        to identify and compare a composite process' structure.
+     * @param number_of_processes
+     *        The number of data parallel processes replaced by this one.
      */
 	ParallelComposite(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy,
     		Forsyde::Id name, int number_of_processes) throw();
@@ -94,10 +96,10 @@ class ParallelComposite : public Composite {
     virtual int getNumProcesses() throw();
 
     /**
-     * Changes the name of this composite process.
+     * Sets the number of processes.
      *
-     * @param name
-     *        New name for the composite process, wrapped in an \c Id object.
+     * @param number_of_processes
+     *        Number of processes.
      */
     void setNumProcesses(int number_of_processes) throw();
 
@@ -109,10 +111,10 @@ class ParallelComposite : public Composite {
     const Id* getContainedProcessId() const throw();
 
     /**
-     * Changes the name of this composite process.
+     * Sets the contained process ID.
      *
-     * @param name
-     *        New name for the composite process, wrapped in an \c Id object.
+     * @param id
+     *        The contained process ID.
      */
     void setContainedProcessId(const Id* id) throw();
 
@@ -134,9 +136,14 @@ class ParallelComposite : public Composite {
 
 
   protected:
-
+     /**
+      * The number of processes.
+      */
     int number_of_processes_;
 
+    /**
+     * The ID of the contained process, for accessing purpose.
+     */
     const Id* contained_process_id_;
 
 };

@@ -295,80 +295,395 @@ class ModelModifierSysC {
     		std::list<DataPath> datapaths) throw (
 		RuntimeException, InvalidProcessException, OutOfMemoryException, InvalidModelException);
 
+    /**
+      * Builds pipeline stages by adding processes so that their computation and
+      * communication costs do not exceed the quantum cost. The stages are parsed
+      * in reverse order of their maximum cost, so that processes with higher cost have
+      * higher priority, and are resolved first.
+      *
+      * @param contained_sections
+      *        List (as vector, for easy indexed accessing) with all the contained
+      *        contained sections, in reverse order of their maximum cost.
+      *
+      * @returns \c False if a new quantum cost is discovered (due to unforseen
+      *          communication costs that have to be added). If so, this method
+      *          is aborted, invalidated, and the new quantum cost is updated. The
+      *          caller has to take care of running this method again with the new
+      *          quantum cost.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
     bool splitPipelineStages(std::vector<Id> contained_sections)
     throw (RuntimeException, InvalidProcessException, OutOfMemoryException, InvalidModelException);
 
+    /**
+      * Arranges the newly built pipeline stages into combsets indexed by their
+      * stage number, for easy accessing.
+      *
+      * @returns combset of process ID lists, indexed by the pipeline stage associated
+      * with them.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
     std::map<unsigned, std::list<Forsyde::Id> > orderStages() throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
     		InvalidArgumentException);
 
+    /**
+      * Bulds a \c ParallelComposite process out of all the processes associated with a
+      * pipeline stage. All the processes are moved into the ParallelComposite, and
+      * connections with the rest of the process network are taken care of.
+      *
+      * @param stage
+      *        List of process IDs associated with a pipeline stage.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
     void groupIntoPipelineComposites(std::list<Forsyde::Id> stage) throw(
     		RuntimeException, InvalidModelException, InvalidProcessException, OutOfMemoryException,
     		    		InvalidArgumentException);
 
+    /**
+      * Recursive function that flattens the contents of a composite process. When
+      * this function finishes execution, the composite process will be gone, and
+      * all its first children's hierarchy will be raised one level.
+      *
+      * @param composite
+      *        Composite process which needs to be flattened.
+      * @param parent
+      *        The parent composite process which will hold the children.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
     void flattenCompositeProcess(Composite* composite, Composite* parent) throw(
    		 RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
 
     /**
-      * Coalesces data parallel leafs across different segments into a
-      * single data parallel leaf.
+      * Groups equivalent \c SY::Comb processes into lists, so that they can be
+      * transformed into ParallelComposite processes.
       *
-      * @throws IOException
-      *         When access to the log file failed.
-      * @throws RuntimeException
-      *         When a program error has occurred. This most likely indicates a
-      *         bug.
+      * @param parent
+      *        The parent composite process which holds these equivalent processes.
+      *
+      * @returns List of lists with equivalent \c Comb processes.
+      *
+      * @throws InvalidArgumentException
+      *         If \c parent or is \c NULL;
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
       */
      std::list<std::list<Leaf*> > extractEquivalentCombs(Forsyde::Composite* parent)
          throw(InvalidArgumentException, OutOfMemoryException);
 
+     /**
+       * Groups equivalent Leaf processes into lists, so that they can be
+       * transformed into ParallelComposite processes.
+       *
+       * @param parent
+       *        The parent composite process which holds these equivalent processes.
+       *
+       * @returns List of lists with equivalent \c Comb processes.
+       *
+       * @throws InvalidArgumentException
+       *         If \c parent or is \c NULL;
+       * @throws OutOfMemoryException
+       *         When there is not enough memory for creating a new object.
+       */
      std::list<std::list<Leaf*> > extractEquivalentLeafs(Forsyde::Composite* parent)
          throw(InvalidArgumentException, OutOfMemoryException);
 
+     /**
+       * Calculates the cost of a process in a process network
+       *
+       * @param process
+       *        The parent composite process which holds these equivalent processes.
+       * @param on_device
+       *        Determines whether the process is to execute on a parallel platform.
+       *
+       * @returns Combset of cost indexed by their type.
+       *
+       * @throws InvalidArgumentException
+       *         If \c parent or is \c NULL;
+       * @throws OutOfMemoryException
+       *         When there is not enough memory for creating a new object.
+       */
      std::map<CostType, unsigned long long> calculateCostInNetwork(Process* process, bool on_device)
      	 throw(RuntimeException, InvalidProcessException, InvalidArgumentException);
 
+     /**
+       * Removes redundant \c Zipx and \c Unzipx processes, rebuilding the connections
+       * with the rest of the process network.
+       *
+       * @param parent
+       *        The parent composite process which holds the redundant processes.
+       *
+       * @throws InvalidArgumentException
+       *         If \c parent or is \c NULL;
+       * @throws OutOfMemoryException
+       *         When there is not enough memory for creating a new object.
+       */
      void removeRedundantZipsUnzips(Forsyde::Composite* parent)
      	 throw(InvalidArgumentException, OutOfMemoryException);
 
+     /**
+      * Recursive function that checks for data dependency in a process network, by
+      * parsing in downstream direction.
+      *
+      * @param current_process
+      *        The current process being parsed.
+      * @param to_compare_with
+      *        Combset of actor processes that have to be checked for data dependencies
+      *        agains the current one.
+      *
+      * @returns \c True if a data dependency has been found.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
      bool foundDependencyDownstream(Leaf* current_process, std::map<Id, SY::Comb*> to_compare_with)
  	 	 throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
+     /**
+      * Recursive function that checks for data dependency in a process network, by
+      * parsing in upstream direction.
+      *
+      * @param current_process
+      *        The current process being parsed.
+      * @param to_compare_with
+      *        Combset of actor processes that have to be checked for data dependencies
+      *        agains the current one.
+      *
+      * @returns \c True if a data dependency has been found.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
      bool foundDependencyUpstream(Leaf* current_process, std::map<Id, SY::Comb*> to_compare_with)
  	 	 throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
+     /**
+      * Creates a new \c ParallelComposite process process from a list of equivalent
+      * leaf processes.
+      *
+      * @param parent
+      *        The parent composite process.
+      * @param equivalent_processes
+      *        List of equivalent Leaf processes.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
      void createParallelComposite(Composite* parent, std::list<Forsyde::Leaf*> equivalent_processes)
          throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
+     /**
+      * Equips a ParallelComposite with its proper semantics and assigns it with the
+      * desired functionality. It also takes care of adding Zipx and Unzipx processes
+      * to preserve the semantics of the process network outside this ParallelComposite.
+      *
+      * @param reference_leaf
+      *        The leaf process which is used as reference to equip the ParallelComposite.
+      * @param parent
+      *        Parent composite process.
+      * @param new_pcomp
+      *        The new parallel composite process, just created.
+      * @param number_of_processes
+      *        The number of processes that the new ParallelComposite will replace.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      * @throws InvalidArgumentException
+      *         If \c root or \c process is \c NULL;
+      */
      void prepareLeafForParallel(Forsyde::Leaf* reference_leaf, Forsyde::Composite* parent,
     		 Forsyde::ParallelComposite* new_pcomp, unsigned number_of_processes)
          throw(RuntimeException, InvalidProcessException, InvalidArgumentException, OutOfMemoryException);
 
+     /**
+      * Moves one process from its parent into a ParallelComposite process.
+      *
+      * @param reference_process
+      *        The parent composite process.
+      * @param old_parent
+      *        The old parent composite process.
+      * @param new_parent
+      *        The new parallel composite process, acting as a new parent.
+      *
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      */
      void moveToParallelComposite(Process* reference_process, Composite* old_parent,
     		 ParallelComposite* new_parent) throw (
     		 InvalidProcessException, OutOfMemoryException);
 
+     /**
+      * Moves one process from its parent to another parent.
+      *
+      * @param reference_process
+      *        The reference process.
+      * @param old_parent
+      *        The old parent composite process.
+      * @param new_parent
+      *        The new parent composite process.
+      *
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      */
      void moveToNewParent(Process* reference_process, Composite* old_parent,
     		 Composite* new_parent) throw (
     		 InvalidProcessException, OutOfMemoryException);
 
+     /**
+      * Redirects the dataflow in a process network through a Parallel Composite
+      * process.
+      *
+      * @param old_process
+      *        The process whose dataflow has to be redirected.
+      * @param parent
+      *        Its parent.
+      * @param new_pcomp
+      *        The ParallelComposite process which the dataflow is redirected to.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      */
      void redirectFlowThroughParallelComposite(Process* old_process, Composite* parent,
     		 ParallelComposite* new_pcomp) throw (
     		 InvalidArgumentException, RuntimeException, InvalidProcessException);
 
+     /**
+      * Redirects the dataflow inside a ParallelComposite process.
+      *
+      * @param source
+      *        The source interface.
+      * @param target
+      *        The target interface.
+      * @param reference
+      *        The reference ParallelComposite process.
+      * @param input
+      *        \c True if the interface is considered an input for the ParallelComposite.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      * @throws InvalidProcessException
+      *         When an error related to a ForSyDe process occurred.
+      * @throws OutOfMemoryException
+      *         When there is not enough memory for creating a new object.
+      */
      void redirectFlow(Process::Interface* source, Process::Interface* target,
     		 ParallelComposite* reference, bool input) throw (
     		 InvalidArgumentException, RuntimeException, InvalidProcessException);
 
-     void convertPCompToLeaf(ParallelComposite* reference) throw (
-    		 InvalidArgumentException, RuntimeException, InvalidProcessException);
-
+     /**
+      * Helper function that returns the transfer coefficent between two processes.
+      *
+      * @param source_on_device
+      *        \c True if the signal originates in a process mapped for parallel execution.
+      * @param target_on_device
+      *        \c True if the signal is targeted to a process mapped for parallel execution.
+      * @param same_stream
+      *        \c True if both source and target belong to the same pipeline stage.
+      *
+      * @returns Coefficient for calculating transfer cost.
+      */
      int transferCoefficient(bool source_on_device, bool target_on_device, bool same_stream)
           	 throw();
 
+     /**
+      * Returns the index of an ID in a list of IDs.
+      *
+      * @param id
+      *        \c True if the signal originates in a process mapped for parallel execution.
+      * @param list
+      *        \c True if the signal is targeted to a process mapped for parallel execution.
+      *
+      * @returns Iterator index for the position of this Id.
+      */
      std::list<Id>::iterator getIdFromList(Id id, std::list<Id> list) throw();
 
+     /**
+      * Returns the index of an ID in a vector of IDs.
+      *
+      * @param id
+      *        \c True if the signal originates in a process mapped for parallel execution.
+      * @param vector
+      *        \c True if the signal is targeted to a process mapped for parallel execution.
+      *
+      * @returns Index for the position of this Id.
+      *
+      * @throws RuntimeException
+      *         When a program error has occurred. This most likely indicates a
+      *         bug.
+      */
      unsigned getPosOf(Id id, std::vector<Id> vector) throw(RuntimeException);
 		/*if (pos_csec < 0 || pos_csec >=contained_s.size()){
 			THROW_EXCEPTION(RuntimeException, string("The Id  \"")
@@ -377,12 +692,54 @@ class ModelModifierSysC {
 							+ " in the contained section list:\n"
 							+ printVector(contained_s));*/
 
+     /**
+      * Gets the portion from a data path between two defined processes.
+      *
+      * @param start
+      *        Left margin for the desired portion.
+      * @param stop
+      *        Right margin for the desired portion.
+      * @param list
+      *        List of process IDs representing a data path.
+      *
+      * @returns List with IDs representing the desired portion from the data path.
+      */
      std::list<Id> getPortionOfPath(Id start, Id stop, std::list<Id> list) throw();
 
+     /**
+      * Calculates the total cost of a loop in the process network.
+      *
+      * @param divergent_proc
+      *        The process which closes the loop.
+      * @param list
+      *        List of IDs representing a data path.
+      *
+      * @returns Loop cost.
+      */
      unsigned long long calculateLoopCost(Id divergent_proc, std::list<Id> list) throw();
 
+     /**
+      * Calculates the cost of a signal in the process network.
+      *
+      * @param source
+      *        The source process.
+      * @param target
+      *        The target process.
+      * @param sync
+      *        \c True if global synchronization is used on the device.
+      *
+      * @returns Signal cost.
+      */
      unsigned long long getSignalCost(Process* source, Process* target, bool sync) throw();
 
+     /**
+      * Helper function that prints a vector of IDs.
+      *
+      * @param vector
+      *        The vector containing a data path.
+      *
+      * @returns Vector as string.
+      */
      std::string printVector(std::vector<Id> vector) throw();
 
 
@@ -390,7 +747,7 @@ class ModelModifierSysC {
 
 
     /**
-     * ForSyDe processnetwork.
+     * ForSyDe process network.
      */
     Forsyde::ProcessNetwork* const processnetwork_;
 
@@ -399,37 +756,101 @@ class ModelModifierSysC {
      */
     Logger& logger_;
 
+    /**
+     * Cost coefficients.
+     */
     Config::Costs costs_;
 
+    /**
+     * \c True if loop cost is calculated taking into account the number of delays.
+     */
     bool delay_dependency_;
 
+    /**
+     * Container for accessing the quantum cost easily.
+     */
     unsigned long long quantum_cost_;
 
+    /**
+     * Temporary container used for process network parsing purposes.
+     */
     std::map<Id, bool> visited_processes_;
 
+    /**
+     * Combset of pipeline stages associated with their stage costs.
+     */
     std::map<unsigned, unsigned long long> stage_costs_; // stage : trasfer cost
 
   public:
+
+    /**
+     * @brief Container class for storing a data path.
+     *
+     * Container class for storing a data path.
+     */
 	class DataPath {
 	  public:
+	    /**
+	     * Creates a data path object.
+	     */
     	DataPath() throw();
 
+	    /**
+	     * Default destructor.
+	     */
     	~DataPath() throw();
 
+	    /**
+	     * Creates a string for printing the data path.
+	     *
+	     * @returns Data path as string.
+	     */
     	std::string printDataPath() throw();
 
+	    /**
+	     * Checks if a process has already been visited in creating this data path.
+	     *
+		 * @param id
+		 *        The process' ID.
+	     *
+	     * @returns \c True if the process already exists in the data path.
+	     */
     	bool wasVisited(Id id) throw();
 
+	    /**
+	     * Finds the contained paths (for mapping to parallel execution) inside a data
+	     * path.
+	     *
+	     * @returns List of contained paths.
+	     */
     	std::list<std::list<Id> > getContainedPaths() throw();
 
+	    /**
+	     * Compares if two data paths are equivalent.
+	     *
+		 * @param rhs
+		 *        DataPath object to compare with.
+	     */
     	void operator=(const DataPath& rhs) throw();
 
+	    /**
+	     * \c True if the data path contains a loop.
+	     */
     	bool is_loop_;
 
+	    /**
+	     * ID of the input first process.
+	     */
     	Id input_process_;
 
+	    /**
+	     * ID of the last process.
+	     */
     	Id output_process_;
 
+	    /**
+	     * The data path container.
+	     */
 		std::list<std::pair<Id, bool> > path_;
 
 	};

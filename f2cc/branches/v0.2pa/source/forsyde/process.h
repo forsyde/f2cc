@@ -79,6 +79,10 @@ class Process{
      *        Process ID.
      * @param hierarchy
      *        Process hierarchy.
+     * @param mapped_to_cuda
+     *        \c True if target device a parallel execution platform (CUDA device).
+     * @param cost
+     *        Process execution cost.
      */
     Process(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy,
     		bool mapped_to_cuda, int cost) throw();
@@ -132,12 +136,34 @@ class Process{
      */
     void setCost(int& cost) throw();
 
+    /**
+     * Maps the process to a target execution platform.
+     *
+     * @param mapped_to_cuda
+     *        \c True if target device a parallel execution platform (CUDA device).
+     */
     void mapToDevice(bool mapped_to_cuda) throw();
 
+    /**
+     * Checks if this process is mapped for parallel execution.
+     *
+     * @returns \c True if target device a parallel execution platform (CUDA device).
+     */
     bool isMappedToDevice() throw();
 
+    /**
+     * Sets the associated pipeline stage.
+     *
+     * @param stream_number
+     *        Stage number.
+     */
     void setStream(unsigned stream_number) throw();
 
+    /**
+     * Sets the associated pipeline stage.
+     *
+     * @returns Stage number.
+     */
     unsigned getStream() throw();
 
     /**
@@ -173,6 +199,9 @@ class Process{
 	 */
 	Forsyde::Hierarchy hierarchy_;
 
+    /**
+	 * \c True if target device a parallel execution platform (CUDA device).
+	 */
 	bool mapped_to_cuda_;
 
     /**
@@ -180,6 +209,9 @@ class Process{
 	 */
 	int cost_;
 
+    /**
+	 * Pipeline stage number.
+	 */
 	unsigned stream_number_;
 
 
@@ -232,6 +264,12 @@ class Process{
          */
         const Forsyde::Id* getId() const throw();
 
+        /**
+         * Connects this interface with another.
+         *
+         * @param port
+         *        Target interface.
+         */
         virtual void connect(Process::Interface* port) throw(RuntimeException,
         		InvalidArgumentException,IllegalCallException) = 0;
 
