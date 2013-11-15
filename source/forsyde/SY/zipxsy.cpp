@@ -37,7 +37,7 @@ Zipx::Zipx(const Id& id) throw()
 
 Zipx::Zipx(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
  		int cost) throw()
-        : Leaf(id, hierarchy, string("sy"), cost) {}
+        : Leaf(id, hierarchy, "sy", cost) {}
 
 Zipx::~Zipx() throw() {}
 
@@ -62,5 +62,6 @@ void Zipx::moreChecks() throw(InvalidProcessException) {
         THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
                         + getId()->getString() + "\" of type \""
                         + type() + "\" must have exactly one (1) out port");
+        //TODO:: Check port sizes
     }
 }

@@ -45,6 +45,7 @@
 #include "../exceptions/invalidformatexception.h"
 #include "../exceptions/invalidargumentexception.h"
 #include "../exceptions/illegalstateexception.h"
+#include "../exceptions/illegalcallexception.h"
 #include <list>
 
 namespace f2cc {
@@ -78,8 +79,13 @@ class Process{
      *        Process ID.
      * @param hierarchy
      *        Process hierarchy.
+     * @param mapped_to_cuda
+     *        \c True if target device a parallel execution platform (CUDA device).
+     * @param cost
+     *        Process execution cost.
      */
-    Process(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy) throw();
+    Process(const Forsyde::Id& id, Forsyde::Hierarchy& hierarchy,
+    		bool mapped_to_cuda, int cost) throw();
 
     /**
      * Destroys this process.
@@ -116,6 +122,51 @@ class Process{
 	void setHierarchy(Forsyde::Hierarchy) throw();
 
     /**
+     * Gets the cost for this process.
+     *
+     * @returns The cost parameter.
+     */
+    int getCost() const throw();
+
+    /**
+     * Sets the cost for this process.
+     *
+     * @param cost
+     *        The cost parameter.
+     */
+    void setCost(int& cost) throw();
+
+    /**
+     * Maps the process to a target execution platform.
+     *
+     * @param mapped_to_cuda
+     *        \c True if target device a parallel execution platform (CUDA device).
+     */
+    void mapToDevice(bool mapped_to_cuda) throw();
+
+    /**
+     * Checks if this process is mapped for parallel execution.
+     *
+     * @returns \c True if target device a parallel execution platform (CUDA device).
+     */
+    bool isMappedToDevice() throw();
+
+    /**
+     * Sets the associated pipeline stage.
+     *
+     * @param stream_number
+     *        Stage number.
+     */
+    void setStream(unsigned stream_number) throw();
+
+    /**
+     * Sets the associated pipeline stage.
+     *
+     * @returns Stage number.
+     */
+    unsigned getStream() throw();
+
+    /**
      * Checks that this process is valid. This does nothing except invoke the
      * purely virtual method moreChecks() for process type-related checks.
      *
@@ -147,6 +198,21 @@ class Process{
 	 * Hierarchy list
 	 */
 	Forsyde::Hierarchy hierarchy_;
+
+    /**
+	 * \c True if target device a parallel execution platform (CUDA device).
+	 */
+	bool mapped_to_cuda_;
+
+    /**
+	 * Process cost parameter.
+	 */
+	int cost_;
+
+    /**
+	 * Pipeline stage number.
+	 */
+	unsigned stream_number_;
 
 
   public:
@@ -198,6 +264,26 @@ class Process{
          */
         const Forsyde::Id* getId() const throw();
 
+        /**
+         * Connects this interface with another.
+         *
+         * @param port
+         *        Target interface.
+         */
+        virtual void connect(Process::Interface* port) throw(RuntimeException,
+        		InvalidArgumentException,IllegalCallException) = 0;
+
+        /**
+         * Converts this interface into a string representation. The resultant string
+         * is as follows:
+         * @code
+         *  <process_id>:<interface_id>
+         * @endcode
+         *
+         * @returns String representation.
+         */
+        std::string toPrint() const throw();
+
 
         /**
          * Converts this interface into a string representation. The resultant string
@@ -238,6 +324,7 @@ class Process{
          * Port name.
          */
         Process* process_;
+
 
     };
 

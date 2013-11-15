@@ -216,3 +216,21 @@ void CDataType::checkArraySize(size_t size) const
                         "than 1");
     }
 }
+
+int CDataType::getTypeSize() throw(){
+    switch (type_) {
+        case CHAR: return sizeof(char);
+        case UNSIGNED_CHAR: return sizeof(unsigned char);
+        case SHORT_INT: return sizeof(short int);
+        case UNSIGNED_SHORT_INT: return sizeof(unsigned short int);
+        case INT: return sizeof(int);
+        case UNSIGNED_INT: return sizeof(unsigned int);
+        case LONG_INT: return sizeof(long int);
+        case UNSIGNED_LONG_INT: return sizeof(unsigned long int);
+        case FLOAT: return sizeof(float);
+        case DOUBLE: return sizeof(double);
+        case LONG_DOUBLE: return sizeof(long double);
+        case VOID: return 0;
+        default: return -1; // Should never happen
+    }
+}

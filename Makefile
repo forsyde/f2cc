@@ -45,6 +45,10 @@ TESTBENCHPATH     = testbench
 
 build: $(TARGET)
 	@$(DOMAKE) -C ./source
+	@ if [ ! -d "$(TARGET)/config" ]; then \
+		mkdir $(TARGET)/config; \
+		cp source/config/costs/*.xml $(TARGET)/config/; \
+	fi
 
 test_environment: clean build
 	cp $(TESTMODELSPATH)/*.* $(TARGET)

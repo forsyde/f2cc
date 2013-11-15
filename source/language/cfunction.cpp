@@ -64,6 +64,38 @@ CFunction::CFunction(const string& name, CDataType return_type,
     }
 }
 
+CFunction::CFunction(const string& name, const list<CVariable> output_parameters,
+                     const list<CVariable> input_parameters,
+                     const string& body, const string& prefix)
+        throw(InvalidFormatException, OutOfMemoryException)
+        : name_(name), body_(body),
+          declaration_prefix_(prefix) {
+    tools::trim(name_);
+    if (name_.length() == 0) {
+        THROW_EXCEPTION(InvalidArgumentException, "\"name\" must not be empty "
+                        "string");
+    }
+    list<CVariable>::const_iterator it;
+    for (it = input_parameters.begin(); it != input_parameters.end(); ++it) {
+        try {
+            CVariable* new_parameter = new CVariable(*it);
+            input_parameters_.push_back(new_parameter);
+        }
+        catch (bad_alloc&) {
+            THROW_EXCEPTION(OutOfMemoryException);
+        }
+    }
+    for (it = output_parameters.begin(); it != output_parameters.end(); ++it) {
+        try {
+            CVariable* new_parameter = new CVariable(*it);
+            output_parameters_.push_back(new_parameter);
+        }
+        catch (bad_alloc&) {
+            THROW_EXCEPTION(OutOfMemoryException);
+        }
+    }
+}
+
 CFunction::CFunction(const CFunction& rhs) throw(OutOfMemoryException) {
     copy(rhs);
 }
@@ -90,6 +122,52 @@ string CFunction::getString() const throw() {
         str += (*it)->getInputParameterDeclarationString();
     }
     str += ") ";
+    str += body_;
+    return str;
+}
+
+string CFunction::getStringNew() const throw() {
+    string str;
+    if (declaration_prefix_.length() > 0) str += declaration_prefix_ + "\n";
+    str += return_data_type_.getFunctionReturnDataTypeString() + " " + name_;
+    str += "(";
+    list<CVariable*>::const_iterator it;
+    if (output_parameters_.size() == 0){
+    	comb_output_->getDataType()->setIsConst(false);
+    	str += comb_output_->getPointerDeclarationString();
+    }
+    else {
+		for (it = output_parameters_.begin(); it != output_parameters_.end(); ++it) {
+			if (it != output_parameters_.begin()) str += ", ";
+			str += (*it)->getPointerDeclarationString();
+		}
+    }
+    str += ", ";
+    for (it = input_parameters_.begin(); it != input_parameters_.end(); ++it) {
+        if (it != input_parameters_.begin()) str += ", ";
+        str += (*it)->getInputParameterDeclarationString();
+    }
+    str += ") ";
+    str += body_;
+    return str;
+}
+
+string CFunction::getStringNewRoot() const throw() {
+    string str;
+    if (declaration_prefix_.length() > 0) str += declaration_prefix_ + "\n";
+    str += return_data_type_.getFunctionReturnDataTypeString() + " " + name_;
+    str += "(";
+    list<CVariable*>::const_iterator it;
+    for (it = output_parameters_.begin(); it != output_parameters_.end(); ++it) {
+        if (it != output_parameters_.begin()) str += ", ";
+        str += (*it)->getPointerDeclarationString();
+    }
+    str += ", ";
+    for (it = input_parameters_.begin(); it != input_parameters_.end(); ++it) {
+        if (it != input_parameters_.begin()) str += ", ";
+        str += (*it)->getInputParameterDeclarationString();
+    }
+    str += ", unsigned long long N)";
     str += body_;
     return str;
 }
@@ -149,6 +227,22 @@ bool CFunction::addInputParameter(const CVariable& parameter)
     }
 }
 
+bool CFunction::addOutputParameter(const CVariable& parameter)
+    throw(OutOfMemoryException) {
+    list<CVariable*>::iterator it;
+    for (it = output_parameters_.begin(); it != output_parameters_.end(); ++it) {
+        if (**it == parameter) return false;
+    }
+    try {
+        CVariable* new_parameter = new CVariable(parameter);
+        output_parameters_.push_back(new_parameter);
+        return true;
+    }
+    catch (bad_alloc&) {
+        THROW_EXCEPTION(OutOfMemoryException);
+    }
+}
+
 bool CFunction::deleteInputParameter(const CVariable& parameter) throw() {
     list<CVariable*>::iterator it;
     for (it = input_parameters_.begin(); it != input_parameters_.end(); ++it) {
@@ -160,19 +254,22 @@ bool CFunction::deleteInputParameter(const CVariable& parameter) throw() {
     return false;
 }
 
-CVariable* CFunction::getOutputParameter() throw() {
-    return output_parameter_;
+std::list<CVariable*> CFunction::getOutputParameters() throw() {
+    return output_parameters_;
 }
 
-bool CFunction::setOutputParameter(const CVariable& parameter) throw() {
-    try {
-        CVariable* new_parameter = new CVariable(parameter);
-        output_parameter_ = new_parameter;
-        return true;
-    }
-    catch (bad_alloc&) {
-        THROW_EXCEPTION(OutOfMemoryException);
-    }
+void CFunction::setOutputParameters(std::list<CVariable*> parameters) throw() {
+	output_parameters_ = parameters;
+}
+
+CVariable* CFunction::getOutputParameter() throw(){
+	return comb_output_;
+}
+
+bool CFunction::setOutputParameter(const CVariable& parameter) throw(){
+    CVariable* new_parameter = new CVariable(parameter);
+    comb_output_ = new_parameter;
+    return true;
 }
 
 string CFunction::getBody() const throw() {
@@ -202,6 +299,7 @@ void CFunction::destroyInputParameters() throw() {
 void CFunction::copy(const CFunction& rhs) throw(OutOfMemoryException) {
     name_ = rhs.name_;
     return_data_type_ = rhs.return_data_type_;
+    comb_output_ = rhs.comb_output_;
     destroyInputParameters();
     // Copy input parameters
     list<CVariable*>::const_iterator it;
@@ -210,6 +308,16 @@ void CFunction::copy(const CFunction& rhs) throw(OutOfMemoryException) {
         try {
             CVariable* new_parameter = new CVariable(**it);
             input_parameters_.push_back(new_parameter);
+        }
+        catch (bad_alloc&) {
+            THROW_EXCEPTION(OutOfMemoryException);
+        }
+    }
+    for (it = rhs.output_parameters_.begin(); it != rhs.output_parameters_.end();
+         ++it) {
+        try {
+            CVariable* new_parameter = new CVariable(**it);
+            output_parameters_.push_back(new_parameter);
         }
         catch (bad_alloc&) {
             THROW_EXCEPTION(OutOfMemoryException);

@@ -46,6 +46,7 @@ ProcessNetwork::~ProcessNetwork() throw() {
 	destroyAllFunctions();
 }
 
+
 bool ProcessNetwork::addInput(Process::Interface* port)
     throw(InvalidArgumentException, IllegalStateException,
           OutOfMemoryException) {

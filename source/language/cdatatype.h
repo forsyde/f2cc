@@ -298,6 +298,13 @@ class CDataType {
      */
     static std::string typeToString(Type type) throw();
 
+    /**
+     * Gets the type sizes associated with data types on the host machine.
+     *
+     * @returns Data type size as integer.
+     */
+    int getTypeSize() throw();
+
   private:
     /**
      * Checks that the array size is valid.

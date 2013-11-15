@@ -127,6 +127,15 @@ class Comb : public Leaf {
         throw(InvalidProcessException);
 
     /**
+     * Checks whether the ports are compatible for connection.
+     *
+     * @throws InvalidProcessException
+     *         When the check fails.
+     */
+    virtual void checkPorts()
+        throw(InvalidProcessException);
+
+    /**
      * Gets the function argument as string representation in the following
      * format:
      * @code

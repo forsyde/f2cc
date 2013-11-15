@@ -26,7 +26,6 @@
  */
 
 #include "frontend.h"
-#include "dumper.h"
 #include <list>
 
 using namespace f2cc;
@@ -47,10 +46,6 @@ ProcessNetwork* Frontend::parse(const string& file)
     }
 
     ProcessNetwork* processnetwork = createProcessNetwork(file);
-
-    XmlDumper* dumper;
-    dumper = new (std::nothrow) XmlDumper(logger_);
-    dumper->dump(processnetwork,"hallo.xml");
 
     logger_.logMessage(Logger::INFO, "Checking that the internal processnetwork is "
                        "sane...");
@@ -118,18 +113,21 @@ void Frontend::checkPort(Leaf::Port* port, ProcessNetwork* processnetwork)
                         + port->getId()->getString()
                         + "\" in leaf \""
                         + port->getProcess()->getId()->getString()
-                        + "\" is connected to its own processnetwork "
+                        + "\" is connected to its own process "
                         + "(Combinatorial looping)");
     }
 
-    // Check that the other port belongs to a leaf in the processnetwork
-    if (!processnetwork->getProcess(*port->getConnectedPort()->getProcess()->getId())) {
+    // Check that the other port belongs to a process in the processnetwork
+    if (
+    	(!processnetwork->getProcess(*port->getConnectedPort()->getProcess()->getId())) &&
+    	(!processnetwork->getComposite(*port->getConnectedPort()->getProcess()->getId()))
+    	) {
         THROW_EXCEPTION(InvalidModelException, string("Port \"")
                         + port->getId()->getString()
                         + "\" in leaf \""
                         + port->getProcess()->getId()->getString()
-                        + "\" is connected to a leaf outside the "
-                        + "processnetwork");
+                        + "\" is connected to a process outside the "
+                        + "process network");
     }
 }
 

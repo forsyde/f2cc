@@ -75,6 +75,7 @@ void Model::addProcesses(map<const Id, Leaf*> leafes)
     }
 }
 
+
 Leaf* Model::getProcess(const Id& id) throw() {
     map<const Id, Leaf*>::iterator it = findProcess(id);
     return it != leafs_.end() ? it->second : NULL;
@@ -93,6 +94,10 @@ list<Leaf*> Model::getProcesses() throw() {
     return leafes;
 }
 
+map<const Id, Leaf*> Model::getProcessesMap() throw() {
+    return leafs_;
+}
+
 bool Model::deleteProcess(const Id& id) throw() {
     map<const Id, Leaf*>::iterator it = findProcess(id);
     if (it != leafs_.end()) {
@@ -105,7 +110,17 @@ bool Model::deleteProcess(const Id& id) throw() {
         return false;
     }
 }
-
+bool Model::removeProcess(const Id& id) throw() {
+    map<const Id, Leaf*>::iterator it = findProcess(id);
+    if (it != leafs_.end()) {
+    	Leaf* saved_leaf = it->second;
+        leafs_.erase(it);
+        return saved_leaf;
+    }
+    else {
+        return false;
+    }
+}
 
 Id Model::getUniqueProcessId() const throw() {
     return getUniqueProcessId("");
@@ -160,6 +175,7 @@ void Model::addComposites(map<const Id, Composite*> compositees)
     }
 }
 
+
 Composite* Model::getComposite(const Id& id) throw() {
     map<const Id, Composite*>::iterator it = findComposite(id);
     return it != composites_.end() ? it->second : NULL;
@@ -178,6 +194,10 @@ list<Composite*> Model::getComposites() throw() {
     return compositees;
 }
 
+map<const Id, Composite*> Model::getCompositesMap() throw() {
+    return composites_;
+}
+
 bool Model::deleteComposite(const Id& id) throw() {
     map<const Id, Composite*>::iterator it = findComposite(id);
     if (it != composites_.end()) {
@@ -185,6 +205,18 @@ bool Model::deleteComposite(const Id& id) throw() {
         composites_.erase(it);
         delete removed_composite;
         return true;
+    }
+    else {
+        return false;
+    }
+}
+bool Model::removeComposite(const Id& id) throw() {
+    map<const Id, Composite*>::iterator it = findComposite(id);
+    if (it != composites_.end()) {
+    	Composite* saved_composite = it->second;
+    	removeRecursive(saved_composite);
+        composites_.erase(it);
+        return saved_composite;
     }
     else {
         return false;
@@ -214,5 +246,15 @@ map<const Id, Composite*>::iterator Model::findComposite(const Id& id) throw() {
     return composites_.find(id);
 }
 
+void Model::removeRecursive(Composite* root) throw(){
+	list<Leaf*> leafs = root->getProcesses();
+	for (list<Leaf*>::iterator it = leafs.begin(); it != leafs.end(); ++it){
+		removeProcess(*(*it)->getId());
+	}
+	list<Composite*> composites = root->getComposites();
+	for (list<Composite*>::iterator it = composites.begin(); it != composites.end(); ++it){
+		removeComposite(*(*it)->getId());
+	}
+}
 
 

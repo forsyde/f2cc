@@ -220,6 +220,25 @@ class ProcessNetwork: public Model {
      */
     bool deleteFunction(const Id& id) throw();
 
+
+    /**
+     * Converts this process network into a string representation. The resultant string
+     * is as follows:
+     * @code
+     * {
+     *  ProcessNetwork Module,
+     *  NumInputs: <num_inputs>,
+     *  Inputs = { ... },
+     *  NumOututs: <num_outports>,
+     *  Outputs = { ... },
+     *  NumFunctions: <num_functions>
+     * }
+     * @endcode
+     *
+     * @returns String representation.
+     */
+    virtual std::string toString() const throw();
+
   private:
 
     /**
@@ -269,23 +288,6 @@ class ProcessNetwork: public Model {
     std::string portsToString(const std::list<Process::Interface*> ports) const
         throw();
 
-    /**
-     * Converts this process network into a string representation. The resultant string
-     * is as follows:
-     * @code
-     * {
-     *  ProcessNetwork Module,
-     *  NumInputs: <num_inputs>,
-     *  Inputs = { ... },
-     *  NumOututs: <num_outports>,
-     *  Outputs = { ... },
-     *  NumFunctions: <num_functions>
-     * }
-     * @endcode
-     *
-     * @returns String representation.
-     */
-    std::string toString() const throw();
 
     /**
      * Attempts to find a function with a given ID. If the mapset of functions is

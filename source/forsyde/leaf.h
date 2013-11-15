@@ -47,6 +47,7 @@
 #include "../exceptions/invalidprocessexception.h"
 #include "../exceptions/invalidformatexception.h"
 #include "../exceptions/invalidargumentexception.h"
+#include "../exceptions/illegalcallexception.h"
 #include <list>
 
 namespace f2cc {
@@ -71,7 +72,7 @@ class Leaf : public Process{
      * @param id
      *        Leaf ID.
      */
-    Leaf(const Forsyde::Id& id) throw();
+    Leaf(const Forsyde::Id& id) throw(RuntimeException);
 
     /**
      * Creates a leaf node, with the information containers initialized.
@@ -86,7 +87,7 @@ class Leaf : public Process{
      *        Leaf cost parameter.
      */
     Leaf(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
-    		const std::string moc, int cost) throw();
+    		const std::string& moc, int cost) throw(RuntimeException);
 
     /**
      * Destroys this leaf. This also destroys all ports and breaks all
@@ -99,22 +100,7 @@ class Leaf : public Process{
      *
      * @returns The MoC.
      */
-    const std::string getMoc() const throw();
-
-    /**
-     * Gets the cost for this process.
-     *
-     * @returns The cost parameter.
-     */
-    int getCost() const throw();
-
-    /**
-     * Sets the cost for this process.
-     *
-     * @param cost
-     *        The cost parameter.
-     */
-    void setCost(int& cost) throw();
+    const std::string getMoc() const throw(RuntimeException);
 
     /**
      * Adds an in port to this leaf. Leafs are not allowed to have
@@ -127,7 +113,7 @@ class Leaf : public Process{
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInPort(const Forsyde::Id& id) throw(OutOfMemoryException);
+    bool addInPort(const Forsyde::Id& id) throw(RuntimeException, OutOfMemoryException);
 
     /**
      * Adds an in port to this leaf, with a CDataType container. Leafs are not
@@ -143,7 +129,7 @@ class Leaf : public Process{
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInPort(const Forsyde::Id& id, CDataType datatype) throw(OutOfMemoryException);
+    bool addInPort(const Forsyde::Id& id, CDataType datatype) throw(RuntimeException, OutOfMemoryException);
 
     /**
      * Creates a new port with the same ID and connections as another port and
@@ -163,7 +149,7 @@ class Leaf : public Process{
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addInPort(Port& port) throw(OutOfMemoryException);
+    bool addInPort(Port& port) throw(RuntimeException, OutOfMemoryException);
 
     /**
      * Deletes and destroys an in port to this leaf.
@@ -172,14 +158,14 @@ class Leaf : public Process{
      *        Port ID.
      * @returns \b true if such a port was found and successfully deleted.
      */
-    bool deleteInPort(const Forsyde::Id& id) throw();
+    bool deleteInPort(const Forsyde::Id& id) throw(RuntimeException);
 
     /**
      * Gets the number of in ports of this leaf.
      *
      * @returns Number of in ports.
      */
-    size_t getNumInPorts() const throw();
+    size_t getNumInPorts() const throw(RuntimeException);
 
     /**
      * Gets an in port by ID belonging to this this leaf.
@@ -188,14 +174,14 @@ class Leaf : public Process{
      *        Port id.
      * @returns Port, if found; otherwise \c NULL.
      */
-    Port* getInPort(const Forsyde::Id& id) throw();
+    Port* getInPort(const Forsyde::Id& id) throw(RuntimeException);
 
     /**
      * Gets a list of in ports belonging to this this leaf.
      *
      * @returns List of in ports.
      */
-    std::list<Port*> getInPorts() throw();
+    std::list<Port*> getInPorts() throw(RuntimeException);
 
     /**
      * Same as addIn Port(const Forsyde::Id&) but for out ports.
@@ -207,7 +193,7 @@ class Leaf : public Process{
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutPort(const Forsyde::Id& id) throw(OutOfMemoryException);
+    bool addOutPort(const Forsyde::Id& id) throw(RuntimeException, OutOfMemoryException);
 
     /**
      * Adds an out port to this leaf, with a CDataType container. Leafs are not
@@ -223,7 +209,7 @@ class Leaf : public Process{
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutPort(const Forsyde::Id& id, CDataType datatype) throw(OutOfMemoryException);
+    bool addOutPort(const Forsyde::Id& id, CDataType datatype) throw(RuntimeException, OutOfMemoryException);
 
     /**
      * Same as addInPort(Port&) but for out ports.
@@ -235,7 +221,7 @@ class Leaf : public Process{
      * @throws OutOfMemoryException
      *         When a port cannot be added due to memory shortage.
      */
-    bool addOutPort(Port& port) throw(OutOfMemoryException);
+    bool addOutPort(Port& port) throw(RuntimeException, OutOfMemoryException);
 
     /**
      * Same as deleteOutPort(const Forsyde::Id&) but for out ports.
@@ -244,14 +230,14 @@ class Leaf : public Process{
      *        Port ID.
      * @returns \b true if such a port was found and successfully deleted.
      */
-    bool deleteOutPort(const Forsyde::Id& id) throw();
+    bool deleteOutPort(const Forsyde::Id& id) throw(RuntimeException);
 
     /**
      * Same as getNumInPorts() but for out ports.
      *
      * @returns Number of out ports.
      */
-    size_t getNumOutPorts() const throw();
+    size_t getNumOutPorts() const throw(RuntimeException);
 
     /**
      * Same as getOutPort(const Forsyde::Id&) but for out ports.
@@ -260,14 +246,14 @@ class Leaf : public Process{
      *        Port ID.
      * @returns Port, if found; otherwise \c NULL.
      */
-    Port* getOutPort(const Forsyde::Id& id) throw();
+    Port* getOutPort(const Forsyde::Id& id) throw(RuntimeException);
 
     /**
      * Same as getInPorts() but for out ports.
      *
      * @returns List of out ports.
      */
-    std::list<Port*> getOutPorts() throw();
+    std::list<Port*> getOutPorts() throw(RuntimeException);
 
 
     /**
@@ -290,7 +276,7 @@ class Leaf : public Process{
      * @returns String representation.
      * @see moreToString()
      */
-    virtual std::string toString() const throw();
+    virtual std::string toString() const throw(RuntimeException);
 
     /**
      * Checks whether this leaf is equal to another. Two leafs are equal
@@ -301,7 +287,7 @@ class Leaf : public Process{
      *        Leaf to compare with.
      * @returns \b true if both leafs are equal.
      */
-    virtual bool operator==(const Leaf& rhs) const throw();
+    virtual bool operator==(const Leaf& rhs) const throw(RuntimeException);
 
     /**
      * Same as operator==(Leaf&) but for inequality.
@@ -310,7 +296,7 @@ class Leaf : public Process{
      *        Leaf to compare with.
      * @returns \b true if both leafs are not equal.
      */
-    virtual bool operator!=(const Leaf& rhs) const throw();
+    virtual bool operator!=(const Leaf& rhs) const throw(RuntimeException);
 
     /**
      * Gets the type of this leaf as a string.
@@ -336,7 +322,7 @@ class Leaf : public Process{
      * @returns Additional string representation data.
      * @see toString()
      */
-    virtual std::string moreToString() const throw();
+    virtual std::string moreToString() const throw(RuntimeException);
 
   private:
 
@@ -353,7 +339,7 @@ class Leaf : public Process{
      *          to the list's \c end() iterator.
      */
     std::list<Port*>::iterator findPort(const Forsyde::Id& id,
-                                        std::list<Port*>& ports) const throw();
+                                        std::list<Port*>& ports) const throw(RuntimeException);
 
     /**
      * Takes a list of ports and converts it into a string representation. Each
@@ -367,7 +353,7 @@ class Leaf : public Process{
      *        Port list.
      * @returns String representation.
      */
-    std::string portsToString(const std::list<Port*> ports) const throw();
+    std::string portsToString(const std::list<Port*> ports) const throw(RuntimeException);
 
     /**
      * Destroys all ports in a given list.
@@ -375,7 +361,7 @@ class Leaf : public Process{
      * @param ports
      *        List of ports to destroy.
      */
-    void destroyAllPorts(std::list<Port*>& ports) throw();
+    void destroyAllPorts(std::list<Port*>& ports) throw(RuntimeException);
 
   protected:
     /**
@@ -393,10 +379,6 @@ class Leaf : public Process{
 	 */
 	const std::string moc_;
 
-    /**
-	 * Process cost parameter.
-	 */
-	int cost_;
 
   public:
     /**
@@ -417,7 +399,7 @@ class Leaf : public Process{
          * @param id
          *        Port ID.
          */
-        Port(const Forsyde::Id& id) throw();
+        Port(const Forsyde::Id& id) throw(RuntimeException);
 
         /**
          * Creates a port belonging to a leaf.
@@ -430,7 +412,7 @@ class Leaf : public Process{
          *         When \c leaf is \c NULL.
          */
         Port(const Forsyde::Id& id, Leaf* leaf)
-            throw(InvalidArgumentException);
+            throw(RuntimeException, InvalidArgumentException);
 
 
         /**
@@ -446,7 +428,7 @@ class Leaf : public Process{
          *         When \c leaf is \c NULL.
          */
         Port(const Forsyde::Id& id, Leaf* leaf, CDataType data_type)
-            throw(InvalidArgumentException);
+            throw(RuntimeException, InvalidArgumentException);
 
         /**
          * Creates a port belonging to no leaf with the same ID and
@@ -461,7 +443,7 @@ class Leaf : public Process{
          * @param rhs
          *        Port to copy.
          */
-        explicit Port(Port& rhs) throw();
+        explicit Port(Port& rhs) throw(RuntimeException);
 
         /**
          * Creates a port belonging to leaf with the same ID and
@@ -477,7 +459,7 @@ class Leaf : public Process{
          *         When \c leaf is \c NULL.
          */
         explicit Port(Port& rhs, Leaf* leaf)
-            throw(InvalidArgumentException);
+            throw(RuntimeException, InvalidArgumentException);
 
         /**
          * Destroys this port. This also breaks the connection, if any.
@@ -489,7 +471,7 @@ class Leaf : public Process{
 		 *
 		 * @return the associated data type.
 		 */
-        CDataType getDataType() throw();
+        CDataType getDataType() throw(RuntimeException);
 
         /**
 		 * Sets the data type of this port.
@@ -497,7 +479,7 @@ class Leaf : public Process{
 		 * @param datatype
 		 *        The new data type that has to be set.
 		 */
-        void setDataType(CDataType datatype) throw();
+        void setDataType(CDataType datatype) throw(RuntimeException);
 
         /**
 		 * Gets the link to the variable in the \c CFunction which this port
@@ -505,7 +487,7 @@ class Leaf : public Process{
 		 *
 		 * @return pointer to associated variable.
 		 */
-        CVariable* getVariable() throw();
+        CVariable* getVariable() throw(RuntimeException);
 
         /**
 		 * Sets the link to the variable in the \c CFunction which this port
@@ -514,14 +496,14 @@ class Leaf : public Process{
 		 * @param variable
 		 *        A valid variable in a \c CFunction.
 		 */
-        void setVariable(CVariable* variable) throw();
+        void setVariable(CVariable* variable) throw(RuntimeException);
 
         /**
          * Checks if this port is connected to any other interface.
          *
          * @returns \b true if connected.
          */
-        bool isConnected() const throw();
+        bool isConnected() const throw(RuntimeException);
 
         /**
          * Recursively checks whether this ports eventually connects to another
@@ -529,7 +511,7 @@ class Leaf : public Process{
          *
          * @returns \b true if connected.
          */
-        bool isConnectedToLeaf() const throw(IllegalStateException);
+        bool isConnectedToLeaf() const throw(RuntimeException, IllegalStateException);
 
         /**
          * Connects this port to a interface in the process' scope.
@@ -546,25 +528,25 @@ class Leaf : public Process{
          *
          * @returns \b true if connection was successful.
          */
-        void connect(Process::Interface* port) throw(InvalidArgumentException);
+        virtual void connect(Process::Interface* port) throw(RuntimeException, InvalidArgumentException,IllegalCallException);
 
         /**
          * Breaks the connection that this port may have to another. If there is
          * no connection, nothing happens.
          */
-        void unconnect() throw();
+        void unconnect() throw(RuntimeException);
 
         /**
          * Recursively breaks all connections until it reaches a \c Leaf::Port.
          */
-        void unconnectFromLeaf() throw();
+        void unconnectFromLeaf() throw(RuntimeException);
 
         /**
          * Gets the port at the other end of the connection, if any.
          *
          * @returns Connected port, if any; otherwise \c NULL.
          */
-        Process::Interface* getConnectedPort() const throw();
+        Process::Interface* getConnectedPort() const throw(RuntimeException);
 
         /**
          * Sets the connected port. Unlike the connect(Process::Interface*) method,
@@ -574,9 +556,9 @@ class Leaf : public Process{
          * @param port
          *        Interface to connect.
          */
-        void setConnection(Process::Interface* port) throw();
+        void setConnection(Process::Interface* port) throw(RuntimeException);
 
-        //Leaf::Port* getConnectedLeafPort() const throw();
+        //Leaf::Port* getConnectedLeafPort() const throw(RuntimeException);
 
         /**
          * Checks for equality between this port and another.
@@ -586,7 +568,7 @@ class Leaf : public Process{
          * @returns \b true if both belong to the same leaf and if their IDs
          *          are identical.
          */
-        bool operator==(const Leaf::Port& rhs) const throw();
+        bool operator==(const Leaf::Port& rhs) const throw(RuntimeException);
 
         /**
          * Checks for inequality between this port and another.
@@ -596,7 +578,7 @@ class Leaf : public Process{
          * @returns \b true if the ports belong to different leafs or if
          *          their IDs are not identical.
          */
-        bool operator!=(const Leaf::Port& rhs) const throw();
+        bool operator!=(const Leaf::Port& rhs) const throw(RuntimeException);
 
       private:
 
@@ -609,14 +591,14 @@ class Leaf : public Process{
          *
          * @returns String representation.
          */
-        virtual std::string moretoString() const throw();
+        virtual std::string moretoString() const throw(RuntimeException);
 
         /**
          * Due to how port copying works, the assign operator is hidden and thus
          * not allowed to avoid potential bugs as it is easy to forget this
          * fact.
          */
-        void operator=(const Port&) throw();
+        void operator=(const Port&) throw(RuntimeException);
 
       private:
         /**

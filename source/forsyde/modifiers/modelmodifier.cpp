@@ -26,16 +26,16 @@
  */
 
 #include "modelmodifier.h"
-#include "SY/zipxsy.h"
-#include "SY/unzipxsy.h"
-#include "SY/parallelmapsy.h"
-#include "SY/coalescedmapsy.h"
-#include "SY/zipwithnsy.h"
-#include "../language/cfunction.h"
-#include "../language/cdatatype.h"
-#include "../tools/tools.h"
-#include "../exceptions/castexception.h"
-#include "../exceptions/indexoutofboundsexception.h"
+#include "../SY/zipxsy.h"
+#include "../SY/unzipxsy.h"
+#include "../SY/parallelmapsy.h"
+#include "../SY/coalescedmapsy.h"
+#include "../SY/zipwithnsy.h"
+#include "../../language/cfunction.h"
+#include "../../language/cdatatype.h"
+#include "../../tools/tools.h"
+#include "../../exceptions/castexception.h"
+#include "../../exceptions/indexoutofboundsexception.h"
 #include <set>
 #include <string>
 #include <new>

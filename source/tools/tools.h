@@ -40,15 +40,21 @@
  * which operate on dates, times and strings.
  */
 
+#include "../ticpp/ticpp.h"
 #include "../exceptions/filenotfoundexception.h"
 #include "../exceptions/ioexception.h"
 #include "../exceptions/invalidargumentexception.h"
+#include "../exceptions/runtimeexception.h"
+#include "../exceptions/parseexception.h"
+#include "../exceptions/castexception.h"
+#include "../exceptions/outofmemoryexception.h"
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <list>
 #include <vector>
+#include <list>
 
 namespace f2cc {
 
@@ -287,6 +293,53 @@ void breakLongLines(std::string& str, size_t maximum_length,
                     size_t indent_length)
     throw();
 
+
+
+/**
+ * Gets a list of elements with a particular name which are immediate
+ * children to a XML object. If none are found, an empty list is returned.
+ *
+ * @param xml
+ *        XML object to search.
+ * @param name
+ *        Name of the elements to search for.
+ * @returns List of
+ * @throws InvalidArgumentException
+ *         When \c xml is \c NULL or when \c name is an empty string.
+ * @throws IOException
+ *         When access to the log file fails.
+ * @throws RuntimeException
+ *         When something unexpected occurs. This is most likely due to a
+ *         bug.
+ */
+std::list<ticpp::Element*> getXmlElementsByName(ticpp::Node* xml, const std::string& name)
+    throw(InvalidArgumentException, IOException, RuntimeException, CastException, OutOfMemoryException);
+
+/**
+ * Locates the \c process_nertwork XML element in the XML document.
+ *
+ * @param xml
+ *        XML document.
+ * @param file
+ *        \c .xml file.
+ * @param rootname
+ *        Name of the root process.
+ *
+ * @returns \c process_network element.
+ *
+ * @throws InvalidArgumentException
+ *         When \c xml is \c NULL.
+ * @throws ParseException
+ *         If no or multiple graph elements were found.
+ * @throws IOException
+ *         When access to the log file fails.
+ * @throws RuntimeException
+ *         When something unexpected occurs. This is most likely due to a
+ *         bug.
+ */
+ticpp::Node* findXmlRootNode(ticpp::Document* xml, const std::string& file,
+		const std::string& rootname)
+    throw(InvalidArgumentException, ParseException, IOException, RuntimeException);
 }
 }
 

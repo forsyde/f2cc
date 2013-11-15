@@ -78,7 +78,8 @@ ProcessNetwork* XmlParser::createProcessNetwork(const string& file)
     if (!processnetwork) THROW_EXCEPTION(OutOfMemoryException);
 
     Document xml_doc = (parseXmlFile(file));
-    Element* xml_root = dynamic_cast<Element*>(findXmlRootNode(&xml_doc, file));
+    Element* xml_root = dynamic_cast<Element*>(tools::findXmlRootNode(&xml_doc, file,
+    		"process_network"));
     if (!xml_root) THROW_EXCEPTION(CastException);
 
     Composite* root_comp = buildComposite(xml_root, processnetwork,
@@ -142,7 +143,7 @@ Document XmlParser::parseXmlFile(const string& file)
     string xml_data;
     logger_.logMessage(Logger::INFO, string(tools::indent(level_)
                            + "Level " + tools::toString(level_)
-                           + ". Reading xml data from file: "
+                           + ". Active XML: "
                            + file
                            + "..."));
     try {
@@ -194,7 +195,7 @@ void XmlParser::parseXmlLeafs(Element* xml, ProcessNetwork* processnetwork,
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "leaf_process");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "leaf_process");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
@@ -237,7 +238,7 @@ void XmlParser::parseXmlComposites(Element* xml, ProcessNetwork* processnetwork,
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "composite_process");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "composite_process");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
@@ -276,7 +277,7 @@ void XmlParser::parseXmlPorts(Element* xml, Composite* parent)
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "port");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "port");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
           logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
@@ -298,7 +299,7 @@ void XmlParser::parseXmlSignals(Element* xml, Composite* parent)
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "signal");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "signal");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
           logger_.logMessage(Logger::DEBUG, string(tools::indent(level_)
@@ -331,27 +332,40 @@ Leaf* XmlParser::generateLeaf(ProcessNetwork* pn, Element* xml,
     if (process_type.length() == 0) {
         THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(), "No process type");
     }
+
     string process_moc = getAttributeByTag(constructor_element, "moc");
     tools::toLowerCase(tools::trim(process_moc));
-    if (process_moc.length() == 0) {
-        THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(), "No process MoC");
+    if (process_moc != "sy") {
+        THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(), "Only the "
+        		"synchronous MoC is supported.");
     }
+
+    string process_cost_string = getAttributeByTag(constructor_element, "cost");
+    tools::toLowerCase(tools::trim(process_cost_string));
+    if (process_cost_string.length() == 0) {
+        THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(), "No process Cost");
+    }
+    if (!tools::isNumeric(process_cost_string)) {
+        THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(), "Process cost is not a number.");
+    }
+    int process_cost = tools::toInt(process_cost_string);
+
     try {
     	if ((process_type == "unzipx") && (process_moc == "sy")) {
-    		leaf_process = new SY::Unzipx(Id(process_id), parent->getHierarchy(), 0);
+    		leaf_process = new SY::Unzipx(Id(process_id), parent->getHierarchy(), process_cost);
         }
         else if ((process_type == "zipx") && (process_moc == "sy")) {
-        	leaf_process = new SY::Zipx(Id(process_id), parent->getHierarchy(), 0);
+        	leaf_process = new SY::Zipx(Id(process_id), parent->getHierarchy(), process_cost);
         }
         else if ((process_type == "fanout") && (process_moc == "sy"))  {
-        	leaf_process = new SY::Fanout(Id(process_id), parent->getHierarchy(), 0);
+        	leaf_process = new SY::Fanout(Id(process_id), parent->getHierarchy(), process_cost);
         }
         else if ((process_type == "delay") && (process_moc == "sy"))  {
-        	leaf_process = new SY::delay(Id(process_id), parent->getHierarchy(), 0,
+        	leaf_process = new SY::delay(Id(process_id), parent->getHierarchy(), process_cost,
         			getInitialDelayValue(constructor_element, parent));
         }
         else if ((process_type == "comb") && (process_moc == "sy"))  {
-        	leaf_process = new SY::Comb(Id(process_id), parent->getHierarchy(), 0,
+        	leaf_process = new SY::Comb(Id(process_id), parent->getHierarchy(), process_cost,
         			generateLeafFunction(constructor_element, pn, parent));
         }
         else {
@@ -366,12 +380,13 @@ Leaf* XmlParser::generateLeaf(ProcessNetwork* pn, Element* xml,
     }
     if (!leaf_process) THROW_EXCEPTION(OutOfMemoryException);
 
+
     logger_.logMessage(Logger::DEBUG, string(tools::indent(level_))
                        + "Generated " + leaf_process->type()
                        + " from \"" + leaf_process->getId()->getString() + "\"");
 
     // Get ports
-    list<Element*> elements = getElementsByName(xml, "port");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "port");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG,
@@ -410,7 +425,8 @@ Composite* XmlParser::generateComposite(ProcessNetwork* pn, Element* xml,
     string previous_file = file_;
     file_ = composite_filename;
     Document xml_doc = (parseXmlFile(composite_filename));
-    Element* xml_root = dynamic_cast<Element*>(findXmlRootNode(&xml_doc, composite_filename));
+    Element* xml_root = dynamic_cast<Element*>(tools::findXmlRootNode(&xml_doc, composite_filename,
+    		"process_network"));
     if (!xml_root) THROW_EXCEPTION(CastException);
 
     Composite* composite_process = buildComposite(xml_root, pn, composite_id,
@@ -530,9 +546,13 @@ void XmlParser::generateIOPort(Element* xml, Composite* parent)
         THROW_EXCEPTION(InvalidArgumentException, "\"parent\" must not be NULL");
     }
     string port_name = getAttributeByTag(xml,"name");
+    string port_datatype = getAttributeByTag(xml,"type");
+    int port_size = tools::toInt(getAttributeByTag(xml, "size"));
     string port_direction = getAttributeByTag(xml,"direction");
     string bound_process = getAttributeByTag(xml,"bound_process");
     string bound_port = getAttributeByTag(xml,"bound_port");
+
+    CDataType data_type = getDataType(port_datatype, port_size);
 
     /* @todo: check whether the xml port data in the opened file corresponds to
      * the xml port data in the caller file
@@ -541,11 +561,11 @@ void XmlParser::generateIOPort(Element* xml, Composite* parent)
     Composite::IOPort* this_ioport;
 	bool port_added;
 	if (port_direction == "in") {
-		port_added = parent->addInIOPort(Id(port_name));
+		port_added = parent->addInIOPort(Id(port_name), data_type);
 		this_ioport = parent->getInIOPort(Id(port_name));
 	}
 	else if (port_direction == "out"){
-		port_added = parent->addOutIOPort(Id(port_name));
+		port_added = parent->addOutIOPort(Id(port_name), data_type);
 		this_ioport = parent->getOutIOPort(Id(port_name));
 	}
 	else THROW_EXCEPTION(ParseException, parent->getName().getString(), xml->Row(),
@@ -671,8 +691,6 @@ CDataType XmlParser::getDataType(const string& port_datatype,
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException){
 
-	CDataType* data_type;
-
 	if (string::npos != port_datatype.find("array")){
 		unsigned type_begin = port_datatype.find_last_of("<") + 1;
 		unsigned type_end = port_datatype.find_first_of(">");
@@ -684,17 +702,14 @@ CDataType XmlParser::getDataType(const string& port_datatype,
 			THROW_EXCEPTION(InvalidArgumentException, "\"port_datatype\" carries the wrong type");
 		}
 
-		data_type = new CDataType(CDataType::stringToType(base_datatype),
-					true, true, size, false, false);
-
-		return *data_type;
+		return CDataType(CDataType::stringToType(base_datatype),
+					true, true, size, false, true);
 	}
 	else{
 		string base_datatype = port_datatype;
 		tools::trim(base_datatype);
-		data_type = new CDataType(CDataType::stringToType(base_datatype),
-					false, false, 0, false, false);
-		return *data_type;
+		return CDataType(CDataType::stringToType(base_datatype),
+					false, false, 1, false, false);
 	}
 
 }
@@ -812,7 +827,7 @@ void XmlParser::generateConnection(Process::Interface* source_port,
 								   + source->toString()
 								   + "\" is a fanout. Generating a new port.");
 				Id new_id = Id(string(fanout->getOutPorts().back()->getId()->getString()
-						+ "_"));
+						+ "0"));
 				fanout->addOutPort(new_id, source->getDataType());
 				fanout->getOutPort(new_id)->connect(target_port);
 				logger_.logMessage(Logger::DEBUG, string()
@@ -838,10 +853,10 @@ void XmlParser::generateConnection(Process::Interface* source_port,
 		Composite::IOPort* source_io = dynamic_cast<Composite::IOPort*>(source_port);
 		if (!source_io) THROW_EXCEPTION(CastException);
 		else {
-			logger_.logMessage(Logger::WARNING, string()
+			/*logger_.logMessage(Logger::WARNING, string()
 					+ tools::indent(level_)
 					+ "Multiple connections are not treated for IO ports.");
-
+			 */
 			source_io->connect(target_port);
 			logger_.logMessage(Logger::DEBUG, string()
 							   + tools::indent(level_)
@@ -852,83 +867,6 @@ void XmlParser::generateConnection(Process::Interface* source_port,
 	}
 }
 
-Node* XmlParser::findXmlRootNode(Document* xml, const string& file)
-    throw(InvalidArgumentException, ParseException, IOException,
-          RuntimeException) {
-    if (!xml) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
-    }
-
-    Node* xml_root_node = xml->FirstChild("process_network", false);
-    if (!xml_root_node) {
-        THROW_EXCEPTION(ParseException, file,
-                        string("Could not find root element \"graphml\""));
-    }
-    if (xml_root_node->Type() != TiXmlNode::ELEMENT) {
-        THROW_EXCEPTION(ParseException, file,
-        		        xml_root_node->Row(),
-        				xml_root_node->Column(),
-                        string("Found \"process_network\" structure is not an "
-                               "element"));
-    }
-
-    return xml_root_node;
-}
-
-list<Element*> XmlParser::getElementsByName(Node* xml, const string& name)
-    throw(InvalidArgumentException, IOException, RuntimeException) {
-    if (!xml) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
-    }
-    if (name.length() == 0) {
-        THROW_EXCEPTION(InvalidArgumentException, "\"name\" must not be empty "
-                        "string");
-    }
-
-    list<Element*> elements;
-    Node* child = NULL;
-    while ((child = xml->IterateChildren(name, child))) {
-        switch (child->Type()) {
-            case TiXmlNode::ELEMENT: {
-                try {
-                    Element* e = dynamic_cast<Element*>(child);
-                    if (!e) THROW_EXCEPTION(CastException);
-                    elements.push_back(e);
-                } catch (bad_alloc&) {
-                    THROW_EXCEPTION(OutOfMemoryException);
-                }
-                break;
-            }
-
-            case TiXmlNode::DECLARATION:
-            case TiXmlNode::DOCUMENT:
-            case TiXmlNode::UNKNOWN:
-            case TiXmlNode::TEXT:
-            case TiXmlNode::STYLESHEETREFERENCE:
-            case TiXmlNode::TYPECOUNT: {
-                // Found unknown XML data; warn and remove
-                logger_.logMessage(Logger::WARNING,
-                                   string("Unknown XML data at line ")
-                                   + tools::toString(child->Row()) + ", column "
-                                   + tools::toString(child->Column()) + ":\n"
-                                   + child->Value());
-                Node* prev_child = child->PreviousSibling(name, false);
-                xml->RemoveChild(child);
-                child = prev_child;
-                break;
-            }
-
-            case TiXmlNode::COMMENT: {
-                // Found XML comment; ignore and remove
-                Node* prev_child = child->PreviousSibling(name, false);
-                xml->RemoveChild(child);
-                child = prev_child;
-                break;
-            }
-        }
-    }
-    return elements;
-}
 
 Element* XmlParser::getUniqueElement(Node* xml, const string& name)
     throw(InvalidArgumentException, IOException, RuntimeException) {
@@ -940,7 +878,7 @@ Element* XmlParser::getUniqueElement(Node* xml, const string& name)
                         "string");
     }
 
-    list<Element*> elements = getElementsByName(xml, name);
+    list<Element*> elements = tools::getXmlElementsByName(xml, name);
     if (elements.size() != 1){
     	THROW_EXCEPTION(ParseException, file_,
     			xml->Row(),
@@ -988,7 +926,7 @@ string XmlParser::getInitialDelayValue(Element* xml, Composite* parent)
         THROW_EXCEPTION(InvalidArgumentException, "\"xml\" must not be NULL");
     }
 
-    list<Element*> elements = getElementsByName(xml, "argument");
+    list<Element*> elements = tools::getXmlElementsByName(xml, "argument");
     list<Element*>::iterator it;
     for (it = elements.begin(); it != elements.end(); ++it) {
         logger_.logMessage(Logger::DEBUG,
@@ -1008,7 +946,7 @@ string XmlParser::getInitialDelayValue(Element* xml, Composite* parent)
 ////////////////////////////////////////////////////////////////////
 
 XmlParser::CParser::CParser(Logger& logger, int indent) throw() :
-		level_(indent), file_(NULL), cdata_(NULL), logger_(logger){}
+		level_(indent), logger_(logger){}
 
 XmlParser::CParser::~CParser() throw() {}
 
@@ -1139,7 +1077,7 @@ void XmlParser::CParser::extractBody(CFunction* function)
         THROW_EXCEPTION(InvalidArgumentException, "\"function\" must not be empty "
                         "string");
     }
-    std::string body = "";
+    std::string body = "{\n";
 
     //getting the declaration stream
     stringstream tempcode(cdata_);
@@ -1153,7 +1091,7 @@ void XmlParser::CParser::extractBody(CFunction* function)
 			break;
 		}
     	else if (is_body){
-    		body += line;
+    		body += "\n" + line;
     		cdata_.erase(cdata_.find(line), line.size() + 1);
     	}
     }
@@ -1162,6 +1100,9 @@ void XmlParser::CParser::extractBody(CFunction* function)
 						string("The function in file \"")
 						+ file_ + "\" has no body.");
 	}
+    body += "\n}\n";
+
+    function->setBody(body);
 }
 
 void XmlParser::CParser::renameWrappedVariables(CFunction* function)
@@ -1273,7 +1214,7 @@ void XmlParser::CParser::createFunctionParameter(CFunction* function, string ana
 	tools::searchReplace(data_type_string, "&", "");
 	tools::trim(data_type_string);
 	c_data_type = new CDataType(CDataType::stringToType(data_type_string),
-			is_array, false, 0, false, false);
+			is_array, false, 1, false, is_array);
 
 	CVariable* c_variable;
 	string name_string = analysis_string.substr(separator + 1,

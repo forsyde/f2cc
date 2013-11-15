@@ -44,10 +44,13 @@
 #include "frontend/frontend.h"
 #include "frontend/graphmlparser.h"
 #include "frontend/xmlparser.h"
+#include "frontend/dumper.h"
 #include "forsyde/processnetwork.h"
 #include "forsyde/leaf.h"
-#include "forsyde/modelmodifier.h"
+#include "forsyde/modifiers/modelmodifier.h"
+#include "forsyde/modifiers/modelmodifiersysc.h"
 #include "synthesizer/synthesizer.h"
+#include "synthesizer/synthesizer02.h"
 #include "exceptions/exception.h"
 #include "exceptions/ioexception.h"
 #include "exceptions/filenotfoundexception.h"
@@ -71,6 +74,9 @@ string getProcessNetworkInfo(ProcessNetwork* processnetwork) {
     string info;
     info += "Number of leafs: ";
     info += tools::toString(processnetwork->getNumProcesses());
+    info += "\n";
+    info += "Number of composites: ";
+    info += tools::toString(processnetwork->getNumComposites());
     info += "\n";
     info += "Number of inputs: ";
     info += tools::toString(processnetwork->getNumInputs());
@@ -141,7 +147,7 @@ int main(int argc, const char* argv[]) {
                     break;
                 }
 
-                case Config::CUDA: {
+                case Config::GraphML: {
                 	logger.logInfoMessage(string("Old GraphML format assumed.")
                 	        + " The execution will follow the path from v0.1...");
                 	parser = new (std::nothrow) GraphmlParser(logger);
@@ -159,6 +165,10 @@ int main(int argc, const char* argv[]) {
             processnetwork_info_message += getProcessNetworkInfo(processnetwork);
             logger.logInfoMessage(processnetwork_info_message);
 
+            XmlDumper dumper(logger);
+            dumper.dump(processnetwork,"hallo.xml");
+
+
             string target_platform_message("TARGET PLATFORM: ");
             switch (config.getTargetPlatform()) {
                 case Config::C: {
@@ -173,71 +183,127 @@ int main(int argc, const char* argv[]) {
             }
             logger.logInfoMessage(target_platform_message);
 
-            // Make processnetwork modifications, if necessary
-            ModelModifier modifier(processnetwork, logger);
-            logger.logInfoMessage("Removing redundant leafs...");
-            modifier.removeRedundantLeafs();
-            logger.logInfoMessage("Converting Comb leafs "
-                              "with one in port to Comb leafs...");
-            modifier.convertZipWith1ToMap();
-            if (config.getTargetPlatform() == Config::CUDA) {
-                string leaf_coalescing_message("DATA PARALLEL PROCESS "
-                                                  "COALESCING: ");
-                if (config.doDataParallelLeafCoalesing()) {
-                    leaf_coalescing_message += "YES";
-                }
-                else {
-                    leaf_coalescing_message += "NO";
-                }
-                logger.logInfoMessage(leaf_coalescing_message);
-                if (config.doDataParallelLeafCoalesing()) {
-                    logger.logInfoMessage(""
-                                      "Performing data parallel Comb leaf "
-                                      "coalescing...");
-                    modifier.coalesceDataParallelLeafs();
-                }
+            switch (config.getInputFormat()) {
+				case Config::GraphML: {
+					// Make processnetwork modifications, if necessary
+					ModelModifier modifier(processnetwork, logger);
+					logger.logInfoMessage("Removing redundant leafs...");
+					modifier.removeRedundantLeafs();
+					logger.logInfoMessage("Converting Comb leafs "
+									  "with one in port to Comb leafs...");
+					modifier.convertZipWith1ToMap();
+					if (config.getTargetPlatform() == Config::CUDA) {
+						string leaf_coalescing_message("DATA PARALLEL PROCESS "
+														  "COALESCING: ");
+						if (config.doDataParallelLeafCoalesing()) {
+							leaf_coalescing_message += "YES";
+						}
+						else {
+							leaf_coalescing_message += "NO";
+						}
+						logger.logInfoMessage(leaf_coalescing_message);
+						if (config.doDataParallelLeafCoalesing()) {
+							logger.logInfoMessage(""
+											  "Performing data parallel Comb leaf "
+											  "coalescing...");
+							modifier.coalesceDataParallelLeafs();
+						}
 
-                logger.logInfoMessage(
-                                  "Splitting data parallel segments...");
-                modifier.splitDataParallelSegments();
+						logger.logInfoMessage(
+										  "Splitting data parallel segments...");
+						modifier.splitDataParallelSegments();
 
-                logger.logMessage(Logger::INFO,
-                                  "Fusing chains of Unzipx-map-Zipx "
-                                  "leafs...");
-                modifier.fuseUnzipMapZipLeafs();
+						logger.logMessage(Logger::INFO,
+										  "Fusing chains of Unzipx-map-Zipx "
+										  "leafs...");
+						modifier.fuseUnzipMapZipLeafs();
 
-                if (config.doDataParallelLeafCoalesing()) {
-                    logger.logInfoMessage(""
-                                      "Performing ParallelMap leaf "
-                                      "coalescing...");
-                    modifier.coalesceParallelMapSyLeafs();
-                }
-            }
-            processnetwork_info_message = "NEW MODEL INFO:\n";
-            processnetwork_info_message += getProcessNetworkInfo(processnetwork);
-            logger.logInfoMessage(processnetwork_info_message);
+						if (config.doDataParallelLeafCoalesing()) {
+							logger.logInfoMessage(""
+											  "Performing ParallelMap leaf "
+											  "coalescing...");
+							modifier.coalesceParallelMapSyLeafs();
+						}
+					}
+					processnetwork_info_message = "NEW MODEL INFO:\n";
+					processnetwork_info_message += getProcessNetworkInfo(processnetwork);
+					logger.logInfoMessage(processnetwork_info_message);
 
-            // Generate code and write to file
-            Synthesizer synthesizer(processnetwork, logger, config);
-            Synthesizer::CodeSet code;
-            switch (config.getTargetPlatform()) {
-                case Config::C: {
-                    code = synthesizer.generateCCode();
-                    break;
-                }
 
-                case Config::CUDA: {
-                    code = synthesizer.generateCudaCCode();
-                    break;
-                }
-            }
+					// Generate code and write to file
+					Synthesizer synthesizer(processnetwork, logger, config);
+					Synthesizer::CodeSet code;
+					switch (config.getTargetPlatform()) {
+						case Config::C: {
+							code = synthesizer.generateCCode();
+							break;
+						}
 
-            logger.logInfoMessage("Writing code to output files...");
-            tools::writeFile(config.getHeaderOutputFile(), code.header);
-            tools::writeFile(config.getImplementationOutputFile(),
-                             code.implementation);
+						case Config::CUDA: {
+							code = synthesizer.generateCudaCCode();
+							break;
+						}
+					}
 
-            logger.logInfoMessage("MODEL SYNTHESIS COMPLETE");
+					logger.logInfoMessage("Writing code to output files...");
+					tools::writeFile(config.getHeaderOutputFile(), code.header);
+					tools::writeFile(config.getImplementationOutputFile(),
+									 code.implementation);
+
+					logger.logInfoMessage("MODEL SYNTHESIS COMPLETE");
+
+
+					break;
+				}
+
+				case Config::XML: {
+					config.setCosts(string("config/costs.xml"));
+					ModelModifierSysC modifier(processnetwork, logger, config.getCosts());
+					modifier.flattenAndParallelize();
+
+					XmlDumper dumper1(logger);
+					dumper1.dump(processnetwork,"flattenAndParallelize.xml");
+
+					modifier.optimizePlatform();
+
+					XmlDumper dumper2(logger);
+					dumper2.dump(processnetwork,"optimizePlatform.xml");
+
+					Config::Costs newcosts = modifier.loadBalance();
+					config.setCosts(newcosts);
+
+					XmlDumper dumper3(logger);
+					dumper3.dump(processnetwork,"loadBalanced.xml");
+
+					modifier.wrapPipelineStages();
+
+					XmlDumper dumper4(logger);
+					dumper4.dump(processnetwork,"pipelined.xml");
+
+					processnetwork_info_message = "NEW MODEL INFO:\n";
+					processnetwork_info_message += getProcessNetworkInfo(processnetwork);
+					logger.logInfoMessage(processnetwork_info_message);
+
+		            SynthesizerExperimental synthesizer(processnetwork, logger, config);
+		            SynthesizerExperimental::CodeSet code;
+		            switch (config.getTargetPlatform()) {
+		                case Config::C: {
+		                    code = synthesizer.generateCCode();
+		                    break;
+		                }
+
+		                case Config::CUDA: {
+		                    code = synthesizer.generateCudaCCode();
+		                    break;
+		                }
+		            }
+		            tools::writeFile(config.getImplementationOutputFile(),
+		                                         code.implementation);
+
+					break;
+				}
+			}
+
 
             // Clean up
             delete processnetwork;

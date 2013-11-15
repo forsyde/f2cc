@@ -26,6 +26,7 @@
  */
 
 #include "combsy.h"
+#include "../../tools/tools.h"
 #include <typeinfo>
 #include <list>
 
@@ -37,7 +38,7 @@ using std::list;
 
 Comb::Comb(const Forsyde::Id& id, Forsyde::Hierarchy hierarchy,
  		int cost, CFunction* function) throw()
-        : Leaf(id, hierarchy, string("sy"), cost),  function_(function) {}
+        : Leaf(id, hierarchy, "sy", cost),  function_(function) {}
 
 Comb::~Comb() throw() {}
 
@@ -74,6 +75,7 @@ void Comb::moreChecks() throw(InvalidProcessException) {
                         + type() + "\" must have exactly one (1) out port");
     }
     checkFunction(function_, getNumInPorts());
+    //checkPorts();
 }
 
 string Comb::moreToString() const throw() {
@@ -82,38 +84,22 @@ string Comb::moreToString() const throw() {
 
 void Comb::checkFunction(CFunction* function, size_t num_in_ports) const
     throw(InvalidProcessException) {
-    if (function->getInputParameters().size() == num_in_ports) {
-        if (function->getReturnDataType()->getFunctionReturnDataTypeString()
-            == "void") {
-            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
-                            + getId()->getString() + "\" of type \""
-                            + type() + "\": function arguments with one input "
-                            "parameter must return data (i.e. have return "
-                            "data type other than \"void\")");
-        }
-        if (function->getReturnDataType()->isArray()) {
-            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
-                            + getId()->getString() + "\" of type \""
-                            + type() + "\": return type of function arguments "
-                            "with one input parameter must not be an array");
-        }
-    }
-    else if (function->getInputParameters().size() == num_in_ports + 1) {
-        if (function->getReturnDataType()->getFunctionReturnDataTypeString()
-            != "void") {
-            THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
-                            + getId()->getString() + "\" of type \""
-                            + type() + "\": function arguments with two input "
-                            "parameters must not return data (i.e. have return "
-                            "data type \"void\")");
-        }
-    }
-    else {
-        THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
-                        + getId()->getString() + "\" of type \""
-                        + type() + "\" must have a function argument with "
-                        "one or two input parameters");
-    }
+	if (function->getNumInputParameters() != getNumInPorts()) {
+		THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
+						+ getId()->getString() + "\" of type \""
+						+ type() + "\": function has "
+						+ tools::toString(function->getNumInputParameters())
+						+ " but the process has "
+						+ tools::toString(getNumInPorts())
+		                + " input ports.");
+	}
+	if (!function->getOutputParameters().front()) {
+		THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
+						+ getId()->getString() + "\" of type \""
+						+ type() + "\": function has "
+						+ "no output parameter");
+	}
+
 
     size_t i;
     list<CVariable*> input_parameters = function->getInputParameters();
@@ -127,6 +113,37 @@ void Comb::checkFunction(CFunction* function, size_t num_in_ports) const
                             + type() + "\": input parameter \""
                             + variable.getReferenceString() + "\"is a "
                             "reference or array but not declared const");
+        }
+    }
+}
+
+void Comb::checkPorts()
+    throw(InvalidProcessException) {
+
+    list<Leaf::Port*> input_ports = getInPorts();
+    for (list<Leaf::Port*>::iterator it = input_ports.begin();
+    		it != input_ports.end(); ++it) {
+        if (*(*it)->getVariable()->getDataType() != (*it)->getDataType()){
+			THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
+							+ getId()->getString() + "\" of type \""
+							+ type() + "\": Input port \""
+							+ (*it)->toString() + "\" has a different data type "
+							"than its pointed variable: \""
+							+ (*it)->getVariable()->getLocalVariableDeclarationString()
+							+ "\"");
+        }
+    }
+    list<Leaf::Port*> output_ports = getOutPorts();
+    for (list<Leaf::Port*>::iterator it = output_ports.begin();
+    		it != output_ports.end(); ++it) {
+        if (*(*it)->getVariable()->getDataType() != (*it)->getDataType()){
+			THROW_EXCEPTION(InvalidProcessException, string("Leaf \"")
+							+ getId()->getString() + "\" of type \""
+							+ type() + "\": Output port \""
+							+ (*it)->toString() + "\" has a different data type "
+							"than its pointed variable: \""
+							+ (*it)->getVariable()->getLocalVariableDeclarationString()
+							+ "\"");
         }
     }
 }
