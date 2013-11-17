@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -30,15 +28,14 @@
 
 /**
  * @file
- * @author  Gabriel Hjort Blindell <ghb@kth.se> & George Ungureanu <ugeorge@kth.se>
- * @version 0.2
+ * @author  Gabriel Hjort Blindell <ghb@kth.se>
+ * @version 0.1
  *
- * @brief Defines the model abstract class for the internal ForSyDe representation,
- * which will be inherited by \c Processnetwork and \c Composite.
+ * @brief Defines the model part of the internal ForSyDe representation.
  */
 
 #include "id.h"
-#include "leaf.h"
+#include "process.h"
 #include "../exceptions/outofmemoryexception.h"
 #include "../exceptions/illegalstateexception.h"
 #include "../exceptions/invalidargumentexception.h"
@@ -49,14 +46,13 @@
 namespace f2cc {
 namespace Forsyde {
 
-class Composite;
-
 /**
  * @brief Contains the internal representation of a ForSyDe model.
  *
- * The \c Model embodies one or more of the
- * processes within the process network. It provides common methods for both
- * \c Processnetwork and \c Composite classes.
+ * The \c Model embodies a complete ForSyDe network of connected \c Process
+ * objects. The class also provides inputs and outputs to the network, which
+ * actually are inports and outports, respectively, to one or more of the
+ * processes within the network.
  */
 class Model {
   public:
@@ -76,25 +72,25 @@ class Model {
      *
      * @param process
      *        Process to add.
-     * @returns \b true if such a process did not already exist and was
+     * @returns \c true if such a process did not already exist and was 
      *          successfully added.
      * @throws InvalidArgumentException
      *         When \c process is \c NULL.
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
-    bool addProcess(Leaf* process)
+    bool addProcess(Process* process)
         throw(InvalidArgumentException, OutOfMemoryException);
 
     /**
      * Adds multiple processes to this model at the same time.
      *
      * @param processes
-     *        Combset of processes to add.
+     *        Mapset of processes to add.
      * @throws OutOfMemoryException
      *         When a process cannot be added due to memory shortage.
      */
-    void addProcesses(std::map<const Id, Leaf*> processes)
+    void addProcesses(std::map<const Id, Process*> processes)
         throw(OutOfMemoryException);
 
     /**
@@ -104,7 +100,7 @@ class Model {
      *        Process ID.
      * @returns Process, if found; otherwise \c NULL.
      */
-    Leaf* getProcess(const Id& id) throw();
+    Process* getProcess(const Id& id) throw();
 
     /**
      * Gets the number of processes in this model.
@@ -118,16 +114,107 @@ class Model {
      *
      * @returns Process list.
      */
-    std::list<Leaf*> getProcesses() throw();
+    std::list<Process*> getProcesses() throw();
 
     /**
      * Removes and destroys a process by ID.
      *
      * @param id
      *        Process ID.
-     * @returns \b true if such a process was found and successfully deleted.
+     * @returns \c true if such a process was found and successfully deleted.
      */
     bool deleteProcess(const Id& id) throw();
+
+    /**
+     * Adds an input to this model. The input must such that it is an inport to
+     * a process already existing in the model. If the input is \c NULL, nothing
+     * happens and \c false is returned.
+     *
+     * @param port
+     *        Inport of a process.
+     * @returns \c true if the port did not already exist as input and was
+     *          successfully added.
+     * @throws InvalidArgumentException
+     *         When \c port is \c NULL.
+     * @throws IllegalStateException
+     *         When the port belongs to a process not residing in the model.
+     * @throws OutOfMemoryException
+     *         When a port cannot be added due to memory shortage.
+     */
+    bool addInput(Process::Port* port)
+        throw(InvalidArgumentException, IllegalStateException,
+              OutOfMemoryException);
+
+    /**
+     * Deletes an input port of this model.
+     *
+     * @param port
+     *        Port.
+     * @returns \c true if such an input port was found and successfully
+     *          deleted.
+     * @throws InvalidArgumentException
+     *         When \c port is \c NULL.
+     */
+    bool deleteInput(Process::Port* port) throw(InvalidArgumentException);
+
+    /**
+     * Gets the number of inputs of this model.
+     *
+     * @returns Number of inputs.
+     */
+    int getNumInputs() const throw();
+
+    /**
+     * Gets a list of inputs belonging to this model.
+     *
+     * @returns List of inputs.
+     */
+    std::list<Process::Port*> getInputs() throw();
+
+    /**
+     * Same as addInput(const Process::Port*) but for outputs.
+     *
+     * @param port
+     *        Outport of a process.
+     * @returns \c true if the port did not already exist as output and was
+     *          successfully added.
+     * @throws InvalidArgumentException
+     *         When \c port is \c NULL.
+     * @throws IllegalStateException
+     *         When the port belongs to a process not residing in the model.
+     * @throws OutOfMemoryException
+     *         When a port cannot be added due to memory shortage.
+     */
+    bool addOutput(Process::Port* port)
+        throw(InvalidArgumentException, IllegalStateException,
+              OutOfMemoryException);
+
+    /**
+     * Same as deleteInput(Process::Port*) but for outputs.
+     *
+     * @param port
+     *        Port.
+     * @returns \c true if such an output port was found and successfully
+     *          deleted.
+     * @throws InvalidArgumentException
+     *         When \c port is \c NULL.
+     */
+    bool deleteOutput(Process::Port* port) throw(InvalidArgumentException);
+
+    /**
+     * Same as addInput(const Process::Port*) but for outputs.
+     * Gets the number of inputs of this model.
+     *
+     * @returns Number of inputs.
+     */
+    int getNumOutputs() const throw();
+
+    /**
+     * Same as getInputs() but for outputs.
+     *
+     * @returns List of outputs.
+     */
+    std::list<Process::Port*> getOutputs() throw();
 
     /**
      * Gets a new process ID which is not currently in use within this model.
@@ -137,7 +224,7 @@ class Model {
     Forsyde::Id getUniqueProcessId() const throw();
 
     /**
-     * Same as getUniqueCompositeId() but allows an arbitrary string to be
+     * Same as getUniqueProcessId() but allows an arbitrary string to be
      * prefixed to the ID.
      *
      * @param prefix
@@ -147,93 +234,65 @@ class Model {
     Forsyde::Id getUniqueProcessId(const std::string& prefix) const throw();
 
     /**
-     * Adds a composite to this model. Models are not allowed to have multiple
-     * composites with the same ID.
+     * Converts this model into a string representation. The resultant string
+     * is as follows:
+     * @code
+     * {
+     *  Model,
+     *  NumInputs: <num_inputs>,
+     *  Inputs = { ... },
+     *  NumOututs: <num_outports>,
+     *  Outputs = { ... },
+     *  NumProcesses: <num_processes>
+     * }
+     * @endcode
      *
-     * @param composite
-     *        Compoiste to add.
-     * @returns \b true if such a process did not already exist and was
-     *          successfully added.
-     * @throws InvalidArgumentException
-     *         When \c composite is \c NULL.
-     * @throws OutOfMemoryException
-     *         When a composite cannot be added due to memory shortage.
+     * @returns String representation.
      */
-    bool addComposite(Composite* composite)
-        throw(InvalidArgumentException, OutOfMemoryException);
+    std::string toString() const throw();
 
-    /**
-     * Adds multiple composites to this model at the same time.
-     *
-     * @param composites
-     *        Combset of composites to add.
-     * @throws OutOfMemoryException
-     *         When a composite cannot be added due to memory shortage.
-     */
-    void addComposites(std::map<const Id, Composite*> composites)
-        throw(OutOfMemoryException);
-
-    /**
-     * Gets a composite by ID.
-     *
-     * @param id
-     *        Composite ID.
-     * @returns Composite, if found; otherwise \c NULL.
-     */
-    Composite* getComposite(const Id& id) throw();
-
-    /**
-     * Gets the number of composites in this model.
-     *
-     * @returns Composite count.
-     */
-    int getNumComposites() const throw();
-
-    /**
-     * Gets a list of all composites in this model.
-     *
-     * @returns Composite list.
-     */
-    std::list<Composite*> getComposites() throw();
-
-    /**
-     * Removes and destroys a composite by ID.
-     *
-     * @param id
-     *        Composite ID.
-     * @returns \b true if such a composite was found and successfully deleted.
-     */
-    bool deleteComposite(const Id& id) throw();
-
-    /**
-     * Gets a new composite ID which is not currently in use within this model.
-     *
-     * @returns A unique composite ID.
-     */
-    Forsyde::Id getUniqueCompositeId() const throw();
-
-    /**
-     * Same as getUniqueCompositeId() but allows an arbitrary string to be
-     * prefixed to the ID.
-     *
-     * @param prefix
-     *        ID prefix.
-     * @returns A unique composite ID.
-     */
-    Forsyde::Id getUniqueCompositeId(const std::string& prefix) const throw();
-
-  protected:
+  private:
     /**
      * Attempts to find a process with a given ID. If the mapset of processes is
      * not empty and such a process is found, an iterator pointing to that port
      * is returned; otherwise the mapset's \c end() iterator is returned.
      *
      * @param id
-     *        Composite ID.
+     *        Process ID.
      * @returns Iterator pointing either at the found process, or an iterator
      *          equal to mapset's \c end() iterator.
      */
-    std::map<const Id, Leaf*>::iterator findProcess(const Id& id) throw();
+    std::map<const Id, Process*>::iterator findProcess(const Id& id) throw();
+
+    /**
+     * Attempts to find a port with a given ID from a list of ports. If the list
+     * is not empty and such a port is found, an iterator pointing to that port
+     * is returned; otherwise the list's \c end() iterator is returned.
+     *
+     * @param id
+     *        Port ID.
+     * @param ports
+     *        List of ports.
+     * @returns Iterator pointing either at the found port, or an iterator equal
+     *          to the list's \c end() iterator.
+     */
+    std::list<Process::Port*>::iterator findPort(
+        const Id& id, std::list<Process::Port*>& ports) const throw();
+
+    /**
+     * Checks if a port exists in a given list of ports. If the list is not
+     * empty and such a port is found, an iterator pointing to that port is
+     * returned; otherwise the list's \c end() iterator is returned.
+     *
+     * @param port
+     *        Port.
+     * @param ports
+     *        List of ports.
+     * @returns Iterator pointing either at the found port, or an iterator equal
+     *          to the list's \c end() iterator.
+     */
+    std::list<Process::Port*>::iterator findPort(
+        Process::Port* port, std::list<Process::Port*>& ports) const throw();
 
     /**
      * Destroys all processes in this model.
@@ -241,32 +300,35 @@ class Model {
     void destroyAllProcesses() throw();
 
     /**
-     * Attempts to find a process with a given ID. If the mapset of processes is
-     * not empty and such a process is found, an iterator pointing to that port
-     * is returned; otherwise the mapset's \c end() iterator is returned.
+     * Takes a list of ports and converts it into a string representation. Each
+     * port is converted into
+     * @code
+     *  PortID: <port_id>, belonging to <process>,
+     *  ...
+     * @endcode
      *
-     * @param id
-     *        Composite ID.
-     * @returns Iterator pointing either at the found process, or an iterator
-     *          equal to mapset's \c end() iterator.
+     * @param ports
+     *        Port list.
+     * @returns String representation.
      */
-    std::map<const Id, Composite*>::iterator findComposite(const Id& id) throw();
+    std::string portsToString(const std::list<Process::Port*> ports) const
+        throw();
+
+  private:
+    /**
+     * Mapset of processes.
+     */
+    std::map<const Id, Process*> processes_;
 
     /**
-     * Destroys all processes in this model.
+     * List of inputs.
      */
-    void destroyAllComposites() throw();
-
-  protected:
-    /**
-     * Combset of processes.
-     */
-    std::map<const Id, Leaf*> leafs_;
+    std::list<Process::Port*> inputs_;
 
     /**
-     * Combset of composites.
+     * List of outputs.
      */
-    std::map<const Id, Composite*> composites_;
+    std::list<Process::Port*> outputs_;
 };
 
 }

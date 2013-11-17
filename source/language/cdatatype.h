@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -101,7 +99,7 @@ class CDataType {
      * @param has_array_size
      *        Whether the array size is known.
      * @param array_size
-     *        Array size (ignored if \c has_array_size is set to \b false).
+     *        Array size (ignored if \c has_array_size is set to \c false).
      * @param is_pointer
      *        Whether the data type is a pointer. This is different than from
      *        an array since pointers don't need an array size.
@@ -111,7 +109,7 @@ class CDataType {
      *         When \c type is an empty string or invalid type, when the
      *         array size is less than 1, or when the type is \c VOID and
      *         any of \c is_array, \c is_pointer, or \c is_const is set to
-     *         \b true.
+     *         \c true.
      */
     CDataType(Type type, bool is_array, bool has_array_size,
               size_t array_size, bool is_pointer, bool is_const)
@@ -163,7 +161,7 @@ class CDataType {
     /**
      * Checks whether this data type is an array.
      *
-     * @returns \b true if this data type is an array.
+     * @returns \c true if this data type is an array.
      */
     bool isArray() const throw();
 
@@ -179,9 +177,9 @@ class CDataType {
 
     /**
      * Checks whether this data type has an array size. If the data type is not
-     * an array, this always returns \b true.
+     * an array, this always returns \c true.
      *
-     * @returns \b true if it does or is not an array.
+     * @returns \c true if it does or is not an array.
      */
     bool hasArraySize() const throw();
 
@@ -213,7 +211,7 @@ class CDataType {
     /**
      * Checks whether this data type is a pointer.
      *
-     * @returns \b true if this data type is a pointer.
+     * @returns \c true if this data type is a pointer.
      */
     bool isPointer() const throw();
 
@@ -228,7 +226,7 @@ class CDataType {
     /**
      * Checks whether this data type is \c const.
      *
-     * @returns \b true if this data type is \c const.
+     * @returns \c true if this data type is \c const.
      */
     bool isConst() const throw();
 
@@ -245,7 +243,7 @@ class CDataType {
      *
      * @param rhs
      *        Data type to compare.
-     * @returns \b true if both represent the same data type.
+     * @returns \c true if both represent the same data type.
      */
     bool operator==(const CDataType& rhs) const throw();
 
@@ -254,7 +252,7 @@ class CDataType {
      *
      * @param rhs
      *        Data type to compare.
-     * @returns \b true if they do not represent the same data type.
+     * @returns \c true if they do not represent the same data type.
      */
     bool operator!=(const CDataType& rhs) const throw();
 

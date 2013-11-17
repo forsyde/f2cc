@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +41,7 @@ namespace f2cc {
 namespace Forsyde {
 
 /**
- * @brief A class used for identifying elements in the ForSyDe processnetwork.
+ * @brief A class used for identifying elements in the ForSyDe model.
  *
  * The \c Id class is used to represent IDs in the internal
  * representation of ForSyDe models. Although the ID itself is actually just a
@@ -78,7 +76,7 @@ class Id {
      *
      * @param rhs
      *        ID to compare.
-     * @returns \b true if the IDs are identical.
+     * @returns \c true if the IDs are identical.
      */
     bool operator==(const Id& rhs) const throw();
 
@@ -87,7 +85,7 @@ class Id {
      *
      * @param rhs
      *        ID to compare.
-     * @returns \b true if the IDs are not identical.
+     * @returns \c true if the IDs are not identical.
      */
     bool operator!=(const Id& rhs) const throw();
 
@@ -96,7 +94,7 @@ class Id {
      *
      * @param rhs
      *        ID to compare.
-     * @returns \b true if this ID's string is evaluated less than the ID string
+     * @returns \c true if this ID's string is evaluated less than the ID string
      *          of the other.
      */
     bool operator<(const Id& rhs) const throw();

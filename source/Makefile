@@ -1,6 +1,4 @@
-# Copyright (c) 2011-2013
-#     Gabriel Hjort Blindell <ghb@kth.se>
-#     George Ungureanu <ugeorge@kth.se>
+# Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,8 +28,8 @@ OBJECTS  = $(addprefix $(OBJPATH)/, \
 EXEC_ = f2cc
 EXEC  = $(addprefix $(TARGETPATH)/, $(EXEC_))
 
-DEPENDENCIES = ticpp exceptions tools logger forsyde forsyde/SY language frontend config \
-               synthesizer  
+DEPENDENCIES = ticpp exceptions tools logger forsyde language frontend config \
+               synthesizer
 DEPOBJECTS   = $(addprefix $(OBJPATH)/, \
                  $(addsuffix /*.o, $(basename $(DEPENDENCIES))) \
                 )

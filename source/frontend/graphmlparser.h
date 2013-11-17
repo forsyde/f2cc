@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2011-2013
- *     Gabriel Hjort Blindell <ghb@kth.se>
- *     George Ungureanu <ugeorge@kth.se>
+ * Copyright (c) 2011-2012 Gabriel Hjort Blindell <ghb@kth.se>
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +37,8 @@
 #include "frontend.h"
 #include "../logger/logger.h"
 #include "../forsyde/id.h"
-#include "../forsyde/processnetwork.h"
-#include "../forsyde/leaf.h"
+#include "../forsyde/model.h"
+#include "../forsyde/process.h"
 #include "../language/cfunction.h"
 #include "../language/cdatatype.h"
 #include "../ticpp/ticpp.h"
@@ -55,11 +53,11 @@
 namespace f2cc {
 
 /**
- * @brief A class for parsing a GraphML file into an internal ForSyDe processnetwork
+ * @brief A class for parsing a GraphML file into an internal ForSyDe model
  *        representation.
  *
  * The \c GraphmlParser is a frontend to the \c f2cc which parses a GraphML
- * representation of a ForSyDe processnetwork and converts it into an internal
+ * representation of a ForSyDe model and converts it into an internal
  * equivalent. Any unrecognized elements in the XML file will be ignored.
  *
  * The class uses <a href="http://code.google.com/p/ticpp/">TinyXML++</a> for
@@ -82,9 +80,9 @@ class GraphmlParser : public Frontend {
 
   private:
     /**
-     * @copydoc Frontend::createProcessNetwork(const std::string&)
+     * @copydoc Frontend::createModel(const std::string&)
      */
-    virtual Forsyde::ProcessNetwork* createProcessNetwork(const std::string& file)
+    virtual Forsyde::Model* createModel(const std::string& file)
         throw(InvalidArgumentException, FileNotFoundException, IOException,
               ParseException, InvalidModelException, RuntimeException);
 
@@ -159,41 +157,41 @@ class GraphmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Converts an \c graph XML element into an internal ForSyDe processnetwork. The
-     * method makes no checks on whether the resultant processnetwork appears sane or
-     * not.  It is the caller's responsibility to destroy the processnetwork when it is
+     * Converts an \c graph XML element into an internal ForSyDe model. The
+     * method makes no checks on whether the resultant model appears sane or
+     * not.  It is the caller's responsibility to destroy the model when it is
      * no longer used.
      * 
      * @param xml
-     *        \c graph XML element containing the processnetwork.
-     * @returns Internal ForSyDe processnetwork object.
+     *        \c graph XML element containing the model.
+     * @returns Internal ForSyDe model object.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
      * @throws InvalidModelException
-     *         When the processnetwork is invalid (but was successfully parsed).
+     *         When the model is invalid (but was successfully parsed).
      * @throws IOException
      *         When access to the log file fails.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    Forsyde::ProcessNetwork* generateProcessNetwork(ticpp::Element* xml)
+    Forsyde::Model* generateModel(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, InvalidModelException,
           IOException, RuntimeException);
 
     /**
      * Parses the \c node XML elements in a \c graph XML element and converts
-     * them into corresponding leafs, which are then added to the processnetwork.
+     * them into corresponding processes, which are then added to the model.
      * mapset.
      *
      * @param xml
      *        \c graph XML element containing the \c node XML elements.
-     * @param processnetwork
-     *        ProcessNetwork object to add the leaf to.
+     * @param model
+     *        Model object to add the process to.
      * @throws InvalidArgumentException
-     *         When \c xml or \c processnetwork is \c NULL.
+     *         When \c xml or \c model is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
      * @throws IOException
@@ -202,23 +200,23 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlNodes(ticpp::Element* xml, Forsyde::ProcessNetwork* processnetwork)
+    void parseXmlNodes(ticpp::Element* xml, Forsyde::Model* model)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
     /**
      * Parses the \c edge XML elements in a \c graph XML element and uses them
-     * to connect the ports of the leafs in the processnetwork.
+     * to connect the ports of the processes in the model.
      *
      * @param xml
      *        \c graph XML element containing the \c edge XML elements.
-     * @param processnetwork
-     *        ProcessNetwork object.
-     * @param copy_leafs
-     *        Mapset which contains the \c Fanout leafs created during the
-     *        parsing leaf.
+     * @param model
+     *        Model object.
+     * @param copy_processes
+     *        Mapset which contains the \c CopySY processes created during the
+     *        parsing process.
      * @throws InvalidArgumentException
-     *         When \c xml or \c processnetwork is \c NULL.
+     *         When \c xml or \c model is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
      * @throws IOException
@@ -227,58 +225,58 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void parseXmlEdges(ticpp::Element* xml, Forsyde::ProcessNetwork* processnetwork,
-                       std::map<Forsyde::Leaf::Port*, Forsyde::Leaf*>&
-                       copy_leafs)
+    void parseXmlEdges(ticpp::Element* xml, Forsyde::Model* model,
+                       std::map<Forsyde::Process::Port*, Forsyde::Process*>&
+                       copy_processes)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
     /**
-     * Verifies that all in and out ports of all leafs in the processnetwork are
-     * connected, and only connected to leafs within the processnetwork.
+     * Verifies that all in and out ports of all processes in the model are
+     * connected, and only connected to processes within the model.
      *
-     * @param processnetwork
-     *        ProcessNetwork to verify.
+     * @param model
+     *        Model to verify.
      * @throws InvalidArgumentException
-     *         When \c processnetwork is \c NULL.
+     *         When \c model is \c NULL.
      * @throws ParseException
-     *         When a port is not connected or connected to a leaf which does
-     *         not belong to the processnetwork.
+     *         When a port is not connected or connected to a process which does
+     *         not belong to the model.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void verifyLeafConnections(Forsyde::ProcessNetwork* processnetwork)
+    void verifyProcessConnections(Forsyde::Model* model)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
     /**
-     * Sets the out and in ports of the InPort and OutPort leafs,
-     * respectively, as inputs and outputs of the processnetwork. The InPort and
-     * Outport leafs are then removed.
+     * Sets the out and in ports of the InPort and OutPort processes,
+     * respectively, as inputs and outputs of the model. The InPort and
+     * Outport processes are then removed.
      *
-     * @param processnetwork
-     *        ProcessNetwork.
+     * @param model
+     *        Model.
      * @throws InvalidArgumentException
-     *         When \c processnetwork is \c NULL.
+     *         When \c model is \c NULL.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void fixProcessNetworkInputsOutputs(Forsyde::ProcessNetwork* processnetwork)
+    void fixModelInputsOutputs(Forsyde::Model* model)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
     /**
-     * Converts an XML \c node element into an internal ForSyDe leaf of the
+     * Converts an XML \c node element into an internal ForSyDe process of the
      * same type along with its ports and function argument, if any.
      * 
      * @param xml
-     *        \c node element containing the leaf.
-     * @returns Internal leaf object.
+     *        \c node element containing the process.
+     * @returns Internal process object.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -289,7 +287,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    Forsyde::Leaf* generateLeaf(ticpp::Element* xml)
+    Forsyde::Process* generateProcess(ticpp::Element* xml)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -336,17 +334,17 @@ class GraphmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Gets the leaf type from a XML \c node element. The type is specified
-     * in an XML \c data child element with attribute \c key="leaf_type".
+     * Gets the process type from a XML \c node element. The type is specified
+     * in an XML \c data child element with attribute \c key="process_type".
      * Any surrounding whitespace will be trimmed.
      * 
      * @param xml
      *        \c node element.
-     * @returns Its leaf type.
+     * @returns Its process type.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
-     *         When a leaf type cannot be found.
+     *         When a process type cannot be found.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
@@ -358,32 +356,32 @@ class GraphmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Gets the leaf function argument from a XML \c node element. The
+     * Gets the process function argument from a XML \c node element. The
      * function argument is specified in an XML "data" child element.
      * 
      * @param xml
      *        \c node element.
-     * @returns Leaf function argument.
+     * @returns Process function argument.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
-     *         When a leaf function argument cannot be found or is invalid.
+     *         When a process function argument cannot be found or is invalid.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    CFunction generateLeafFunction(ticpp::Element* xml)
+    CFunction generateProcessFunction(ticpp::Element* xml)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
     /**
-     * Generates a leaf function argument from a string.
+     * Generates a process function argument from a string.
      *
      * @param str
      *        Function string.
-     * @returns Leaf function argument.
+     * @returns Process function argument.
      * @throws ParseException
      *         When the function string is invalid.
      * @throws IOException
@@ -392,7 +390,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    CFunction generateLeafFunctionFromString(const std::string& str)
+    CFunction generateProcessFunctionFromString(const std::string& str)
         throw(InvalidFormatException);
 
     /**
@@ -420,17 +418,17 @@ class GraphmlParser : public Frontend {
         throw(InvalidFormatException);
 
     /**
-     * Gets the number of leafs from an XML \c node element. The number is
+     * Gets the number of processes from an XML \c node element. The number is
      * specified in an XML \c data child element with attribute \c
-     * key="num_leafs".
+     * key="num_processes".
      * 
      * @param xml
      *        \c node element.
-     * @returns Number of leafs.
+     * @returns Number of processes.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
-     *         When number of leafs cannot be found.
+     *         When number of processes cannot be found.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
@@ -442,19 +440,19 @@ class GraphmlParser : public Frontend {
               RuntimeException);
 
     /**
-     * Finds and sets the array sizes, where required, for a leaf function
+     * Finds and sets the array sizes, where required, for a process function
      * argument.  The array sizes are extracted from XML "data" elements, with
      * argument "array_size", inside the XML "port" elements, which in turn are
      * children to the XML \c node element where the function was found.
      * 
      * @param function
-     *        Leaf function argument.
+     *        Process function argument.
      * @param xml
      *        \c node element.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
-     *         When a leaf function argument cannot be found or is invalid.
+     *         When a process function argument cannot be found or is invalid.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
@@ -513,7 +511,7 @@ class GraphmlParser : public Frontend {
      * 
      * @param xml
      *        \c port element containing the port.
-     * @returns Internal leaf port object.
+     * @returns Internal process port object.
      * @throws InvalidArgumentException
      *         When \c xml is \c NULL.
      * @throws ParseException
@@ -524,7 +522,7 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    Forsyde::Leaf::Port* generatePort(ticpp::Element* xml)
+    Forsyde::Process::Port* generatePort(ticpp::Element* xml)
     throw(InvalidArgumentException, ParseException, IOException,
           RuntimeException);
 
@@ -533,13 +531,13 @@ class GraphmlParser : public Frontend {
      * 
      * @param xml
      *        \c edge element containing the connection.
-     * @param processnetwork
-     *        ProcessNetwork object to add the leaf to.
-     * @param copy_leafs
-     *        Mapset which contains the \c Fanout leafs created during the
-     *        parsing leaf.
+     * @param model
+     *        Model object to add the process to.
+     * @param copy_processes
+     *        Mapset which contains the \c CopySY processes created during the
+     *        parsing process.
      * @throws InvalidArgumentException
-     *         When \c xml or \c processnetwork is \c NULL.
+     *         When \c xml or \c model is \c NULL.
      * @throws ParseException
      *         When some necessary element or attribute is missing.
      * @throws IOException
@@ -548,9 +546,9 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void generateConnection(ticpp::Element* xml, Forsyde::ProcessNetwork* processnetwork,
-                            std::map<Forsyde::Leaf::Port*,
-                                     Forsyde::Leaf*>& copy_leafs)
+    void generateConnection(ticpp::Element* xml, Forsyde::Model* model,
+                            std::map<Forsyde::Process::Port*,
+                                     Forsyde::Process*>& copy_processes)
         throw(InvalidArgumentException, ParseException, IOException,
               RuntimeException);
 
@@ -559,7 +557,7 @@ class GraphmlParser : public Frontend {
      *
      * @param id
      *        Port id.
-     * @returns \b true if the ID denotes an in port.
+     * @returns \c true if the ID denotes an in port.
      */
     bool isInPort(const std::string& id) const throw();
 
@@ -568,7 +566,7 @@ class GraphmlParser : public Frontend {
      *
      * @param id
      *        Port id.
-     * @returns \b true if the ID denotes an out port.
+     * @returns \c true if the ID denotes an out port.
      */
     bool isOutPort(const std::string& id) const throw();
 
@@ -584,19 +582,19 @@ class GraphmlParser : public Frontend {
      *        Port id.
      * @param direction
      *        \c "in" or \c "out".
-     * @returns \b true if the port ID is valid.
+     * @returns \c true if the port ID is valid.
      */
     bool isValidPortId(const std::string& id, const std::string direction) const
         throw();
 
     /**
-     * Checks that there is at most one InPort and exactly one OutPort leaf
-     * within the processnetwork.
+     * Checks that there is at least one InPort and at least one OutPort process
+     * within the model.
      * 
-     * @param processnetwork
-     *        ProcessNetwork to check.
+     * @param model
+     *        Model to check.
      * @throws InvalidArgumentException
-     *         When \c processnetwork is \c NULL.
+     *         When \c model is \c NULL.
      * @throws InvalidModelException
      *         When any of the checks fails.
      * @throws IOException
@@ -605,26 +603,26 @@ class GraphmlParser : public Frontend {
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void checkProcessNetworkMore(Forsyde::ProcessNetwork* processnetwork)
+    void checkModelMore(Forsyde::Model* model)
         throw(InvalidArgumentException, InvalidModelException, IOException,
               RuntimeException);
 
     /**
-     * Sets the out and in ports of the InPort and OutPort leafs,
-     * respectively, as inputs and outputs of the processnetwork. The InPort and
-     * Outport leafs are then removed.
+     * Sets the out and in ports of the InPort and OutPort processes,
+     * respectively, as inputs and outputs of the model. The InPort and
+     * Outport processes are then removed.
      * 
-     * @param processnetwork
-     *        ProcessNetwork to fix.
+     * @param model
+     *        Model to fix.
      * @throws InvalidArgumentException
-     *         When \c processnetwork is \c NULL.
+     *         When \c model is \c NULL.
      * @throws IOException
      *         When the file cannot be read or the log file cannot be written.
      * @throws RuntimeException
      *         When something unexpected occurs. This is most likely due to a
      *         bug.
      */
-    void postCheckFixes(Forsyde::ProcessNetwork* processnetwork)
+    void postCheckFixes(Forsyde::Model* model)
         throw(InvalidArgumentException, IOException, RuntimeException);
 
   private:

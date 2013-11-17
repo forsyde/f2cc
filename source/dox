@@ -18,7 +18,7 @@
 # that follow. The default is UTF-8 which is also the encoding used for all
 # text before the first occurrence of this tag. Doxygen uses libiconv (or the
 # iconv built into libc) for the transcoding. See
-# http://www.gnu.org/software/libiconv for the list of possible encodings
+# http://www.gnu.org/software/libiconv for the list of possible encodings.
 
 DOXYFILE_ENCODING      = UTF-8
 
@@ -34,7 +34,7 @@ PROJECT_NAME           = f2cc
 PROJECT_NUMBER         =
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
-# for a project that appears at the processnetwork of each page and should give viewer
+# for a project that appears at the top of each page and should give viewer
 # a quick idea about the purpose of the project. Keep the description short.
 
 PROJECT_BRIEF          = "A CUDA C synthesizer for ForSyDe models"
@@ -92,7 +92,7 @@ REPEAT_BRIEF           = NO
 # This tag implements a quasi-intelligent brief description abbreviator
 # that is used to form the text in various listings. Each string
 # in this list, if found as the leading text of the brief description, will be
-# stripped from the text and the result after leafing the whole list, is
+# stripped from the text and the result after processing the whole list, is
 # used as the annotated text. Otherwise, the brief description is used as-is.
 # If left blank, the following values are used ("$name" is automatically
 # replaced with the name of the entity): "The $name class" "The $name widget"
@@ -293,7 +293,7 @@ INLINE_GROUPED_CLASSES = NO
 
 TYPEDEF_HIDES_STRUCT   = NO
 
-# The MBOL_CACHE_SIZE determines the size of the internal cache use to
+# The SYMBOL_CACHE_SIZE determines the size of the internal cache use to
 # determine which symbols to keep in memory and which to flush to disk.
 # When the cache is full, less often used symbols will be written to disk.
 # For small to medium size projects (<1000 input files) the default value is
@@ -304,10 +304,10 @@ TYPEDEF_HIDES_STRUCT   = NO
 # performance by keeping more symbols in memory. Note that the value works on
 # a logarithmic scale so increasing the size by one will roughly double the
 # memory usage. The cache size is given by this formula:
-# 2^(16+MBOL_CACHE_SIZE). The valid range is 0..9, the default is 0,
+# 2^(16+SYMBOL_CACHE_SIZE). The valid range is 0..9, the default is 0,
 # corresponding to a cache size of 2^16 = 65536 symbols
 
-MBOL_CACHE_SIZE      = 0
+SYMBOL_CACHE_SIZE      = 0
 
 #---------------------------------------------------------------------------
 # Build related configuration options
@@ -338,8 +338,8 @@ EXTRACT_LOCAL_CLASSES  = YES
 
 # This flag is only useful for Objective-C code. When set to YES local
 # methods, which are defined in the implementation section but not in
-# the port are included in the documentation.
-# If set to NO (the default) only methods in the port are included.
+# the interface are included in the documentation.
+# If set to NO (the default) only methods in the interface are included.
 
 EXTRACT_LOCAL_METHODS  = NO
 
@@ -642,11 +642,11 @@ RECURSIVE              = YES
 
 EXCLUDE                = ticpp
 
-# The EXCLUDE_MLINKS tag can be used select whether or not files or
+# The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
 # from the input.
 
-EXCLUDE_MLINKS       = NO
+EXCLUDE_SYMLINKS       = NO
 
 # If the value of the INPUT tag contains directories, you can use the
 # EXCLUDE_PATTERNS tag to specify one or more wildcard patterns to exclude
@@ -656,13 +656,13 @@ EXCLUDE_MLINKS       = NO
 
 EXCLUDE_PATTERNS       =
 
-# The EXCLUDE_MBOLS tag can be used to specify one or more symbol names
+# The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
 # output. The symbol name can be a fully qualified name, a word, or if the
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # AClass::ANamespace, ANamespace::*Test
 
-EXCLUDE_MBOLS        =
+EXCLUDE_SYMBOLS        =
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see
@@ -788,7 +788,7 @@ VERBATIM_HEADERS       = YES
 
 # If the ALPHABETICAL_INDEX tag is set to YES, an alphabetical index
 # of all compounds will be generated. Enable this if the project
-# contains a lot of classes, structs, unions or ports.
+# contains a lot of classes, structs, unions or interfaces.
 
 ALPHABETICAL_INDEX     = YES
 
@@ -1059,7 +1059,7 @@ GENERATE_ECLIPSEHELP   = NO
 ECLIPSE_DOC_ID         = org.doxygen.Project
 
 # The DISABLE_INDEX tag can be used to turn on/off the condensed index at
-# processnetwork of each HTML page. The value NO (the default) enables the index and
+# top of each HTML page. The value NO (the default) enables the index and
 # the value YES disables it.
 
 DISABLE_INDEX          = NO
@@ -1103,7 +1103,7 @@ EXT_LINKS_IN_WINDOW    = NO
 # to manually remove any form_*.png images from the HTML output directory
 # to force them to be regenerated.
 
-FORMULA_FONTSIZE       = 7
+FORMULA_FONTSIZE       = 10
 
 # Use the FORMULA_TRANPARENT tag to determine whether or not the images
 # generated for formulas are transparent PNGs. Transparent PNGs are
@@ -1186,7 +1186,7 @@ MAKEINDEX_CMD_NAME     = makeindex
 # LaTeX documents. This may be useful for small projects and may help to
 # save some trees in general.
 
-COMPACT_LATEX          = YES
+COMPACT_LATEX          = NO
 
 # The PAPER_TYPE tag can be used to set the paper type that is used
 # by the printer. Possible values are: a4, letter, legal and
@@ -1399,11 +1399,11 @@ PERLMOD_PRETTY         = YES
 PERLMOD_MAKEVAR_PREFIX =
 
 #---------------------------------------------------------------------------
-# Configuration options related to the preleafor
+# Configuration options related to the preprocessor
 #---------------------------------------------------------------------------
 
 # If the ENABLE_PREPROCESSING tag is set to YES (the default) Doxygen will
-# evaluate all C-preleafor directives found in the sources and include
+# evaluate all C-preprocessor directives found in the sources and include
 # files.
 
 ENABLE_PREPROCESSING   = YES
@@ -1427,8 +1427,8 @@ EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
 
 # The INCLUDE_PATH tag can be used to specify one or more directories that
-# contain include files that are not input files but should be leafed by
-# the preleafor.
+# contain include files that are not input files but should be processed by
+# the preprocessor.
 
 INCLUDE_PATH           =
 
@@ -1440,7 +1440,7 @@ INCLUDE_PATH           =
 INCLUDE_FILE_PATTERNS  =
 
 # The PREDEFINED tag can be used to specify one or more macro names that
-# are defined before the preleafor is started (similar to the -D option of
+# are defined before the preprocessor is started (similar to the -D option of
 # gcc). The argument of the tag is a list of macros of the form: name
 # or name=definition (no spaces). If the definition and the = are
 # omitted =1 is assumed. To prevent a macro definition from being
@@ -1458,7 +1458,7 @@ PREDEFINED             =
 EXPAND_AS_DEFINED      =
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
-# doxygen's preleafor will remove all references to function-like macros
+# doxygen's preprocessor will remove all references to function-like macros
 # that are alone on a line, have an all uppercase name, and do not end with a
 # semicolon, because these will confuse the parser if not removed.
 
@@ -1541,13 +1541,13 @@ HIDE_UNDOC_RELATIONS   = YES
 # toolkit from AT&T and Lucent Bell Labs. The other options in this section
 # have no effect if this option is set to NO (the default)
 
-HAVE_DOT               = YES
+HAVE_DOT               = NO
 
 # The DOT_NUM_THREADS specifies the number of dot invocations doxygen is
 # allowed to run in parallel. When set to 0 (the default) doxygen will
-# base this on the number of leafors available in the system. You can set it
+# base this on the number of processors available in the system. You can set it
 # explicitly to a value larger than 0 to get control over the balance
-# between CPU load and leafing speed.
+# between CPU load and processing speed.
 
 DOT_NUM_THREADS        = 0
 
@@ -1564,7 +1564,7 @@ DOT_FONTNAME           = Helvetica
 # The DOT_FONTSIZE tag can be used to set the size of the font of dot graphs.
 # The default size is 10pt.
 
-DOT_FONTSIZE           = 7
+DOT_FONTSIZE           = 10
 
 # By default doxygen will tell dot to use the output directory to look for the
 # FreeSans.ttf font (which doxygen will put there itself). If you specify a
@@ -1593,7 +1593,7 @@ COLLABORATION_GRAPH    = YES
 GROUP_GRAPHS           = YES
 
 # If the UML_LOOK tag is set to YES doxygen will generate inheritance and
-# collaboration diagrams in a style similar to the OMG's Unified ProcessNetworking
+# collaboration diagrams in a style similar to the OMG's Unified Modeling
 # Language.
 
 UML_LOOK               = NO
@@ -1601,7 +1601,7 @@ UML_LOOK               = NO
 # If set to YES, the inheritance and collaboration graphs will show the
 # relations between templates and their instances.
 
-TEMPLATE_RELATIONS     = YES
+TEMPLATE_RELATIONS     = NO
 
 # If the ENABLE_PREPROCESSING, SEARCH_INCLUDES, INCLUDE_GRAPH, and HAVE_DOT
 # tags are set to YES then doxygen will generate a graph for each documented

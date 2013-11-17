@@ -10,15 +10,9 @@
 /**
  * @namespace f2cc::Forsyde
  * @brief Contains all classes used in the internal representation of a ForSyDe 
- *        processnetwork.
+ *        model.
  *
- * The \c Forsyde namespace contains all the process network, leaf, ports classes used 
- * to construct the internal representation of a ForSyDe process network. 
- */
-
- /**
- * @namespace f2cc::Forsyde::SY
- * @brief Contains all leafs in SY MoC.
- *
- * The \c SY namespace contains all the leaf constructors in SYnchronous MoC
+ * The \c Forsyde namespace contains all the model, process, ports classes used 
+ * to construct the internal representation of a ForSyDe model. It also contains
+ * classes which operate on such models.
  */
