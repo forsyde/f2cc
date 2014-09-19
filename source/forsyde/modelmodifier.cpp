@@ -652,7 +652,7 @@ list<Process*> ModelModifier::getProcessChainR(Process::Port* start,
                 logger_.logDebugMessage("Found end point");
                 break;
             }
-            if (visitProcess(visited, next_process)) {
+            if (!visitProcess(visited, next_process)) {
                 logger_.logDebugMessage(string("\"") + next_process->getId()
                                         ->getString() + "\" already visited");
                 break;
