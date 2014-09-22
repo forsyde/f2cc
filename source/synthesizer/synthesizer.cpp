@@ -1694,7 +1694,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
         new_body += kIndents + kIndents + output_data_variable_name
             + "[" + output_index_variable_name + "]"
             " = " + function->getName() + "(";
-        if (old_input_param_data_type.getArraySize() > 0) {
+        if (old_input_param_data_type.getArraySize() > 1) {
             new_body += "&";
         }
         new_body += input_data_variable_name + "[" + input_index_variable_name 
@@ -1702,7 +1702,7 @@ CFunction Synthesizer::generateCudaKernelFunction(CFunction* function,
     }
     else {
         new_body += kIndents + kIndents + function->getName() + "(";
-        if (old_input_param_data_type.getArraySize() > 0) {
+        if (old_input_param_data_type.getArraySize() > 1) {
             new_body += "&";
         }
         new_body += input_data_variable_name + "[" + input_index_variable_name
